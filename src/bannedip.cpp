@@ -19,6 +19,8 @@ BannedIP::BannedIP(QWidget *parent) :
     tableProxy->setSourceModel( tableModel );
     tableProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     ui->banTable->setModel( tableProxy );
+
+    this->setWindowModality( Qt::WindowModal );
 }
 
 BannedIP::~BannedIP()

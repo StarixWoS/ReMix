@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Banned Sernums:</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -25,6 +25,24 @@
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0" colspan="3">
        <widget class="QTableView" name="sernumTable">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="verticalScrollMode">
+         <enum>QAbstractItemView::ScrollPerPixel</enum>
+        </property>
+        <property name="horizontalScrollMode">
+         <enum>QAbstractItemView::ScrollPerPixel</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>true</bool>
+        </property>
         <attribute name="horizontalHeaderMinimumSectionSize">
          <number>50</number>
         </attribute>
@@ -47,6 +65,9 @@
         <property name="text">
          <string>Forgive Selected Sernum</string>
         </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -66,6 +87,9 @@
        <widget class="QPushButton" name="cancelButton">
         <property name="text">
          <string>Cancel</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

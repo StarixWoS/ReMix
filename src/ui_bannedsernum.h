@@ -49,6 +49,12 @@ public:
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
         sernumTable = new QTableView(frame);
         sernumTable->setObjectName(QStringLiteral("sernumTable"));
+        sernumTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        sernumTable->setSelectionMode(QAbstractItemView::SingleSelection);
+        sernumTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        sernumTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        sernumTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+        sernumTable->setSortingEnabled(true);
         sernumTable->horizontalHeader()->setMinimumSectionSize(50);
         sernumTable->horizontalHeader()->setStretchLastSection(true);
         sernumTable->verticalHeader()->setVisible(false);
@@ -59,6 +65,7 @@ public:
         forgiveButton = new QPushButton(frame);
         forgiveButton->setObjectName(QStringLiteral("forgiveButton"));
         forgiveButton->setEnabled(false);
+        forgiveButton->setAutoDefault(false);
 
         gridLayout_2->addWidget(forgiveButton, 1, 0, 1, 1);
 
@@ -68,6 +75,7 @@ public:
 
         cancelButton = new QPushButton(frame);
         cancelButton->setObjectName(QStringLiteral("cancelButton"));
+        cancelButton->setAutoDefault(false);
 
         gridLayout_2->addWidget(cancelButton, 1, 2, 1, 1);
 
@@ -82,7 +90,7 @@ public:
 
     void retranslateUi(QDialog *BannedSernum)
     {
-        BannedSernum->setWindowTitle(QApplication::translate("BannedSernum", "Dialog", 0));
+        BannedSernum->setWindowTitle(QApplication::translate("BannedSernum", "Banned Sernums:", 0));
         forgiveButton->setText(QApplication::translate("BannedSernum", "Forgive Selected Sernum", 0));
         cancelButton->setText(QApplication::translate("BannedSernum", "Cancel", 0));
     } // retranslateUi

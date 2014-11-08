@@ -25,7 +25,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0" colspan="2">
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="isPublicServer">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -44,7 +44,7 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLineEdit" name="lineEdit">
+        <widget class="QLineEdit" name="serverName">
          <property name="minimumSize">
           <size>
            <width>590</width>
@@ -63,7 +63,7 @@
         </widget>
        </item>
        <item row="0" column="3">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="onlineTime">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -118,7 +118,7 @@
            <number>10</number>
           </property>
           <item row="0" column="0">
-           <widget class="QLineEdit" name="lineEdit_2">
+           <widget class="QLineEdit" name="serverPort">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -137,7 +137,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="bangBang">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -156,7 +156,7 @@
            </widget>
           </item>
           <item row="1" column="0" colspan="2">
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="enableNetworking">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -220,7 +220,7 @@
            </widget>
           </item>
           <item row="4" column="0" colspan="2">
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="openUserComments">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -242,7 +242,7 @@
         </widget>
        </item>
        <item row="1" column="1" colspan="3">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="networkStatus">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -303,7 +303,7 @@
            <number>10</number>
           </property>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="ipDCCount">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -322,7 +322,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="packetDCCount">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -341,7 +341,7 @@
            </widget>
           </item>
           <item row="5" column="0">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="packetOUTBD">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -360,7 +360,7 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="duplicateCount">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -379,7 +379,7 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="packetINBD">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -398,7 +398,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="callCount">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>

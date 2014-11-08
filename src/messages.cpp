@@ -14,6 +14,8 @@ Messages::Messages(QWidget *parent) :
     QObject::connect( this, &Messages::finished,
                       this, &Messages::on_reloadSettings_clicked );
     emit ui->reloadSettings->clicked();
+
+    this->setWindowModality( Qt::WindowModal );
 }
 
 Messages::~Messages()
