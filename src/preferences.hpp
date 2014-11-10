@@ -5,26 +5,6 @@
 #include <QSettings>
 #include <QString>
 
-//[options]
-//extension=810105124
-//myPassword=SOUL1
-//autoBanish=0
-//discIdle=0
-//requireSernum=0
-//dupeOK=1
-//serverSupportsVariables=1
-//banishDupes=0
-//requirePassword=0
-
-//[wrongIPs]
-//5.104.199.224=1
-//192.168.1.16=1
-
-//[General]
-//MOTD=///PASSWORD REQUIRED NOW:
-//BANISHED=Go away.
-//RULES=World=Evergreen, Ladder=1
-
 namespace Preferences
 {
     enum Keys{ Options = 0, WrongIP = 1, General = 2 };

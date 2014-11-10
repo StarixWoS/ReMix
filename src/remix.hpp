@@ -10,14 +10,27 @@
 #include <QTcpSocket>
 #include <QUdpSocket>
 #include <QDateTime>
+#include <QHostInfo>
 #include <QDebug>
 #include <QTimer>
+
+//Standard C++/11 Headers
+#include <chrono>
+
+//ServerInfo structure.
+#include "serverinfo.hpp"
 
 class BannedSernum;
 class UserMessage;
 class Messages;
 class BannedIP;
 class Server;
+
+namespace Helper
+{
+    namespace RandDev{}
+    int genRandNum(int min = 0, int max = 32767);
+}
 
 namespace Ui {
 class ReMix;
@@ -39,9 +52,14 @@ class ReMix : public QMainWindow
     Server* tcpServer{ nullptr };
     BannedIP* banIP{ nullptr };
 
+    ServerInfo* serverInfo{ nullptr };
+
     public:
         explicit ReMix(QWidget *parent = 0);
         ~ReMix();
+
+        int genServerID();
+        void parseCMDLArgs();
 
     private slots:
         void on_openSysMessages_clicked();
@@ -49,8 +67,9 @@ class ReMix : public QMainWindow
         void on_openBannedSernums_clicked();
         void on_openUserComments_clicked();
         void on_enableNetworking_clicked();
+        void on_isPublicServer_stateChanged(int arg1);
 
-        void on_isPublicServer_clicked();
+        void on_serverPort_textChanged(const QString &arg1);
 
     private:
         Ui::ReMix *ui;

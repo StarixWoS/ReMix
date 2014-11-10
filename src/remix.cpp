@@ -3,69 +3,31 @@
 #include "ui_remix.h"
 
 #include "bannedsernum.hpp"
+#include "preferences.hpp"
 #include "usermessage.hpp"
 #include "messages.hpp"
 #include "bannedip.hpp"
 #include "server.hpp"
+
+namespace Helper
+{
+    namespace RandDev
+    {
+        std::mt19937 randDevice( QDateTime().currentMSecsSinceEpoch() );
+    }
+
+    int genRandNum(int min, int max)
+    {
+        std::uniform_int_distribution<int> randInt( min, max );
+        return randInt( RandDev::randDevice );
+    }
+}
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
-
-    //Parse Commandline Arguments.
-//    QStringList args{ "/mixmaster=23999", "/game=WoS", "/Listen=50001", "/public", "/fudge", "/name=Well of Lost Souls" }; //= qApp->arguments();
-//    for ( int i = 0; i < args.count(); ++i )
-//    {
-//        int index = 0;
-
-//        QString arg = args.at( i );
-//        if ( arg.startsWith( "/Game", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Game name.
-//        }
-//        else if ( arg.startsWith( "/mixmaster", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Enable MixMaster Mode and listen to port. Default Port = 23999
-//        }
-//        else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Master Server IP:Port. Default = 209.233.24.166:23999
-//        }
-//        else if ( arg.startsWith( "/public", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Master Server IP:Port. Default = 209.233.24.166:23999
-//        }
-//        else if ( arg.startsWith( "/listen", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set Server Port. Default = 0
-//        }
-//        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Server Website.
-//        }
-//        else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Server name.
-//        }
-//        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
-//            qDebug() << arg.mid( index + 1 );   //Enable fileLogging.
-//    }
 
     //Setup the PlayerInfo TableView.
     plrViewModel = new QStandardItemModel( 0, 8, 0 );
@@ -109,6 +71,17 @@ ReMix::ReMix(QWidget *parent) :
     usrMsg = new UserMessage( this );
     banIP = new BannedIP( this );
 
+    //Setup Server/Player Info objects.
+    serverInfo = new ServerInfo();
+    serverInfo->serverID = this->genServerID();
+    serverInfo->hostInfo = QHostInfo();
+    serverInfo->serverRules = Preferences::getServerRules();
+    this->parseCMDLArgs();
+
+    ui->serverView->hide();
+    if ( serverInfo->isMaster )
+        ui->serverView->show();
+
     //Setup Networking Objects.
     tcpServer = new Server( this );
 
@@ -136,26 +109,130 @@ ReMix::~ReMix()
     delete ui;
 }
 
+int ReMix::genServerID()
+{
+    int id = Helper::genRandNum();
+        id = id << 4;
+        id = id ^ Helper::genRandNum();
+        id = id << 4;
+        id = id ^ ( Helper::genRandNum() << 10 );
+        id = id ^ Helper::genRandNum();
+        id = id << 4;
+        id = id ^ ( Helper::genRandNum() << 10 );
+        id = id ^ Helper::genRandNum();
+    return id;
+}
+
+void ReMix::parseCMDLArgs()
+{
+    QStringList args = qApp->arguments();
+
+    QString tmpArg;
+    for ( int i = 0; i < args.count(); ++i )
+    {
+        int index = 0;
+
+        QString arg = args.at( i );
+        if ( arg.startsWith( "/game", Qt::CaseInsensitive ) )
+        {
+            index = arg.indexOf( '=' );
+            if ( index > 0 )
+                serverInfo->gameName = arg.mid( index + 1 );
+            else
+                serverInfo->gameName = "WoS";
+        }
+        else if ( arg.startsWith( "/mixmaster", Qt::CaseInsensitive ) )
+        {
+            index = arg.indexOf( '=' );
+            if ( index > 0 )
+            {
+                serverInfo->isMaster = true;
+                serverInfo->masterPort = arg.mid( index + 1 ).toInt();
+            }
+            else
+                serverInfo->masterPort = 23999;
+        }
+        else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
+        {
+            index = arg.indexOf( '=' );
+            if ( index > 0 )
+            {
+               tmpArg = arg.mid( index + 1 );
+               if ( !tmpArg.isEmpty() )
+               {
+                   serverInfo->masterIP = tmpArg.left( tmpArg.indexOf( ':' ) );
+                   serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
+               }
+               else
+               {
+                   serverInfo->masterIP = "209.233.24.166";
+                   serverInfo->masterPort = 23999;
+               }
+            }
+        }
+        else if ( arg.startsWith( "/public", Qt::CaseInsensitive ) )
+        {
+            index = arg.indexOf( '=' );
+            if ( index > 0 )
+            {
+               tmpArg = arg.mid( index + 1 );
+               if ( !tmpArg.isEmpty() )
+               {
+                   serverInfo->masterIP = tmpArg.left( tmpArg.indexOf( ':' ) );
+                   serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
+                   serverInfo->isPublic = true;
+               }
+               else
+               {
+                   serverInfo->masterIP = "209.233.24.166";
+                   serverInfo->masterPort = 23999;
+               }
+            }
+
+        }
+        else if ( arg.startsWith( "/listen", Qt::CaseInsensitive ) )
+        {
+            index = arg.indexOf( '=' );
+            if ( index > 0 )
+                serverInfo->serverPort = arg.mid( index + 1 ).toInt();
+            else
+                serverInfo->serverPort = 0;
+        }
+        else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
+        {
+            tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
+            if ( !tmpArg.isEmpty() )
+                serverInfo->serverName = tmpArg;
+            else
+                serverInfo->serverName = "AHitB ReMix Server";
+        }
+//        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
+//        {
+//            index = arg.indexOf( '=' );
+//            if ( index > 0 )
+//                qDebug() << arg.mid( index + 1 );   //Set the Server Website?
+//        }
+//        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
+//            qDebug() << arg.mid( index + 1 );   //Enable fileLogging.
+    }
+    ui->serverPort->setText( QString::number( serverInfo->serverPort ) );
+    ui->isPublicServer->setChecked( serverInfo->isPublic );
+    ui->serverName->setText( serverInfo->serverName );
+}
+
 void ReMix::on_enableNetworking_clicked()
 {
     ui->enableNetworking->setEnabled( false );
-
-    QString port = ui->serverPort->text();
-    tcpServer->setupServerInfo( port );
-
-    ui->serverName->setText( tcpServer->serverAddress().toString() );
+    ui->serverPort->setEnabled( false );
+    tcpServer->setupServerInfo( serverInfo );
 }
 
-void ReMix::on_isPublicServer_clicked()
+void ReMix::on_isPublicServer_stateChanged(int)
 {
     if ( ui->isPublicServer->isChecked() )
-    {
-        ;   //Setup a connection with the Master Server.
-    }
+        tcpServer->setupPublicServer(true);   //Setup a connection with the Master Server.
     else
-    {
-        ;   //Disconnect from the Master Server if applicable.
-    }
+        tcpServer->setupPublicServer(false);   //Disconnect from the Master Server if applicable.
 }
 
 void ReMix::on_openSysMessages_clicked()
@@ -188,4 +265,9 @@ void ReMix::on_openUserComments_clicked()
         usrMsg->hide();
     else
         usrMsg->show();
+}
+
+void ReMix::on_serverPort_textChanged(const QString &arg1)
+{
+    serverInfo->serverPort = arg1.toInt();
 }

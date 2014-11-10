@@ -36,7 +36,7 @@ HEADERS += src/player.hpp \
            src/bannedip.hpp \
            src/bannedsernum.hpp \
            src/usermessage.hpp \
-           src/server.hpp
+           src/server.hpp \
 
 FORMS   += ui/remix.ui \
            ui/messages.ui \
