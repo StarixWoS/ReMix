@@ -88,6 +88,10 @@ QString Preferences::getServerRules()
     else if ( pending.type() == QVariant::String )
         rules = pending.toString();
 
-    qDebug() << rules;
     return rules;
+}
+
+bool Preferences::isInvalidIPAddress(const QString& value)
+{
+    return getSetting( keys[ Keys::WrongIP ], value ).toBool();
 }

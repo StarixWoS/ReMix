@@ -1,15 +1,20 @@
 
-#ifndef SERVERINFO
-#define SERVERINFO
+#ifndef SERVERINFO_HPP
+#define SERVERINFO_HPP
 
 #include <QHostInfo>
 #include <QString>
 
 struct ServerInfo
 {
-    QString serverName{ "AHitB ReMix Server" };
+    QString name{ "AHitB ReMix Server" };
     QString serverRules{ "" };
-    int serverPort{ 8888 };
+
+    QString privateIP{ "" };
+    int privatePort{ 8888 };
+
+    QString publicIP{ "" };
+    int publicPort{ 8888 };
 
     int playerCount{ 0 };
     int serverID{ 0 };
@@ -18,18 +23,19 @@ struct ServerInfo
     bool isPublic{ false };
 
     QString masterIP{ "" };
-    int masterPort{ 0 };
+    int masterPort{ 23999 };
 
-    int versionID_i{ 41252 };
     float versionID_f{ 4.1252E4f };
-    int gameId{ 0 };
+    int versionID_i{ 41252 };
 
     QHostInfo hostInfo;
 
     QString gameName{ "WoS" };
+    int gameId{ 0 };
+
+    QString gameInfo{ "" };
     QString info{ "" };
-    QString world{ "" };
 };
 
-#endif // SERVERINFO
+#endif // SERVERINFO_HPP
 

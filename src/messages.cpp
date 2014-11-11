@@ -70,11 +70,23 @@ void Messages::on_reloadSettings_clicked()
     if ( sender != nullptr )
         qDebug() << "reloadSettings" << sender;
 
-    ui->motdEdit->setText( Preferences::getMOTDMessage() );
-    ui->banishedEdit->setText( Preferences::getBanishMesage() );
-    ui->pwdEdit->setText( Preferences::getPassword() );
+    QString var = Preferences::getMOTDMessage();
+    if ( var.isEmpty() )
+        ui->motdEdit->setText( Preferences::getMOTDMessage() );
+
+    var = Preferences::getBanishMesage();
+    if ( !var.isEmpty() )
+        ui->banishedEdit->setText( Preferences::getBanishMesage() );
+
+    var = Preferences::getPassword();
+    if ( !var.isEmpty() )
+        ui->pwdEdit->setText( Preferences::getPassword() );
+
+    var = Preferences::getServerRules();
+    if ( !var.isEmpty() )
+        ui->rulesEdit->setText( Preferences::getServerRules() );
+
     ui->reqPasword->setChecked( Preferences::getRequirePassword() );
-    ui->rulesEdit->setText( Preferences::getServerRules() );
 
     if ( this->isVisible() )
         this->hide();

@@ -40,13 +40,12 @@ public:
     QLabel *onlineTime;
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_4;
-    QLineEdit *serverPort;
-    QCheckBox *bangBang;
     QPushButton *enableNetworking;
     QPushButton *openSysMessages;
     QPushButton *openBanIP;
     QPushButton *openBannedSernums;
     QPushButton *openUserComments;
+    QLineEdit *serverPort;
     QLabel *networkStatus;
     QGroupBox *groupBox;
     QGridLayout *gridLayout_2;
@@ -119,22 +118,6 @@ public:
         gridLayout_4->setContentsMargins(11, 11, 11, 11);
         gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
         gridLayout_4->setContentsMargins(10, 10, 10, 10);
-        serverPort = new QLineEdit(groupBox_2);
-        serverPort->setObjectName(QStringLiteral("serverPort"));
-        sizePolicy.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
-        serverPort->setSizePolicy(sizePolicy);
-        serverPort->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(serverPort, 0, 0, 1, 1);
-
-        bangBang = new QCheckBox(groupBox_2);
-        bangBang->setObjectName(QStringLiteral("bangBang"));
-        sizePolicy.setHeightForWidth(bangBang->sizePolicy().hasHeightForWidth());
-        bangBang->setSizePolicy(sizePolicy);
-        bangBang->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(bangBang, 0, 1, 1, 1);
-
         enableNetworking = new QPushButton(groupBox_2);
         enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
         QSizePolicy sizePolicy2(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -173,6 +156,15 @@ public:
         openUserComments->setMaximumSize(QSize(16777215, 23));
 
         gridLayout_4->addWidget(openUserComments, 4, 0, 1, 2);
+
+        serverPort = new QLineEdit(groupBox_2);
+        serverPort->setObjectName(QStringLiteral("serverPort"));
+        sizePolicy.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
+        serverPort->setSizePolicy(sizePolicy);
+        serverPort->setMaximumSize(QSize(16777215, 20));
+        serverPort->setMaxLength(5);
+
+        gridLayout_4->addWidget(serverPort, 0, 0, 1, 2);
 
 
         gridLayout_3->addWidget(groupBox_2, 1, 0, 2, 1);
@@ -294,13 +286,12 @@ public:
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMix", "TCP/IP Port#", 0));
-        serverPort->setText(QApplication::translate("ReMix", "8888", 0));
-        bangBang->setText(QApplication::translate("ReMix", "!!", 0));
         enableNetworking->setText(QApplication::translate("ReMix", "Accept Calls", 0));
         openSysMessages->setText(QApplication::translate("ReMix", "Msg Options", 0));
         openBanIP->setText(QApplication::translate("ReMix", "Ban IP", 0));
         openBannedSernums->setText(QApplication::translate("ReMix", "SerNum", 0));
         openUserComments->setText(QApplication::translate("ReMix", "User Comments", 0));
+        serverPort->setText(QApplication::translate("ReMix", "8888", 0));
         networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 ) ( Ping 000.00 MS )", 0));
         groupBox->setTitle(QApplication::translate("ReMix", "Stats", 0));
         ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));

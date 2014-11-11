@@ -11,6 +11,7 @@
 #include <QUdpSocket>
 #include <QDateTime>
 #include <QHostInfo>
+#include <QFileInfo>
 #include <QDebug>
 #include <QTimer>
 
@@ -60,6 +61,7 @@ class ReMix : public QMainWindow
 
         int genServerID();
         void parseCMDLArgs();
+        void getSynRealData();
 
     private slots:
         void on_openSysMessages_clicked();
@@ -70,6 +72,7 @@ class ReMix : public QMainWindow
         void on_isPublicServer_stateChanged(int arg1);
 
         void on_serverPort_textChanged(const QString &arg1);
+        void on_serverName_textChanged(const QString &arg1);
 
     private:
         Ui::ReMix *ui;

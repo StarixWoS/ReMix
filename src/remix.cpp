@@ -13,7 +13,7 @@ namespace Helper
 {
     namespace RandDev
     {
-        std::mt19937 randDevice( QDateTime().currentMSecsSinceEpoch() );
+        std::mt19937 randDevice( QDateTime::currentMSecsSinceEpoch() );
     }
 
     int genRandNum(int min, int max)
@@ -77,6 +77,7 @@ ReMix::ReMix(QWidget *parent) :
     serverInfo->hostInfo = QHostInfo();
     serverInfo->serverRules = Preferences::getServerRules();
     this->parseCMDLArgs();
+    this->getSynRealData();
 
     ui->serverView->hide();
     if ( serverInfo->isMaster )
@@ -103,6 +104,7 @@ ReMix::~ReMix()
     banIP->close();
     banIP->deleteLater();
 
+    tcpServer->disconnectFromMaster();
     tcpServer->close();
     tcpServer->deleteLater();
 
@@ -194,17 +196,17 @@ void ReMix::parseCMDLArgs()
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
-                serverInfo->serverPort = arg.mid( index + 1 ).toInt();
+                serverInfo->privatePort = arg.mid( index + 1 ).toInt();
             else
-                serverInfo->serverPort = 0;
+                serverInfo->privatePort = 0;
         }
         else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
         {
             tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
             if ( !tmpArg.isEmpty() )
-                serverInfo->serverName = tmpArg;
+                serverInfo->name = tmpArg;
             else
-                serverInfo->serverName = "AHitB ReMix Server";
+                serverInfo->name = "AHitB ReMix Server";
         }
 //        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
 //        {
@@ -215,9 +217,67 @@ void ReMix::parseCMDLArgs()
 //        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
 //            qDebug() << arg.mid( index + 1 );   //Enable fileLogging.
     }
-    ui->serverPort->setText( QString::number( serverInfo->serverPort ) );
+    ui->serverPort->setText( QString::number( serverInfo->privatePort ) );
     ui->isPublicServer->setChecked( serverInfo->isPublic );
-    ui->serverName->setText( serverInfo->serverName );
+    ui->serverName->setText( serverInfo->name );
+}
+
+void ReMix::getSynRealData()
+{
+    QFileInfo synRealFile( "synReal.ini" );
+
+    bool downloadFile = true;
+    if ( synRealFile.exists() )
+    {
+        int curTime = static_cast<int>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
+        int modTime = static_cast<int>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
+
+        downloadFile = ( curTime - modTime >= 172800 ); //Check if the file is 48 hours old and set our bool.
+    }
+
+    //The file was older than 48 hours or did not exist. Request a fresh copy.
+    if ( downloadFile )
+    {
+        QTcpSocket *socket = new QTcpSocket;
+
+        socket->connectToHost( "www.synthetic-reality.com", 80 );
+        QObject::connect(socket, &QTcpSocket::connected, [socket]()
+        {
+            socket->write( QByteArray( "GET http://synthetic-reality.com/synreal.ini\r\n" ));
+        });
+
+        QObject::connect( socket, &QTcpSocket::readyRead, [socket, this]()
+        {
+            QFile synreal( "synReal.ini" );
+            if ( synreal.open( QIODevice::WriteOnly ) )
+            {
+              synreal.write( socket->readAll() );
+            }
+            synreal.close();
+
+            QSettings settings( "synReal.ini", QSettings::IniFormat );
+            QString str = settings.value( "WoS/master" ).toString();
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                serverInfo->masterIP = str.left( index );
+                serverInfo->masterPort = str.mid( index + 1 ).toInt();
+            }
+        });
+
+        QObject::connect( socket, &QTcpSocket::disconnected, [socket](){ socket->deleteLater(); } );
+    }
+    else
+    {
+        QSettings settings( "synReal.ini", QSettings::IniFormat );
+        QString str = settings.value( "WoS/master" ).toString();
+        int index = str.indexOf( ":" );
+        if ( index > 0 )
+        {
+            serverInfo->masterIP = str.left( index );
+            serverInfo->masterPort = str.mid( index + 1 ).toInt();
+        }
+    }
 }
 
 void ReMix::on_enableNetworking_clicked()
@@ -269,5 +329,14 @@ void ReMix::on_openUserComments_clicked()
 
 void ReMix::on_serverPort_textChanged(const QString &arg1)
 {
-    serverInfo->serverPort = arg1.toInt();
+    int val = arg1.toInt();
+    if ( val < 0 || val > 65535 )
+        val = 0;
+
+    serverInfo->privatePort = val;
+}
+
+void ReMix::on_serverName_textChanged(const QString &arg1)
+{
+    serverInfo->name = arg1;
 }

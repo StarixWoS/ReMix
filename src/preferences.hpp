@@ -32,6 +32,8 @@ namespace Preferences
 
     void setServerRules(QVariant& value);
     QString getServerRules();
+
+    bool isInvalidIPAddress(const QString& value);
 }
 
 #endif // PREFERENCES_HPP

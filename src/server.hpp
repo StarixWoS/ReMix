@@ -23,10 +23,13 @@ class Server : public QTcpServer
     QHash<QHostAddress, QByteArray> udpDatas;
 
     QUdpSocket* masterSocket{ nullptr };
+    QByteArray tcpBuffer;
     QByteArray udpData;
     QTimer masterCheckIn;
 
     ServerInfo* serverInfo{ nullptr };
+
+    bool isSetUp{ false };
     bool isPublic{ false };
 
     public:
@@ -35,13 +38,21 @@ class Server : public QTcpServer
         void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo(ServerInfo* svrInfo);
         void setupPublicServer(bool value);
+        void disconnectFromMaster();
+
+        bool getIsSetUp() const;
+        void setIsSetUp(bool value);
+
+    private:
+        void parsePacket(QString& packet);
+        void parseMIXPacket(QString& packet);
+        void parseSRPacket(QString& packet);
 
     signals:
 
     private slots:
-        void masterCheckInTimeoutSlot();
+        void masterCheckInTimeOutSlot();
         void newConnectionSlot();
-        void readyReadTCPSlot();
         void readyReadUDPSlot();
 };
 
