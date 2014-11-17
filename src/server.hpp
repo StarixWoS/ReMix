@@ -2,6 +2,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <QStandardItemModel>
 #include <QNetworkInterface>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -14,39 +15,37 @@
 #include <QTimer>
 
 struct ServerInfo;
-
 class Server : public QTcpServer
 {
     Q_OBJECT
 
-    QHash<QHostAddress, QTcpSocket*> tcpSockets;
+    QStandardItemModel* plrViewModel{ nullptr };
+    QHash<QString, QStandardItem*> plrTableItems;
+
+    QHash<QString, QTcpSocket*> tcpSockets;
+    QHash<QTcpSocket*, QByteArray> tcpDatas;
     QHash<QHostAddress, QByteArray> udpDatas;
 
     QUdpSocket* masterSocket{ nullptr };
-    QByteArray tcpBuffer;
     QByteArray udpData;
     QTimer masterCheckIn;
 
-    ServerInfo* serverInfo{ nullptr };
-
-    bool isSetUp{ false };
-    bool isPublic{ false };
+    ServerInfo* server{ nullptr };
 
     public:
-        explicit Server(QObject *parent = 0);
+        explicit Server(ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
+        ~Server();
 
         void parseMasterServerResponse(QByteArray& mData);
-        void setupServerInfo(ServerInfo* svrInfo);
+        void setupServerInfo();
         void setupPublicServer(bool value);
         void disconnectFromMaster();
 
-        bool getIsSetUp() const;
-        void setIsSetUp(bool value);
-
+        QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, bool insert);
     private:
-        void parsePacket(QString& packet);
+        void parsePacket(QString& packet, QTcpSocket* socket = nullptr);
         void parseMIXPacket(QString& packet);
-        void parseSRPacket(QString& packet);
+        void parseSRPacket(QString& packet, QTcpSocket* socket = nullptr);
 
     signals:
 

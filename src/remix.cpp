@@ -3,31 +3,26 @@
 #include "ui_remix.h"
 
 #include "bannedsernum.hpp"
-#include "preferences.hpp"
+#include "helper.hpp"
 #include "usermessage.hpp"
 #include "messages.hpp"
 #include "bannedip.hpp"
 #include "server.hpp"
-
-namespace Helper
-{
-    namespace RandDev
-    {
-        std::mt19937 randDevice( QDateTime::currentMSecsSinceEpoch() );
-    }
-
-    int genRandNum(int min, int max)
-    {
-        std::uniform_int_distribution<int> randInt( min, max );
-        return randInt( RandDev::randDevice );
-    }
-}
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
+    upTime.start();
+
+    QTimer* timeUpdate = new QTimer( this );
+            timeUpdate->setInterval( 1000 );
+            timeUpdate->start();
+
+    QTimer* uiUpdate = new QTimer( this );
+            uiUpdate->setInterval( 10000 );
+            uiUpdate->start();
 
     //Setup the PlayerInfo TableView.
     plrViewModel = new QStandardItemModel( 0, 8, 0 );
@@ -47,24 +42,6 @@ ReMix::ReMix(QWidget *parent) :
     plrViewProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     ui->playerView->setModel( plrViewProxy );
 
-    //Setup the ServerInfo TableView.
-    svrViewModel = new QStandardItemModel( 0, 6, 0 );
-    svrViewModel->setHeaderData( 0, Qt::Horizontal, "Server IP:Port" );
-    svrViewModel->setHeaderData( 1, Qt::Horizontal, "Since" );
-    svrViewModel->setHeaderData( 2, Qt::Horizontal, "#Players" );
-    svrViewModel->setHeaderData( 3, Qt::Horizontal, "GameID" );
-    svrViewModel->setHeaderData( 4, Qt::Horizontal, "Version" );
-    svrViewModel->setHeaderData( 5, Qt::Horizontal, "Settings" );
-
-    //Proxy model to support sorting without actually altering the underlying model
-    svrViewProxy = new QSortFilterProxyModel();
-    svrViewProxy->setDynamicSortFilter( true );
-    svrViewProxy->setSourceModel( svrViewModel );
-    svrViewProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
-    ui->serverView->setModel( svrViewProxy );
-
-    //ui->serverView->hide();
-
     //Setup Dialog Objects.
     sernumBan = new BannedSernum( this );
     sysMessages = new Messages( this );
@@ -73,21 +50,58 @@ ReMix::ReMix(QWidget *parent) :
 
     //Setup Server/Player Info objects.
     serverInfo = new ServerInfo();
-    serverInfo->serverID = this->genServerID();
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        serverInfo->players[ i ] = new Player();
+    }
+
+    serverInfo->serverID = Helper::getServerID();
+    if ( serverInfo->serverID <= 0 )
+    {
+        QVariant value = this->genServerID();
+        serverInfo->serverID = value.toInt();
+
+        Helper::setServerID( value );
+    }
     serverInfo->hostInfo = QHostInfo();
-    serverInfo->serverRules = Preferences::getServerRules();
+    serverInfo->serverRules = Helper::getServerRules();
+
     this->parseCMDLArgs();
-    this->getSynRealData();
-
-    ui->serverView->hide();
-    if ( serverInfo->isMaster )
-        ui->serverView->show();
-
-    //Setup Networking Objects.
-    tcpServer = new Server( this );
+    if ( serverInfo->masterIP.isEmpty() )   //Check if the MasterIP has been set. If so, ignore the SynReal-Master data.
+        this->getSynRealData();
 
     //Connect Objects to Slots.
 
+    //Create and Connect Lamda Objects
+    QObject::connect( timeUpdate, &QTimer::timeout, [this]()
+    {
+        auto time = upTime.elapsed() / 1000;
+        ui->onlineTime->setText( QString( "%1:%2:%3" )
+                                 .arg( time / 3600, 2, 10, QChar( '0' ) )
+                                 .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                 .arg( time % 60, 2, 10, QChar( '0' ) ) );
+    });
+
+    //Setup Networking Objects.
+    tcpServer = new Server( serverInfo, plrViewModel );
+
+    QObject::connect( uiUpdate, &QTimer::timeout, [this]()
+    {
+        if ( serverInfo->isSetUp )
+        {
+            QString tmp = QString( "Listening for incoming calls to %1:%2" )
+                                .arg( serverInfo->privateIP )
+                                .arg( serverInfo->privatePort );
+            if ( serverInfo->isPublic )
+            {
+                QString tmp2 = QString( " ( Need port forward from %1:%2 )" )
+                                     .arg( serverInfo->publicIP )
+                                     .arg( serverInfo->publicPort );
+                tmp.append( tmp2 );
+            }
+            ui->networkStatus->setText( tmp );
+        }
+    });
 }
 
 ReMix::~ReMix()
@@ -140,19 +154,6 @@ void ReMix::parseCMDLArgs()
             index = arg.indexOf( '=' );
             if ( index > 0 )
                 serverInfo->gameName = arg.mid( index + 1 );
-            else
-                serverInfo->gameName = "WoS";
-        }
-        else if ( arg.startsWith( "/mixmaster", Qt::CaseInsensitive ) )
-        {
-            index = arg.indexOf( '=' );
-            if ( index > 0 )
-            {
-                serverInfo->isMaster = true;
-                serverInfo->masterPort = arg.mid( index + 1 ).toInt();
-            }
-            else
-                serverInfo->masterPort = 23999;
         }
         else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
         {
@@ -164,11 +165,6 @@ void ReMix::parseCMDLArgs()
                {
                    serverInfo->masterIP = tmpArg.left( tmpArg.indexOf( ':' ) );
                    serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
-               }
-               else
-               {
-                   serverInfo->masterIP = "209.233.24.166";
-                   serverInfo->masterPort = 23999;
                }
             }
         }
@@ -184,11 +180,6 @@ void ReMix::parseCMDLArgs()
                    serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
                    serverInfo->isPublic = true;
                }
-               else
-               {
-                   serverInfo->masterIP = "209.233.24.166";
-                   serverInfo->masterPort = 23999;
-               }
             }
 
         }
@@ -197,16 +188,12 @@ void ReMix::parseCMDLArgs()
             index = arg.indexOf( '=' );
             if ( index > 0 )
                 serverInfo->privatePort = arg.mid( index + 1 ).toInt();
-            else
-                serverInfo->privatePort = 0;
         }
         else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
         {
             tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
             if ( !tmpArg.isEmpty() )
                 serverInfo->name = tmpArg;
-            else
-                serverInfo->name = "AHitB ReMix Server";
         }
 //        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
 //        {
@@ -250,13 +237,12 @@ void ReMix::getSynRealData()
         {
             QFile synreal( "synReal.ini" );
             if ( synreal.open( QIODevice::WriteOnly ) )
-            {
-              synreal.write( socket->readAll() );
-            }
+                synreal.write( socket->readAll() );
+
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( "WoS/master" ).toString();
+            QString str = settings.value( serverInfo->gameName + "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
@@ -284,7 +270,7 @@ void ReMix::on_enableNetworking_clicked()
 {
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
-    tcpServer->setupServerInfo( serverInfo );
+    tcpServer->setupServerInfo();
 }
 
 void ReMix::on_isPublicServer_stateChanged(int)

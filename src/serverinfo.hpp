@@ -5,8 +5,12 @@
 #include <QHostInfo>
 #include <QString>
 
+#include "player.hpp"
+
+const int MAX_PLAYERS = 256;
 struct ServerInfo
 {
+    bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };
     QString serverRules{ "" };
 
@@ -25,7 +29,7 @@ struct ServerInfo
     QString masterIP{ "" };
     int masterPort{ 23999 };
 
-    float versionID_f{ 4.1252E4f };
+    float versionID_f{ 1.10f };
     int versionID_i{ 41252 };
 
     QHostInfo hostInfo;
@@ -35,6 +39,41 @@ struct ServerInfo
 
     QString gameInfo{ "" };
     QString info{ "" };
+
+    Player* players[ MAX_PLAYERS ];
+
+    int getEmptySlot()
+    {
+        int slot = 0;
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            if ( players[ i ]->getSocket() == nullptr )
+                slot = i;
+        }
+        return slot;
+    }
+
+    int getSocketSlot(QTcpSocket* soc)
+    {
+        int slot = -1;
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            if ( players[ i ]->getSocket() == soc )
+                slot = i;
+        }
+        return slot;
+    }
+
+    int getSernumSlot(unsigned int sernum)
+    {
+        int slot = -1;
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            if ( players[ i ]->getSernum() == sernum )
+                slot = i;
+        }
+        return slot;
+    }
 };
 
 #endif // SERVERINFO_HPP

@@ -57,7 +57,6 @@ public:
     QLabel *callCount;
     QSplitter *splitter;
     QTableView *playerView;
-    QTableView *serverView;
 
     void setupUi(QMainWindow *ReMix)
     {
@@ -248,24 +247,17 @@ public:
         splitter->setOrientation(Qt::Vertical);
         playerView = new QTableView(splitter);
         playerView->setObjectName(QStringLiteral("playerView"));
+        playerView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        playerView->setSelectionMode(QAbstractItemView::SingleSelection);
+        playerView->setSelectionBehavior(QAbstractItemView::SelectRows);
+        playerView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        playerView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+        playerView->setSortingEnabled(true);
         splitter->addWidget(playerView);
         playerView->horizontalHeader()->setDefaultSectionSize(100);
         playerView->horizontalHeader()->setStretchLastSection(true);
         playerView->verticalHeader()->setVisible(false);
         playerView->verticalHeader()->setMinimumSectionSize(30);
-        serverView = new QTableView(splitter);
-        serverView->setObjectName(QStringLiteral("serverView"));
-        QSizePolicy sizePolicy4(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(serverView->sizePolicy().hasHeightForWidth());
-        serverView->setSizePolicy(sizePolicy4);
-        splitter->addWidget(serverView);
-        serverView->horizontalHeader()->setDefaultSectionSize(100);
-        serverView->horizontalHeader()->setMinimumSectionSize(30);
-        serverView->horizontalHeader()->setStretchLastSection(true);
-        serverView->verticalHeader()->setVisible(false);
-        serverView->verticalHeader()->setMinimumSectionSize(30);
 
         gridLayout_3->addWidget(splitter, 2, 1, 2, 3);
 
@@ -292,7 +284,7 @@ public:
         openBannedSernums->setText(QApplication::translate("ReMix", "SerNum", 0));
         openUserComments->setText(QApplication::translate("ReMix", "User Comments", 0));
         serverPort->setText(QApplication::translate("ReMix", "8888", 0));
-        networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 ) ( Ping 000.00 MS )", 0));
+        networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
         groupBox->setTitle(QApplication::translate("ReMix", "Stats", 0));
         ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));
         packetDCCount->setText(QApplication::translate("ReMix", "#PktDC: 0", 0));

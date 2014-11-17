@@ -21,10 +21,11 @@ class BannedSernum : public QDialog
     QSortFilterProxyModel* tableProxy{ nullptr };
     QStandardItemModel* tableModel{ nullptr };
 
-    void loadBannedSernums();
     public:
         explicit BannedSernum(QWidget *parent = 0);
         ~BannedSernum();
+
+        void loadBannedSernums();
 
     private slots:
         void currentRowChangedSlot(const QModelIndex& index, const QModelIndex&);

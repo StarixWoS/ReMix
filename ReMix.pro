@@ -23,21 +23,21 @@ SOURCES += src/main.cpp\
            src/remix.cpp \
            src/player.cpp \
            src/messages.cpp \
-           src/preferences.cpp \
            src/bannedip.cpp \
            src/bannedsernum.cpp \
            src/usermessage.cpp \
-           src/server.cpp
+           src/server.cpp \
+           src/helper.cpp
 
 HEADERS += src/player.hpp \
            src/remix.hpp \
            src/messages.hpp \
-           src/preferences.hpp \
            src/bannedip.hpp \
            src/bannedsernum.hpp \
            src/usermessage.hpp \
            src/server.hpp \
-           src/serverinfo.hpp
+           src/serverinfo.hpp \
+           src/helper.hpp
 
 FORMS   += ui/remix.ui \
            ui/messages.ui \

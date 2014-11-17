@@ -17,6 +17,7 @@ namespace Preferences
 
     void setSetting(const QString& key, const QString& subKey, QVariant& value);
     QVariant getSetting(const QString& key, const QString& subKey);
+    QVariant getSetting(const QString& key);
 
     void setMOTDMessage(QVariant& value);
     QString getMOTDMessage();

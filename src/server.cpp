@@ -1,14 +1,16 @@
 
 #include "server.hpp"
 
-#include "preferences.hpp"
+#include "helper.hpp"
 #include "serverinfo.hpp"
 
-Server::Server(QObject*)
+Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
 {
     //Setup Objects.
-    masterCheckIn.setInterval( 300000 );    //Every 5 Minutes.
+    server = svr;
+    plrViewModel = plrView;
 
+    masterCheckIn.setInterval( 300000 );    //Every 5 Minutes.
     masterSocket = new QUdpSocket( this );
 
     //Connect Objects.
@@ -22,99 +24,188 @@ Server::Server(QObject*)
                       this, &Server::masterCheckInTimeOutSlot );
 }
 
-bool Server::getIsSetUp() const
+Server::~Server()
 {
-    return isSetUp;
-}
+    masterSocket->close();
+    masterSocket->deleteLater();
 
-void Server::setIsSetUp(bool value)
-{
-    isSetUp = value;
-}
+    QTcpSocket* socket;
 
-void Server::setupServerInfo(ServerInfo* svrInfo)
-{
-    if ( !isSetUp )
-        this->setIsSetUp( true );
-
-    serverInfo = svrInfo;
-
-    QString ipAddr = QHostAddress( QHostAddress::LocalHost ).toString();
-    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
-
-    QString tmp;
-    for ( int i = 0; i < ipList.size(); ++i )
+    QHash<QString, QTcpSocket*>::iterator iter = tcpSockets.begin();
+    while ( iter != tcpSockets.end() )
     {
-        tmp = ipList.at( i ).toString();
-        if ( ipList.at( i ) != QHostAddress::LocalHost
-          && ipList.at( i ).toIPv4Address()
-          && !Preferences::isInvalidIPAddress( tmp ) )
-        {
-            ipAddr = ipList.at(i).toString();   //Use first non-local IP address.
-            break;
-        }
+        socket = tcpSockets.take( iter.key() );
+        tcpDatas.remove( socket );  //Remove all pending packets.
+
+        socket->deleteLater();
+
+        ++iter;
     }
-    serverInfo->privateIP = ipAddr;
+    udpDatas.clear();
+}
 
-    //Bind to our UDP socket using our non-local IP and desired Port.
-    masterSocket->bind( QHostAddress( ipAddr ), svrInfo->privatePort );
+QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, bool insert)
+{
+    QString bio = QString( data );
+    int row = -1;
 
-    //Begin listening for TCP connections using our non-local IP and desired Port.
-    this->listen( QHostAddress( ipAddr ), svrInfo->privatePort );
+    QStandardItem* item;
+    if ( !insert )
+    {
+        item = plrTableItems.value( peerIP );
+        row = item->row();
+    }
+    else
+    {
+        row = plrViewModel->rowCount();
+        plrViewModel->insertRow( row );
+    }
+    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
 
-    if ( isPublic && this->getIsSetUp() )
-        this->masterCheckInTimeOutSlot();
+    int index = 0;
+    if ( !data.isEmpty() )
+    {
+        QString sernum{ "" };
+        index = bio.indexOf( "sernum=", Qt::CaseInsensitive );
+        if ( index > 0 )
+        {
+            sernum = bio.mid( index + 7 );
+            sernum = sernum.left( sernum.indexOf( ',' ) );
+        }
+        plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
+
+        QString playTime{ "" };
+        index = bio.indexOf( "HHMM=", Qt::CaseInsensitive );
+        if ( index > 0 )
+        {
+            playTime = bio.mid( index + 5 );
+            playTime = playTime.left( playTime.indexOf( ',' ) );
+        }
+        plrViewModel->setData( plrViewModel->index( row, 2 ), playTime, Qt::DisplayRole );
+
+        QString alias{ "" };
+        index = bio.indexOf( "alias=", Qt::CaseInsensitive );
+        if ( index > 0 )
+        {
+            alias = bio.mid( index + 6 );
+            alias = alias.left( alias.indexOf( ',' ) );
+        }
+        plrViewModel->setData( plrViewModel->index( row, 3 ), alias, Qt::DisplayRole );
+
+        plrViewModel->setData( plrViewModel->index( row, 7 ), bio.mid( 1 ), Qt::DisplayRole );
+    }
+    return plrViewModel->item( row, 0 );
+}
+
+void Server::setupServerInfo()
+{
+    if ( !server->isSetUp )
+    {
+        server->privateIP = QHostAddress( QHostAddress::LocalHost ).toString();
+
+        QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+        for ( int i = 0; i < ipList.size(); ++i )
+        {
+            QString tmp = ipList.at( i ).toString();
+            if ( ipList.at( i ) != QHostAddress::LocalHost
+                 && ipList.at( i ).toIPv4Address()
+                 && !Helper::isInvalidIPAddress( tmp ) )
+            {
+                server->privateIP = ipList.at(i).toString();   //Use first non-local IP address.
+                break;
+            }
+        }
+        masterSocket->bind( QHostAddress( server->privateIP ), server->privatePort );
+        this->listen( QHostAddress( server->privateIP ), server->privatePort );
+
+        if ( server->isPublic && server->isSetUp && this->isListening() )
+            this->masterCheckInTimeOutSlot();
+
+        server->isSetUp = true;
+    }
 }
 
 void Server::newConnectionSlot()
 {
     QTcpSocket* peer = this->nextPendingConnection();
+    if ( peer == nullptr )
+        return;
 
-    QHostAddress peerAddr = peer->localAddress();
-    if ( !tcpSockets.contains( peerAddr ) )
-        tcpSockets.insert( peer->localAddress(), peer );
-    else
+    QString ip = QString( "%1:%2" )
+                     .arg( peer->peerAddress().toString() )
+                     .arg( peer->peerPort() );
+    if ( tcpSockets.contains( ip ) )
     {
-        ;   //TODO: Check if Dupe Connections are Allowed or Bannable.
+        //Check if we're allowing users to use multiple Clients.
+        if ( !Helper::getAllowDupedIP() )
+        {
+            peer->close();  //Close the duplicated IP. They're not allowed.
+            if ( Helper::getBanDupedIP() )
+            {
+                ;   //TODO: Add code to Ban the user.
+            }
+            //TODO: Remove the Player from all maps/hashes --With exception of the UDPDatas hash.
+            return; //Exit the method. We don't listen to dupes.
+        }
     }
+    else
+        tcpSockets.insert( ip, peer );
 
-    //Connect the Pending TCP Connection to a ReadyRead lambda.
+    peer->write( QByteArray( ":SR@M" + Helper::getMOTDMessage().toLatin1() + "\r\n" ) );
+
+    //Connect the pending Connection to a ReadyRead lambda.
     QObject::connect( peer, &QTcpSocket::readyRead, [peer, this]()
     {
-        if ( !tcpBuffer.trimmed().isEmpty()
-          && peer != nullptr )
+        QByteArray data = tcpDatas.value( peer );
+        if ( peer != nullptr )
         {
-            tcpBuffer.append( peer->readAll() );
-            if ( tcpBuffer.contains( "\r" )
-              || tcpBuffer.contains( "\n" ) )
+            data.append( peer->readAll() );
+            if ( data.contains( "\r" )
+              || data.contains( "\n" ) )
             {
-                int bytes = tcpBuffer.indexOf( "\r\n" );
+                int bytes = data.indexOf( "\r\n" );
                 if ( bytes <= 0 )
-                    bytes = tcpBuffer.indexOf( "\n" );
+                    bytes = data.indexOf( "\n" );
                 if ( bytes <= 0 )
-                    bytes = tcpBuffer.indexOf( "\r" );
+                    bytes = data.indexOf( "\r" );
 
                 if ( bytes > 0 )
                 {
-                    QString packet = tcpBuffer.left( bytes + 1 ).trimmed();
-                    tcpBuffer = tcpBuffer.mid( bytes + 1 ).data();
+                    QString packet = data.left( bytes + 1 ).trimmed();
+                    data = data.mid( bytes + 1 ).data();
+                    tcpDatas.insert( peer, data );
 
-                    this->parsePacket( packet );
+                    this->parsePacket( packet, peer );
                     emit peer->readyRead();
                 }
             }
         }
     });
 
-    //Connect the Pending TCP Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected, [peer, this]()
+    //Connect the pending Connection to a Disconnected lambda.
+    QObject::connect( peer, &QTcpSocket::disconnected, [peer, ip, this]()
     {
         if ( peer != nullptr )
         {
-            tcpSockets.remove( peer->localAddress() );
+            QStandardItem* item = plrTableItems.take( ip );
+            if ( item != nullptr )
+                plrViewModel->removeRow( item->row() );
+
+            tcpSockets.remove( ip );
+            tcpDatas.remove( peer );
             peer->deleteLater();
         }
     });
+
+    //Update the User's Table row.
+    QByteArray data = udpDatas.value( peer->peerAddress() );
+    if ( !data.isEmpty() )
+    {
+        if ( plrTableItems.contains( ip ) )
+            this->updatePlrListRow( ip, data, false );
+        else
+            plrTableItems[ ip ] = this->updatePlrListRow( ip, data, true );
+    }
 }
 
 void Server::readyReadUDPSlot()
@@ -133,47 +224,47 @@ void Server::readyReadUDPSlot()
         {
             switch ( data.at( 0 ).toLatin1() )
             {
-                case 'G':
-                    serverInfo->gameInfo = data.mid( data.indexOf( "GWorld=", Qt::CaseInsensitive ) + 8 );
+                case 'G':   //Set the Server's gameInfoString.
+                    server->gameInfo = data.mid( 1 );
                 break;
-                case 'M':
+                case 'M':   //Read the response to the Master Server checkin.
                     this->parseMasterServerResponse( udpData );
                 break;
-                case 'P':
-                    //Player information is stored for later access.
-                    qDebug() << "Updating PlayerInfo for address: " << senderAddr;
+                case 'P':   //TODO: Store the Player information into a struct.
                     udpDatas.insert( senderAddr, udpData );
 
-                    if ( !serverInfo->gameInfo.isEmpty() )
+                    //TODO: Check for banned D, V, and W variables and disconnect on positive matches.
+                    //      If the variables are banned, no response will be sent.
+
+                    //TODO: Format Server Usage variable.
+                    if ( !server->gameInfo.isEmpty() )
                     {
-                        response = QString( "#name=%1 [world=%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" )
-                                       .arg( serverInfo->name )
-                                       .arg( serverInfo->gameInfo )
-                                       .arg( serverInfo->serverRules )
-                                       .arg( QString::number( serverInfo->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
+                        response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" )
+                                       .arg( server->name )
+                                       .arg( server->gameInfo )
+                                       .arg( server->serverRules )
+                                       .arg( QString::number( server->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
                                        .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
                                        .arg( "999.999.999" );
                     }
                     else
                     {
                         response = QString( "#name=%1 //Rules: %2 //ID:%3 //TM:%4 //US:%5" )
-                                        .arg( serverInfo->name )
-                                        .arg( serverInfo->serverRules )
-                                        .arg( QString::number( serverInfo->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
+                                        .arg( server->name )
+                                        .arg( server->serverRules )
+                                        .arg( QString::number( server->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
                                         .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
                                         .arg( "999.999.999" );
                     }
-                    qDebug() << response;
                     sender->writeDatagram( response.toLatin1(), response.size() + 1, senderAddr, senderPort );
                 break;
-                case 'Q':
-                    qDebug() << senderAddr << "Send our online User information to the requestor.";
+                case 'Q':   //TODO: Send our online User information to the requestor.
+                    //TODO: Format a string containing the serNums of all active players.
                 break;
-                case 'R':
-                    qDebug() << senderAddr << "Command \"R\" with unknown use";
+                case 'R':   //TODO: Command "R" with unknown use.
                 break;
-                default:
-                    qDebug() << senderAddr << "Unknown command!";
+                default:    //Do nothing; Unknown command.
+                    return;
                 break;
             }
         }
@@ -182,9 +273,9 @@ void Server::readyReadUDPSlot()
 
 void Server::setupPublicServer(bool value)
 {
-    if ( value != isPublic )
+    if ( value != server->isPublic )
     {
-        if ( !isPublic )
+        if ( !server->isPublic )
         {
             masterCheckIn.start();
             this->masterCheckInTimeOutSlot();
@@ -194,37 +285,37 @@ void Server::setupPublicServer(bool value)
             masterCheckIn.stop();
             this->disconnectFromMaster();
         }
-        isPublic = value;
+        server->isPublic = value;
     }
 }
 
 void Server::disconnectFromMaster()
 {
-    if ( this->getIsSetUp() )
+    if ( server->isSetUp )
     {
         char ex = 'X';
         masterSocket->writeDatagram( &ex, 2,
-                                     QHostAddress( serverInfo->masterIP ), serverInfo->masterPort );
+                                     QHostAddress( server->masterIP ), server->masterPort );
     }
 }
 
 void Server::masterCheckInTimeOutSlot()
 {
-    if ( this->getIsSetUp() )
+    if ( server->isSetUp )
     {
         QString response = QString( "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" )
-                           .arg( serverInfo->versionID_i )
-                           .arg( serverInfo->playerCount )
-                           .arg( serverInfo->gameId )
-                           .arg( serverInfo->gameName )
-                           .arg( serverInfo->hostInfo.localHostName() )
-                           .arg( serverInfo->serverID )
-                           .arg( serverInfo->privatePort )
-                           .arg( "" )  //Unknown. What constitutes as info?
-                           .arg( serverInfo->name );
+                               .arg( server->versionID_i )
+                               .arg( server->playerCount )
+                               .arg( server->gameId )
+                               .arg( server->gameName )
+                               .arg( server->hostInfo.localHostName() )
+                               .arg( server->serverID )
+                               .arg( server->privatePort )
+                               .arg( server->gameInfo )
+                               .arg( server->name );
 
         masterSocket->writeDatagram( response.toLatin1(), response.length() + 1,
-                                     QHostAddress( serverInfo->masterIP ), serverInfo->masterPort );
+                                     QHostAddress( server->masterIP ), server->masterPort );
     }
 }
 
@@ -240,12 +331,13 @@ void Server::parseMasterServerResponse(QByteArray& mData)
                     mDataStream >> opcode;
                     mDataStream >> pubIP;
                     mDataStream >> pubPort;
+
+        server->publicIP = QHostAddress( pubIP ).toString();
+        server->publicPort = qFromBigEndian( pubPort );
     }
-    serverInfo->publicIP = QHostAddress( pubIP ).toString();
-    serverInfo->publicPort = qFromBigEndian( pubPort );
 }
 
-void Server::parsePacket(QString& packet)
+void Server::parsePacket(QString& packet, QTcpSocket* socket)
 {
     if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
     {
@@ -257,54 +349,63 @@ void Server::parsePacket(QString& packet)
         if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
             return;
 
-        this->parseSRPacket(packet);
+        this->parseSRPacket( packet, socket );
     }
 
     if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
-        this->parseMIXPacket(packet);
+        this->parseMIXPacket( packet );
 }
 
 void Server::parseMIXPacket(QString& packet)
 {
-    QChar opCode = packet.at( 4 );
     QString tmp = packet;
 
+    QChar opCode = packet.at( 4 );
     switch ( opCode.toLatin1() )
     {
-        case '1':
-            //Send Packet to Scene hosted by DestSlot.
+        case '0':   //TODO: Send Packet to Scene hosted by trgSernum.
         break;
-        case '2':
-            //Unknown Function.
+        case '1':   //TODO: Register srcSernum as Player within trgSernum's Scene.
         break;
-        case '3':
-            //Unknown Function.
+        case '2':   //TODO: Find usage and implement.
         break;
-        case '4':
-            //Send the next packet from SourceSlot to DestSlot as defined within the packet.
+        case '3':   //TODO: Set a Socket's attuned sernum. --This is used by "MIX4" to send the response packet.
+            //TODO: Prevent multiple sockets from using the same sernum.
         break;
-        case '5':
-            //Print remoteUser comment.
+        case '4':   //TODO: Send the next packet from SourceSlot to DestSlot as defined within the packet.
         break;
-        case '6':
-            //Respond to a remoteAdmin command.
+        case '5':   //TODO: Print remoteUser comment.
         break;
-        case '7':
-            //Slot SerNum.
+        case '6':   //TODO: Respond to a remoteAdmin command.
         break;
-        case '8':
-            //Set/Read SSV Variable.
+        case '7':   //TODO: Set Slot SerNum.
         break;
+        case '8':   //Set/Read SSV Variable.
         case '9':
-            //Set/Read SSV Variable.
+            if ( opCode.toLatin1() == '8' )
+            {
+                ;   //TODO: Set the SSV.
+            }
+            else
+            {
+                ;   //TODO: Read the SSV.
+            }
         break;
-        default:
+        default:    //Do nothing. Unknown command.
             return;
         break;
     }
 }
 
-void Server::parseSRPacket(QString& packet)
+void Server::parseSRPacket(QString& packet, QTcpSocket* socket)
 {
+    QHash<QString, QTcpSocket*>::iterator iter = tcpSockets.begin();
+    while ( iter != tcpSockets.end() )
+    {
+        QTcpSocket* soc = iter.value();
+        if ( socket != soc )
+            soc->write( packet.toLatin1() + "\r\n" );
 
+        ++iter;
+    }
 }

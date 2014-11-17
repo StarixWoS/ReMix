@@ -68,6 +68,14 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(banTable->sizePolicy().hasHeightForWidth());
         banTable->setSizePolicy(sizePolicy);
+        banTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        banTable->setAlternatingRowColors(true);
+        banTable->setSelectionMode(QAbstractItemView::SingleSelection);
+        banTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        banTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        banTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+        banTable->setSortingEnabled(true);
+        banTable->setCornerButtonEnabled(false);
         banTable->horizontalHeader()->setDefaultSectionSize(100);
         banTable->horizontalHeader()->setMinimumSectionSize(50);
         banTable->horizontalHeader()->setStretchLastSection(true);

@@ -5,6 +5,7 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QNetworkInterface>
+#include <QElapsedTimer>
 #include <QMainWindow>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -15,9 +16,6 @@
 #include <QDebug>
 #include <QTimer>
 
-//Standard C++/11 Headers
-#include <chrono>
-
 //ServerInfo structure.
 #include "serverinfo.hpp"
 
@@ -26,12 +24,6 @@ class UserMessage;
 class Messages;
 class BannedIP;
 class Server;
-
-namespace Helper
-{
-    namespace RandDev{}
-    int genRandNum(int min = 0, int max = 32767);
-}
 
 namespace Ui {
 class ReMix;
@@ -44,9 +36,6 @@ class ReMix : public QMainWindow
     QSortFilterProxyModel* plrViewProxy{ nullptr };
     QStandardItemModel* plrViewModel{ nullptr };
 
-    QSortFilterProxyModel* svrViewProxy{ nullptr };
-    QStandardItemModel* svrViewModel{ nullptr };
-
     BannedSernum* sernumBan{ nullptr };
     Messages* sysMessages{ nullptr };
     UserMessage* usrMsg{ nullptr };
@@ -54,6 +43,8 @@ class ReMix : public QMainWindow
     BannedIP* banIP{ nullptr };
 
     ServerInfo* serverInfo{ nullptr };
+
+    QElapsedTimer upTime;
 
     public:
         explicit ReMix(QWidget *parent = 0);

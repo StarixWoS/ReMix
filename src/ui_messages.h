@@ -70,6 +70,7 @@ public:
         motdEdit->setObjectName(QStringLiteral("motdEdit"));
         motdEdit->setMinimumSize(QSize(0, 50));
         motdEdit->setMaximumSize(QSize(16777215, 50));
+        motdEdit->setAcceptRichText(false);
 
         gridLayout_3->addWidget(motdEdit, 0, 0, 1, 1);
 
@@ -84,6 +85,7 @@ public:
         banishedEdit->setObjectName(QStringLiteral("banishedEdit"));
         banishedEdit->setMinimumSize(QSize(0, 50));
         banishedEdit->setMaximumSize(QSize(16777215, 50));
+        banishedEdit->setAcceptRichText(false);
 
         gridLayout_4->addWidget(banishedEdit, 0, 0, 1, 1);
 
@@ -98,6 +100,7 @@ public:
         rulesEdit->setObjectName(QStringLiteral("rulesEdit"));
         rulesEdit->setMinimumSize(QSize(0, 50));
         rulesEdit->setMaximumSize(QSize(16777215, 50));
+        rulesEdit->setAcceptRichText(false);
 
         gridLayout_6->addWidget(rulesEdit, 0, 0, 1, 1);
 
@@ -132,7 +135,7 @@ public:
 
         pwdEdit = new QLineEdit(groupBox_3);
         pwdEdit->setObjectName(QStringLiteral("pwdEdit"));
-        pwdEdit->setMaxLength(4096);
+        pwdEdit->setMaxLength(512);
         pwdEdit->setEchoMode(QLineEdit::PasswordEchoOnEdit);
         pwdEdit->setClearButtonEnabled(true);
 
@@ -158,18 +161,19 @@ public:
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The administrator of this server reserves the right to disconnect or banish you if you are sufficiently unpleasant in name, chat, or action..... Other than that, WELCOME TO MY SERVER!</p></body></html>", 0));
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">The administrator of this server reserves the right to disconnect or banish you if you are sufficiently unpleasant in name, chat, or action..... Other than that, WELCOME TO MY SERVER!</span></p></body></html>", 0));
         groupBox_2->setTitle(QApplication::translate("Messages", "Banished Message:", 0));
         banishedEdit->setHtml(QApplication::translate("Messages", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">You are not allowed to use this server until your access is re-enabled by the administrator.</p></body></html>", 0));
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">You are not allowed to use this server until your access is re-enabled by the administrator.</span></p></body></html>", 0));
         groupBox_4->setTitle(QApplication::translate("Messages", "Server Rules:", 0));
         saveSettings->setText(QApplication::translate("Messages", "Ok", 0));
         reloadSettings->setText(QApplication::translate("Messages", "Cancel", 0));
         groupBox_3->setTitle(QApplication::translate("Messages", "Password Notification:", 0));
         reqPasword->setText(QApplication::translate("Messages", "Password Required:", 0));
+        pwdEdit->setText(QString());
     } // retranslateUi
 
 };

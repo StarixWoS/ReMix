@@ -2,7 +2,7 @@
 #include "ui_messages.h"
 
 #include <QDebug>
-#include "preferences.hpp"
+#include "helper.hpp"
 
 Messages::Messages(QWidget *parent) :
     QDialog(parent),
@@ -40,25 +40,26 @@ bool Messages::isPasswordEnabled()
 
 bool Messages::cmpPassword(QString& value)
 {
-    return ui->pwdEdit->text() != value;
+    value = QCryptographicHash::hash( value.toLatin1(), QCryptographicHash::Sha3_512 ).toHex();
+    return Helper::getPassword() != value;
 }
 
 void Messages::on_saveSettings_clicked()
 {
     QVariant motd = ui->motdEdit->toPlainText();
-    Preferences::setMOTDMessage( motd );
+    Helper::setMOTDMessage( motd );
 
     QVariant banMsg = ui->banishedEdit->toPlainText();
-    Preferences::setBanishMesage( banMsg );
+    Helper::setBanishMesage( banMsg );
 
     QVariant pwd = ui->pwdEdit->text();
-    Preferences::setPassword( pwd );
+    Helper::setPassword( pwd );
 
     QVariant reqPwd = ui->reqPasword->isChecked();
-    Preferences::setRequirePassword( reqPwd );
+    Helper::setRequirePassword( reqPwd );
 
     QVariant rules = ui->rulesEdit->toPlainText();
-    Preferences::setServerRules( rules );
+    Helper::setServerRules( rules );
 
     if ( this->isVisible() )
         this->hide();
@@ -66,27 +67,25 @@ void Messages::on_saveSettings_clicked()
 
 void Messages::on_reloadSettings_clicked()
 {
-    QObject* sender = QObject::sender();
-    if ( sender != nullptr )
-        qDebug() << "reloadSettings" << sender;
-
-    QString var = Preferences::getMOTDMessage();
-    if ( var.isEmpty() )
-        ui->motdEdit->setText( Preferences::getMOTDMessage() );
-
-    var = Preferences::getBanishMesage();
+    QString var = Helper::getMOTDMessage();
     if ( !var.isEmpty() )
-        ui->banishedEdit->setText( Preferences::getBanishMesage() );
+        ui->motdEdit->setText( Helper::getMOTDMessage() );
 
-    var = Preferences::getPassword();
+    var = Helper::getBanishMesage();
     if ( !var.isEmpty() )
-        ui->pwdEdit->setText( Preferences::getPassword() );
+        ui->banishedEdit->setText( Helper::getBanishMesage() );
 
-    var = Preferences::getServerRules();
+    QVariant qVar = Helper::getPassword();
+    if ( !qVar.toString().isEmpty() && qVar.toString().length() < 128 )
+        Helper::setPassword( qVar );
+
+    ui->pwdEdit->setText( Helper::getPassword() );
+
+    var = Helper::getServerRules();
     if ( !var.isEmpty() )
-        ui->rulesEdit->setText( Preferences::getServerRules() );
+        ui->rulesEdit->setText( Helper::getServerRules() );
 
-    ui->reqPasword->setChecked( Preferences::getRequirePassword() );
+    ui->reqPasword->setChecked( Helper::getRequirePassword() );
 
     if ( this->isVisible() )
         this->hide();
