@@ -14,16 +14,15 @@
 #include <QDebug>
 #include <QTimer>
 
-struct ServerInfo;
+class ServerInfo;
+class Player;
+
 class Server : public QTcpServer
 {
     Q_OBJECT
 
     QStandardItemModel* plrViewModel{ nullptr };
     QHash<QString, QStandardItem*> plrTableItems;
-
-    QHash<QString, QTcpSocket*> tcpSockets;
-    QHash<QTcpSocket*, QByteArray> tcpDatas;
     QHash<QHostAddress, QByteArray> udpDatas;
 
     QUdpSocket* masterSocket{ nullptr };
@@ -40,12 +39,15 @@ class Server : public QTcpServer
         void setupServerInfo();
         void setupPublicServer(bool value);
         void disconnectFromMaster();
+        void sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort);
+        void sendUserList(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort);
 
         QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, bool insert);
+
     private:
-        void parsePacket(QString& packet, QTcpSocket* socket = nullptr);
-        void parseMIXPacket(QString& packet);
-        void parseSRPacket(QString& packet, QTcpSocket* socket = nullptr);
+        void parsePacket(QString& packet, Player* plr = nullptr);
+        void parseSRPacket(QString& packet, Player* plr = nullptr);
+        void parseMIXPacket(QString& packet, Player* plr = nullptr);
 
     signals:
 

@@ -2,14 +2,14 @@
 #define PLAYER_HPP
 
 #include <QElapsedTimer>
+#include <QHostAddress>
 #include <QTcpSocket>
-#include <QObject>
 
-class Player : public QObject
+class Player
 {
-    Q_OBJECT
-
     QTcpSocket* socket{ nullptr };
+    QString publicIP{ "" };
+
     QString alias{ "" };
     QString playTime{ "" };
 
@@ -19,8 +19,12 @@ class Player : public QObject
     unsigned int privateDest{ 0 };
     unsigned int sendDest{ 0 };
 
+    bool pwdRequested{ false };
+    bool enteredPwd{ false };
+    int slotPos{ -1 };
+
     public:
-        explicit Player(QObject *parent = 0);
+        explicit Player();
         ~Player();
 
         QElapsedTimer connectionTime;
@@ -46,10 +50,17 @@ class Player : public QObject
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
-    signals:
+        bool getPwdRequested() const;
+        void setPwdRequested(bool value);
 
-    public slots:
+        int getSlotPos() const;
+        void setSlotPos(int value);
 
+        QString getPublicIP() const;
+        void setPublicIP(const QString& value);
+
+        bool getEnteredPwd() const;
+        void setEnteredPwd(bool value);
 };
 
 #endif // PLAYER_HPP

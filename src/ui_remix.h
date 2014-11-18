@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remix.ui'
 **
-** Created by: Qt User Interface Compiler version 5.4.0
+** Created by: Qt User Interface Compiler version 5.3.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -248,11 +248,13 @@ public:
         playerView = new QTableView(splitter);
         playerView->setObjectName(QStringLiteral("playerView"));
         playerView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        playerView->setAlternatingRowColors(true);
         playerView->setSelectionMode(QAbstractItemView::SingleSelection);
         playerView->setSelectionBehavior(QAbstractItemView::SelectRows);
         playerView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         playerView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         playerView->setSortingEnabled(true);
+        playerView->setCornerButtonEnabled(false);
         splitter->addWidget(playerView);
         playerView->horizontalHeader()->setDefaultSectionSize(100);
         playerView->horizontalHeader()->setStretchLastSection(true);

@@ -20,10 +20,6 @@ ReMix::ReMix(QWidget *parent) :
             timeUpdate->setInterval( 1000 );
             timeUpdate->start();
 
-    QTimer* uiUpdate = new QTimer( this );
-            uiUpdate->setInterval( 10000 );
-            uiUpdate->start();
-
     //Setup the PlayerInfo TableView.
     plrViewModel = new QStandardItemModel( 0, 8, 0 );
     plrViewModel->setHeaderData( 0, Qt::Horizontal, "Player IP:Port" );
@@ -50,24 +46,19 @@ ReMix::ReMix(QWidget *parent) :
 
     //Setup Server/Player Info objects.
     serverInfo = new ServerInfo();
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        serverInfo->players[ i ] = new Player();
-    }
-
-    serverInfo->serverID = Helper::getServerID();
-    if ( serverInfo->serverID <= 0 )
+    serverInfo->setServerID( Helper::getServerID() );
+    if ( serverInfo->getServerID() <= 0 )
     {
         QVariant value = this->genServerID();
-        serverInfo->serverID = value.toInt();
+        serverInfo->setServerID( value.toInt() );
 
         Helper::setServerID( value );
     }
-    serverInfo->hostInfo = QHostInfo();
-    serverInfo->serverRules = Helper::getServerRules();
+    serverInfo->setHostInfo( QHostInfo() );
+    serverInfo->setServerRules( Helper::getServerRules() );
 
     this->parseCMDLArgs();
-    if ( serverInfo->masterIP.isEmpty() )   //Check if the MasterIP has been set. If so, ignore the SynReal-Master data.
+    if ( serverInfo->getMasterIP().isEmpty() )   //Check if the MasterIP has been set. If so, ignore the SynReal-Master data.
         this->getSynRealData();
 
     //Connect Objects to Slots.
@@ -80,28 +71,26 @@ ReMix::ReMix(QWidget *parent) :
                                  .arg( time / 3600, 2, 10, QChar( '0' ) )
                                  .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
                                  .arg( time % 60, 2, 10, QChar( '0' ) ) );
-    });
 
-    //Setup Networking Objects.
-    tcpServer = new Server( serverInfo, plrViewModel );
-
-    QObject::connect( uiUpdate, &QTimer::timeout, [this]()
-    {
-        if ( serverInfo->isSetUp )
+        //Update other Info as well.
+        if ( serverInfo->getIsSetUp() )
         {
             QString tmp = QString( "Listening for incoming calls to %1:%2" )
-                                .arg( serverInfo->privateIP )
-                                .arg( serverInfo->privatePort );
-            if ( serverInfo->isPublic )
+                                .arg( serverInfo->getPrivateIP() )
+                                .arg( serverInfo->getPrivatePort() );
+            if ( serverInfo->getIsPublic() )
             {
                 QString tmp2 = QString( " ( Need port forward from %1:%2 )" )
-                                     .arg( serverInfo->publicIP )
-                                     .arg( serverInfo->publicPort );
+                                     .arg( serverInfo->getPublicIP() )
+                                     .arg( serverInfo->getPublicPort() );
                 tmp.append( tmp2 );
             }
             ui->networkStatus->setText( tmp );
         }
     });
+
+    //Setup Networking Objects.
+    tcpServer = new Server( serverInfo, plrViewModel );
 }
 
 ReMix::~ReMix()
@@ -153,7 +142,7 @@ void ReMix::parseCMDLArgs()
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
-                serverInfo->gameName = arg.mid( index + 1 );
+                serverInfo->setGameName( arg.mid( index + 1 ) );
         }
         else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
         {
@@ -163,8 +152,8 @@ void ReMix::parseCMDLArgs()
                tmpArg = arg.mid( index + 1 );
                if ( !tmpArg.isEmpty() )
                {
-                   serverInfo->masterIP = tmpArg.left( tmpArg.indexOf( ':' ) );
-                   serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
+                   serverInfo->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
+                   serverInfo->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
                }
             }
         }
@@ -176,9 +165,9 @@ void ReMix::parseCMDLArgs()
                tmpArg = arg.mid( index + 1 );
                if ( !tmpArg.isEmpty() )
                {
-                   serverInfo->masterIP = tmpArg.left( tmpArg.indexOf( ':' ) );
-                   serverInfo->masterPort = tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt();
-                   serverInfo->isPublic = true;
+                   serverInfo->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
+                   serverInfo->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
+                   serverInfo->setIsPublic( true );
                }
             }
 
@@ -187,13 +176,13 @@ void ReMix::parseCMDLArgs()
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
-                serverInfo->privatePort = arg.mid( index + 1 ).toInt();
+                serverInfo->setPrivatePort( arg.mid( index + 1 ).toInt() );
         }
         else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
         {
             tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
             if ( !tmpArg.isEmpty() )
-                serverInfo->name = tmpArg;
+                serverInfo->setName( tmpArg );
         }
 //        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
 //        {
@@ -204,9 +193,9 @@ void ReMix::parseCMDLArgs()
 //        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
 //            qDebug() << arg.mid( index + 1 );   //Enable fileLogging.
     }
-    ui->serverPort->setText( QString::number( serverInfo->privatePort ) );
-    ui->isPublicServer->setChecked( serverInfo->isPublic );
-    ui->serverName->setText( serverInfo->name );
+    ui->serverPort->setText( QString::number( serverInfo->getPrivatePort() ) );
+    ui->isPublicServer->setChecked( serverInfo->getIsPublic() );
+    ui->serverName->setText( serverInfo->getName() );
 }
 
 void ReMix::getSynRealData()
@@ -242,12 +231,12 @@ void ReMix::getSynRealData()
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( serverInfo->gameName + "/master" ).toString();
+            QString str = settings.value( serverInfo->getGameName() + "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
-                serverInfo->masterIP = str.left( index );
-                serverInfo->masterPort = str.mid( index + 1 ).toInt();
+                serverInfo->setMasterIP( str.left( index ) );
+                serverInfo->setMasterPort( str.mid( index + 1 ).toInt() );
             }
         });
 
@@ -260,8 +249,8 @@ void ReMix::getSynRealData()
         int index = str.indexOf( ":" );
         if ( index > 0 )
         {
-            serverInfo->masterIP = str.left( index );
-            serverInfo->masterPort = str.mid( index + 1 ).toInt();
+            serverInfo->setMasterIP( str.left( index ) );
+            serverInfo->setMasterPort( str.mid( index + 1 ).toInt() );
         }
     }
 }
@@ -319,10 +308,10 @@ void ReMix::on_serverPort_textChanged(const QString &arg1)
     if ( val < 0 || val > 65535 )
         val = 0;
 
-    serverInfo->privatePort = val;
+    serverInfo->setPrivatePort( val );
 }
 
 void ReMix::on_serverName_textChanged(const QString &arg1)
 {
-    serverInfo->name = arg1;
+    serverInfo->setName( arg1 );
 }

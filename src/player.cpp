@@ -1,15 +1,13 @@
 
 #include "player.hpp"
 
-Player::Player(QObject *parent) :
-    QObject(parent)
+Player::Player()
 {
     connectionTime.start();
 }
 
 Player::~Player()
 {
-
 }
 
 QTcpSocket* Player::getSocket() const
@@ -80,4 +78,45 @@ QByteArray Player::getOutBuff() const
 void Player::setOutBuff(const QByteArray& value)
 {
     outBuff = value;
+}
+
+
+bool Player::getPwdRequested() const
+{
+    return pwdRequested;
+}
+
+void Player::setPwdRequested(bool value)
+{
+    pwdRequested = value;
+}
+
+int Player::getSlotPos() const
+{
+    return slotPos;
+}
+
+void Player::setSlotPos(int value)
+{
+    slotPos = value;
+}
+
+QString Player::getPublicIP() const
+{
+    return publicIP;
+}
+
+void Player::setPublicIP(const QString& value)
+{
+    publicIP = value;
+}
+
+bool Player::getEnteredPwd() const
+{
+    return enteredPwd;
+}
+
+void Player::setEnteredPwd(bool value)
+{
+    enteredPwd = value;
 }

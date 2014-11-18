@@ -8,7 +8,7 @@
 #include "player.hpp"
 
 const int MAX_PLAYERS = 256;
-struct ServerInfo
+class ServerInfo
 {
     bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };
@@ -42,38 +42,77 @@ struct ServerInfo
 
     Player* players[ MAX_PLAYERS ];
 
-    int getEmptySlot()
-    {
-        int slot = 0;
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            if ( players[ i ]->getSocket() == nullptr )
-                slot = i;
-        }
-        return slot;
-    }
+    public:
+//        explicit ServerInfo();
+//        ~ServerInfo();
 
-    int getSocketSlot(QTcpSocket* soc)
-    {
-        int slot = -1;
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            if ( players[ i ]->getSocket() == soc )
-                slot = i;
-        }
-        return slot;
-    }
+        bool createPlayer(int slot);
+        bool deletePlayer(int slot);
+        Player* getPlayer(int slot);
 
-    int getSernumSlot(unsigned int sernum)
-    {
-        int slot = -1;
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            if ( players[ i ]->getSernum() == sernum )
-                slot = i;
-        }
-        return slot;
-    }
+        int getEmptySlot();
+        int getSocketSlot(QTcpSocket* soc);
+        int getSernumSlot(unsigned int sernum);
+
+        QString getInfo() const;
+        void setInfo(const QString& value);
+
+        QString getGameInfo() const;
+        void setGameInfo(const QString& value);
+
+        int getGameId() const;
+        void setGameId(int value);
+
+        QString getGameName() const;
+        void setGameName(const QString& value);
+
+        QHostInfo getHostInfo() const;
+        void setHostInfo(const QHostInfo& value);
+
+        int getVersionID_i() const;
+        void setVersionID_i(int value);
+
+        float getVersionID_f() const;
+        void setVersionID_f(float value);
+
+        int getMasterPort() const;
+        void setMasterPort(int value);
+
+        QString getMasterIP() const;
+        void setMasterIP(const QString& value);
+
+        bool getIsPublic() const;
+        void setIsPublic(bool value);
+
+        bool getIsMaster() const;
+        void setIsMaster(bool value);
+
+        int getServerID() const;
+        void setServerID(int value);
+
+        int getPlayerCount() const;
+        void setPlayerCount(int value);
+
+        int getPublicPort() const;
+        void setPublicPort(int value);
+
+        QString getPublicIP() const;
+        void setPublicIP(const QString& value);
+
+        int getPrivatePort() const;
+        void setPrivatePort(int value);
+
+        QString getPrivateIP() const;
+        void setPrivateIP(const QString& value);
+
+        QString getServerRules() const;
+        void setServerRules(const QString& value);
+
+        QString getName() const;
+        void setName(const QString& value);
+
+        bool getIsSetUp() const;
+        void setIsSetUp(bool value);
 };
 
 #endif // SERVERINFO_HPP

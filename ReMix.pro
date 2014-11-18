@@ -17,7 +17,7 @@ RCC_DIR = build
 OBJECTS_DIR = build
 
 CONFIG += static c++11
-QMAKE_CXXFLAGS = -std=c++11 -static-libstdc++ -static-libgcc -static -Os -s
+QMAKE_CXXFLAGS = -std=c++11 #-static-libstdc++ -static-libgcc -static -Os -s
 
 SOURCES += src/main.cpp\
            src/remix.cpp \
@@ -27,6 +27,7 @@ SOURCES += src/main.cpp\
            src/bannedsernum.cpp \
            src/usermessage.cpp \
            src/server.cpp \
+           src/serverinfo.cpp \
            src/helper.cpp
 
 HEADERS += src/player.hpp \

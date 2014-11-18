@@ -29,17 +29,12 @@ Server::~Server()
     masterSocket->close();
     masterSocket->deleteLater();
 
-    QTcpSocket* socket;
-
-    QHash<QString, QTcpSocket*>::iterator iter = tcpSockets.begin();
-    while ( iter != tcpSockets.end() )
+    Player* plr{ nullptr };
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
-        socket = tcpSockets.take( iter.key() );
-        tcpDatas.remove( socket );  //Remove all pending packets.
-
-        socket->deleteLater();
-
-        ++iter;
+        plr = server->getPlayer( i );
+        if ( plr != nullptr )
+            delete plr;
     }
     udpDatas.clear();
 }
@@ -99,9 +94,9 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, bool 
 
 void Server::setupServerInfo()
 {
-    if ( !server->isSetUp )
+    if ( !server->getIsSetUp() )
     {
-        server->privateIP = QHostAddress( QHostAddress::LocalHost ).toString();
+        server->setPrivateIP( QHostAddress( QHostAddress::LocalHost ).toString() );
 
         QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
         for ( int i = 0; i < ipList.size(); ++i )
@@ -111,54 +106,87 @@ void Server::setupServerInfo()
                  && ipList.at( i ).toIPv4Address()
                  && !Helper::isInvalidIPAddress( tmp ) )
             {
-                server->privateIP = ipList.at(i).toString();   //Use first non-local IP address.
+                server->setPrivateIP( ipList.at(i).toString() );   //Use first non-local IP address.
                 break;
             }
         }
-        masterSocket->bind( QHostAddress( server->privateIP ), server->privatePort );
-        this->listen( QHostAddress( server->privateIP ), server->privatePort );
+        masterSocket->bind( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+        this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
 
-        if ( server->isPublic && server->isSetUp && this->isListening() )
+        if ( server->getIsPublic() && server->getIsSetUp() && this->isListening() )
             this->masterCheckInTimeOutSlot();
 
-        server->isSetUp = true;
+        server->setIsSetUp( true );
     }
 }
 
 void Server::newConnectionSlot()
 {
     QTcpSocket* peer = this->nextPendingConnection();
+    Player* plr{ nullptr };
     if ( peer == nullptr )
         return;
 
-    QString ip = QString( "%1:%2" )
-                     .arg( peer->peerAddress().toString() )
-                     .arg( peer->peerPort() );
-    if ( tcpSockets.contains( ip ) )
+    int slot = server->getSocketSlot( peer );
+    if ( slot < 0 )
     {
-        //Check if we're allowing users to use multiple Clients.
-        if ( !Helper::getAllowDupedIP() )
-        {
-            peer->close();  //Close the duplicated IP. They're not allowed.
-            if ( Helper::getBanDupedIP() )
-            {
-                ;   //TODO: Add code to Ban the user.
-            }
-            //TODO: Remove the Player from all maps/hashes --With exception of the UDPDatas hash.
-            return; //Exit the method. We don't listen to dupes.
-        }
+        slot = server->getEmptySlot();
+        server->createPlayer( slot );
+
+        plr = server->getPlayer( slot );
     }
     else
-        tcpSockets.insert( ip, peer );
+        plr = server->getPlayer( slot );
 
-    peer->write( QByteArray( ":SR@M" + Helper::getMOTDMessage().toLatin1() + "\r\n" ) );
+    plr->setSocket( peer );
+
+    QString ip = QString( "%1" ).arg( peer->peerAddress().toString() );
+    plr->setPublicIP( ip );
+
+    for ( int i = 0, count = 0; i < MAX_PLAYERS; ++i )
+    {
+        Player* tmpPlr = server->getPlayer( i );
+        if ( tmpPlr != nullptr )
+        {
+            if ( tmpPlr->getPublicIP() == ip )
+                ++count;
+
+            //More than one User has this IP address.
+            if ( count > 1 )
+            {
+                //Check if we're allowing users to use multiple Clients.
+                if ( !Helper::getAllowDupedIP() )
+                {
+                    plr->getSocket()->close();  //Close the duplicated IP. They're not allowed.
+                    if ( Helper::getBanDupedIP() )
+                    {
+                        ;   //TODO: Add code to Ban the user.
+                    }
+                    //TODO: Remove the Player from all maps/hashes --With exception of the UDPDatas hash.
+                    return; //Exit the method. We don't listen to dupes.
+                }
+            }
+        }
+    }
+    ip = ip.append( ":%1" ).arg( peer->peerPort() );
+
+    QString greeting = QString( ":SR@M" + Helper::getMOTDMessage().toLatin1() );
+    if ( Helper::getRequirePassword() )
+    {
+        greeting.append( "///PASSWORD REQUIRED NOW: " );
+        plr->setPwdRequested( true );
+    }
+
+    if ( peer != nullptr )
+        peer->write( greeting.toLatin1() +  "\r\n" );
 
     //Connect the pending Connection to a ReadyRead lambda.
-    QObject::connect( peer, &QTcpSocket::readyRead, [peer, this]()
+    QObject::connect( peer, &QTcpSocket::readyRead, [peer, plr, this]()
     {
-        QByteArray data = tcpDatas.value( peer );
-        if ( peer != nullptr )
+        if ( plr != nullptr )
         {
+            QByteArray data = plr->getOutBuff();
+
             data.append( peer->readAll() );
             if ( data.contains( "\r" )
               || data.contains( "\n" ) )
@@ -173,9 +201,10 @@ void Server::newConnectionSlot()
                 {
                     QString packet = data.left( bytes + 1 ).trimmed();
                     data = data.mid( bytes + 1 ).data();
-                    tcpDatas.insert( peer, data );
 
-                    this->parsePacket( packet, peer );
+                    plr->setOutBuff( data );
+
+                    this->parsePacket( packet, plr );
                     emit peer->readyRead();
                 }
             }
@@ -183,18 +212,31 @@ void Server::newConnectionSlot()
     });
 
     //Connect the pending Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected, [peer, ip, this]()
+    QObject::connect( peer, &QTcpSocket::disconnected, [peer, plr, ip, this]()
     {
-        if ( peer != nullptr )
+        if ( plr != nullptr )
         {
             QStandardItem* item = plrTableItems.take( ip );
             if ( item != nullptr )
                 plrViewModel->removeRow( item->row() );
 
-            tcpSockets.remove( ip );
-            tcpDatas.remove( peer );
+            server->setPlayerCount( server->getPlayerCount() - 1 );
+            if ( server->getPlayerCount() <= 0 )
+            {
+                server->setPlayerCount( 0 );
+                server->setGameInfo( "" );
+            }
+
             peer->deleteLater();
+            this->masterCheckInTimeOutSlot();
         }
+    });
+
+    //Delete the Player Object associated with the Peer Socket.
+    QObject::connect( peer, &QTcpSocket::destroyed, [peer, plr]()
+    {
+//        plr->setSocket( nullptr );
+//        delete plr;
     });
 
     //Update the User's Table row.
@@ -204,7 +246,12 @@ void Server::newConnectionSlot()
         if ( plrTableItems.contains( ip ) )
             this->updatePlrListRow( ip, data, false );
         else
+        {
             plrTableItems[ ip ] = this->updatePlrListRow( ip, data, true );
+            server->setPlayerCount( server->getPlayerCount() + 1 );
+
+            this->masterCheckInTimeOutSlot();
+        }
     }
 }
 
@@ -225,7 +272,7 @@ void Server::readyReadUDPSlot()
             switch ( data.at( 0 ).toLatin1() )
             {
                 case 'G':   //Set the Server's gameInfoString.
-                    server->gameInfo = data.mid( 1 );
+                    server->setGameInfo( data.mid( 1 ) );
                 break;
                 case 'M':   //Read the response to the Master Server checkin.
                     this->parseMasterServerResponse( udpData );
@@ -235,30 +282,11 @@ void Server::readyReadUDPSlot()
 
                     //TODO: Check for banned D, V, and W variables and disconnect on positive matches.
                     //      If the variables are banned, no response will be sent.
+                    this->sendServerInfo( sender, senderAddr, senderPort );
 
-                    //TODO: Format Server Usage variable.
-                    if ( !server->gameInfo.isEmpty() )
-                    {
-                        response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" )
-                                       .arg( server->name )
-                                       .arg( server->gameInfo )
-                                       .arg( server->serverRules )
-                                       .arg( QString::number( server->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
-                                       .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
-                                       .arg( "999.999.999" );
-                    }
-                    else
-                    {
-                        response = QString( "#name=%1 //Rules: %2 //ID:%3 //TM:%4 //US:%5" )
-                                        .arg( server->name )
-                                        .arg( server->serverRules )
-                                        .arg( QString::number( server->serverID, 16 ).toUpper(), 8, QChar( '0' ) )
-                                        .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
-                                        .arg( "999.999.999" );
-                    }
-                    sender->writeDatagram( response.toLatin1(), response.size() + 1, senderAddr, senderPort );
                 break;
                 case 'Q':   //TODO: Send our online User information to the requestor.
+                    this->sendUserList( sender, senderAddr, senderPort );
                     //TODO: Format a string containing the serNums of all active players.
                 break;
                 case 'R':   //TODO: Command "R" with unknown use.
@@ -273,9 +301,9 @@ void Server::readyReadUDPSlot()
 
 void Server::setupPublicServer(bool value)
 {
-    if ( value != server->isPublic )
+    if ( value != server->getIsPublic() )
     {
-        if ( !server->isPublic )
+        if ( !server->getIsPublic() )
         {
             masterCheckIn.start();
             this->masterCheckInTimeOutSlot();
@@ -285,37 +313,69 @@ void Server::setupPublicServer(bool value)
             masterCheckIn.stop();
             this->disconnectFromMaster();
         }
-        server->isPublic = value;
+        server->setIsPublic( value );
     }
 }
 
 void Server::disconnectFromMaster()
 {
-    if ( server->isSetUp )
+    if ( server->getIsSetUp() )
     {
         char ex = 'X';
         masterSocket->writeDatagram( &ex, 2,
-                                     QHostAddress( server->masterIP ), server->masterPort );
+                                     QHostAddress( server->getMasterIP() ), server->getMasterPort() );
     }
+}
+
+void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort)
+{
+    //TODO: Format Server Usage variable.
+    QString response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" );
+    if ( !server->getGameInfo().isEmpty() )
+    {
+        response = response.arg( server->getName() )
+                            .arg( server->getGameInfo() )
+                            .arg( server->getServerRules() )
+                            .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
+                            .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
+                            .arg( "999.999.999" );
+    }
+    else
+    {
+        response = QString( "#name=%1 //Rules: %2 //ID:%3 //TM:%4 //US:%5" );
+        response = response.arg( server->getName() )
+                           .arg( server->getServerRules() )
+                           .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( "999.999.999" );
+    }
+
+    if ( socket != nullptr )
+        socket->writeDatagram( response.toLatin1(), response.size() + 1, socAddr, socPort );
+}
+
+void Server::sendUserList(QUdpSocket*, QHostAddress&, quint16)
+{
+
 }
 
 void Server::masterCheckInTimeOutSlot()
 {
-    if ( server->isSetUp )
+    QString response = QString( "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" );
+    if ( server->getIsSetUp() )
     {
-        QString response = QString( "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" )
-                               .arg( server->versionID_i )
-                               .arg( server->playerCount )
-                               .arg( server->gameId )
-                               .arg( server->gameName )
-                               .arg( server->hostInfo.localHostName() )
-                               .arg( server->serverID )
-                               .arg( server->privatePort )
-                               .arg( server->gameInfo )
-                               .arg( server->name );
+        response = response.arg( server->getVersionID_i() )
+                           .arg( server->getPlayerCount() )
+                           .arg( server->getGameId() )
+                           .arg( server->getGameName() )
+                           .arg( server->getHostInfo().localHostName() )
+                           .arg( server->getServerID() )
+                           .arg( server->getPrivatePort() )
+                           .arg( server->getGameInfo() )
+                           .arg( server->getName() );
 
         masterSocket->writeDatagram( response.toLatin1(), response.length() + 1,
-                                     QHostAddress( server->masterIP ), server->masterPort );
+                                     QHostAddress( server->getMasterIP() ), server->getMasterPort() );
     }
 }
 
@@ -332,13 +392,16 @@ void Server::parseMasterServerResponse(QByteArray& mData)
                     mDataStream >> pubIP;
                     mDataStream >> pubPort;
 
-        server->publicIP = QHostAddress( pubIP ).toString();
-        server->publicPort = qFromBigEndian( pubPort );
+        server->setPublicIP( QHostAddress( pubIP ).toString() );
+        server->setPublicPort( qFromBigEndian( pubPort ) );
     }
 }
 
-void Server::parsePacket(QString& packet, QTcpSocket* socket)
+void Server::parsePacket(QString& packet, Player* plr)
 {
+    if ( plr == nullptr )
+        return;
+
     if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
     {
         //Prevent Users from Impersonating the Server Admin.
@@ -349,15 +412,24 @@ void Server::parsePacket(QString& packet, QTcpSocket* socket)
         if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
             return;
 
-        this->parseSRPacket( packet, socket );
+        //Only parse packets from Users that have entered the correct password.
+        if ( plr->getEnteredPwd() || !Helper::getRequirePassword() )
+            this->parseSRPacket( packet, plr );
     }
 
     if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
-        this->parseMIXPacket( packet );
+        this->parseMIXPacket( packet, plr );
 }
 
-void Server::parseMIXPacket(QString& packet)
+void Server::parseMIXPacket(QString& packet, Player* plr)
 {
+    if ( plr == nullptr )
+        return;
+
+    QTcpSocket* soc = plr->getSocket();
+    if ( soc == nullptr )
+        return;
+
     QString tmp = packet;
 
     QChar opCode = packet.at( 4 );
@@ -375,6 +447,29 @@ void Server::parseMIXPacket(QString& packet)
         case '4':   //TODO: Send the next packet from SourceSlot to DestSlot as defined within the packet.
         break;
         case '5':   //TODO: Print remoteUser comment.
+
+            //Check for a password response.
+            if ( plr->getPwdRequested() && !plr->getEnteredPwd() )
+            {
+                int index = tmp.indexOf( ": " );
+                if ( index > 0 )
+                {
+                    tmp = tmp.mid( index + 2 );
+                    tmp = tmp.left( tmp.length() - 2 );
+
+                    if ( Helper::cmpPassword( tmp ) )
+                    {
+                        soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+                        plr->setEnteredPwd( true );
+                        plr->setPwdRequested( false );  //No longer required. Set to false.
+                    }
+                    else
+                    {
+                        soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
+                    }
+                }
+                return;
+            }
         break;
         case '6':   //TODO: Respond to a remoteAdmin command.
         break;
@@ -397,15 +492,23 @@ void Server::parseMIXPacket(QString& packet)
     }
 }
 
-void Server::parseSRPacket(QString& packet, QTcpSocket* socket)
+void Server::parseSRPacket(QString& packet, Player* plr)
 {
-    QHash<QString, QTcpSocket*>::iterator iter = tcpSockets.begin();
-    while ( iter != tcpSockets.end() )
+    //This code is all messed up....
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
-        QTcpSocket* soc = iter.value();
-        if ( socket != soc )
-            soc->write( packet.toLatin1() + "\r\n" );
-
-        ++iter;
+        if ( plr != nullptr
+          && plr->getSocket() != nullptr )
+        {
+            if ( server->getPlayer( i ) != nullptr
+              && server->getPlayer( i )->getSocket() != nullptr )
+            {
+                if ( plr->getSocket() != server->getPlayer( i )->getSocket() )
+                {
+                    qDebug() << server->getPlayer( i )->getSocket();
+                    server->getPlayer( i )->getSocket()->write( packet.toLatin1() + "\r\n" );
+                }
+            }
+        }
     }
 }

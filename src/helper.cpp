@@ -56,7 +56,7 @@ void Helper::setPassword(QVariant& value)
 {
     //Convert the password to a SHA3_512 hash.
     if ( !value.toString().isEmpty() )
-        value = QString( QCryptographicHash::hash( value.toByteArray(), QCryptographicHash::Sha3_512 ).toHex() );
+        value = QString( QCryptographicHash::hash( value.toString().toLatin1(), QCryptographicHash::Sha3_512 ).toHex() );
 
     setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ], value );
 }
@@ -74,6 +74,15 @@ void Helper::setRequirePassword(QVariant& value)
 bool Helper::getRequirePassword()
 {
     return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ] ).toBool();
+}
+
+bool Helper::cmpPassword(QString& value)
+{
+    //Convert the password to a SHA3_512 hash.
+    if ( !value.isEmpty() )
+        value = QString( QCryptographicHash::hash( value.toLatin1(), QCryptographicHash::Sha3_512 ).toHex() );
+
+    return ( getPassword() == value );
 }
 
 void Helper::setServerRules(QVariant& value)

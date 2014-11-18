@@ -38,6 +38,7 @@ namespace Helper
 
     void setRequirePassword(QVariant& value);
     bool getRequirePassword();
+    bool cmpPassword(QString& value);
 
     void setServerRules(QVariant& value);
     QString getServerRules();
