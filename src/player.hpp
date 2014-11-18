@@ -4,6 +4,7 @@
 #include <QElapsedTimer>
 #include <QHostAddress>
 #include <QTcpSocket>
+#include <QObject>
 
 class Player
 {
@@ -25,7 +26,6 @@ class Player
 
     public:
         explicit Player();
-        ~Player();
 
         QElapsedTimer connectionTime;
 

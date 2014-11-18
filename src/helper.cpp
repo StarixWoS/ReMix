@@ -52,13 +52,17 @@ QString Helper::getBanishMesage()
     return getSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ] ).toString();
 }
 
-void Helper::setPassword(QVariant& value)
+bool Helper::setPassword(QVariant& value, bool isHashed)
 {
     //Convert the password to a SHA3_512 hash.
-    if ( !value.toString().isEmpty() )
+    if ( !value.toString().isEmpty() && !isHashed )
+    {
         value = QString( QCryptographicHash::hash( value.toString().toLatin1(), QCryptographicHash::Sha3_512 ).toHex() );
-
+        isHashed = true;
+    }
     setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ], value );
+
+    return isHashed;
 }
 
 QString Helper::getPassword()

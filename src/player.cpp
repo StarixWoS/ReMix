@@ -6,10 +6,6 @@ Player::Player()
     connectionTime.start();
 }
 
-Player::~Player()
-{
-}
-
 QTcpSocket* Player::getSocket() const
 {
     return socket;

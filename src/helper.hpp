@@ -33,7 +33,7 @@ namespace Helper
     void setBanishMesage(QVariant& value);
     QString getBanishMesage();
 
-    void setPassword(QVariant& value);
+    bool setPassword(QVariant& value, bool isHashed);
     QString getPassword();
 
     void setRequirePassword(QVariant& value);

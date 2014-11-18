@@ -53,7 +53,7 @@ void Messages::on_saveSettings_clicked()
     Helper::setBanishMesage( banMsg );
 
     QVariant pwd = ui->pwdEdit->text();
-    Helper::setPassword( pwd );
+    pwdHashed = Helper::setPassword( pwd, pwdHashed );
 
     QVariant reqPwd = ui->reqPasword->isChecked();
     Helper::setRequirePassword( reqPwd );
@@ -77,7 +77,7 @@ void Messages::on_reloadSettings_clicked()
 
     QVariant qVar = Helper::getPassword();
     if ( !qVar.toString().isEmpty() && qVar.toString().length() < 128 )
-        Helper::setPassword( qVar );
+        pwdHashed = Helper::setPassword( qVar, pwdHashed );
 
     ui->pwdEdit->setText( Helper::getPassword() );
 
@@ -89,4 +89,9 @@ void Messages::on_reloadSettings_clicked()
 
     if ( this->isVisible() )
         this->hide();
+}
+
+void Messages::on_pwdEdit_textEdited(const QString&)
+{
+    pwdHashed = false;
 }

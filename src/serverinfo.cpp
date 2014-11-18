@@ -15,25 +15,28 @@
 //    }
 //}
 
-bool ServerInfo::createPlayer(int slot)
+Player* ServerInfo::createPlayer(int slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
         players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );    //The player will be Slot-Aware.
+        return players[ slot ];
     }
-    return ( players[ slot ] != nullptr );
-}
-
-bool ServerInfo::deletePlayer(int slot)
-{
-    delete players[ slot ];
-    return ( players[ slot ] == nullptr );
+    return nullptr;
 }
 
 Player* ServerInfo::getPlayer(int slot)
 {
     return players[ slot ];
+}
+
+void ServerInfo::deletePlayer(int slot)
+{
+    players[ slot ]->setSocket( nullptr );
+    delete players[ slot ];
+
+    players[ slot ] = nullptr;
 }
 
 int ServerInfo::getEmptySlot()

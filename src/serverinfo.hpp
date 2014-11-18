@@ -46,9 +46,9 @@ class ServerInfo
 //        explicit ServerInfo();
 //        ~ServerInfo();
 
-        bool createPlayer(int slot);
-        bool deletePlayer(int slot);
+        Player* createPlayer(int slot);
         Player* getPlayer(int slot);
+        void deletePlayer(int slot);
 
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);

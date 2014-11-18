@@ -29,17 +29,14 @@ Server::~Server()
     masterSocket->close();
     masterSocket->deleteLater();
 
-    Player* plr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
-        plr = server->getPlayer( i );
-        if ( plr != nullptr )
-            delete plr;
+        server->deletePlayer( i );
     }
     udpDatas.clear();
 }
 
-QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, bool insert)
+QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert)
 {
     QString bio = QString( data );
     int row = -1;
@@ -129,12 +126,7 @@ void Server::newConnectionSlot()
 
     int slot = server->getSocketSlot( peer );
     if ( slot < 0 )
-    {
-        slot = server->getEmptySlot();
-        server->createPlayer( slot );
-
-        plr = server->getPlayer( slot );
-    }
+        plr = server->createPlayer( server->getEmptySlot() );
     else
         plr = server->getPlayer( slot );
 
@@ -180,63 +172,49 @@ void Server::newConnectionSlot()
     if ( peer != nullptr )
         peer->write( greeting.toLatin1() +  "\r\n" );
 
-    //Connect the pending Connection to a ReadyRead lambda.
-    QObject::connect( peer, &QTcpSocket::readyRead, [peer, plr, this]()
-    {
-        if ( plr != nullptr )
-        {
-            QByteArray data = plr->getOutBuff();
-
-            data.append( peer->readAll() );
-            if ( data.contains( "\r" )
-              || data.contains( "\n" ) )
-            {
-                int bytes = data.indexOf( "\r\n" );
-                if ( bytes <= 0 )
-                    bytes = data.indexOf( "\n" );
-                if ( bytes <= 0 )
-                    bytes = data.indexOf( "\r" );
-
-                if ( bytes > 0 )
-                {
-                    QString packet = data.left( bytes + 1 ).trimmed();
-                    data = data.mid( bytes + 1 ).data();
-
-                    plr->setOutBuff( data );
-
-                    this->parsePacket( packet, plr );
-                    emit peer->readyRead();
-                }
-            }
-        }
-    });
-
     //Connect the pending Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected, [peer, plr, ip, this]()
+    QObject::connect( peer, &QTcpSocket::disconnected, [=]()
     {
-        if ( plr != nullptr )
+        QStandardItem* item = plrTableItems.take( ip );
+        if ( item != nullptr )
+            plrViewModel->removeRow( item->row() );
+
+        server->setPlayerCount( server->getPlayerCount() - 1 );
+        if ( server->getPlayerCount() <= 0 )
         {
-            QStandardItem* item = plrTableItems.take( ip );
-            if ( item != nullptr )
-                plrViewModel->removeRow( item->row() );
-
-            server->setPlayerCount( server->getPlayerCount() - 1 );
-            if ( server->getPlayerCount() <= 0 )
-            {
-                server->setPlayerCount( 0 );
-                server->setGameInfo( "" );
-            }
-
-            peer->deleteLater();
-            this->masterCheckInTimeOutSlot();
+            server->setPlayerCount( 0 );
+            server->setGameInfo( "" );
         }
+        this->masterCheckInTimeOutSlot();
+
+        server->deletePlayer( plr->getSlotPos() );
     });
 
-    //Delete the Player Object associated with the Peer Socket.
-    QObject::connect( peer, &QTcpSocket::destroyed, [peer, plr]()
+    //Connect the pending Connection to a ReadyRead lambda.
+    QObject::connect( peer, &QTcpSocket::readyRead, [=]()
     {
-//        plr->setSocket( nullptr );
-//        delete plr;
+        QByteArray data = plr->getOutBuff();
+
+        data.append( peer->readAll() );
+        if ( data.contains( "\r" )
+          || data.contains( "\n" ) )
+        {
+            int bytes = data.indexOf( "\r\n" );
+            if ( bytes <= 0 )
+                bytes = data.indexOf( "\n" );
+            if ( bytes <= 0 )
+                bytes = data.indexOf( "\r" );
+
+            if ( bytes > 0 )
+            {
+                QString packet = data.left( bytes + 1 ).trimmed();
+                data = data.mid( bytes + 1 ).data();
+
+                plr->setOutBuff( data );
+
+                this->parsePacket( packet, plr );
+            }
+        }
     });
 
     //Update the User's Table row.
@@ -244,10 +222,10 @@ void Server::newConnectionSlot()
     if ( !data.isEmpty() )
     {
         if ( plrTableItems.contains( ip ) )
-            this->updatePlrListRow( ip, data, false );
+            this->updatePlrListRow( ip, data, plr, false );
         else
         {
-            plrTableItems[ ip ] = this->updatePlrListRow( ip, data, true );
+            plrTableItems[ ip ] = this->updatePlrListRow( ip, data, plr, true );
             server->setPlayerCount( server->getPlayerCount() + 1 );
 
             this->masterCheckInTimeOutSlot();
@@ -466,6 +444,8 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
                     else
                     {
                         soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
+                        soc->abort();   //Abort the socket. This emits ::disconnected()
+                                        //and will delete both the Socket and plr once it reaches it's control slot.
                     }
                 }
                 return;
@@ -494,19 +474,24 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
 
 void Server::parseSRPacket(QString& packet, Player* plr)
 {
-    //This code is all messed up....
+    //TODO: Send Packets to a specific User/Slot.
+
+    QTcpSocket* tmpSoc{ nullptr };
+    Player* tmpPlr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
+        tmpPlr = server->getPlayer( i );
         if ( plr != nullptr
-          && plr->getSocket() != nullptr )
+          && tmpPlr != nullptr )
         {
-            if ( server->getPlayer( i ) != nullptr
-              && server->getPlayer( i )->getSocket() != nullptr )
+            tmpSoc = tmpPlr->getSocket();
+            if ( plr->getSocket() != nullptr
+              && tmpPlr->getSocket() != nullptr )
             {
-                if ( plr->getSocket() != server->getPlayer( i )->getSocket() )
+                if ( plr->getSocket() != tmpSoc )
                 {
-                    qDebug() << server->getPlayer( i )->getSocket();
-                    server->getPlayer( i )->getSocket()->write( packet.toLatin1() + "\r\n" );
+                    packet.append( "\r\n" );
+                    tmpSoc->write( packet.toLatin1(), packet.length() );
                 }
             }
         }

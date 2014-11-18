@@ -13,6 +13,8 @@ class Messages : public QDialog
     Q_OBJECT
     Ui::Messages *ui;
 
+    bool pwdHashed{ true };
+
     public:
         explicit Messages(QWidget *parent = 0);
         ~Messages();
@@ -26,6 +28,7 @@ class Messages : public QDialog
     private slots:
         void on_saveSettings_clicked();
         void on_reloadSettings_clicked();
+        void on_pwdEdit_textEdited(const QString&);
 };
 
 #endif // MESSAGES_HPP
