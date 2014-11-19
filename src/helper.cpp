@@ -12,6 +12,67 @@ int Helper::genRandNum(int min, int max)
     return randInt( RandDev::randDevice );
 }
 
+QString Helper::intToStr(int val, int base, int fill, QChar filler)
+{
+    /* Converts an int to QString using:
+     *
+     * base --- What numeric format the string will be in.
+     * fill --- How much padding will be prepended to the string.
+     * filler --- The char used to pad the string
+     */
+
+    return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
+}
+
+QString Helper::intToStr(QString val, int base, int fill, QChar filler)
+{
+    /* This overload is mainly used to reformat a QString's numeric format
+     * if the source is in an unknown format.
+     *
+     * base --- What numeric format the string will be in.
+     * fill --- How much padding will be prepended to the string.
+     * filler --- The char used to pad the string
+     */
+
+    int val_i = val.toInt();
+    if ( val_i > 0 )
+        return QString( "%1" ).arg( val_i, fill, base, filler ).toUpper();
+    else
+        return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler ).toUpper();
+}
+
+int Helper::strToInt(QString& str, int base)
+{
+    bool base16 = ( base != 10 );
+    bool ok = false;
+
+    int val = str.toInt( &ok, base );
+    if ( !ok && !base16 )
+        val = str.toInt( &ok, 16 );
+
+    if ( !ok )
+        val = -1;
+
+    return val;
+}
+
+QString Helper::serNumToHexStr(QString sernum, int fillAmt)
+{
+    if ( sernum.contains( "SOUL " ) )
+        return intToStr( sernum.mid( sernum.indexOf( " " ) + 1 ).toInt(), 16, fillAmt );
+    else
+        return intToStr( sernum.toInt( 0, 16 ), 16, fillAmt );
+}
+
+QString Helper::serNumToIntStr(QString sernum)
+{
+    int serNum = sernum.toInt( 0, 16 );
+    if ( !( serNum & 0x40000000 ) )
+        return QString( "SOUL %1" ).arg( intToStr( serNum, 10 ) );
+    else
+        return QString( "%1" ).arg( intToStr( serNum, 16 ) );
+}
+
 void Helper::setSetting(const QString& key, const QString& subKey, QVariant& value)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );

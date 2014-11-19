@@ -23,6 +23,12 @@ namespace Helper
                                  "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES" };
 
     int genRandNum(int min = 0, int max = 32767);
+    QString intToStr(int val, int base = 10, int fill = 0, QChar filler = '0');
+    QString intToStr(QString val, int base = 16, int fill = 0, QChar filler = '0');
+    int strToInt(QString& str, int base = 16);
+
+    QString serNumToHexStr(QString sernum, int fillAmt = 8);
+    QString serNumToIntStr(QString sernum);
 
     void setSetting(const QString& key, const QString& subKey, QVariant& value);
     QVariant getSetting(const QString& key, const QString& subKey);

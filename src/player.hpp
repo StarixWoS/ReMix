@@ -24,6 +24,10 @@ class Player
     bool enteredPwd{ false };
     int slotPos{ -1 };
 
+    //HB ID/Slot: Set by :MIX7 and is used to disconnect a certain type of hacker.
+    unsigned int hbID{ 0 };
+    int hbSlot{ 0 };
+
     public:
         explicit Player();
 
@@ -61,6 +65,10 @@ class Player
 
         bool getEnteredPwd() const;
         void setEnteredPwd(bool value);
+        unsigned int getHBID() const;
+        void setHBID(unsigned int value);
+        int getHbSlot() const;
+        void setHBSlot(int value);
 };
 
 #endif // PLAYER_HPP

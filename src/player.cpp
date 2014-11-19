@@ -1,6 +1,26 @@
 
 #include "player.hpp"
 
+
+unsigned int Player::getHBID() const
+{
+    return hbID;
+}
+
+void Player::setHBID(unsigned int value)
+{
+    hbID = value;
+}
+
+int Player::getHbSlot() const
+{
+    return hbSlot;
+}
+
+void Player::setHBSlot(int value)
+{
+    hbSlot = value;
+}
 Player::Player()
 {
     connectionTime.start();

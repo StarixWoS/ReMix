@@ -22,6 +22,8 @@ Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
 
     QObject::connect( &masterCheckIn, &QTimer::timeout,
                       this, &Server::masterCheckInTimeOutSlot );
+
+    QDir( "mixVariableCache" ).mkpath( "." );
 }
 
 Server::~Server()
@@ -63,6 +65,8 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
         {
             sernum = bio.mid( index + 7 );
             sernum = sernum.left( sernum.indexOf( ',' ) );
+
+            plr->setSernum( Helper::serNumToHexStr( sernum ).toUInt( 0, 16 ) );
         }
         plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
 
@@ -213,6 +217,7 @@ void Server::newConnectionSlot()
                 plr->setOutBuff( data );
 
                 this->parsePacket( packet, plr );
+                emit peer->readyRead();
             }
         }
     });
@@ -332,9 +337,19 @@ void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 s
         socket->writeDatagram( response.toLatin1(), response.size() + 1, socAddr, socPort );
 }
 
-void Server::sendUserList(QUdpSocket*, QHostAddress&, quint16)
+void Server::sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port)
 {
+    Player* plr{ nullptr };
+    QString response{ "Q" };
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        plr = server->getPlayer( i );
+        if ( plr != nullptr && plr->getSernum() > 0 )
+            response += Helper::intToStr( plr->getSernum(), 16 ) + ",";
+    }
 
+    if ( !response.isEmpty() && soc != nullptr )
+        soc->writeDatagram( response.toLatin1(), response.size() + 1, addr, port );
 }
 
 void Server::masterCheckInTimeOutSlot()
@@ -404,67 +419,39 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
     if ( plr == nullptr )
         return;
 
-    QTcpSocket* soc = plr->getSocket();
-    if ( soc == nullptr )
-        return;
-
-    QString tmp = packet;
-
     QChar opCode = packet.at( 4 );
+    QString tmp = packet.mid( packet.indexOf( ":MIX", Qt::CaseInsensitive ) + 5 );
     switch ( opCode.toLatin1() )
     {
-        case '0':   //TODO: Send Packet to Scene hosted by trgSernum.
+        case '0':   //Send Next Packet to Scene.
+            this->readMIX0( tmp, plr );
         break;
-        case '1':   //TODO: Register srcSernum as Player within trgSernum's Scene.
+        case '1':   //Register Player within SerNum's Scene.
+            this->readMIX1( tmp, plr );
         break;
-        case '2':   //TODO: Find usage and implement.
+        case '2':   //Unknown.
+            this->readMIX2( tmp, plr );
         break;
-        case '3':   //TODO: Set a Socket's attuned sernum. --This is used by "MIX4" to send the response packet.
-            //TODO: Prevent multiple sockets from using the same sernum.
+        case '3':   //Attune a Player to thier SerNum for private messaging.
+            this->readMIX3( tmp, plr );
         break;
-        case '4':   //TODO: Send the next packet from SourceSlot to DestSlot as defined within the packet.
+        case '4':   //Send the next Packet from the User to SerNum's Socket.
+            this->readMIX4( tmp, plr );
         break;
-        case '5':   //TODO: Print remoteUser comment.
-
-            //Check for a password response.
-            if ( plr->getPwdRequested() && !plr->getEnteredPwd() )
-            {
-                int index = tmp.indexOf( ": " );
-                if ( index > 0 )
-                {
-                    tmp = tmp.mid( index + 2 );
-                    tmp = tmp.left( tmp.length() - 2 );
-
-                    if ( Helper::cmpPassword( tmp ) )
-                    {
-                        soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
-                        plr->setEnteredPwd( true );
-                        plr->setPwdRequested( false );  //No longer required. Set to false.
-                    }
-                    else
-                    {
-                        soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
-                        soc->abort();   //Abort the socket. This emits ::disconnected()
-                                        //and will delete both the Socket and plr once it reaches it's control slot.
-                    }
-                }
-                return;
-            }
+        case '5':   //Handle Server password login and User Comments.
+            this->readMIX5( tmp, plr );
         break;
-        case '6':   //TODO: Respond to a remoteAdmin command.
+        case '6':   //Handle Remote Admin Commands.
+            this->readMIX6( tmp, plr );
         break;
-        case '7':   //TODO: Set Slot SerNum.
+        case '7':   //Set the User's HB ID. --Unknown usage outside of disconnecting users.
+            this->readMIX7( tmp, plr );
         break;
         case '8':   //Set/Read SSV Variable.
-        case '9':
-            if ( opCode.toLatin1() == '8' )
-            {
-                ;   //TODO: Set the SSV.
-            }
-            else
-            {
-                ;   //TODO: Read the SSV.
-            }
+            this->readMIX8( tmp, plr );
+        break;
+        case '9':   //Set/Read SSV Variable.
+            this->readMIX9( tmp, plr );
         break;
         default:    //Do nothing. Unknown command.
             return;
@@ -495,5 +482,142 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                 }
             }
         }
+    }
+}
+
+void Server::readMIX0(QString&, Player*)
+{
+       //TODO: Send Packet to Scene hosted by trgSernum.
+}
+
+void Server::readMIX1(QString&, Player*)
+{
+       //TODO: Register srcSernum as Player within trgSernum's Scene.
+}
+
+void Server::readMIX2(QString&, Player*)
+{
+    //TODO: Find usage.
+    //TODO: Write Code.
+}
+
+void Server::readMIX3(QString&, Player*)
+{
+    //TODO: Set the Socket's attuned sernum.
+    //TODO: Prevent multiple sockets from using the same sernum.
+}
+
+void Server::readMIX4(QString&, Player*)
+{
+    //TODO: Set the target for the Player's next Packet.
+}
+
+void Server::readMIX5(QString& packet, Player* plr)
+{
+    QTcpSocket* soc = plr->getSocket();
+     if ( soc == nullptr )
+         return;
+
+    if ( plr->getPwdRequested() && !plr->getEnteredPwd() )
+    {
+        int index = packet.indexOf( ": " );
+        if ( index > 0 )
+        {
+            packet = packet.mid( index + 2 );
+            packet = packet.left( packet.length() - 2 );
+
+            if ( Helper::cmpPassword( packet ) )
+            {
+                soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+                plr->setEnteredPwd( true );
+                plr->setPwdRequested( false );  //No longer required. Set to false.
+            }
+            else
+            {
+                soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
+                soc->abort();   //Abort the socket. This emits ::disconnected()
+                                //and will delete both the Socket and plr once it reaches it's control slot.
+            }
+        }
+        return;
+    }
+}
+
+void Server::readMIX6(QString&, Player*)
+{
+    //TODO: Handle incoming Admin commands.
+}
+
+void Server::readMIX7(QString& packet, Player* plr)
+{
+    unsigned int plrHBID = plr->getHBID();
+    int slot = packet.left( 2 ).toInt( 0, 16 );
+
+    packet = packet.mid( 2 );
+    packet = packet.left( packet.length() - 2 );
+
+    unsigned int id = packet.toUInt( 0, 16 );
+    if ( plrHBID != id )
+    {
+        if ( plrHBID > 0 )
+        {
+            ;   //Player's HBID has somehow changed. Disconnect them.
+        }
+        else
+        {
+            //Update the Player's HB ID. --Slot is never used as it's not a server Slot but a Game slot, as far as I could tell.
+            plr->setHBID( id );
+            plr->setHBSlot( slot );
+        }
+    }
+}
+
+void Server::readMIX8(QString& packet, Player* plr)
+{
+    QString sernum = packet.mid( 2 ).left( 8 );
+
+    packet = packet.mid( 10 );
+    packet = packet.left( packet.length() - 2 );
+
+    QStringList vars = packet.split( ',' );
+    QString file = vars.value( 0 );
+    QString key = vars.value( 1 );
+    QString subKey = vars.value( 2 );
+    QString val{ "" };
+
+    //Check if we allow SSV's and prevent reading from SSV's containing "Admin".
+    if ( Helper::getAllowSSV()
+      && !vars.contains( "Admin", Qt::CaseInsensitive ))
+    {
+        QSettings ssv( "mixVariableCache/" + file + ".ini", QSettings::IniFormat );
+        val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
+                  .arg( sernum )
+                  .arg( file )
+                  .arg( key )
+                  .arg( subKey )
+                  .arg( ssv.value( key + "/" + subKey, "" ).toString() );
+    }
+
+    if ( !val.isEmpty() )
+        plr->getSocket()->write( val.toLatin1(), val.length() );
+}
+
+void Server::readMIX9(QString& packet, Player*)
+{
+    packet = packet.mid( 10 );
+    packet = packet.left( packet.length() - 2 );
+
+    QStringList vars = packet.split( ',' );
+    QString file = vars.value( 0 );
+    QString key = vars.value( 1 );
+    QString subKey = vars.value( 2 );
+    QString val = vars.value( 3 );
+
+    //Check if we allow SSV's and prevent writing SSV's containing "Admin".
+    if ( Helper::getAllowSSV()
+      && !vars.contains( "Admin", Qt::CaseInsensitive ))
+    {
+        QSettings ssv( "mixVariableCache/" + file + ".ini", QSettings::IniFormat );
+                  ssv.setValue( key + "/" + subKey, val );
     }
 }

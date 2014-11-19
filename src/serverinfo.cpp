@@ -33,6 +33,10 @@ Player* ServerInfo::getPlayer(int slot)
 
 void ServerInfo::deletePlayer(int slot)
 {
+    QTcpSocket* soc = players[ slot ]->getSocket();
+                soc->disconnect();
+                soc->deleteLater();
+
     players[ slot ]->setSocket( nullptr );
     delete players[ slot ];
 
