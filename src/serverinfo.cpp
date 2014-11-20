@@ -69,7 +69,7 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
     return slot;
 }
 
-int ServerInfo::getSernumSlot(unsigned int sernum)
+int ServerInfo::getSernumSlot(quint32 sernum)
 {
     int slot = -1;
     for ( int i = 0; i < MAX_PLAYERS; ++i )

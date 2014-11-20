@@ -11,9 +11,9 @@
 
 struct IpBans
 {
-    unsigned int ip{ 0 };
+    quint32 ip{ 0 };
     QChar reason[ 256 ]{ 0 };
-    unsigned int banDate{ 0 };
+    quint32 banDate{ 0 };
 };
 
 namespace Ui {

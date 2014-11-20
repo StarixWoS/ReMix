@@ -58,10 +58,6 @@ ReMix::ReMix(QWidget *parent) :
     serverInfo->setServerRules( Helper::getServerRules() );
 
     this->parseCMDLArgs();
-    if ( serverInfo->getMasterIP().isEmpty() )   //Check if the MasterIP has been set. If so, ignore the SynReal-Master data.
-        this->getSynRealData();
-
-    //Connect Objects to Slots.
 
     //Create and Connect Lamda Objects
     QObject::connect( timeUpdate, &QTimer::timeout, [this]()
@@ -89,8 +85,12 @@ ReMix::ReMix(QWidget *parent) :
         }
     });
 
+    if ( serverInfo->getMasterIP().isEmpty() )
+        this->getSynRealData();
+
     //Setup Networking Objects.
-    tcpServer = new Server( serverInfo, plrViewModel );
+    if ( tcpServer == nullptr )
+        tcpServer = new Server( serverInfo, plrViewModel );
 }
 
 ReMix::~ReMix()
@@ -167,16 +167,20 @@ void ReMix::parseCMDLArgs()
                {
                    serverInfo->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
                    serverInfo->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
-                   serverInfo->setIsPublic( true );
                }
             }
-
+            ui->isPublicServer->setChecked( true );
         }
         else if ( arg.startsWith( "/listen", Qt::CaseInsensitive ) )
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
                 serverInfo->setPrivatePort( arg.mid( index + 1 ).toInt() );
+
+            if ( serverInfo->getMasterIP().isEmpty() )
+                this->getSynRealData();
+
+            emit ui->enableNetworking->clicked();
         }
         else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
         {
@@ -184,15 +188,8 @@ void ReMix::parseCMDLArgs()
             if ( !tmpArg.isEmpty() )
                 serverInfo->setName( tmpArg );
         }
-//        else if ( arg.startsWith( "/url", Qt::CaseInsensitive ) )
-//        {
-//            index = arg.indexOf( '=' );
-//            if ( index > 0 )
-//                qDebug() << arg.mid( index + 1 );   //Set the Server Website?
-//        }
-//        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
-//            qDebug() << arg.mid( index + 1 );   //Enable fileLogging.
     }
+
     ui->serverPort->setText( QString::number( serverInfo->getPrivatePort() ) );
     ui->isPublicServer->setChecked( serverInfo->getIsPublic() );
     ui->serverName->setText( serverInfo->getName() );
@@ -257,6 +254,10 @@ void ReMix::getSynRealData()
 
 void ReMix::on_enableNetworking_clicked()
 {
+    //Setup Networking Objects.
+    if ( tcpServer == nullptr )
+        tcpServer = new Server( serverInfo, plrViewModel );
+
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
     tcpServer->setupServerInfo();
@@ -265,9 +266,9 @@ void ReMix::on_enableNetworking_clicked()
 void ReMix::on_isPublicServer_stateChanged(int)
 {
     if ( ui->isPublicServer->isChecked() )
-        tcpServer->setupPublicServer(true);   //Setup a connection with the Master Server.
+        tcpServer->setupPublicServer( true );   //Setup a connection with the Master Server.
     else
-        tcpServer->setupPublicServer(false);   //Disconnect from the Master Server if applicable.
+        tcpServer->setupPublicServer( false );   //Disconnect from the Master Server if applicable.
 }
 
 void ReMix::on_openSysMessages_clicked()

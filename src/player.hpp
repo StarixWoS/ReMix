@@ -16,34 +16,52 @@ class Player
 
     QByteArray outBuff;
 
-    unsigned int sernum{ 0 };
-    unsigned int privateDest{ 0 };
-    unsigned int sendDest{ 0 };
+    quint32 sernum{ 0 };
+    quint32 sceneHost{ 0 };
+
+    quint32 targetHost{ 0 };
+    quint32 targetSerNum{ 0 };
+    int targetType{ 0 };
 
     bool pwdRequested{ false };
     bool enteredPwd{ false };
     int slotPos{ -1 };
 
     //HB ID/Slot: Set by :MIX7 and is used to disconnect a certain type of hacker.
-    unsigned int hbID{ 0 };
+    quint32 hbID{ 0 };
     int hbSlot{ 0 };
+
+    QElapsedTimer connectionTime;
+    QElapsedTimer lastPacketTime;
 
     public:
         explicit Player();
 
-        QElapsedTimer connectionTime;
+        enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
+
+        qint64 getLastPacketTime() const;
+        void startLastPacketTime();
+
+        qint64 getConnectionTime() const;
+        void startConnectionTime();
 
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
-        unsigned int getSernum() const;
-        void setSernum(unsigned int value);
+        quint32 getSernum() const;
+        void setSernum(quint32 value);
 
-        unsigned int getPrivateDest() const;
-        void setPrivateDest(unsigned int value);
+        quint32 getTargetScene() const;
+        void setTargetScene(quint32 value);
 
-        unsigned int getSendDest() const;
-        void setSendDest(unsigned int value);
+        quint32 getSceneHost() const;
+        void setSceneHost(quint32 value);
+
+        quint32 getTargetSerNum() const;
+        void setTargetSerNum(quint32 value);
+
+        int getTargetType() const;
+        void setTargetType(int value);
 
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
@@ -65,9 +83,11 @@ class Player
 
         bool getEnteredPwd() const;
         void setEnteredPwd(bool value);
-        unsigned int getHBID() const;
-        void setHBID(unsigned int value);
-        int getHbSlot() const;
+
+        quint32 getHBID() const;
+        void setHBID(quint32 value);
+
+        int getHBSlot() const;
         void setHBSlot(int value);
 };
 

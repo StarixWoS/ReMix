@@ -52,7 +52,7 @@ class ServerInfo
 
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
-        int getSernumSlot(unsigned int sernum);
+        int getSernumSlot(quint32 sernum);
 
         QString getInfo() const;
         void setInfo(const QString& value);

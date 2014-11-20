@@ -1,29 +1,30 @@
 
 #include "player.hpp"
 
-
-unsigned int Player::getHBID() const
-{
-    return hbID;
-}
-
-void Player::setHBID(unsigned int value)
-{
-    hbID = value;
-}
-
-int Player::getHbSlot() const
-{
-    return hbSlot;
-}
-
-void Player::setHBSlot(int value)
-{
-    hbSlot = value;
-}
 Player::Player()
 {
-    connectionTime.start();
+    this->startConnectionTime();
+    this->startLastPacketTime();
+}
+
+qint64 Player::getConnectionTime() const
+{
+    return connectionTime.elapsed();
+}
+
+void Player::startConnectionTime()
+{
+    connectionTime.restart();
+}
+
+qint64 Player::getLastPacketTime() const
+{
+    return lastPacketTime.elapsed();
+}
+
+void Player::startLastPacketTime()
+{
+    lastPacketTime.restart();;
 }
 
 QTcpSocket* Player::getSocket() const
@@ -36,34 +37,54 @@ void Player::setSocket(QTcpSocket* value)
     socket = value;
 }
 
-unsigned int Player::getSernum() const
+quint32 Player::getSernum() const
 {
     return sernum;
 }
 
-void Player::setSernum(unsigned int value)
+void Player::setSernum(quint32 value)
 {
     sernum = value;
 }
 
-unsigned int Player::getPrivateDest() const
+quint32 Player::getTargetScene() const
 {
-    return privateDest;
+    return targetHost;
 }
 
-void Player::setPrivateDest(unsigned int value)
+void Player::setTargetScene(quint32 value)
 {
-    privateDest = value;
+    targetHost = value;
 }
 
-unsigned int Player::getSendDest() const
+quint32 Player::getSceneHost() const
 {
-    return sendDest;
+    return sceneHost;
 }
 
-void Player::setSendDest(unsigned int value)
+void Player::setSceneHost(quint32 value)
 {
-    sendDest = value;
+    sceneHost = value;
+}
+
+quint32 Player::getTargetSerNum() const
+{
+    return targetSerNum;
+}
+
+void Player::setTargetSerNum(quint32 value)
+{
+    targetSerNum = value;
+}
+
+int Player::getTargetType() const
+{
+    return targetType;
+}
+
+void Player::setTargetType(int value)
+{
+    targetType = value;
 }
 
 QString Player::getPlayTime() const
@@ -135,4 +156,24 @@ bool Player::getEnteredPwd() const
 void Player::setEnteredPwd(bool value)
 {
     enteredPwd = value;
+}
+
+quint32 Player::getHBID() const
+{
+    return hbID;
+}
+
+void Player::setHBID(quint32 value)
+{
+    hbID = value;
+}
+
+int Player::getHBSlot() const
+{
+    return hbSlot;
+}
+
+void Player::setHBSlot(int value)
+{
+    hbSlot = value;
 }

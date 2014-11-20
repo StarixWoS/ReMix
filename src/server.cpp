@@ -114,10 +114,9 @@ void Server::setupServerInfo()
         masterSocket->bind( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
         this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
 
-        if ( server->getIsPublic() && server->getIsSetUp() && this->isListening() )
-            this->masterCheckInTimeOutSlot();
-
         server->setIsSetUp( true );
+        if ( server->getIsPublic() && this->isListening() )
+            this->masterCheckInTimeOutSlot();
     }
 }
 
@@ -174,7 +173,13 @@ void Server::newConnectionSlot()
     }
 
     if ( peer != nullptr )
-        peer->write( greeting.toLatin1() +  "\r\n" );
+    {
+        if ( !greeting.isEmpty() )
+            peer->write( greeting.toLatin1() +  "\r\n" );
+
+        if ( !server->getServerRules().isEmpty() )
+            peer->write( ":SR$" + server->getServerRules().toLatin1() + "\r\n" );
+    }
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, [=]()
@@ -414,6 +419,79 @@ void Server::parsePacket(QString& packet, Player* plr)
         this->parseMIXPacket( packet, plr );
 }
 
+void Server::parseSRPacket(QString& packet, Player* plr)
+{
+    //TODO: Send Packets to a specific User/Slot.
+    if ( plr == nullptr )
+        return;
+
+    if ( !packet.isEmpty() )
+        packet.append( "\r\n" );
+
+    QTcpSocket* tmpSoc{ nullptr };
+    Player* tmpPlr{ nullptr };
+
+    switch ( plr->getTargetType() )
+    {
+        case Player::ALL:
+            {
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr
+                      && tmpPlr->getSocket() != nullptr )
+                    {
+                        tmpSoc = tmpPlr->getSocket();
+                        if ( plr->getSocket() != tmpSoc )
+                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                    }
+                }
+            }
+        break;
+        case Player::PLAYER:
+            {
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr
+                      && tmpPlr->getSocket() != nullptr )
+                    {
+                        tmpSoc = tmpPlr->getSocket();
+                        if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
+                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                    }
+                }
+                plr->setTargetType( Player::ALL );
+                plr->setTargetSerNum( 0 );
+            }
+        break;
+        case Player::SCENE:
+            {
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr
+                      && tmpPlr->getSocket() != nullptr )
+                    {
+                        tmpSoc = tmpPlr->getSocket();
+                        if ( plr->getTargetScene() == tmpPlr->getSernum()
+                          || plr->getTargetScene() == tmpPlr->getSceneHost()
+                          && plr->getTargetScene() != plr->getSernum() )
+                        {
+                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                        }
+                    }
+                }
+                plr->setTargetType( Player::ALL );
+                plr->setTargetScene( 0 );
+            }
+        break;
+        default:
+            return;
+        break;
+    }
+}
+
 void Server::parseMIXPacket(QString& packet, Player* plr)
 {
     if ( plr == nullptr )
@@ -421,6 +499,7 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
 
     QChar opCode = packet.at( 4 );
     QString tmp = packet.mid( packet.indexOf( ":MIX", Qt::CaseInsensitive ) + 5 );
+
     switch ( opCode.toLatin1() )
     {
         case '0':   //Send Next Packet to Scene.
@@ -459,57 +538,67 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
     }
 }
 
-void Server::parseSRPacket(QString& packet, Player* plr)
+void Server::readMIX0(QString& packet, Player* plr)
 {
-    //TODO: Send Packets to a specific User/Slot.
+    QString sernum_s = packet.mid( 2 ).left( 8 );
+    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
 
-    QTcpSocket* tmpSoc{ nullptr };
+    //Send the next Packet to the Scene's Host.
+    plr->setTargetScene( sernum_a );
+    plr->setTargetType( Player::SCENE );
+}
+
+void Server::readMIX1(QString& packet, Player* plr)
+{
+    QString sernum_s = packet.mid( 2 ).left( 8 );
+    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
+
+    plr->setSceneHost( sernum_a );
+}
+
+void Server::readMIX2(QString&, Player* plr)
+{
+    //Unset the Player's Scene Target.
+    //This really does nothing unless 'MIX2' has another use.
+    plr->setSceneHost( 0 );
+    plr->setTargetType( Player::ALL );
+}
+
+void Server::readMIX3(QString& packet, Player* plr)
+{
+    QString sernum_s = packet.mid( 2 ).left( 8 );
+    quint32 sernum_i = Helper::strToInt( sernum_s, 16 );
+
+    //Make certain no other Player Object is attuned to the incoming sernum.
     Player* tmpPlr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = server->getPlayer( i );
-        if ( plr != nullptr
-          && tmpPlr != nullptr )
+        if ( tmpPlr != nullptr
+          && tmpPlr->getSernum() == sernum_i )
         {
-            tmpSoc = tmpPlr->getSocket();
-            if ( plr->getSocket() != nullptr
-              && tmpPlr->getSocket() != nullptr )
+            //If the two Player objects aren't the same, then our Player Object
+            //Is attempting to impersonate another.
+            if ( tmpPlr != plr )
             {
-                if ( plr->getSocket() != tmpSoc )
-                {
-                    packet.append( "\r\n" );
-                    tmpSoc->write( packet.toLatin1(), packet.length() );
-                }
+                plr->getSocket()->abort();  //Kill the socket and delete the Player when control returns.
+                return;
             }
         }
     }
+
+    //If we get here, no previously connected Player has been attuned to the SerNum.
+    //Thus, it's safe to set it.
+    plr->setSernum( sernum_i );
 }
 
-void Server::readMIX0(QString&, Player*)
+void Server::readMIX4(QString& packet, Player* plr)
 {
-       //TODO: Send Packet to Scene hosted by trgSernum.
-}
+    QString sernum_s = packet.mid( 2 ).left( 8 );
+    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
 
-void Server::readMIX1(QString&, Player*)
-{
-       //TODO: Register srcSernum as Player within trgSernum's Scene.
-}
-
-void Server::readMIX2(QString&, Player*)
-{
-    //TODO: Find usage.
-    //TODO: Write Code.
-}
-
-void Server::readMIX3(QString&, Player*)
-{
-    //TODO: Set the Socket's attuned sernum.
-    //TODO: Prevent multiple sockets from using the same sernum.
-}
-
-void Server::readMIX4(QString&, Player*)
-{
-    //TODO: Set the target for the Player's next Packet.
+    plr->setTargetSerNum( sernum_a );
+    plr->setTargetType( Player::PLAYER );
 }
 
 void Server::readMIX5(QString& packet, Player* plr)
@@ -529,6 +618,7 @@ void Server::readMIX5(QString& packet, Player* plr)
             if ( Helper::cmpPassword( packet ) )
             {
                 soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+
                 plr->setEnteredPwd( true );
                 plr->setPwdRequested( false );  //No longer required. Set to false.
             }
@@ -550,18 +640,18 @@ void Server::readMIX6(QString&, Player*)
 
 void Server::readMIX7(QString& packet, Player* plr)
 {
-    unsigned int plrHBID = plr->getHBID();
+    quint32 plrHBID = plr->getHBID();
     int slot = packet.left( 2 ).toInt( 0, 16 );
 
     packet = packet.mid( 2 );
     packet = packet.left( packet.length() - 2 );
 
-    unsigned int id = packet.toUInt( 0, 16 );
+    quint32 id = packet.toUInt( 0, 16 );
     if ( plrHBID != id )
     {
         if ( plrHBID > 0 )
         {
-            ;   //Player's HBID has somehow changed. Disconnect them.
+            plr->getSocket()->abort();   //Player's HBID has somehow changed. Disconnect them.
         }
         else
         {
