@@ -22,8 +22,8 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QSplitter>
 #include <QtWidgets/QTableView>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -34,35 +34,36 @@ public:
     QWidget *centralWidget;
     QGridLayout *gridLayout;
     QFrame *frame;
-    QGridLayout *gridLayout_3;
+    QGridLayout *gridLayout_2;
     QCheckBox *isPublicServer;
     QLineEdit *serverName;
     QLabel *onlineTime;
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_4;
-    QPushButton *enableNetworking;
-    QPushButton *openSysMessages;
-    QPushButton *openBanIP;
     QPushButton *openBannedSernums;
     QPushButton *openUserComments;
+    QPushButton *openBanIP;
+    QPushButton *enableNetworking;
     QLineEdit *serverPort;
-    QLabel *networkStatus;
+    QPushButton *openRemoteAdmins;
+    QPushButton *openSysMessages;
     QGroupBox *groupBox;
-    QGridLayout *gridLayout_2;
-    QLabel *ipDCCount;
-    QLabel *packetDCCount;
-    QLabel *packetOUTBD;
-    QLabel *duplicateCount;
-    QLabel *packetINBD;
+    QVBoxLayout *verticalLayout;
     QLabel *callCount;
-    QSplitter *splitter;
+    QLabel *packetDCCount;
+    QLabel *duplicateCount;
+    QLabel *ipDCCount;
+    QLabel *packetINBD;
+    QLabel *packetOUTBD;
+    QLabel *networkStatus;
     QTableView *playerView;
 
     void setupUi(QMainWindow *ReMix)
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(835, 420);
+        ReMix->resize(668, 386);
+        ReMix->setDockNestingEnabled(false);
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -73,180 +74,194 @@ public:
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
-        gridLayout_3 = new QGridLayout(frame);
-        gridLayout_3->setSpacing(6);
-        gridLayout_3->setContentsMargins(11, 11, 11, 11);
-        gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
+        gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
+        gridLayout_2->setContentsMargins(11, 11, 11, 11);
+        gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
         isPublicServer = new QCheckBox(frame);
         isPublicServer->setObjectName(QStringLiteral("isPublicServer"));
-        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(isPublicServer->sizePolicy().hasHeightForWidth());
         isPublicServer->setSizePolicy(sizePolicy);
-        isPublicServer->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_3->addWidget(isPublicServer, 0, 0, 1, 2);
+        gridLayout_2->addWidget(isPublicServer, 0, 0, 1, 2);
 
         serverName = new QLineEdit(frame);
         serverName->setObjectName(QStringLiteral("serverName"));
-        serverName->setMinimumSize(QSize(590, 20));
-        serverName->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_3->addWidget(serverName, 0, 2, 1, 1);
+        gridLayout_2->addWidget(serverName, 0, 2, 1, 1);
 
         onlineTime = new QLabel(frame);
         onlineTime->setObjectName(QStringLiteral("onlineTime"));
-        sizePolicy.setHeightForWidth(onlineTime->sizePolicy().hasHeightForWidth());
-        onlineTime->setSizePolicy(sizePolicy);
-        onlineTime->setMaximumSize(QSize(16777215, 20));
+        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(onlineTime->sizePolicy().hasHeightForWidth());
+        onlineTime->setSizePolicy(sizePolicy1);
 
-        gridLayout_3->addWidget(onlineTime, 0, 3, 1, 1);
+        gridLayout_2->addWidget(onlineTime, 0, 3, 1, 1);
 
         groupBox_2 = new QGroupBox(frame);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Expanding);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
-        groupBox_2->setSizePolicy(sizePolicy1);
+        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
+        groupBox_2->setSizePolicy(sizePolicy2);
         groupBox_2->setMaximumSize(QSize(130, 16777215));
         groupBox_2->setAlignment(Qt::AlignCenter);
         gridLayout_4 = new QGridLayout(groupBox_2);
-        gridLayout_4->setSpacing(10);
+        gridLayout_4->setSpacing(6);
         gridLayout_4->setContentsMargins(11, 11, 11, 11);
         gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
+        gridLayout_4->setHorizontalSpacing(10);
+        gridLayout_4->setVerticalSpacing(5);
         gridLayout_4->setContentsMargins(10, 10, 10, 10);
-        enableNetworking = new QPushButton(groupBox_2);
-        enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
-        QSizePolicy sizePolicy2(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(enableNetworking->sizePolicy().hasHeightForWidth());
-        enableNetworking->setSizePolicy(sizePolicy2);
-        enableNetworking->setMaximumSize(QSize(16777215, 23));
-
-        gridLayout_4->addWidget(enableNetworking, 1, 0, 1, 2);
-
-        openSysMessages = new QPushButton(groupBox_2);
-        openSysMessages->setObjectName(QStringLiteral("openSysMessages"));
-        sizePolicy2.setHeightForWidth(openSysMessages->sizePolicy().hasHeightForWidth());
-        openSysMessages->setSizePolicy(sizePolicy2);
-        openSysMessages->setMaximumSize(QSize(16777215, 23));
-
-        gridLayout_4->addWidget(openSysMessages, 2, 0, 1, 2);
-
-        openBanIP = new QPushButton(groupBox_2);
-        openBanIP->setObjectName(QStringLiteral("openBanIP"));
-        openBanIP->setMaximumSize(QSize(16777215, 23));
-
-        gridLayout_4->addWidget(openBanIP, 3, 0, 1, 1);
-
         openBannedSernums = new QPushButton(groupBox_2);
         openBannedSernums->setObjectName(QStringLiteral("openBannedSernums"));
-        openBannedSernums->setMaximumSize(QSize(16777215, 23));
+        QSizePolicy sizePolicy3(QSizePolicy::Minimum, QSizePolicy::Preferred);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(openBannedSernums->sizePolicy().hasHeightForWidth());
+        openBannedSernums->setSizePolicy(sizePolicy3);
+        openBannedSernums->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_4->addWidget(openBannedSernums, 3, 1, 1, 1);
+        gridLayout_4->addWidget(openBannedSernums, 4, 1, 1, 1);
 
         openUserComments = new QPushButton(groupBox_2);
         openUserComments->setObjectName(QStringLiteral("openUserComments"));
-        sizePolicy2.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
-        openUserComments->setSizePolicy(sizePolicy2);
-        openUserComments->setMaximumSize(QSize(16777215, 23));
+        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
+        openUserComments->setSizePolicy(sizePolicy4);
+        openUserComments->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_4->addWidget(openUserComments, 4, 0, 1, 2);
+        gridLayout_4->addWidget(openUserComments, 5, 0, 1, 2);
+
+        openBanIP = new QPushButton(groupBox_2);
+        openBanIP->setObjectName(QStringLiteral("openBanIP"));
+        sizePolicy3.setHeightForWidth(openBanIP->sizePolicy().hasHeightForWidth());
+        openBanIP->setSizePolicy(sizePolicy3);
+        openBanIP->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openBanIP, 4, 0, 1, 1);
+
+        enableNetworking = new QPushButton(groupBox_2);
+        enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
+        sizePolicy4.setHeightForWidth(enableNetworking->sizePolicy().hasHeightForWidth());
+        enableNetworking->setSizePolicy(sizePolicy4);
+        enableNetworking->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(enableNetworking, 1, 0, 1, 2);
 
         serverPort = new QLineEdit(groupBox_2);
         serverPort->setObjectName(QStringLiteral("serverPort"));
-        sizePolicy.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
-        serverPort->setSizePolicy(sizePolicy);
+        QSizePolicy sizePolicy5(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
+        serverPort->setSizePolicy(sizePolicy5);
         serverPort->setMaximumSize(QSize(16777215, 20));
         serverPort->setMaxLength(5);
 
         gridLayout_4->addWidget(serverPort, 0, 0, 1, 2);
 
+        openRemoteAdmins = new QPushButton(groupBox_2);
+        openRemoteAdmins->setObjectName(QStringLiteral("openRemoteAdmins"));
+        sizePolicy3.setHeightForWidth(openRemoteAdmins->sizePolicy().hasHeightForWidth());
+        openRemoteAdmins->setSizePolicy(sizePolicy3);
+        openRemoteAdmins->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_3->addWidget(groupBox_2, 1, 0, 2, 1);
+        gridLayout_4->addWidget(openRemoteAdmins, 2, 0, 1, 2);
 
-        networkStatus = new QLabel(frame);
-        networkStatus->setObjectName(QStringLiteral("networkStatus"));
-        sizePolicy2.setHeightForWidth(networkStatus->sizePolicy().hasHeightForWidth());
-        networkStatus->setSizePolicy(sizePolicy2);
-        networkStatus->setMinimumSize(QSize(660, 20));
-        networkStatus->setMaximumSize(QSize(16777215, 20));
+        openSysMessages = new QPushButton(groupBox_2);
+        openSysMessages->setObjectName(QStringLiteral("openSysMessages"));
+        sizePolicy4.setHeightForWidth(openSysMessages->sizePolicy().hasHeightForWidth());
+        openSysMessages->setSizePolicy(sizePolicy4);
+        openSysMessages->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_3->addWidget(networkStatus, 1, 1, 1, 3);
+        gridLayout_4->addWidget(openSysMessages, 3, 0, 1, 2);
 
-        groupBox = new QGroupBox(frame);
+        groupBox = new QGroupBox(groupBox_2);
         groupBox->setObjectName(QStringLiteral("groupBox"));
-        QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Preferred);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
-        groupBox->setSizePolicy(sizePolicy3);
-        groupBox->setMaximumSize(QSize(130, 16777215));
+        sizePolicy2.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy2);
         groupBox->setAlignment(Qt::AlignHCenter|Qt::AlignTop);
-        gridLayout_2 = new QGridLayout(groupBox);
-        gridLayout_2->setSpacing(10);
-        gridLayout_2->setContentsMargins(11, 11, 11, 11);
-        gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
-        gridLayout_2->setContentsMargins(10, 10, 10, 10);
-        ipDCCount = new QLabel(groupBox);
-        ipDCCount->setObjectName(QStringLiteral("ipDCCount"));
-        sizePolicy.setHeightForWidth(ipDCCount->sizePolicy().hasHeightForWidth());
-        ipDCCount->setSizePolicy(sizePolicy);
-        ipDCCount->setMaximumSize(QSize(16777215, 20));
+        verticalLayout = new QVBoxLayout(groupBox);
+        verticalLayout->setSpacing(5);
+        verticalLayout->setContentsMargins(11, 11, 11, 11);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        verticalLayout->setContentsMargins(10, 10, 10, 10);
+        callCount = new QLabel(groupBox);
+        callCount->setObjectName(QStringLiteral("callCount"));
+        sizePolicy1.setHeightForWidth(callCount->sizePolicy().hasHeightForWidth());
+        callCount->setSizePolicy(sizePolicy1);
+        callCount->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_2->addWidget(ipDCCount, 3, 0, 1, 1);
+        verticalLayout->addWidget(callCount);
 
         packetDCCount = new QLabel(groupBox);
         packetDCCount->setObjectName(QStringLiteral("packetDCCount"));
-        sizePolicy.setHeightForWidth(packetDCCount->sizePolicy().hasHeightForWidth());
-        packetDCCount->setSizePolicy(sizePolicy);
+        sizePolicy1.setHeightForWidth(packetDCCount->sizePolicy().hasHeightForWidth());
+        packetDCCount->setSizePolicy(sizePolicy1);
         packetDCCount->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_2->addWidget(packetDCCount, 1, 0, 1, 1);
-
-        packetOUTBD = new QLabel(groupBox);
-        packetOUTBD->setObjectName(QStringLiteral("packetOUTBD"));
-        sizePolicy.setHeightForWidth(packetOUTBD->sizePolicy().hasHeightForWidth());
-        packetOUTBD->setSizePolicy(sizePolicy);
-        packetOUTBD->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_2->addWidget(packetOUTBD, 5, 0, 1, 1);
+        verticalLayout->addWidget(packetDCCount);
 
         duplicateCount = new QLabel(groupBox);
         duplicateCount->setObjectName(QStringLiteral("duplicateCount"));
-        sizePolicy.setHeightForWidth(duplicateCount->sizePolicy().hasHeightForWidth());
-        duplicateCount->setSizePolicy(sizePolicy);
+        sizePolicy1.setHeightForWidth(duplicateCount->sizePolicy().hasHeightForWidth());
+        duplicateCount->setSizePolicy(sizePolicy1);
         duplicateCount->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_2->addWidget(duplicateCount, 2, 0, 1, 1);
+        verticalLayout->addWidget(duplicateCount);
+
+        ipDCCount = new QLabel(groupBox);
+        ipDCCount->setObjectName(QStringLiteral("ipDCCount"));
+        sizePolicy1.setHeightForWidth(ipDCCount->sizePolicy().hasHeightForWidth());
+        ipDCCount->setSizePolicy(sizePolicy1);
+        ipDCCount->setMaximumSize(QSize(16777215, 20));
+
+        verticalLayout->addWidget(ipDCCount);
 
         packetINBD = new QLabel(groupBox);
         packetINBD->setObjectName(QStringLiteral("packetINBD"));
-        sizePolicy.setHeightForWidth(packetINBD->sizePolicy().hasHeightForWidth());
-        packetINBD->setSizePolicy(sizePolicy);
+        sizePolicy1.setHeightForWidth(packetINBD->sizePolicy().hasHeightForWidth());
+        packetINBD->setSizePolicy(sizePolicy1);
         packetINBD->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_2->addWidget(packetINBD, 4, 0, 1, 1);
+        verticalLayout->addWidget(packetINBD);
 
-        callCount = new QLabel(groupBox);
-        callCount->setObjectName(QStringLiteral("callCount"));
-        sizePolicy.setHeightForWidth(callCount->sizePolicy().hasHeightForWidth());
-        callCount->setSizePolicy(sizePolicy);
-        callCount->setMaximumSize(QSize(16777215, 20));
+        packetOUTBD = new QLabel(groupBox);
+        packetOUTBD->setObjectName(QStringLiteral("packetOUTBD"));
+        sizePolicy1.setHeightForWidth(packetOUTBD->sizePolicy().hasHeightForWidth());
+        packetOUTBD->setSizePolicy(sizePolicy1);
+        packetOUTBD->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_2->addWidget(callCount, 0, 0, 1, 1);
+        verticalLayout->addWidget(packetOUTBD);
 
 
-        gridLayout_3->addWidget(groupBox, 3, 0, 1, 1);
+        gridLayout_4->addWidget(groupBox, 6, 0, 1, 2);
 
-        splitter = new QSplitter(frame);
-        splitter->setObjectName(QStringLiteral("splitter"));
-        splitter->setOrientation(Qt::Vertical);
-        playerView = new QTableView(splitter);
+
+        gridLayout_2->addWidget(groupBox_2, 1, 0, 2, 1);
+
+        networkStatus = new QLabel(frame);
+        networkStatus->setObjectName(QStringLiteral("networkStatus"));
+        QSizePolicy sizePolicy6(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        sizePolicy6.setHorizontalStretch(0);
+        sizePolicy6.setVerticalStretch(0);
+        sizePolicy6.setHeightForWidth(networkStatus->sizePolicy().hasHeightForWidth());
+        networkStatus->setSizePolicy(sizePolicy6);
+
+        gridLayout_2->addWidget(networkStatus, 1, 1, 1, 3);
+
+        playerView = new QTableView(frame);
         playerView->setObjectName(QStringLiteral("playerView"));
+        playerView->setContextMenuPolicy(Qt::CustomContextMenu);
         playerView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         playerView->setAlternatingRowColors(true);
         playerView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -255,16 +270,15 @@ public:
         playerView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         playerView->setSortingEnabled(true);
         playerView->setCornerButtonEnabled(false);
-        splitter->addWidget(playerView);
         playerView->horizontalHeader()->setDefaultSectionSize(100);
-        playerView->horizontalHeader()->setStretchLastSection(true);
+        playerView->horizontalHeader()->setStretchLastSection(false);
         playerView->verticalHeader()->setVisible(false);
         playerView->verticalHeader()->setMinimumSectionSize(30);
 
-        gridLayout_3->addWidget(splitter, 2, 1, 2, 3);
+        gridLayout_2->addWidget(playerView, 2, 1, 1, 3);
 
 
-        gridLayout->addWidget(frame, 0, 0, 1, 1);
+        gridLayout->addWidget(frame, 0, 1, 1, 1);
 
         ReMix->setCentralWidget(centralWidget);
 
@@ -280,20 +294,21 @@ public:
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMix", "TCP/IP Port#", 0));
-        enableNetworking->setText(QApplication::translate("ReMix", "Accept Calls", 0));
-        openSysMessages->setText(QApplication::translate("ReMix", "Msg Options", 0));
-        openBanIP->setText(QApplication::translate("ReMix", "Ban IP", 0));
         openBannedSernums->setText(QApplication::translate("ReMix", "SerNum", 0));
         openUserComments->setText(QApplication::translate("ReMix", "User Comments", 0));
+        openBanIP->setText(QApplication::translate("ReMix", "Ban IP", 0));
+        enableNetworking->setText(QApplication::translate("ReMix", "Accept Calls", 0));
         serverPort->setText(QApplication::translate("ReMix", "8888", 0));
-        networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
+        openRemoteAdmins->setText(QApplication::translate("ReMix", "Remote Admins", 0));
+        openSysMessages->setText(QApplication::translate("ReMix", "Msg Options", 0));
         groupBox->setTitle(QApplication::translate("ReMix", "Stats", 0));
-        ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));
-        packetDCCount->setText(QApplication::translate("ReMix", "#PktDC: 0", 0));
-        packetOUTBD->setText(QApplication::translate("ReMix", "#OUT: 0 BD", 0));
-        duplicateCount->setText(QApplication::translate("ReMix", "#DupDc: 0", 0));
-        packetINBD->setText(QApplication::translate("ReMix", "#IN: 0 BD", 0));
         callCount->setText(QApplication::translate("ReMix", "#Calls: 0", 0));
+        packetDCCount->setText(QApplication::translate("ReMix", "#PktDC: 0", 0));
+        duplicateCount->setText(QApplication::translate("ReMix", "#DupDc: 0", 0));
+        ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));
+        packetINBD->setText(QApplication::translate("ReMix", "#IN: 0 BD", 0));
+        packetOUTBD->setText(QApplication::translate("ReMix", "#OUT: 0 BD", 0));
+        networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
     } // retranslateUi
 
 };

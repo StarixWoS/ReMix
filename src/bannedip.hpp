@@ -46,6 +46,7 @@ class BannedIP : public QDialog
         void on_allowSSV_clicked();
         void on_removeIPBan_clicked();
         void on_addIPBan_clicked();
+        void on_reqAdminAuth_clicked();
 
     private:
         Ui::BannedIP *ui;

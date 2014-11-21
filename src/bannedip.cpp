@@ -2,6 +2,7 @@
 #include "ui_bannedip.h"
 
 #include "helper.hpp"
+#include <readmin.hpp>
 
 BannedIP::BannedIP(QWidget *parent) :
     QDialog(parent),
@@ -170,4 +171,10 @@ void BannedIP::on_allowSSV_clicked()
 {
     QVariant value = ui->allowSSV->isChecked();
     Helper::setAllowSSV( value );
+}
+
+void BannedIP::on_reqAdminAuth_clicked()
+{
+    QVariant value = ui->reqAdminAuth->isChecked();
+    Admin::setReqAdminAuth( value );
 }

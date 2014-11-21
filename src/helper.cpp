@@ -1,30 +1,7 @@
 
 #include "helper.hpp"
 
-namespace RandDev
-{
-    std::mt19937 randDevice( QDateTime::currentMSecsSinceEpoch() );
-}
-
-int Helper::genRandNum(int min, int max)
-{
-    std::uniform_int_distribution<int> randInt( min, max );
-    return randInt( RandDev::randDevice );
-}
-
-QString Helper::intToStr(int val, int base, int fill, QChar filler)
-{
-    /* Converts an int to QString using:
-     *
-     * base --- What numeric format the string will be in.
-     * fill --- How much padding will be prepended to the string.
-     * filler --- The char used to pad the string
-     */
-
-    return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
-}
-
-QString Helper::intToStr(QString val, int base, int fill, QChar filler)
+QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
 {
     /* This overload is mainly used to reformat a QString's numeric format
      * if the source is in an unknown format.
@@ -118,7 +95,7 @@ bool Helper::setPassword(QVariant& value, bool isHashed)
     //Convert the password to a SHA3_512 hash.
     if ( !value.toString().isEmpty() && !isHashed )
     {
-        value = QString( QCryptographicHash::hash( value.toString().toLatin1(), QCryptographicHash::Sha3_512 ).toHex() );
+        value = hashPassword( value );
         isHashed = true;
     }
     setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ], value );
@@ -141,13 +118,19 @@ bool Helper::getRequirePassword()
     return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ] ).toBool();
 }
 
-bool Helper::cmpPassword(QString& value)
+bool Helper::cmpServerPassword(QVariant& value)
 {
     //Convert the password to a SHA3_512 hash.
-    if ( !value.isEmpty() )
-        value = QString( QCryptographicHash::hash( value.toLatin1(), QCryptographicHash::Sha3_512 ).toHex() );
+    if ( !value.toString().isEmpty() )
+        value = hashPassword( value );
 
-    return ( getPassword() == value );
+    return ( getPassword() == value.toString() );
+}
+
+QString Helper::hashPassword(QVariant& password)
+{
+    return QString( QCryptographicHash::hash( password.toString().toLatin1(),
+                                              QCryptographicHash::Sha3_512 ).toHex() );
 }
 
 void Helper::setServerRules(QVariant& value)

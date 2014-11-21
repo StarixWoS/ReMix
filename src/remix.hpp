@@ -24,6 +24,9 @@ class UserMessage;
 class Messages;
 class BannedIP;
 class Server;
+class ReAdmin;
+
+class RandDev;
 
 namespace Ui {
 class ReMix;
@@ -41,6 +44,8 @@ class ReMix : public QMainWindow
     UserMessage* usrMsg{ nullptr };
     Server* tcpServer{ nullptr };
     BannedIP* banIP{ nullptr };
+    ReAdmin* reAdmin{ nullptr };
+    RandDev* randDev{ nullptr };
 
     ServerInfo* serverInfo{ nullptr };
 
@@ -54,12 +59,15 @@ class ReMix : public QMainWindow
         void parseCMDLArgs();
         void getSynRealData();
 
+        void updatePlayerRow(Player* plr);
+
     private slots:
         void on_openSysMessages_clicked();
         void on_openBanIP_clicked();
         void on_openBannedSernums_clicked();
         void on_openUserComments_clicked();
         void on_enableNetworking_clicked();
+        void on_openRemoteAdmins_clicked();
         void on_isPublicServer_stateChanged(int arg1);
 
         void on_serverPort_textChanged(const QString &arg1);

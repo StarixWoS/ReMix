@@ -3,6 +3,7 @@
 
 #include "helper.hpp"
 #include "serverinfo.hpp"
+#include "readmin.hpp"
 
 Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
 {
@@ -66,7 +67,9 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
             sernum = bio.mid( index + 7 );
             sernum = sernum.left( sernum.indexOf( ',' ) );
 
+            plr->setSernum_s( sernum );
             plr->setSernum( Helper::serNumToHexStr( sernum ).toUInt( 0, 16 ) );
+            this->sendRemoteAdminPwdReq( plr, sernum );
         }
         plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
 
@@ -175,7 +178,7 @@ void Server::newConnectionSlot()
     if ( peer != nullptr )
     {
         if ( !greeting.isEmpty() )
-            peer->write( greeting.toLatin1() +  "\r\n" );
+            peer->write( greeting.toLatin1() + "\r\n" );
 
         if ( !server->getServerRules().isEmpty() )
             peer->write( ":SR$" + server->getServerRules().toLatin1() + "\r\n" );
@@ -186,7 +189,13 @@ void Server::newConnectionSlot()
     {
         QStandardItem* item = plrTableItems.take( ip );
         if ( item != nullptr )
-            plrViewModel->removeRow( item->row() );
+        {
+            if ( item == plr->getTableRow() )
+            {
+                plrViewModel->removeRow( item->row() );
+                plr->setTableRow( nullptr );
+            }
+        }
 
         server->setPlayerCount( server->getPlayerCount() - 1 );
         if ( server->getPlayerCount() <= 0 )
@@ -221,6 +230,9 @@ void Server::newConnectionSlot()
 
                 plr->setOutBuff( data );
 
+                plr->setPacketsIn( plr->getPacketsIn() + 1 );
+                plr->setBytesIn( plr->getBytesIn() + packet.length() );
+
                 this->parsePacket( packet, plr );
                 emit peer->readyRead();
             }
@@ -232,12 +244,15 @@ void Server::newConnectionSlot()
     if ( !data.isEmpty() )
     {
         if ( plrTableItems.contains( ip ) )
-            this->updatePlrListRow( ip, data, plr, false );
+        {
+            plr->setTableRow( this->updatePlrListRow( ip, data, plr, false ) );
+        }
         else
         {
             plrTableItems[ ip ] = this->updatePlrListRow( ip, data, plr, true );
-            server->setPlayerCount( server->getPlayerCount() + 1 );
+            plr->setTableRow( plrTableItems.value( ip ) );
 
+            server->setPlayerCount( server->getPlayerCount() + 1 );
             this->masterCheckInTimeOutSlot();
         }
     }
@@ -253,7 +268,6 @@ void Server::readyReadUDPSlot()
         udpData.resize( sender->pendingDatagramSize() );
         sender->readDatagram( udpData.data(), udpData.size(), &senderAddr, &senderPort );
 
-        QString response;
         QString data( udpData );
         if ( !data.isEmpty() )
         {
@@ -265,17 +279,12 @@ void Server::readyReadUDPSlot()
                 case 'M':   //Read the response to the Master Server checkin.
                     this->parseMasterServerResponse( udpData );
                 break;
-                case 'P':   //TODO: Store the Player information into a struct.
+                case 'P':   //Store the Player information into a struct.
                     udpDatas.insert( senderAddr, udpData );
-
-                    //TODO: Check for banned D, V, and W variables and disconnect on positive matches.
-                    //      If the variables are banned, no response will be sent.
                     this->sendServerInfo( sender, senderAddr, senderPort );
-
                 break;
-                case 'Q':   //TODO: Send our online User information to the requestor.
+                case 'Q':   //Send our online User information to the requestor.
                     this->sendUserList( sender, senderAddr, senderPort );
-                    //TODO: Format a string containing the serNums of all active players.
                 break;
                 case 'R':   //TODO: Command "R" with unknown use.
                 break;
@@ -318,15 +327,18 @@ void Server::disconnectFromMaster()
 void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort)
 {
     //TODO: Format Server Usage variable.
+    //TODO: Check for banned D, V, and W variables and disconnect on positive matches.
+    //      If the variables are banned, no response will be sent.
+
     QString response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" );
     if ( !server->getGameInfo().isEmpty() )
     {
         response = response.arg( server->getName() )
-                            .arg( server->getGameInfo() )
-                            .arg( server->getServerRules() )
-                            .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
-                            .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
-                            .arg( "999.999.999" );
+                           .arg( server->getGameInfo() )
+                           .arg( server->getServerRules() )
+                           .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( "999.999.999" );
     }
     else
     {
@@ -411,8 +423,11 @@ void Server::parsePacket(QString& packet, Player* plr)
             return;
 
         //Only parse packets from Users that have entered the correct password.
-        if ( plr->getEnteredPwd() || !Helper::getRequirePassword() )
+        if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
+          && ( plr->getAdminPwdEntered() || !plr->getAdminPwdRequested() ))
+        {
             this->parseSRPacket( packet, plr );
+        }
     }
 
     if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
@@ -443,7 +458,17 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                     {
                         tmpSoc = tmpPlr->getSocket();
                         if ( plr->getSocket() != tmpSoc )
-                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                        {
+                            //Prevent sending packets to unauthenticated Users.
+                            if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
+                              && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                            {
+                                tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+                                tmpPlr->setBytesOut( tmpPlr->getBytesOut() + packet.length() );
+
+                                tmpSoc->write( packet.toLatin1(), packet.length() );
+                            }
+                        }
                     }
                 }
             }
@@ -458,7 +483,17 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                     {
                         tmpSoc = tmpPlr->getSocket();
                         if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
-                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                        {
+                            if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
+                              && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                            {
+                                //Prevent sending packets to unauthenticated Users.
+                                tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+                                tmpPlr->setBytesOut( tmpPlr->getBytesOut() + packet.length() );
+
+                                tmpSoc->write( packet.toLatin1(), packet.length() );
+                            }
+                        }
                     }
                 }
                 plr->setTargetType( Player::ALL );
@@ -474,11 +509,19 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                       && tmpPlr->getSocket() != nullptr )
                     {
                         tmpSoc = tmpPlr->getSocket();
-                        if ( plr->getTargetScene() == tmpPlr->getSernum()
-                          || plr->getTargetScene() == tmpPlr->getSceneHost()
+                        if (( plr->getTargetScene() == tmpPlr->getSernum()
+                          || plr->getTargetScene() == tmpPlr->getSceneHost() )
                           && plr->getTargetScene() != plr->getSernum() )
                         {
-                            tmpSoc->write( packet.toLatin1(), packet.length() );
+                            if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
+                              && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                            {
+                                //Prevent sending packets to unauthenticated Users.
+                                tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+                                tmpPlr->setBytesOut( tmpPlr->getBytesOut() + packet.length() );
+
+                                tmpSoc->write( packet.toLatin1(), packet.length() );
+                            }
                         }
                     }
                 }
@@ -589,7 +632,9 @@ void Server::readMIX3(QString& packet, Player* plr)
 
     //If we get here, no previously connected Player has been attuned to the SerNum.
     //Thus, it's safe to set it.
-    plr->setSernum( sernum_i );
+
+    //Set the serNum, and check if it requires authentication.
+    this->authRemoteAdmin( plr, sernum_i );
 }
 
 void Server::readMIX4(QString& packet, Player* plr)
@@ -607,7 +652,8 @@ void Server::readMIX5(QString& packet, Player* plr)
      if ( soc == nullptr )
          return;
 
-    if ( plr->getPwdRequested() && !plr->getEnteredPwd() )
+    if ( plr->getPwdRequested()
+      && !plr->getEnteredPwd() )
     {
         int index = packet.indexOf( ": " );
         if ( index > 0 )
@@ -615,12 +661,40 @@ void Server::readMIX5(QString& packet, Player* plr)
             packet = packet.mid( index + 2 );
             packet = packet.left( packet.length() - 2 );
 
-            if ( Helper::cmpPassword( packet ) )
+            QVariant pwd( packet );
+            if ( Helper::cmpServerPassword( pwd ) )
             {
                 soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
 
                 plr->setEnteredPwd( true );
                 plr->setPwdRequested( false );  //No longer required. Set to false.
+            }
+            else
+            {
+                soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
+                soc->abort();   //Abort the socket. This emits ::disconnected()
+                                //and will delete both the Socket and plr once it reaches it's control slot.
+            }
+        }
+        return;
+    }
+    else if ( plr->getAdminPwdRequested()
+           && !plr->getAdminPwdEntered() )
+    {
+        int index = packet.indexOf( ": " );
+        if ( index > 0 )
+        {
+            packet = packet.mid( index + 2 );
+            packet = packet.left( packet.length() - 2 );
+
+            QVariant pwd( packet );
+            QString sernum = plr->getSernum_s();
+            if ( Admin::cmpRemoteAdminPwd( sernum, pwd ) )
+            {
+                soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+
+                plr->setAdminPwdEntered( true );
+                plr->setAdminPwdRequested( false );
             }
             else
             {
@@ -640,26 +714,14 @@ void Server::readMIX6(QString&, Player*)
 
 void Server::readMIX7(QString& packet, Player* plr)
 {
-    quint32 plrHBID = plr->getHBID();
-    int slot = packet.left( 2 ).toInt( 0, 16 );
+    if ( plr == nullptr )
+        return;
 
     packet = packet.mid( 2 );
     packet = packet.left( packet.length() - 2 );
 
-    quint32 id = packet.toUInt( 0, 16 );
-    if ( plrHBID != id )
-    {
-        if ( plrHBID > 0 )
-        {
-            plr->getSocket()->abort();   //Player's HBID has somehow changed. Disconnect them.
-        }
-        else
-        {
-            //Update the Player's HB ID. --Slot is never used as it's not a server Slot but a Game slot, as far as I could tell.
-            plr->setHBID( id );
-            plr->setHBSlot( slot );
-        }
-    }
+    //Set the serNum, and check if it requires authentication.
+    this->authRemoteAdmin( plr, packet.toUInt( 0, 16 ) );
 }
 
 void Server::readMIX8(QString& packet, Player* plr)
@@ -709,5 +771,54 @@ void Server::readMIX9(QString& packet, Player*)
     {
         QSettings ssv( "mixVariableCache/" + file + ".ini", QSettings::IniFormat );
                   ssv.setValue( key + "/" + subKey, val );
+    }
+}
+
+void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
+{
+    if ( plr == nullptr )
+        return;
+
+    if ( Admin::getReqAdminAuth()
+      && Admin::getIsRemoteAdmin( serNum ) )
+    {
+        QString reqAuth = QString( ":SR@MThe server Admin requires all Remote Administrators to authenticate themselves with their password. "
+                                   "Please enter your password or be denied access to the server. Thank you!"
+                                   "///PASSWORD REQUIRED NOW: \r\n" );
+        if ( plr->getSocket() != nullptr )
+            plr->getSocket()->write( reqAuth.toLatin1() );
+
+        plr->setAdminPwdRequested( true );
+    }
+}
+
+void Server::authRemoteAdmin(Player* plr, quint32 id)
+{
+    if ( plr == nullptr )
+        return;
+
+    //Re-Authenticate the remote Admin if required.
+    //Supposing if they initialized the server connection with Soul 0.
+
+    if (( plr->getSernum() != id
+       && id != 0 )
+      || plr->getSernum() == 0 )
+    {
+        QString serNum_s = Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) );
+        if ( plr->getSernum() <= 0 )
+        {
+            plr->setSernum_s( serNum_s );
+            if ( plr->getTableRow() != nullptr )
+            {
+                plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 1 ),
+                                       serNum_s,
+                                       Qt::DisplayRole );
+            }
+            plr->setSernum( id );
+
+            this->sendRemoteAdminPwdReq( plr, serNum_s );
+        }
+        else if ( id > 0 && plr->getSernum() != id )
+            plr->getSocket()->abort();   //Player's sernum has somehow changed. Disconnect them.
     }
 }

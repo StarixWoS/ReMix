@@ -2,12 +2,14 @@
 #define PLAYER_HPP
 
 #include <QElapsedTimer>
+#include <QStandardItem>
 #include <QHostAddress>
 #include <QTcpSocket>
 #include <QObject>
 
 class Player
 {
+    QStandardItem* tableRow{ nullptr };
     QTcpSocket* socket{ nullptr };
     QString publicIP{ "" };
 
@@ -17,6 +19,8 @@ class Player
     QByteArray outBuff;
 
     quint32 sernum{ 0 };
+    QString sernum_s{ "" };
+
     quint32 sceneHost{ 0 };
 
     quint32 targetHost{ 0 };
@@ -27,9 +31,19 @@ class Player
     bool enteredPwd{ false };
     int slotPos{ -1 };
 
+    bool adminPwdRequested{ false };
+    bool adminPwdEntered{ false };
+    int adminRank{ -1 };    //Rank -1 means the Player is unable to issue Admin commands.
+
     //HB ID/Slot: Set by :MIX7 and is used to disconnect a certain type of hacker.
     quint32 hbID{ 0 };
     int hbSlot{ 0 };
+
+    int packetsIn{ 0 };
+    quint64 bytesIn{ 0 };
+
+    int packetsOut{ 0 };
+    quint64 bytesOut{ 0 };
 
     QElapsedTimer connectionTime;
     QElapsedTimer lastPacketTime;
@@ -45,11 +59,17 @@ class Player
         qint64 getConnectionTime() const;
         void startConnectionTime();
 
+        QStandardItem* getTableRow() const;
+        void setTableRow(QStandardItem* value);
+
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
         quint32 getSernum() const;
         void setSernum(quint32 value);
+
+        QString getSernum_s() const;
+        void setSernum_s(const QString& value);
 
         quint32 getTargetScene() const;
         void setTargetScene(quint32 value);
@@ -84,11 +104,26 @@ class Player
         bool getEnteredPwd() const;
         void setEnteredPwd(bool value);
 
-        quint32 getHBID() const;
-        void setHBID(quint32 value);
+        int getPacketsIn() const;
+        void setPacketsIn(int value);
 
-        int getHBSlot() const;
-        void setHBSlot(int value);
+        quint64 getBytesIn() const;
+        void setBytesIn(const quint64& value);
+
+        int getPacketsOut() const;
+        void setPacketsOut(int value);
+
+        quint64 getBytesOut() const;
+        void setBytesOut(const quint64& value);
+
+        bool getAdminPwdRequested() const;
+        void setAdminPwdRequested(bool value);
+
+        bool getAdminPwdEntered() const;
+        void setAdminPwdEntered(bool value);
+
+        int getAdminRank() const;
+        void setAdminRank(int value);
 };
 
 #endif // PLAYER_HPP

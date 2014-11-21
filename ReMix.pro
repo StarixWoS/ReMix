@@ -12,9 +12,9 @@ TARGET = ReMix
 TEMPLATE = app
 
 UI_DIR = src
-MOC_DIR = build
-RCC_DIR = build
-OBJECTS_DIR = build
+MOC_DIR = build/moc
+RCC_DIR = build/rcc
+OBJECTS_DIR = build/obj
 
 CONFIG += static c++11
 QMAKE_CXXFLAGS = -std=c++11 #-static-libstdc++ -static-libgcc -static -Os -s
@@ -28,7 +28,9 @@ SOURCES += src/main.cpp\
            src/usermessage.cpp \
            src/server.cpp \
            src/serverinfo.cpp \
-           src/helper.cpp
+           src/helper.cpp \
+           src/readmin.cpp \
+           src/randdev.cpp
 
 HEADERS += src/player.hpp \
            src/remix.hpp \
@@ -38,10 +40,13 @@ HEADERS += src/player.hpp \
            src/usermessage.hpp \
            src/server.hpp \
            src/serverinfo.hpp \
-           src/helper.hpp
+           src/helper.hpp \
+           src/readmin.hpp \
+           src/randdev.hpp
 
 FORMS   += ui/remix.ui \
            ui/messages.ui \
            ui/bannedip.ui \
            ui/bannedsernum.ui \
-           ui/usermessage.ui
+           ui/usermessage.ui \
+           ui/readmin.ui

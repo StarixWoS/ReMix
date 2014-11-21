@@ -8,6 +8,7 @@
 #include "messages.hpp"
 #include "bannedip.hpp"
 #include "server.hpp"
+#include "readmin.hpp"
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
@@ -16,9 +17,12 @@ ReMix::ReMix(QWidget *parent) :
     ui->setupUi(this);
     upTime.start();
 
-    QTimer* timeUpdate = new QTimer( this );
-            timeUpdate->setInterval( 1000 );
-            timeUpdate->start();
+    QTimer* uiUpdate = new QTimer( this );
+            uiUpdate->setInterval( 1000 );
+            uiUpdate->start();
+
+    //Setup our Random Device
+    randDev = new RandDev();
 
     //Setup the PlayerInfo TableView.
     plrViewModel = new QStandardItemModel( 0, 8, 0 );
@@ -43,6 +47,7 @@ ReMix::ReMix(QWidget *parent) :
     sysMessages = new Messages( this );
     usrMsg = new UserMessage( this );
     banIP = new BannedIP( this );
+    reAdmin = new ReAdmin( this );
 
     //Setup Server/Player Info objects.
     serverInfo = new ServerInfo();
@@ -60,7 +65,7 @@ ReMix::ReMix(QWidget *parent) :
     this->parseCMDLArgs();
 
     //Create and Connect Lamda Objects
-    QObject::connect( timeUpdate, &QTimer::timeout, [this]()
+    QObject::connect( uiUpdate, &QTimer::timeout, [this]()
     {
         auto time = upTime.elapsed() / 1000;
         ui->onlineTime->setText( QString( "%1:%2:%3" )
@@ -82,6 +87,14 @@ ReMix::ReMix(QWidget *parent) :
                 tmp.append( tmp2 );
             }
             ui->networkStatus->setText( tmp );
+        }
+
+        Player* tmpPlr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = serverInfo->getPlayer( i );
+            if ( tmpPlr != nullptr )
+                this->updatePlayerRow( tmpPlr );
         }
     });
 
@@ -116,15 +129,15 @@ ReMix::~ReMix()
 
 int ReMix::genServerID()
 {
-    int id = Helper::genRandNum();
+    int id = randDev->genRandNum( 0, 32767 );
         id = id << 4;
-        id = id ^ Helper::genRandNum();
+        id = id ^ randDev->genRandNum( 0, 32767 );
         id = id << 4;
-        id = id ^ ( Helper::genRandNum() << 10 );
-        id = id ^ Helper::genRandNum();
+        id = id ^ ( randDev->genRandNum( 0, 32767 ) << 10 );
+        id = id ^ randDev->genRandNum( 0, 32767 );
         id = id << 4;
-        id = id ^ ( Helper::genRandNum() << 10 );
-        id = id ^ Helper::genRandNum();
+        id = id ^ ( randDev->genRandNum( 0, 32767 ) << 10 );
+        id = id ^ randDev->genRandNum( 0, 32767 );
     return id;
 }
 
@@ -252,6 +265,34 @@ void ReMix::getSynRealData()
     }
 }
 
+void ReMix::updatePlayerRow(Player* plr)
+{
+    if ( plr != nullptr
+      && plr->getTableRow() != nullptr )
+    {
+        auto time = plr->getConnectionTime() / 1000;
+        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 4 ),
+                               QString( "%1:%2:%3" )
+                                   .arg( time / 3600, 2, 10, QChar( '0' ) )
+                                   .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                   .arg( time % 60, 2, 10, QChar( '0' ) ),
+                               Qt::DisplayRole );
+
+        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 5 ),
+                               QString( "%1 Bytes | %2 Packets" )
+                                   .arg( plr->getBytesIn() )
+                                   .arg( plr->getPacketsIn() ),
+                               Qt::DisplayRole );
+
+        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 6 ),
+                               QString( "%1 Bytes | %2 Packets" )
+                                   .arg( plr->getBytesOut() )
+                                   .arg( plr->getPacketsOut() ),
+                               Qt::DisplayRole );
+    }
+    ui->playerView->resizeColumnsToContents();
+}
+
 void ReMix::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
@@ -261,6 +302,14 @@ void ReMix::on_enableNetworking_clicked()
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
     tcpServer->setupServerInfo();
+}
+
+void ReMix::on_openRemoteAdmins_clicked()
+{
+    if ( reAdmin->isVisible() )
+        reAdmin->hide();
+    else
+        reAdmin->show();
 }
 
 void ReMix::on_isPublicServer_stateChanged(int)

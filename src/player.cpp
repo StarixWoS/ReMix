@@ -1,5 +1,6 @@
 
 #include "player.hpp"
+#include "helper.hpp"
 
 Player::Player()
 {
@@ -27,6 +28,16 @@ void Player::startLastPacketTime()
     lastPacketTime.restart();;
 }
 
+QStandardItem* Player::getTableRow() const
+{
+    return tableRow;
+}
+
+void Player::setTableRow(QStandardItem* value)
+{
+    tableRow = value;
+}
+
 QTcpSocket* Player::getSocket() const
 {
     return socket;
@@ -44,7 +55,22 @@ quint32 Player::getSernum() const
 
 void Player::setSernum(quint32 value)
 {
+    if ( Helper::getReqSernums() && value <= 0 )
+    {
+        this->getSocket()->abort();
+        return;
+    }
     sernum = value;
+}
+
+QString Player::getSernum_s() const
+{
+    return sernum_s;
+}
+
+void Player::setSernum_s(const QString& value)
+{
+    sernum_s = value;
 }
 
 quint32 Player::getTargetScene() const
@@ -158,22 +184,73 @@ void Player::setEnteredPwd(bool value)
     enteredPwd = value;
 }
 
-quint32 Player::getHBID() const
+int Player::getPacketsIn() const
 {
-    return hbID;
+    return packetsIn;
 }
 
-void Player::setHBID(quint32 value)
+void Player::setPacketsIn(int value)
 {
-    hbID = value;
+    packetsIn = value;
 }
 
-int Player::getHBSlot() const
+quint64 Player::getBytesIn() const
 {
-    return hbSlot;
+    return bytesIn;
 }
 
-void Player::setHBSlot(int value)
+void Player::setBytesIn(const quint64& value)
 {
-    hbSlot = value;
+    bytesIn = value;
+}
+
+int Player::getPacketsOut() const
+{
+    return packetsOut;
+}
+
+void Player::setPacketsOut(int value)
+{
+    packetsOut = value;
+}
+
+quint64 Player::getBytesOut() const
+{
+    return bytesOut;
+}
+
+void Player::setBytesOut(const quint64& value)
+{
+    bytesOut = value;
+}
+
+
+bool Player::getAdminPwdRequested() const
+{
+    return adminPwdRequested;
+}
+
+void Player::setAdminPwdRequested(bool value)
+{
+    adminPwdRequested = value;
+}
+
+bool Player::getAdminPwdEntered() const
+{
+    return adminPwdEntered;
+}
+
+void Player::setAdminPwdEntered(bool value)
+{
+    adminPwdEntered = value;
+}
+
+int Player::getAdminRank() const
+{
+    return adminRank;
+}
+
+void Player::setAdminRank(int value)
+{
+    adminRank = value;
 }

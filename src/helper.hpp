@@ -9,8 +9,7 @@
 #include <QDebug>
 #include <QFile>
 
-//C++/11 Standard Headers
-#include <random>
+#include "randdev.hpp"
 
 namespace Helper
 {
@@ -18,13 +17,17 @@ namespace Helper
     const QString keys[ 3 ]{ "options", "wrongIPs", "General" };
 
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3, ReqSernum = 4, AllowDupe = 5, AllowSSV = 6,
-                  BanDupes = 7, ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11 };
-    const QString subKeys[ 12 ]{ "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK", "serverSupportsVariables",
-                                 "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES" };
+                  BanDupes = 7, ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11, ReqAdminAuth = 12 };
+    const QString subKeys[ 13 ]{ "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK", "serverSupportsVariables",
+                                 "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES", "requireAdminAuth" };
 
-    int genRandNum(int min = 0, int max = 32767);
-    QString intToStr(int val, int base = 10, int fill = 0, QChar filler = '0');
-    QString intToStr(QString val, int base = 16, int fill = 0, QChar filler = '0');
+    template<typename T>
+    QString intToStr(T val, int base = 10, int fill = 0, QChar filler = '0')
+    {
+        return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
+    }
+
+    QString intSToStr(QString val, int base = 16, int fill = 0, QChar filler = '0');
     int strToInt(QString& str, int base = 16);
 
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
@@ -39,12 +42,13 @@ namespace Helper
     void setBanishMesage(QVariant& value);
     QString getBanishMesage();
 
+    QString hashPassword(QVariant& password);
     bool setPassword(QVariant& value, bool isHashed);
     QString getPassword();
 
     void setRequirePassword(QVariant& value);
     bool getRequirePassword();
-    bool cmpPassword(QString& value);
+    bool cmpServerPassword(QVariant& value);
 
     void setServerRules(QVariant& value);
     QString getServerRules();

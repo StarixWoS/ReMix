@@ -61,6 +61,9 @@ class Server : public QTcpServer
         void readMIX8(QString& packet, Player* plr);
         void readMIX9(QString& packet, Player* plr);
 
+        void sendRemoteAdminPwdReq(Player* plr, QString& serNum);
+        void authRemoteAdmin(Player* plr, quint32 id );
+
     signals:
 
     private slots:
