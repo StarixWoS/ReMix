@@ -30,10 +30,6 @@ class Ui_Dialog
 public:
     QAction *actionRevokeAdmin;
     QAction *actionChangeRank;
-    QAction *actionGameMaster;
-    QAction *actionCoAdmin;
-    QAction *actionAdmin;
-    QAction *actionOwner;
     QGridLayout *gridLayout;
     QFrame *frame;
     QGridLayout *gridLayout_2;
@@ -55,14 +51,6 @@ public:
         actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
         actionChangeRank = new QAction(Dialog);
         actionChangeRank->setObjectName(QStringLiteral("actionChangeRank"));
-        actionGameMaster = new QAction(Dialog);
-        actionGameMaster->setObjectName(QStringLiteral("actionGameMaster"));
-        actionCoAdmin = new QAction(Dialog);
-        actionCoAdmin->setObjectName(QStringLiteral("actionCoAdmin"));
-        actionAdmin = new QAction(Dialog);
-        actionAdmin->setObjectName(QStringLiteral("actionAdmin"));
-        actionOwner = new QAction(Dialog);
-        actionOwner->setObjectName(QStringLiteral("actionOwner"));
         gridLayout = new QGridLayout(Dialog);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
@@ -149,10 +137,6 @@ public:
         Dialog->setWindowTitle(QApplication::translate("Dialog", "Remote Admins:", 0));
         actionRevokeAdmin->setText(QApplication::translate("Dialog", "Revoke Admin", 0));
         actionChangeRank->setText(QApplication::translate("Dialog", "Change Rank", 0));
-        actionGameMaster->setText(QApplication::translate("Dialog", "Game Master", 0));
-        actionCoAdmin->setText(QApplication::translate("Dialog", "Co-Admin", 0));
-        actionAdmin->setText(QApplication::translate("Dialog", "Admin", 0));
-        actionOwner->setText(QApplication::translate("Dialog", "Owner", 0));
         label->setText(QApplication::translate("Dialog", "SerNum:", 0));
         label_2->setText(QApplication::translate("Dialog", "Password:", 0));
         label_3->setText(QApplication::translate("Dialog", "Rank:", 0));

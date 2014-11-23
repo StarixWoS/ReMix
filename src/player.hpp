@@ -1,15 +1,20 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include <QStandardItemModel>
 #include <QElapsedTimer>
 #include <QStandardItem>
 #include <QHostAddress>
 #include <QTcpSocket>
 #include <QObject>
+#include <QTimer>
 
-class Player
+class Player : public QObject
 {
+    Q_OBJECT
+
     QStandardItem* tableRow{ nullptr };
+
     QTcpSocket* socket{ nullptr };
     QString publicIP{ "" };
 
@@ -33,31 +38,30 @@ class Player
 
     bool adminPwdRequested{ false };
     bool adminPwdEntered{ false };
-    int adminRank{ -1 };    //Rank -1 means the Player is unable to issue Admin commands.
-
-    //HB ID/Slot: Set by :MIX7 and is used to disconnect a certain type of hacker.
-    quint32 hbID{ 0 };
-    int hbSlot{ 0 };
 
     int packetsIn{ 0 };
     quint64 bytesIn{ 0 };
+    quint32 avgBaudIn{ 0 };
 
     int packetsOut{ 0 };
     quint64 bytesOut{ 0 };
+    quint32 avgBaudOut{ 0 };
 
-    QElapsedTimer connectionTime;
+    QTimer connTimer;
+    quint64 connTime{ 0 };
     QElapsedTimer lastPacketTime;
 
     public:
         explicit Player();
+        ~Player();
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
 
         qint64 getLastPacketTime() const;
         void startLastPacketTime();
 
-        qint64 getConnectionTime() const;
-        void startConnectionTime();
+        qint64 getConnTime() const;
+        void startConnTimer();
 
         QStandardItem* getTableRow() const;
         void setTableRow(QStandardItem* value);
@@ -110,11 +114,17 @@ class Player
         quint64 getBytesIn() const;
         void setBytesIn(const quint64& value);
 
+        quint64 getAvgBaudIn() const;
+        void setAvgBaudIn(const quint64& bIn);
+
         int getPacketsOut() const;
         void setPacketsOut(int value);
 
         quint64 getBytesOut() const;
         void setBytesOut(const quint64& value);
+
+        quint64 getAvgBaudOut() const;
+        void setAvgBaudOut(const quint64& bOut);
 
         bool getAdminPwdRequested() const;
         void setAdminPwdRequested(bool value);

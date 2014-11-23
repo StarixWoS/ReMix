@@ -33,7 +33,7 @@ class Server : public QTcpServer
     ServerInfo* server{ nullptr };
 
     public:
-        explicit Server(ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
+        Server(ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
         ~Server();
 
         void parseMasterServerResponse(QByteArray& mData);

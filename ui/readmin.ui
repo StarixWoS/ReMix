@@ -171,26 +171,6 @@
     <string>Change Rank</string>
    </property>
   </action>
-  <action name="actionGameMaster">
-   <property name="text">
-    <string>Game Master</string>
-   </property>
-  </action>
-  <action name="actionCoAdmin">
-   <property name="text">
-    <string>Co-Admin</string>
-   </property>
-  </action>
-  <action name="actionAdmin">
-   <property name="text">
-    <string>Admin</string>
-   </property>
-  </action>
-  <action name="actionOwner">
-   <property name="text">
-    <string>Owner</string>
-   </property>
-  </action>
  </widget>
  <resources/>
  <connections/>

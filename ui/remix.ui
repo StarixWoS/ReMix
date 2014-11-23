@@ -449,6 +449,31 @@
     </item>
    </layout>
   </widget>
+  <action name="actionSendMessage">
+   <property name="text">
+    <string>Send Message</string>
+   </property>
+  </action>
+  <action name="actionMakeAdmin">
+   <property name="text">
+    <string>Make Admin</string>
+   </property>
+  </action>
+  <action name="actionBANISHIPAddress">
+   <property name="text">
+    <string>BANISH IP Address</string>
+   </property>
+  </action>
+  <action name="actionBANISHSerNum">
+   <property name="text">
+    <string>BANISH SerNum</string>
+   </property>
+  </action>
+  <action name="actionRevokeAdmin">
+   <property name="text">
+    <string>Revoke Admin</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

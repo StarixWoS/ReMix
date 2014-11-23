@@ -10,6 +10,9 @@
 const int MAX_PLAYERS = 256;
 class ServerInfo
 {
+    QTimer upTimer;
+    quint64 upTime{ 0 };
+
     bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };
     QString serverRules{ "" };
@@ -42,9 +45,21 @@ class ServerInfo
 
     Player* players[ MAX_PLAYERS ];
 
+    quint32 userCalls{ 0 };
+    quint32 serNumDc{ 0 };
+    quint32 dupIPDc{ 0 };
+    quint32 ipDc{ 0 };
+
+    QElapsedTimer baudTime;
+    quint64 bytesIn{ 0 };
+    quint64 baudIn{ 0 };
+
+    quint64 bytesOut{ 0 };
+    quint64 baudOut{ 0 };
+
     public:
-//        explicit ServerInfo();
-//        ~ServerInfo();
+        ServerInfo();
+        ~ServerInfo();
 
         Player* createPlayer(int slot);
         Player* getPlayer(int slot);
@@ -53,6 +68,10 @@ class ServerInfo
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
         int getSernumSlot(quint32 sernum);
+        int getQItemSlot(QStandardItem* index);
+
+        quint64 getUpTime() const;
+        QTimer* getUpTimer();
 
         QString getInfo() const;
         void setInfo(const QString& value);
@@ -113,6 +132,30 @@ class ServerInfo
 
         bool getIsSetUp() const;
         void setIsSetUp(bool value);
+
+        quint32 getUserCalls() const;
+        void setUserCalls(const quint32& value);
+
+        quint32 getSerNumDc() const;
+        void setSerNumDc(const quint32& value);
+
+        quint32 getDupIPDc() const;
+        void setDupIPDc(const quint32& value);
+
+        quint32 getIpDc() const;
+        void setIpDc(const quint32& value);
+
+        quint64 getBytesIn() const;
+        void setBytesIn(const quint64& value);
+
+        quint64 getBaudIn() const;
+        void setBaudIn(const quint64& bIn);
+
+        quint64 getBytesOut() const;
+        void setBytesOut(const quint64& value);
+
+        quint64 getBaudOut() const;
+        void setBaudOut(const quint64& bOut);
 };
 
 #endif // SERVERINFO_HPP

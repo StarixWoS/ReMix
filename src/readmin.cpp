@@ -4,7 +4,7 @@
 
 #include "helper.hpp"
 
-namespace Admin
+namespace AdminHelper
 {
     void setAdminData(const QString& key, const QString& subKey, QVariant& value)
     {
@@ -35,18 +35,57 @@ namespace Admin
 
     bool getIsRemoteAdmin(QString& serNum)
     {
-        return getAdminData( serNum, adminKeys[ Admin::RANK ] ).toInt() >= 0;
+        return getAdminData( serNum, adminKeys[ AdminHelper::RANK ] ).toInt() >= 0;
     }
 
     bool cmpRemoteAdminPwd(QString& serNum, QVariant& value)
     {
-        QString recSalt = getAdminData( serNum, adminKeys[ Admin::SALT ] ).toString();
-        QString recHash = getAdminData( serNum, adminKeys[ Admin::HASH ] ).toString();
+        QString recSalt = getAdminData( serNum, adminKeys[ AdminHelper::SALT ] ).toString();
+        QString recHash = getAdminData( serNum, adminKeys[ AdminHelper::HASH ] ).toString();
 
         QVariant pwd( value.toString() + recSalt );
         QString hash = Helper::hashPassword( pwd );
 
         return hash == recHash;
+    }
+
+    quint32 getRemoteAdminRank(QString& sernum)
+    {
+        return getAdminData( sernum, adminKeys[ AdminHelper::RANK ] ).toUInt();
+    }
+
+    void setRemoteAdminRank(QString& sernum, quint32 rank)
+    {
+        QVariant value = rank;
+        setAdminData( sernum, adminKeys[ AdminHelper::RANK ], value );
+    }
+
+    quint32 changeRemoteAdminRank(QString& sernum)
+    {
+        bool ok;
+        QString item = QInputDialog::getItem( nullptr, "Admin Rank:",
+                                              "Rank:", ranks, 0, false, &ok );
+
+        quint32 rank = 0;
+        if ( ok && !item.isEmpty() )
+            rank = ranks.indexOf( item );
+
+        setRemoteAdminRank( sernum, rank );
+
+        return rank;
+    }
+
+    bool deleteRemoteAdmin(QString& sernum)
+    {
+        if ( QMessageBox::question( nullptr, "Revoke Admin:", "Are you certain you want to REVOKE ( " + sernum + " )'s powers?",
+                                    QMessageBox::Yes | QMessageBox::No,
+                                    QMessageBox::No ) == QMessageBox::Yes )
+        {
+            QSettings adminData( "adminData.ini", QSettings::IniFormat );
+                      adminData.remove( sernum );
+            return true;
+        }
+        return false;
     }
 }
 
@@ -61,7 +100,6 @@ ReAdmin::ReAdmin(QWidget *parent) :
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
-    rankMenu = new QMenu( this );
 
     //Setup the ServerInfo TableView.
     tableModel = new QStandardItemModel( 0, 4, 0 );
@@ -85,7 +123,6 @@ ReAdmin::ReAdmin(QWidget *parent) :
 
 ReAdmin::~ReAdmin()
 {
-    rankMenu->deleteLater();
     contextMenu->deleteLater();
     delete ui;
 }
@@ -127,16 +164,9 @@ void ReAdmin::loadServerAdmins()
 
 void ReAdmin::initContextMenu()
 {
-    rankMenu->addAction( ui->actionGameMaster );
-    rankMenu->addAction( ui->actionCoAdmin );
-    rankMenu->addAction( ui->actionAdmin );
-    rankMenu->addAction( ui->actionOwner );
-
-    ui->actionChangeRank->setMenu( rankMenu );
-
+    contextMenu->clear();
     contextMenu->addAction( ui->actionRevokeAdmin );
     contextMenu->addAction( ui->actionChangeRank );
-
 }
 
 void ReAdmin::setAdminRank(int rank, QModelIndex index)
@@ -215,40 +245,24 @@ void ReAdmin::on_actionRevokeAdmin_triggered()
 {
     if ( menuIndex.isValid() )
     {
-        QString txt = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
-        if ( !txt.isEmpty() )
+        QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
+        if ( !sernum.isEmpty() )
         {
-            if ( QMessageBox::question( this, "Revoke Admin:", "Are you certain you want to REVOKE ( "
-                                        + txt + " )'s powers?",
-                                        QMessageBox::Yes | QMessageBox::No,
-                                        QMessageBox::No ) == QMessageBox::Yes )
-            {
-                QSettings adminData( "adminData.ini", QSettings::IniFormat );
-                adminData.remove( txt );
-
+            if (  AdminHelper::deleteRemoteAdmin( sernum ) )
                 tableModel->removeRow( menuIndex.row() );
-            }
         }
     }
     menuIndex = QModelIndex();
 }
 
-void ReAdmin::on_actionGameMaster_triggered()
+void ReAdmin::on_actionChangeRank_triggered()
 {
-    this->setAdminRank( Ranks::GMASTER, menuIndex );
-}
+    QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
 
-void ReAdmin::on_actionCoAdmin_triggered()
-{
-    this->setAdminRank( Ranks::COADMIN, menuIndex );
-}
+    quint32 rank = -1;
+    if ( !sernum.isEmpty() )
+        rank = AdminHelper::changeRemoteAdminRank( sernum );
 
-void ReAdmin::on_actionAdmin_triggered()
-{
-    this->setAdminRank( Ranks::ADMIN, menuIndex );
-}
-
-void ReAdmin::on_actionOwner_triggered()
-{
-    this->setAdminRank( Ranks::OWNER, menuIndex );
+    tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
+                                            rank, Qt::DisplayRole );
 }

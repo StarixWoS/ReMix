@@ -31,6 +31,11 @@ QT_BEGIN_NAMESPACE
 class Ui_ReMix
 {
 public:
+    QAction *actionSendMessage;
+    QAction *actionMakeAdmin;
+    QAction *actionBANISHIPAddress;
+    QAction *actionBANISHSerNum;
+    QAction *actionRevokeAdmin;
     QWidget *centralWidget;
     QGridLayout *gridLayout;
     QFrame *frame;
@@ -64,6 +69,16 @@ public:
             ReMix->setObjectName(QStringLiteral("ReMix"));
         ReMix->resize(668, 386);
         ReMix->setDockNestingEnabled(false);
+        actionSendMessage = new QAction(ReMix);
+        actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));
+        actionMakeAdmin = new QAction(ReMix);
+        actionMakeAdmin->setObjectName(QStringLiteral("actionMakeAdmin"));
+        actionBANISHIPAddress = new QAction(ReMix);
+        actionBANISHIPAddress->setObjectName(QStringLiteral("actionBANISHIPAddress"));
+        actionBANISHSerNum = new QAction(ReMix);
+        actionBANISHSerNum->setObjectName(QStringLiteral("actionBANISHSerNum"));
+        actionRevokeAdmin = new QAction(ReMix);
+        actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -290,6 +305,11 @@ public:
     void retranslateUi(QMainWindow *ReMix)
     {
         ReMix->setWindowTitle(QApplication::translate("ReMix", "ReMix", 0));
+        actionSendMessage->setText(QApplication::translate("ReMix", "Send Message", 0));
+        actionMakeAdmin->setText(QApplication::translate("ReMix", "Make Admin", 0));
+        actionBANISHIPAddress->setText(QApplication::translate("ReMix", "BANISH IP Address", 0));
+        actionBANISHSerNum->setText(QApplication::translate("ReMix", "BANISH SerNum", 0));
+        actionRevokeAdmin->setText(QApplication::translate("ReMix", "Revoke Admin", 0));
         isPublicServer->setText(QApplication::translate("ReMix", "Register as a public server", 0));
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));

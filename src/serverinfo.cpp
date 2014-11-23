@@ -1,19 +1,36 @@
 
 #include "serverinfo.hpp"
 
-//ServerInfo::ServerInfo( )
-//{
+ServerInfo::ServerInfo()
+{
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        players[ i ] = nullptr;
+    }
 
-//}
+    baudTime.start();
+    upTimer.start( 1000 );
 
-//ServerInfo::~ServerInfo()
-//{
-//    for ( int x = 0; x < MAX_PLAYERS; ++x );
-//    {
-//        if ( players[ x ] != nullptr )
-//            this->deletePlayer( x );
-//    }
-//}
+    QObject::connect( &upTimer, &QTimer::timeout, [=]()
+    {
+        ++upTime;
+        if ( baudTime.elapsed() > 5000 )
+        {
+            this->setBaudIn( this->getBytesIn() );
+            this->setBytesIn( 0 );
+
+            this->setBaudOut( this->getBytesOut() );
+            this->setBytesOut( 0 );
+
+            baudTime.restart();
+        }
+    });
+}
+
+ServerInfo::~ServerInfo()
+{
+    upTimer.disconnect();
+}
 
 Player* ServerInfo::createPlayer(int slot)
 {
@@ -64,6 +81,7 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
           && players[ i ]->getSocket() == soc )
         {
             slot = i;
+            break;
         }
     }
     return slot;
@@ -78,9 +96,35 @@ int ServerInfo::getSernumSlot(quint32 sernum)
           && players[ i ]->getSernum() == sernum )
         {
             slot = i;
+            break;
         }
     }
     return slot;
+}
+
+int ServerInfo::getQItemSlot(QStandardItem* index)
+{
+    int slot = -1;
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        if ( players[ i ] != nullptr
+          && players[ i ]->getTableRow() == index )
+        {
+            slot = i;
+            break;
+        }
+    }
+    return slot;
+}
+
+quint64 ServerInfo::getUpTime() const
+{
+    return upTime;
+}
+
+QTimer* ServerInfo::getUpTimer()
+{
+    return &upTimer;
 }
 
 QString ServerInfo::getInfo() const
@@ -281,4 +325,96 @@ bool ServerInfo::getIsSetUp() const
 void ServerInfo::setIsSetUp(bool value)
 {
     isSetUp = value;
+}
+
+quint32 ServerInfo::getUserCalls() const
+{
+    return userCalls;
+}
+
+void ServerInfo::setUserCalls(const quint32& value)
+{
+    userCalls = value;
+}
+
+quint32 ServerInfo::getSerNumDc() const
+{
+    return serNumDc;
+}
+
+void ServerInfo::setSerNumDc(const quint32& value)
+{
+    serNumDc = value;
+}
+
+quint32 ServerInfo::getDupIPDc() const
+{
+    return dupIPDc;
+}
+
+void ServerInfo::setDupIPDc(const quint32& value)
+{
+    dupIPDc = value;
+}
+
+quint32 ServerInfo::getIpDc() const
+{
+    return ipDc;
+}
+
+void ServerInfo::setIpDc(const quint32& value)
+{
+    ipDc = value;
+}
+
+quint64 ServerInfo::getBytesIn() const
+{
+    return bytesIn;
+}
+
+void ServerInfo::setBytesIn(const quint64& value)
+{
+    bytesIn = value;
+}
+
+quint64 ServerInfo::getBaudIn() const
+{
+    return baudIn;
+}
+
+void ServerInfo::setBaudIn(const quint64& bIn)
+{
+    quint64 time = baudTime.elapsed();
+    quint64 baud{ 0 };
+
+    if ( bIn > 0 && time > 0 )
+        baud = 10000 * bIn / time;
+
+    baudIn = baud;
+}
+
+quint64 ServerInfo::getBytesOut() const
+{
+    return bytesOut;
+}
+
+void ServerInfo::setBytesOut(const quint64& value)
+{
+    bytesOut = value;
+}
+
+quint64 ServerInfo::getBaudOut() const
+{
+    return baudOut;
+}
+
+void ServerInfo::setBaudOut(const quint64& bOut)
+{
+    quint64 time = baudTime.elapsed();
+    quint64 baud{ 0 };
+
+    if ( bOut > 0 && time > 0 )
+        baud = 10000 * bOut / time;
+
+    baudOut = baud;
 }

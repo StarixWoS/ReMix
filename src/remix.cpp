@@ -15,14 +15,15 @@ ReMix::ReMix(QWidget *parent) :
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
-    upTime.start();
-
-    QTimer* uiUpdate = new QTimer( this );
-            uiUpdate->setInterval( 1000 );
-            uiUpdate->start();
 
     //Setup our Random Device
     randDev = new RandDev();
+
+    //Create our Context Menus
+    contextMenu = new QMenu( this );
+
+    //Initialize our Context Menu Items.
+    this->initContextMenu();
 
     //Setup the PlayerInfo TableView.
     plrViewModel = new QStandardItemModel( 0, 8, 0 );
@@ -65,13 +66,17 @@ ReMix::ReMix(QWidget *parent) :
     this->parseCMDLArgs();
 
     //Create and Connect Lamda Objects
-    QObject::connect( uiUpdate, &QTimer::timeout, [this]()
+    QObject::connect( serverInfo->getUpTimer(), &QTimer::timeout, [=]()
     {
-        auto time = upTime.elapsed() / 1000;
+        quint64 time = serverInfo->getUpTime();
         ui->onlineTime->setText( QString( "%1:%2:%3" )
                                  .arg( time / 3600, 2, 10, QChar( '0' ) )
                                  .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
                                  .arg( time % 60, 2, 10, QChar( '0' ) ) );
+
+        ui->callCount->setText( QString( "#Calls: %1" ).arg( serverInfo->getUserCalls() ) );
+        ui->packetINBD->setText( QString( "#IN: %1Bd" ).arg( serverInfo->getBaudIn() ) );
+        ui->packetOUTBD->setText( QString( "#OUT: %1Bd" ).arg( serverInfo->getBaudOut() ) );
 
         //Update other Info as well.
         if ( serverInfo->getIsSetUp() )
@@ -88,14 +93,7 @@ ReMix::ReMix(QWidget *parent) :
             }
             ui->networkStatus->setText( tmp );
         }
-
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            tmpPlr = serverInfo->getPlayer( i );
-            if ( tmpPlr != nullptr )
-                this->updatePlayerRow( tmpPlr );
-        }
+        ui->playerView->resizeColumnsToContents();
     });
 
     if ( serverInfo->getMasterIP().isEmpty() )
@@ -265,32 +263,16 @@ void ReMix::getSynRealData()
     }
 }
 
-void ReMix::updatePlayerRow(Player* plr)
+void ReMix::initContextMenu()
 {
-    if ( plr != nullptr
-      && plr->getTableRow() != nullptr )
-    {
-        auto time = plr->getConnectionTime() / 1000;
-        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 4 ),
-                               QString( "%1:%2:%3" )
-                                   .arg( time / 3600, 2, 10, QChar( '0' ) )
-                                   .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
-                                   .arg( time % 60, 2, 10, QChar( '0' ) ),
-                               Qt::DisplayRole );
+    contextMenu->clear();
+    contextMenu->addAction( ui->actionSendMessage );
+    contextMenu->addAction( ui->actionRevokeAdmin );
+    contextMenu->addAction( ui->actionMakeAdmin );
+    contextMenu->addAction( ui->actionBANISHIPAddress );
+    contextMenu->addAction( ui->actionBANISHSerNum );
 
-        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 5 ),
-                               QString( "%1 Bytes | %2 Packets" )
-                                   .arg( plr->getBytesIn() )
-                                   .arg( plr->getPacketsIn() ),
-                               Qt::DisplayRole );
-
-        plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 6 ),
-                               QString( "%1 Bytes | %2 Packets" )
-                                   .arg( plr->getBytesOut() )
-                                   .arg( plr->getPacketsOut() ),
-                               Qt::DisplayRole );
-    }
-    ui->playerView->resizeColumnsToContents();
+    contextMenu->insertSeparator( ui->actionBANISHIPAddress );
 }
 
 void ReMix::on_enableNetworking_clicked()
@@ -364,4 +346,49 @@ void ReMix::on_serverPort_textChanged(const QString &arg1)
 void ReMix::on_serverName_textChanged(const QString &arg1)
 {
     serverInfo->setName( arg1 );
+}
+
+void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
+{
+    menuIndex = plrViewProxy->mapToSource( ui->playerView->indexAt( pos ) );
+    if ( menuIndex.row() < 0 )
+        return;
+
+    QString sernum = plrViewModel->data( plrViewModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
+        contextMenu->removeAction( ui->actionRevokeAdmin );
+
+    contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
+}
+
+void ReMix::on_actionSendMessage_triggered()
+{
+}
+
+void ReMix::on_actionRevokeAdmin_triggered()
+{
+    ; //Delete the User from the Admin storage. If the User is online, inform them of this change.
+}
+
+void ReMix::on_actionMakeAdmin_triggered()
+{
+    QString sernum{ "" };
+    if ( menuIndex.isValid() )
+    {
+        sernum = plrViewModel->data( plrViewModel->index( menuIndex.row(), 1 ) ).toString();
+        if ( !sernum.isEmpty() && !AdminHelper::getIsRemoteAdmin( sernum ) )
+        {
+            ; //TODO: Request a Password from the selected User.
+        }
+    }
+}
+
+void ReMix::on_actionBANISHIPAddress_triggered()
+{
+    ; //TODO: Implement hooks to the BannedIP class. Ban the IP address..
+}
+
+void ReMix::on_actionBANISHSerNum_triggered()
+{
+    ;  //TODO: Implement hooks to the BannedSernum class. Ban the sernum.
 }

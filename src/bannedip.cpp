@@ -25,6 +25,7 @@ BannedIP::BannedIP(QWidget *parent) :
 
     this->setWindowModality( Qt::WindowModal );
 
+    ui->reqAdminAuth->setChecked( AdminHelper::getReqAdminAuth() );
     ui->allowDupedIP->setChecked( Helper::getAllowDupedIP() );
     ui->banDupedIP->setChecked( Helper::getBanDupedIP() );
     ui->banHackers->setChecked( Helper::getBanHackers() );
@@ -176,5 +177,5 @@ void BannedIP::on_allowSSV_clicked()
 void BannedIP::on_reqAdminAuth_clicked()
 {
     QVariant value = ui->reqAdminAuth->isChecked();
-    Admin::setReqAdminAuth( value );
+    AdminHelper::setReqAdminAuth( value );
 }

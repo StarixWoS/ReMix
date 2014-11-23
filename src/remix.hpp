@@ -49,7 +49,8 @@ class ReMix : public QMainWindow
 
     ServerInfo* serverInfo{ nullptr };
 
-    QElapsedTimer upTime;
+    QMenu* contextMenu{ nullptr };
+    QModelIndex menuIndex;
 
     public:
         explicit ReMix(QWidget *parent = 0);
@@ -58,8 +59,7 @@ class ReMix : public QMainWindow
         int genServerID();
         void parseCMDLArgs();
         void getSynRealData();
-
-        void updatePlayerRow(Player* plr);
+        void initContextMenu();
 
     private slots:
         void on_openSysMessages_clicked();
@@ -72,6 +72,14 @@ class ReMix : public QMainWindow
 
         void on_serverPort_textChanged(const QString &arg1);
         void on_serverName_textChanged(const QString &arg1);
+
+        void on_playerView_customContextMenuRequested(const QPoint &pos);
+        void on_actionSendMessage_triggered();
+        void on_actionMakeAdmin_triggered();
+        void on_actionBANISHIPAddress_triggered();
+        void on_actionBANISHSerNum_triggered();
+
+        void on_actionRevokeAdmin_triggered();
 
     private:
         Ui::ReMix *ui;

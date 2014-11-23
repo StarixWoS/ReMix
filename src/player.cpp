@@ -4,18 +4,54 @@
 
 Player::Player()
 {
-    this->startConnectionTime();
     this->startLastPacketTime();
+
+    connTimer.start( 1000 );
+    QObject::connect( &connTimer, &QTimer::timeout, [=]()
+    {
+        ++connTime;
+
+        QStandardItem* row = this->getTableRow();
+        if ( row != nullptr )
+        {
+            QStandardItemModel* model = row->model();
+            if ( model != nullptr )
+            {
+                model->setData( row->model()->index( row->row(), 4 ),
+                                QString( "%1:%2:%3" )
+                                    .arg( connTime / 3600, 2, 10, QChar( '0' ) )
+                                    .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                    .arg( connTime % 60, 2, 10, QChar( '0' ) ),
+                                Qt::DisplayRole );
+
+                this->setAvgBaudIn( this->getBytesIn() );
+                model->setData( row->model()->index( row->row(), 5 ),
+                                       QString( "%1Bd, %2B, %3 Pkts" )
+                                           .arg( this->getAvgBaudIn() )
+                                           .arg( this->getBytesIn() )
+                                           .arg( this->getPacketsIn() ),
+                                       Qt::DisplayRole );
+
+                this->setAvgBaudOut( this->getBytesOut() );
+                model->setData( row->model()->index( row->row(), 6 ),
+                                       QString( "%1Bd, %2B, %3 Pkts" )
+                                           .arg( this->getAvgBaudOut() )
+                                           .arg( this->getBytesOut() )
+                                           .arg( this->getPacketsOut() ),
+                                       Qt::DisplayRole );
+            }
+        }
+    });
 }
 
-qint64 Player::getConnectionTime() const
+Player::~Player()
 {
-    return connectionTime.elapsed();
+    connTimer.disconnect();
 }
 
-void Player::startConnectionTime()
+qint64 Player::getConnTime() const
 {
-    connectionTime.restart();
+    return connTime;
 }
 
 qint64 Player::getLastPacketTime() const
@@ -202,6 +238,24 @@ quint64 Player::getBytesIn() const
 void Player::setBytesIn(const quint64& value)
 {
     bytesIn = value;
+    this->setAvgBaudIn( bytesIn );
+}
+
+quint64 Player::getAvgBaudIn() const
+{
+    return avgBaudIn;
+}
+
+void Player::setAvgBaudIn(const quint64& bIn)
+{
+    quint64 time = this->getConnTime();
+    quint64 baud{ 0 };
+
+    if ( bIn > 0 && time > 0 )
+        baud = 10 * bIn / time;
+
+    if ( baud > 0 )
+        avgBaudIn = baud;
 }
 
 int Player::getPacketsOut() const
@@ -224,6 +278,22 @@ void Player::setBytesOut(const quint64& value)
     bytesOut = value;
 }
 
+quint64 Player::getAvgBaudOut() const
+{
+    return avgBaudOut;
+}
+
+void Player::setAvgBaudOut(const quint64& bOut)
+{
+    quint64 time = this->getConnTime();
+    quint64 baud{ 0 };
+
+    if ( bOut > 0 && time > 0 )
+        baud = 10 * bOut / time;
+
+    if ( baud > 0 )
+        avgBaudOut = baud;
+}
 
 bool Player::getAdminPwdRequested() const
 {
@@ -243,14 +313,4 @@ bool Player::getAdminPwdEntered() const
 void Player::setAdminPwdEntered(bool value)
 {
     adminPwdEntered = value;
-}
-
-int Player::getAdminRank() const
-{
-    return adminRank;
-}
-
-void Player::setAdminRank(int value)
-{
-    adminRank = value;
 }
