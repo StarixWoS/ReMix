@@ -3,7 +3,7 @@
 
 #include "helper.hpp"
 #include "serverinfo.hpp"
-#include "readmin.hpp"
+#include "admin.hpp"
 
 Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
 {
@@ -25,6 +25,9 @@ Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
                       this, &Server::masterCheckInTimeOutSlot );
 
     QDir( "mixVariableCache" ).mkpath( "." );
+
+    //Ensure all possibple User slots are fillable.
+    this->setMaxPendingConnections( MAX_PLAYERS );
 }
 
 Server::~Server()
@@ -440,12 +443,7 @@ void Server::parsePacket(QString& packet, Player* plr)
         if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
             return;
 
-        //Only parse packets from Users that have entered the correct password.
-        if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
-          && ( plr->getAdminPwdEntered() || !plr->getAdminPwdRequested() ))
-        {
-            this->parseSRPacket( packet, plr );
-        }
+        this->parseSRPacket( packet, plr );
     }
 
     if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
@@ -468,69 +466,78 @@ void Server::parseSRPacket(QString& packet, Player* plr)
     bool send = false;
 
     quint64 bOut{ 0 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        isAuth = false;
-        send = false;
 
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr
-          && tmpPlr->getSocket() != nullptr )
+    //Only parse packets from Users that have entered the correct password.
+    if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
+      && ( plr->getAdminPwdEntered() || !plr->getAdminPwdRequested() ))
+    {
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
-            tmpSoc = tmpPlr->getSocket();
-            if ( plr->getSocket() != tmpSoc )
+            isAuth = false;
+            send = false;
+
+            tmpPlr = server->getPlayer( i );
+            if ( tmpPlr != nullptr
+              && tmpPlr->getSocket() != nullptr )
             {
                 tmpSoc = tmpPlr->getSocket();
-                if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
-                  && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                if ( plr->getSocket() != tmpSoc )
                 {
-                    isAuth = true;
-                }
-
-                switch ( plr->getTargetType() )
-                {
-                    case Player::ALL:
+                    tmpSoc = tmpPlr->getSocket();
+                    if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
+                      && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                    {
+                        isAuth = true;
+                        switch ( plr->getTargetType() )
                         {
-                            send = true;
-                        }
-                    break;
-                    case Player::PLAYER:
-                        {
-                            if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
-                                send = true;
+                            case Player::ALL:
+                                {
+                                    send = true;
+                                }
+                            break;
+                            case Player::PLAYER:
+                                {
+                                    if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
+                                        send = true;
 
-                            plr->setTargetType( Player::ALL );
-                            plr->setTargetSerNum( 0 );
+                                    plr->setTargetType( Player::ALL );
+                                    plr->setTargetSerNum( 0 );
+                                }
+                            break;
+                            case Player::SCENE:
+                                {
+                                    if ((( plr->getTargetScene() == tmpPlr->getSernum() )
+                                      || ( plr->getTargetScene() == tmpPlr->getSceneHost() ))
+                                      && ( plr != tmpPlr ) )
+                                    {
+                                        send = true;
+                                    }
+                                    plr->setTargetType( Player::ALL );
+                                    plr->setTargetScene( 0 );
+                                }
+                            break;
+                            default:
+                                send = false;
+                            break;
                         }
-                    break;
-                    case Player::SCENE:
-                        {
-                            if ((( plr->getTargetScene() == tmpPlr->getSernum() )
-                              || ( plr->getTargetScene() == tmpPlr->getSceneHost() ))
-                                && ( plr != tmpPlr ) )
-                            {
-                                send = true;
-                            }
-                            plr->setTargetType( Player::ALL );
-                            plr->setTargetScene( 0 );
-                        }
-                    break;
-                    default:
-                        return;
-                    break;
-                }
+                    }
 
-                if ( send && isAuth )
-                {
-                    bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+                    if ( send && isAuth )
+                    {
+                        bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
 
-                    tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
-                    tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
-                    server->setBytesOut( server->getBytesOut() + bOut );
+                        tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+                        tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
+                        server->setBytesOut( server->getBytesOut() + bOut );
+                    }
+                    else
+                        qDebug() << QString( "Skipping packet to unauthenticated User (%1)." ).arg( tmpPlr->getPublicIP() );
                 }
             }
         }
     }
+    else
+        qDebug() << QString( "Ignoring packet from unauthenticated User (%1)." ).arg( plr->getPublicIP() );
 }
 
 void Server::parseMIXPacket(QString& packet, Player* plr)
@@ -599,8 +606,6 @@ void Server::readMIX1(QString& packet, Player* plr)
 
 void Server::readMIX2(QString&, Player* plr)
 {
-    //Unset the Player's Scene Target.
-    //This really does nothing unless 'MIX2' has another use.
     plr->setSceneHost( 0 );
     plr->setTargetType( Player::ALL );
 }
@@ -618,8 +623,6 @@ void Server::readMIX3(QString& packet, Player* plr)
         if ( tmpPlr != nullptr
           && tmpPlr->getSernum() == sernum_i )
         {
-            //If the two Player objects aren't the same, then our Player Object
-            //Is attempting to impersonate another.
             if ( tmpPlr != plr )
             {
                 plr->getSocket()->abort();  //Kill the socket and delete the Player when control returns.
@@ -627,9 +630,6 @@ void Server::readMIX3(QString& packet, Player* plr)
             }
         }
     }
-
-    //If we get here, no previously connected Player has been attuned to the SerNum.
-    //Set the serNum, and check if it requires authentication.
     this->authRemoteAdmin( plr, sernum_i );
 }
 
@@ -726,7 +726,7 @@ void Server::readMIX7(QString& packet, Player* plr)
     packet = packet.mid( 2 );
     packet = packet.left( packet.length() - 2 );
 
-    //Set the serNum, and check if it requires authentication.
+    //Check if the User requires authentication.
     this->authRemoteAdmin( plr, packet.toUInt( 0, 16 ) );
 }
 
@@ -738,22 +738,18 @@ void Server::readMIX8(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    QString file = vars.value( 0 );
-    QString key = vars.value( 1 );
-    QString subKey = vars.value( 2 );
     QString val{ "" };
 
-    //Check if we allow SSV's and prevent reading from SSV's containing "Admin".
     if ( Helper::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
-        QSettings ssv( "mixVariableCache/" + file + ".ini", QSettings::IniFormat );
+        QSettings ssv( "mixVariableCache/" + vars.value( 0 ) + ".ini", QSettings::IniFormat );
         val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
                   .arg( sernum )
-                  .arg( file )
-                  .arg( key )
-                  .arg( subKey )
-                  .arg( ssv.value( key + "/" + subKey, "" ).toString() );
+                  .arg( vars.value( 0 ) )
+                  .arg( vars.value( 1 ) )
+                  .arg( vars.value( 2 ) )
+                  .arg( ssv.value( vars.value( 1 ) + "/" + vars.value( 2 ), "" ).toString() );
     }
 
     if ( !val.isEmpty() )
@@ -766,17 +762,11 @@ void Server::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    QString file = vars.value( 0 );
-    QString key = vars.value( 1 );
-    QString subKey = vars.value( 2 );
-    QString val = vars.value( 3 );
-
-    //Check if we allow SSV's and prevent writing SSV's containing "Admin".
     if ( Helper::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
-        QSettings ssv( "mixVariableCache/" + file + ".ini", QSettings::IniFormat );
-                  ssv.setValue( key + "/" + subKey, val );
+        QSettings ssv( "mixVariableCache/" + vars.value( 0 ) + ".ini", QSettings::IniFormat );
+                  ssv.setValue( vars.value( 1 ) + "/" + vars.value( 2 ), vars.value( 3 ) );
     }
 }
 
@@ -803,11 +793,8 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
     if ( plr == nullptr )
         return;
 
-    //Re-Authenticate the remote Admin if required.
-    //Supposing if they initialized the server connection with Soul 0.
-
     if (( plr->getSernum() != id
-       && id != 0 )
+      && id != 0 )
       || plr->getSernum() == 0 )
     {
         QString serNum_s = Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) );
@@ -826,6 +813,6 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
             this->sendRemoteAdminPwdReq( plr, serNum_s );
         }
         else if ( id > 0 && plr->getSernum() != id )
-            plr->getSocket()->abort();   //Player's sernum has somehow changed. Disconnect them.
+            plr->getSocket()->abort();   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
     }
 }

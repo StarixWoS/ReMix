@@ -299,12 +299,13 @@ void ServerInfo::setPrivateIP(const QString& value)
 
 QString ServerInfo::getServerRules() const
 {
-    return serverRules;
+    return Helper::getServerRules();
 }
 
 void ServerInfo::setServerRules(const QString& value)
 {
-    serverRules = value;
+    QVariant val = QVariant( value );
+    Helper::setServerRules( val );
 }
 
 QString ServerInfo::getName() const

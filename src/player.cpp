@@ -61,7 +61,7 @@ qint64 Player::getLastPacketTime() const
 
 void Player::startLastPacketTime()
 {
-    lastPacketTime.restart();;
+    lastPacketTime.restart();
 }
 
 QStandardItem* Player::getTableRow() const

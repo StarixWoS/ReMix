@@ -45,13 +45,6 @@ public:
     QLabel *onlineTime;
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_4;
-    QPushButton *openBannedSernums;
-    QPushButton *openUserComments;
-    QPushButton *openBanIP;
-    QPushButton *enableNetworking;
-    QLineEdit *serverPort;
-    QPushButton *openRemoteAdmins;
-    QPushButton *openSysMessages;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
     QLabel *callCount;
@@ -60,6 +53,13 @@ public:
     QLabel *ipDCCount;
     QLabel *packetINBD;
     QLabel *packetOUTBD;
+    QPushButton *openBanDialog;
+    QPushButton *openSysMessages;
+    QPushButton *openRemoteAdmins;
+    QLineEdit *serverPort;
+    QPushButton *enableNetworking;
+    QPushButton *openUserComments;
+    QPushButton *openSettings;
     QLabel *networkStatus;
     QTableView *playerView;
 
@@ -67,7 +67,7 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(668, 386);
+        ReMix->resize(642, 272);
         ReMix->setDockNestingEnabled(false);
         actionSendMessage = new QAction(ReMix);
         actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));
@@ -134,76 +134,13 @@ public:
         gridLayout_4->setHorizontalSpacing(10);
         gridLayout_4->setVerticalSpacing(5);
         gridLayout_4->setContentsMargins(10, 10, 10, 10);
-        openBannedSernums = new QPushButton(groupBox_2);
-        openBannedSernums->setObjectName(QStringLiteral("openBannedSernums"));
-        QSizePolicy sizePolicy3(QSizePolicy::Minimum, QSizePolicy::Preferred);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(openBannedSernums->sizePolicy().hasHeightForWidth());
-        openBannedSernums->setSizePolicy(sizePolicy3);
-        openBannedSernums->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openBannedSernums, 4, 1, 1, 1);
-
-        openUserComments = new QPushButton(groupBox_2);
-        openUserComments->setObjectName(QStringLiteral("openUserComments"));
-        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
-        openUserComments->setSizePolicy(sizePolicy4);
-        openUserComments->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openUserComments, 5, 0, 1, 2);
-
-        openBanIP = new QPushButton(groupBox_2);
-        openBanIP->setObjectName(QStringLiteral("openBanIP"));
-        sizePolicy3.setHeightForWidth(openBanIP->sizePolicy().hasHeightForWidth());
-        openBanIP->setSizePolicy(sizePolicy3);
-        openBanIP->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openBanIP, 4, 0, 1, 1);
-
-        enableNetworking = new QPushButton(groupBox_2);
-        enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
-        sizePolicy4.setHeightForWidth(enableNetworking->sizePolicy().hasHeightForWidth());
-        enableNetworking->setSizePolicy(sizePolicy4);
-        enableNetworking->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(enableNetworking, 1, 0, 1, 2);
-
-        serverPort = new QLineEdit(groupBox_2);
-        serverPort->setObjectName(QStringLiteral("serverPort"));
-        QSizePolicy sizePolicy5(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy5.setHorizontalStretch(0);
-        sizePolicy5.setVerticalStretch(0);
-        sizePolicy5.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
-        serverPort->setSizePolicy(sizePolicy5);
-        serverPort->setMaximumSize(QSize(16777215, 20));
-        serverPort->setMaxLength(5);
-
-        gridLayout_4->addWidget(serverPort, 0, 0, 1, 2);
-
-        openRemoteAdmins = new QPushButton(groupBox_2);
-        openRemoteAdmins->setObjectName(QStringLiteral("openRemoteAdmins"));
-        sizePolicy3.setHeightForWidth(openRemoteAdmins->sizePolicy().hasHeightForWidth());
-        openRemoteAdmins->setSizePolicy(sizePolicy3);
-        openRemoteAdmins->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openRemoteAdmins, 2, 0, 1, 2);
-
-        openSysMessages = new QPushButton(groupBox_2);
-        openSysMessages->setObjectName(QStringLiteral("openSysMessages"));
-        sizePolicy4.setHeightForWidth(openSysMessages->sizePolicy().hasHeightForWidth());
-        openSysMessages->setSizePolicy(sizePolicy4);
-        openSysMessages->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openSysMessages, 3, 0, 1, 2);
-
         groupBox = new QGroupBox(groupBox_2);
         groupBox->setObjectName(QStringLiteral("groupBox"));
-        sizePolicy2.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
-        groupBox->setSizePolicy(sizePolicy2);
+        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Ignored);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy3);
         groupBox->setAlignment(Qt::AlignHCenter|Qt::AlignTop);
         verticalLayout = new QVBoxLayout(groupBox);
         verticalLayout->setSpacing(5);
@@ -259,18 +196,82 @@ public:
         verticalLayout->addWidget(packetOUTBD);
 
 
-        gridLayout_4->addWidget(groupBox, 6, 0, 1, 2);
+        gridLayout_4->addWidget(groupBox, 7, 0, 1, 2);
+
+        openBanDialog = new QPushButton(groupBox_2);
+        openBanDialog->setObjectName(QStringLiteral("openBanDialog"));
+        QSizePolicy sizePolicy4(QSizePolicy::Minimum, QSizePolicy::Preferred);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(openBanDialog->sizePolicy().hasHeightForWidth());
+        openBanDialog->setSizePolicy(sizePolicy4);
+        openBanDialog->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openBanDialog, 5, 0, 1, 2);
+
+        openSysMessages = new QPushButton(groupBox_2);
+        openSysMessages->setObjectName(QStringLiteral("openSysMessages"));
+        QSizePolicy sizePolicy5(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(openSysMessages->sizePolicy().hasHeightForWidth());
+        openSysMessages->setSizePolicy(sizePolicy5);
+        openSysMessages->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openSysMessages, 4, 0, 1, 2);
+
+        openRemoteAdmins = new QPushButton(groupBox_2);
+        openRemoteAdmins->setObjectName(QStringLiteral("openRemoteAdmins"));
+        sizePolicy4.setHeightForWidth(openRemoteAdmins->sizePolicy().hasHeightForWidth());
+        openRemoteAdmins->setSizePolicy(sizePolicy4);
+        openRemoteAdmins->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openRemoteAdmins, 2, 0, 1, 2);
+
+        serverPort = new QLineEdit(groupBox_2);
+        serverPort->setObjectName(QStringLiteral("serverPort"));
+        QSizePolicy sizePolicy6(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy6.setHorizontalStretch(0);
+        sizePolicy6.setVerticalStretch(0);
+        sizePolicy6.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
+        serverPort->setSizePolicy(sizePolicy6);
+        serverPort->setMaximumSize(QSize(16777215, 19));
+        serverPort->setMaxLength(5);
+
+        gridLayout_4->addWidget(serverPort, 0, 0, 1, 2);
+
+        enableNetworking = new QPushButton(groupBox_2);
+        enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
+        sizePolicy5.setHeightForWidth(enableNetworking->sizePolicy().hasHeightForWidth());
+        enableNetworking->setSizePolicy(sizePolicy5);
+        enableNetworking->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(enableNetworking, 1, 0, 1, 2);
+
+        openUserComments = new QPushButton(groupBox_2);
+        openUserComments->setObjectName(QStringLiteral("openUserComments"));
+        sizePolicy5.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
+        openUserComments->setSizePolicy(sizePolicy5);
+        openUserComments->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openUserComments, 6, 0, 1, 2);
+
+        openSettings = new QPushButton(groupBox_2);
+        openSettings->setObjectName(QStringLiteral("openSettings"));
+        openSettings->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openSettings, 3, 0, 1, 2);
 
 
         gridLayout_2->addWidget(groupBox_2, 1, 0, 2, 1);
 
         networkStatus = new QLabel(frame);
         networkStatus->setObjectName(QStringLiteral("networkStatus"));
-        QSizePolicy sizePolicy6(QSizePolicy::Ignored, QSizePolicy::Fixed);
-        sizePolicy6.setHorizontalStretch(0);
-        sizePolicy6.setVerticalStretch(0);
-        sizePolicy6.setHeightForWidth(networkStatus->sizePolicy().hasHeightForWidth());
-        networkStatus->setSizePolicy(sizePolicy6);
+        QSizePolicy sizePolicy7(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        sizePolicy7.setHorizontalStretch(0);
+        sizePolicy7.setVerticalStretch(0);
+        sizePolicy7.setHeightForWidth(networkStatus->sizePolicy().hasHeightForWidth());
+        networkStatus->setSizePolicy(sizePolicy7);
 
         gridLayout_2->addWidget(networkStatus, 1, 1, 1, 3);
 
@@ -288,7 +289,8 @@ public:
         playerView->horizontalHeader()->setDefaultSectionSize(100);
         playerView->horizontalHeader()->setStretchLastSection(false);
         playerView->verticalHeader()->setVisible(false);
-        playerView->verticalHeader()->setMinimumSectionSize(30);
+        playerView->verticalHeader()->setDefaultSectionSize(25);
+        playerView->verticalHeader()->setMinimumSectionSize(25);
 
         gridLayout_2->addWidget(playerView, 2, 1, 1, 3);
 
@@ -314,13 +316,6 @@ public:
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMix", "TCP/IP Port#", 0));
-        openBannedSernums->setText(QApplication::translate("ReMix", "SerNum", 0));
-        openUserComments->setText(QApplication::translate("ReMix", "User Comments", 0));
-        openBanIP->setText(QApplication::translate("ReMix", "Ban IP", 0));
-        enableNetworking->setText(QApplication::translate("ReMix", "Accept Calls", 0));
-        serverPort->setText(QApplication::translate("ReMix", "8888", 0));
-        openRemoteAdmins->setText(QApplication::translate("ReMix", "Remote Admins", 0));
-        openSysMessages->setText(QApplication::translate("ReMix", "Msg Options", 0));
         groupBox->setTitle(QApplication::translate("ReMix", "Stats", 0));
         callCount->setText(QApplication::translate("ReMix", "#Calls: 0", 0));
         packetDCCount->setText(QApplication::translate("ReMix", "#PktDC: 0", 0));
@@ -328,6 +323,13 @@ public:
         ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));
         packetINBD->setText(QApplication::translate("ReMix", "#IN: 0 BD", 0));
         packetOUTBD->setText(QApplication::translate("ReMix", "#OUT: 0 BD", 0));
+        openBanDialog->setText(QApplication::translate("ReMix", "Bans", 0));
+        openSysMessages->setText(QApplication::translate("ReMix", "Messages", 0));
+        openRemoteAdmins->setText(QApplication::translate("ReMix", "Remote Admins", 0));
+        serverPort->setText(QApplication::translate("ReMix", "8888", 0));
+        enableNetworking->setText(QApplication::translate("ReMix", "Accept Calls", 0));
+        openUserComments->setText(QApplication::translate("ReMix", "User Comments", 0));
+        openSettings->setText(QApplication::translate("ReMix", "Settings", 0));
         networkStatus->setText(QApplication::translate("ReMix", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
     } // retranslateUi
 

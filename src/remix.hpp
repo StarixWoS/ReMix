@@ -19,12 +19,11 @@
 //ServerInfo structure.
 #include "serverinfo.hpp"
 
-class BannedSernum;
 class UserMessage;
 class Messages;
-class BannedIP;
+class Settings;
 class Server;
-class ReAdmin;
+class Admin;
 
 class RandDev;
 
@@ -39,13 +38,12 @@ class ReMix : public QMainWindow
     QSortFilterProxyModel* plrViewProxy{ nullptr };
     QStandardItemModel* plrViewModel{ nullptr };
 
-    BannedSernum* sernumBan{ nullptr };
     Messages* sysMessages{ nullptr };
     UserMessage* usrMsg{ nullptr };
     Server* tcpServer{ nullptr };
-    BannedIP* banIP{ nullptr };
-    ReAdmin* reAdmin{ nullptr };
+    Admin* admin{ nullptr };
     RandDev* randDev{ nullptr };
+    Settings* settings{ nullptr };
 
     ServerInfo* serverInfo{ nullptr };
 
@@ -63,8 +61,8 @@ class ReMix : public QMainWindow
 
     private slots:
         void on_openSysMessages_clicked();
-        void on_openBanIP_clicked();
-        void on_openBannedSernums_clicked();
+        void on_openSettings_clicked();
+        void on_openBanDialog_clicked();
         void on_openUserComments_clicked();
         void on_enableNetworking_clicked();
         void on_openRemoteAdmins_clicked();
@@ -78,7 +76,6 @@ class ReMix : public QMainWindow
         void on_actionMakeAdmin_triggered();
         void on_actionBANISHIPAddress_triggered();
         void on_actionBANISHSerNum_triggered();
-
         void on_actionRevokeAdmin_triggered();
 
     private:

@@ -33,11 +33,6 @@ QString Messages::getBanishMsg()
     return ui->banishedEdit->toPlainText();
 }
 
-bool Messages::isPasswordEnabled()
-{
-    return ui->reqPasword->isEnabled();
-}
-
 bool Messages::cmpPassword(QString& value)
 {
     value = QCryptographicHash::hash( value.toLatin1(), QCryptographicHash::Sha3_512 ).toHex();
@@ -54,9 +49,6 @@ void Messages::on_saveSettings_clicked()
 
     QVariant pwd = ui->pwdEdit->text();
     pwdHashed = Helper::setPassword( pwd, pwdHashed );
-
-    QVariant reqPwd = ui->reqPasword->isChecked();
-    Helper::setRequirePassword( reqPwd );
 
     QVariant rules = ui->rulesEdit->toPlainText();
     Helper::setServerRules( rules );
@@ -84,8 +76,6 @@ void Messages::on_reloadSettings_clicked()
     var = Helper::getServerRules();
     if ( !var.isEmpty() )
         ui->rulesEdit->setText( Helper::getServerRules() );
-
-    ui->reqPasword->setChecked( Helper::getRequirePassword() );
 
     if ( this->isVisible() )
         this->hide();

@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QTimer>
 
+const int MAX_CMD_ATTEMPTS = 3;
 class Player : public QObject
 {
     Q_OBJECT
@@ -38,6 +39,7 @@ class Player : public QObject
 
     bool adminPwdRequested{ false };
     bool adminPwdEntered{ false };
+    quint32 adminCmdAttempts{ MAX_CMD_ATTEMPTS };  //Max limit is 3 attempts before auto-banning.
 
     int packetsIn{ 0 };
     quint64 bytesIn{ 0 };

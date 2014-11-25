@@ -5,6 +5,7 @@
 #include <QHostInfo>
 #include <QString>
 
+#include "helper.hpp"
 #include "player.hpp"
 
 const int MAX_PLAYERS = 256;
@@ -15,7 +16,6 @@ class ServerInfo
 
     bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };
-    QString serverRules{ "" };
 
     QString privateIP{ "" };
     int privatePort{ 8888 };

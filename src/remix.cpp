@@ -2,13 +2,12 @@
 #include "remix.hpp"
 #include "ui_remix.h"
 
-#include "bannedsernum.hpp"
 #include "helper.hpp"
 #include "usermessage.hpp"
 #include "messages.hpp"
-#include "bannedip.hpp"
 #include "server.hpp"
-#include "readmin.hpp"
+#include "settings.hpp"
+#include "admin.hpp"
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
@@ -44,11 +43,10 @@ ReMix::ReMix(QWidget *parent) :
     ui->playerView->setModel( plrViewProxy );
 
     //Setup Dialog Objects.
-    sernumBan = new BannedSernum( this );
     sysMessages = new Messages( this );
     usrMsg = new UserMessage( this );
-    banIP = new BannedIP( this );
-    reAdmin = new ReAdmin( this );
+    admin = new Admin( this );
+    settings = new Settings( this );
 
     //Setup Server/Player Info objects.
     serverInfo = new ServerInfo();
@@ -109,14 +107,8 @@ ReMix::~ReMix()
     sysMessages->close();
     sysMessages->deleteLater();
 
-    sernumBan->close();
-    sernumBan->deleteLater();
-
     usrMsg->close();
     usrMsg->deleteLater();
-
-    banIP->close();
-    banIP->deleteLater();
 
     tcpServer->disconnectFromMaster();
     tcpServer->close();
@@ -288,10 +280,10 @@ void ReMix::on_enableNetworking_clicked()
 
 void ReMix::on_openRemoteAdmins_clicked()
 {
-    if ( reAdmin->isVisible() )
-        reAdmin->hide();
+    if ( admin->isVisible() )
+        admin->hide();
     else
-        reAdmin->show();
+        admin->show();
 }
 
 void ReMix::on_isPublicServer_stateChanged(int)
@@ -302,6 +294,14 @@ void ReMix::on_isPublicServer_stateChanged(int)
         tcpServer->setupPublicServer( false );   //Disconnect from the Master Server if applicable.
 }
 
+void ReMix::on_openSettings_clicked()
+{
+    if ( settings->isVisible() )
+        settings->hide();
+    else
+        settings->show();
+}
+
 void ReMix::on_openSysMessages_clicked()
 {
     if ( sysMessages->isVisible() )
@@ -310,20 +310,9 @@ void ReMix::on_openSysMessages_clicked()
         sysMessages->show();
 }
 
-void ReMix::on_openBanIP_clicked()
+void ReMix::on_openBanDialog_clicked()
 {
-    if ( banIP->isVisible() )
-        banIP->hide();
-    else
-        banIP->show();
-}
-
-void ReMix::on_openBannedSernums_clicked()
-{
-    if ( sernumBan->isVisible() )
-        sernumBan->hide();
-    else
-        sernumBan->show();
+    admin->showBanDialog();
 }
 
 void ReMix::on_openUserComments_clicked()
@@ -355,8 +344,12 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
         return;
 
     QString sernum = plrViewModel->data( plrViewModel->index( menuIndex.row(), 1 ) ).toString();
-    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
+
+    this->initContextMenu();
+    if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
         contextMenu->removeAction( ui->actionRevokeAdmin );
+    else
+        contextMenu->removeAction( ui->actionMakeAdmin );
 
     contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
 }

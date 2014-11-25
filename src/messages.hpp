@@ -22,7 +22,6 @@ class Messages : public QDialog
         QString getServerMOTD();
         QString getBanishMsg();
 
-        bool isPasswordEnabled();
         bool cmpPassword(QString& value);
 
     private slots:

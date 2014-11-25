@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
-    <height>387</height>
+    <width>378</width>
+    <height>415</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,14 +23,39 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupBox">
+      <item row="3" column="0" colspan="4">
+       <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
-         <string>Message of the Day:</string>
+         <string>Server password:</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
-          <widget class="QTextEdit" name="motdEdit">
+          <widget class="QLineEdit" name="pwdEdit">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="maxLength">
+            <number>512</number>
+           </property>
+           <property name="echoMode">
+            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+           </property>
+           <property name="clearButtonEnabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="4">
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>Server Rules:</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="QTextEdit" name="rulesEdit">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -43,13 +68,6 @@
              <height>50</height>
             </size>
            </property>
-           <property name="html">
-            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The administrator of this server reserves the right to disconnect or banish you if you are sufficiently unpleasant in name, chat, or action..... Other than that, WELCOME TO MY SERVER!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
            <property name="acceptRichText">
             <bool>false</bool>
            </property>
@@ -58,7 +76,7 @@ p, li { white-space: pre-wrap; }
         </layout>
        </widget>
       </item>
-      <item row="1" column="0" colspan="3">
+      <item row="1" column="0" colspan="4">
        <widget class="QGroupBox" name="groupBox_2">
         <property name="title">
          <string>Banished Message:</string>
@@ -93,14 +111,14 @@ p, li { white-space: pre-wrap; }
         </layout>
        </widget>
       </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupBox_4">
+      <item row="0" column="0" colspan="4">
+       <widget class="QGroupBox" name="groupBox">
         <property name="title">
-         <string>Server Rules:</string>
+         <string>Message of the Day:</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_6">
+        <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <widget class="QTextEdit" name="rulesEdit">
+          <widget class="QTextEdit" name="motdEdit">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -113,6 +131,13 @@ p, li { white-space: pre-wrap; }
              <height>50</height>
             </size>
            </property>
+           <property name="html">
+            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The administrator of this server reserves the right to disconnect or banish you if you are sufficiently unpleasant in name, chat, or action..... Other than that, WELCOME TO MY SERVER!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="acceptRichText">
             <bool>false</bool>
            </property>
@@ -120,19 +145,6 @@ p, li { white-space: pre-wrap; }
          </item>
         </layout>
        </widget>
-      </item>
-      <item row="4" column="0">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>246</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item row="4" column="1">
        <widget class="QPushButton" name="saveSettings">
@@ -144,7 +156,7 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="4" column="2">
+      <item row="4" column="3">
        <widget class="QPushButton" name="reloadSettings">
         <property name="text">
          <string>Cancel</string>
@@ -154,40 +166,18 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Password Notification:</string>
+      <item row="4" column="2">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="reqPasword">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string>Password Required:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="pwdEdit">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="maxLength">
-            <number>512</number>
-           </property>
-           <property name="echoMode">
-            <enum>QLineEdit::PasswordEchoOnEdit</enum>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>246</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>
