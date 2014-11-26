@@ -728,7 +728,7 @@ void Server::readMIX5(QString& packet, Player* plr)
         if ( !response.isEmpty() )
         {
             bOut = soc->write( response.toLatin1() );
-            if ( disconnect );
+            if ( disconnect )
             {
                 soc->waitForBytesWritten( 100 );
                 soc->abort();
