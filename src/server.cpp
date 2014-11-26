@@ -683,25 +683,24 @@ void Server::readMIX5(QString& packet, Player* plr)
     if ( !alias.isEmpty()
       && !msg.isEmpty() )
     {
-        QString msg{ "" };
+        QString response{ "" };
         quint64 bOut{ 0 };
 
         bool disconnect{ false };
-
         if ( plr->getPwdRequested()
           && !plr->getEnteredPwd() )
         {
             QVariant pwd( msg );
             if ( Helper::cmpServerPassword( pwd ) )
             {
-                msg = ":SR@MCorrect password, welcome.\r\n";
+                response = ":SR@MCorrect password, welcome.\r\n";
 
                 plr->setPwdRequested( false );
                 plr->setEnteredPwd( true );
             }
             else
             {
-                msg = ":SR@MIncorrect password, please go away.\r\n";
+                response = ":SR@MIncorrect password, please go away.\r\n";
                 disconnect = true;
             }
         }
@@ -712,23 +711,23 @@ void Server::readMIX5(QString& packet, Player* plr)
             QString sernum = plr->getSernum_s();
             if ( AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
             {
-                msg = ":SR@MCorrect password, welcome.\r\n";
+                response = ":SR@MCorrect password, welcome.\r\n";
 
                 plr->setAdminPwdRequested( false );
                 plr->setAdminPwdEntered( true );
             }
             else
             {
-                msg = ":SR@MIncorrect password, please go away.\r\n";
+                response = ":SR@MIncorrect password, please go away.\r\n";
                 disconnect = true;
             }
         }
         else
             emit newUserCommentSignal( sernum, alias, msg );
 
-        if ( !msg.isEmpty() )
+        if ( !response.isEmpty() )
         {
-            bOut = soc->write( msg.toLatin1() );
+            bOut = soc->write( response.toLatin1() );
             if ( disconnect );
             {
                 soc->waitForBytesWritten( 100 );
