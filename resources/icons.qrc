@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>ReMix.ico</file>
+    </qresource>
+</RCC>

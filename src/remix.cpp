@@ -21,72 +21,106 @@ ReMix::ReMix(QWidget *parent) :
     //Create our Context Menus
     contextMenu = new QMenu( this );
 
+    //Create our System-Tray Icon if Possible.
+    if ( QSystemTrayIcon::isSystemTrayAvailable() )
+    {
+        trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
+        trayIcon->show();
+
+        QObject::connect( trayIcon, &QSystemTrayIcon::activated,
+                          [=]( QSystemTrayIcon::ActivationReason reason )
+        {
+            if ( reason == QSystemTrayIcon::Trigger )
+            {
+                if ( this->isHidden() )
+                    this->show();
+                else
+                    this->hide();
+            }
+        });
+    }
+
     //Initialize our Context Menu Items.
     this->initContextMenu();
 
     //Setup the PlayerInfo TableView.
-    plrViewModel = new QStandardItemModel( 0, 8, 0 );
-    plrViewModel->setHeaderData( 0, Qt::Horizontal, "Player IP:Port" );
-    plrViewModel->setHeaderData( 1, Qt::Horizontal, "SerNum" );
-    plrViewModel->setHeaderData( 2, Qt::Horizontal, "Age" );
-    plrViewModel->setHeaderData( 3, Qt::Horizontal, "Alias" );
-    plrViewModel->setHeaderData( 4, Qt::Horizontal, "Time" );
-    plrViewModel->setHeaderData( 5, Qt::Horizontal, "IN" );
-    plrViewModel->setHeaderData( 6, Qt::Horizontal, "OUT" );
-    plrViewModel->setHeaderData( 7, Qt::Horizontal, "BIO" );
+    plrModel = new QStandardItemModel( 0, 8, 0 );
+    plrModel->setHeaderData( 0, Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( 1, Qt::Horizontal, "SerNum" );
+    plrModel->setHeaderData( 2, Qt::Horizontal, "Age" );
+    plrModel->setHeaderData( 3, Qt::Horizontal, "Alias" );
+    plrModel->setHeaderData( 4, Qt::Horizontal, "Time" );
+    plrModel->setHeaderData( 5, Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( 6, Qt::Horizontal, "OUT" );
+    plrModel->setHeaderData( 7, Qt::Horizontal, "BIO" );
 
     //Proxy model to support sorting without actually altering the underlying model
-    plrViewProxy = new QSortFilterProxyModel();
-    plrViewProxy->setDynamicSortFilter( true );
-    plrViewProxy->setSourceModel( plrViewModel );
-    plrViewProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
-    ui->playerView->setModel( plrViewProxy );
+    plrProxy = new QSortFilterProxyModel();
+    plrProxy->setDynamicSortFilter( true );
+    plrProxy->setSourceModel( plrModel );
+    plrProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
+    ui->playerView->setModel( plrProxy );
 
     //Setup Dialog Objects.
     sysMessages = new Messages( this );
-    usrMsg = new UserMessage( this );
     admin = new Admin( this );
     settings = new Settings( this );
 
     //Setup Server/Player Info objects.
-    serverInfo = new ServerInfo();
-    serverInfo->setServerID( Helper::getServerID() );
-    if ( serverInfo->getServerID() <= 0 )
+    server = new ServerInfo();
+    server->setServerID( Helper::getServerID() );
+    if ( server->getServerID() <= 0 )
     {
         QVariant value = this->genServerID();
-        serverInfo->setServerID( value.toInt() );
+        server->setServerID( value.toInt() );
 
         Helper::setServerID( value );
     }
-    serverInfo->setHostInfo( QHostInfo() );
-    serverInfo->setServerRules( Helper::getServerRules() );
+    server->setHostInfo( QHostInfo() );
+    server->setServerRules( Helper::getServerRules() );
 
     this->parseCMDLArgs();
+    if ( server->getMasterIP().isEmpty() )
+        this->getSynRealData();
 
     //Create and Connect Lamda Objects
-    QObject::connect( serverInfo->getUpTimer(), &QTimer::timeout, [=]()
+    QObject::connect( server->getUpTimer(), &QTimer::timeout, [=]()
     {
-        quint64 time = serverInfo->getUpTime();
-        ui->onlineTime->setText( QString( "%1:%2:%3" )
-                                 .arg( time / 3600, 2, 10, QChar( '0' ) )
-                                 .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
-                                 .arg( time % 60, 2, 10, QChar( '0' ) ) );
+        quint64 time = server->getUpTime();
 
-        ui->callCount->setText( QString( "#Calls: %1" ).arg( serverInfo->getUserCalls() ) );
-        ui->packetINBD->setText( QString( "#IN: %1Bd" ).arg( serverInfo->getBaudIn() ) );
-        ui->packetOUTBD->setText( QString( "#OUT: %1Bd" ).arg( serverInfo->getBaudOut() ) );
+        QString time_s = QString( "%1:%2:%3" )
+                             .arg( time / 3600, 2, 10, QChar( '0' ) )
+                             .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
+                             .arg( time % 60, 2, 10, QChar( '0' ) );
+
+        ui->onlineTime->setText( time_s );
+        ui->callCount->setText( QString( "#Calls: %1" ).arg( server->getUserCalls() ) );
+        ui->packetINBD->setText( QString( "#IN: %1Bd" ).arg( server->getBaudIn() ) );
+        ui->packetOUTBD->setText( QString( "#OUT: %1Bd" ).arg( server->getBaudOut() ) );
+
+        if ( trayIcon != nullptr )
+        {
+            QString tTip = QString( "ReMix Server: %1 (%2)\r\n" "#Calls: %3\r\n"
+                                    "#IN: %4\r\n" "#OUT: %5\r\n" )
+                               .arg( server->getName() )
+                               .arg( time_s )
+                               .arg( server->getUserCalls() )
+                               .arg( server->getBaudIn() )
+                               .arg( server->getBaudOut() );
+            trayIcon->setToolTip( tTip );
+        }
 
         //Update other Info as well.
-        if ( serverInfo->getIsSetUp() )
+        if ( server->getIsSetUp() )
         {
             QString tmp = QString( "Listening for incoming calls to %1:%2" )
-                                .arg( serverInfo->getPrivateIP() )
-                                .arg( serverInfo->getPrivatePort() );
-            if ( serverInfo->getIsPublic() )
+                                .arg( server->getPrivateIP() )
+                                .arg( server->getPrivatePort() );
+            if ( server->getIsPublic() )
             {
                 QString tmp2 = QString( " ( Need port forward from %1:%2 )" )
-                                     .arg( serverInfo->getPublicIP() )
-                                     .arg( serverInfo->getPublicPort() );
+                                     .arg( server->getPublicIP() )
+                                     .arg( server->getPublicPort() );
                 tmp.append( tmp2 );
             }
             ui->networkStatus->setText( tmp );
@@ -94,21 +128,15 @@ ReMix::ReMix(QWidget *parent) :
         ui->playerView->resizeColumnsToContents();
     });
 
-    if ( serverInfo->getMasterIP().isEmpty() )
-        this->getSynRealData();
-
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( serverInfo, plrViewModel );
+        tcpServer = new Server( this, server, plrModel );
 }
 
 ReMix::~ReMix()
 {
     sysMessages->close();
     sysMessages->deleteLater();
-
-    usrMsg->close();
-    usrMsg->deleteLater();
 
     tcpServer->disconnectFromMaster();
     tcpServer->close();
@@ -145,7 +173,7 @@ void ReMix::parseCMDLArgs()
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
-                serverInfo->setGameName( arg.mid( index + 1 ) );
+                server->setGameName( arg.mid( index + 1 ) );
         }
         else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
         {
@@ -155,8 +183,8 @@ void ReMix::parseCMDLArgs()
                tmpArg = arg.mid( index + 1 );
                if ( !tmpArg.isEmpty() )
                {
-                   serverInfo->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
-                   serverInfo->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
+                   server->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
+                   server->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
                }
             }
         }
@@ -168,8 +196,8 @@ void ReMix::parseCMDLArgs()
                tmpArg = arg.mid( index + 1 );
                if ( !tmpArg.isEmpty() )
                {
-                   serverInfo->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
-                   serverInfo->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
+                   server->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
+                   server->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
                }
             }
             ui->isPublicServer->setChecked( true );
@@ -178,9 +206,9 @@ void ReMix::parseCMDLArgs()
         {
             index = arg.indexOf( '=' );
             if ( index > 0 )
-                serverInfo->setPrivatePort( arg.mid( index + 1 ).toInt() );
+                server->setPrivatePort( arg.mid( index + 1 ).toInt() );
 
-            if ( serverInfo->getMasterIP().isEmpty() )
+            if ( server->getMasterIP().isEmpty() )
                 this->getSynRealData();
 
             emit ui->enableNetworking->clicked();
@@ -189,13 +217,13 @@ void ReMix::parseCMDLArgs()
         {
             tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
             if ( !tmpArg.isEmpty() )
-                serverInfo->setName( tmpArg );
+                server->setName( tmpArg );
         }
     }
 
-    ui->serverPort->setText( QString::number( serverInfo->getPrivatePort() ) );
-    ui->isPublicServer->setChecked( serverInfo->getIsPublic() );
-    ui->serverName->setText( serverInfo->getName() );
+    ui->serverPort->setText( QString::number( server->getPrivatePort() ) );
+    ui->isPublicServer->setChecked( server->getIsPublic() );
+    ui->serverName->setText( server->getName() );
 }
 
 void ReMix::getSynRealData()
@@ -231,12 +259,12 @@ void ReMix::getSynRealData()
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( serverInfo->getGameName() + "/master" ).toString();
+            QString str = settings.value( server->getGameName() + "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
-                serverInfo->setMasterIP( str.left( index ) );
-                serverInfo->setMasterPort( str.mid( index + 1 ).toInt() );
+                server->setMasterIP( str.left( index ) );
+                server->setMasterPort( str.mid( index + 1 ).toInt() );
             }
         });
 
@@ -249,8 +277,8 @@ void ReMix::getSynRealData()
         int index = str.indexOf( ":" );
         if ( index > 0 )
         {
-            serverInfo->setMasterIP( str.left( index ) );
-            serverInfo->setMasterPort( str.mid( index + 1 ).toInt() );
+            server->setMasterIP( str.left( index ) );
+            server->setMasterPort( str.mid( index + 1 ).toInt() );
         }
     }
 }
@@ -258,6 +286,8 @@ void ReMix::getSynRealData()
 void ReMix::initContextMenu()
 {
     contextMenu->clear();
+
+    ui->actionSendMessage->setText( "Send Message" );
     contextMenu->addAction( ui->actionSendMessage );
     contextMenu->addAction( ui->actionRevokeAdmin );
     contextMenu->addAction( ui->actionMakeAdmin );
@@ -271,7 +301,7 @@ void ReMix::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( serverInfo, plrViewModel );
+        tcpServer = new Server( this, server, plrModel );
 
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
@@ -317,10 +347,7 @@ void ReMix::on_openBanDialog_clicked()
 
 void ReMix::on_openUserComments_clicked()
 {
-    if ( usrMsg->isVisible() )
-        usrMsg->hide();
-    else
-        usrMsg->show();
+    tcpServer->showServerComments();
 }
 
 void ReMix::on_serverPort_textChanged(const QString &arg1)
@@ -329,38 +356,86 @@ void ReMix::on_serverPort_textChanged(const QString &arg1)
     if ( val < 0 || val > 65535 )
         val = 0;
 
-    serverInfo->setPrivatePort( val );
+    server->setPrivatePort( val );
 }
 
 void ReMix::on_serverName_textChanged(const QString &arg1)
 {
-    serverInfo->setName( arg1 );
+    server->setName( arg1 );
 }
 
 void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
 {
-    menuIndex = plrViewProxy->mapToSource( ui->playerView->indexAt( pos ) );
-    if ( menuIndex.row() < 0 )
-        return;
-
-    QString sernum = plrViewModel->data( plrViewModel->index( menuIndex.row(), 1 ) ).toString();
+    menuIndex = plrProxy->mapToSource( ui->playerView->indexAt( pos ) );
 
     this->initContextMenu();
-    if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
-        contextMenu->removeAction( ui->actionRevokeAdmin );
-    else
-        contextMenu->removeAction( ui->actionMakeAdmin );
+    if ( menuIndex.row() >= 0 )
+    {
+        QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+        if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
+            contextMenu->removeAction( ui->actionRevokeAdmin );
+        else
+            contextMenu->removeAction( ui->actionMakeAdmin );
 
+        contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
+    }
+    else
+    {
+        ui->actionSendMessage->setText( "Send Message to Everyone" );
+        contextMenu->removeAction( ui->actionRevokeAdmin );
+        contextMenu->removeAction( ui->actionMakeAdmin );
+        contextMenu->removeAction( ui->actionBANISHSerNum );
+        contextMenu->removeAction( ui->actionBANISHIPAddress );
+    }
     contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
 }
 
 void ReMix::on_actionSendMessage_triggered()
 {
+    Player* plr{ nullptr };
+    QString msg{ "" };
+    if ( menuIndex.row() >= 0 )
+        plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+
+    bool ok;
+    QString txt = QInputDialog::getMultiLineText( this, "Admin Message:",
+                                                  "Message to User(s): ", "", &ok );
+    if ( ok && !txt.isEmpty() )
+    {
+        msg = QString( ":SR@M%1\r\n" )
+                  .arg( txt );
+
+        if ( plr != nullptr && plr->getSocket() != nullptr )
+            plr->getSocket()->write( msg.toLatin1() );
+        else
+        {
+            for ( int i = 0; i < MAX_PLAYERS; ++i )
+            {
+                plr = server->getPlayer( i );
+                if ( plr != nullptr && plr->getSocket() != nullptr )
+                    plr->getSocket()->write( msg.toLatin1() );
+            }
+        }
+    }
+    menuIndex = QModelIndex();
 }
 
 void ReMix::on_actionRevokeAdmin_triggered()
 {
-    ; //Delete the User from the Admin storage. If the User is online, inform them of this change.
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( !sernum.isEmpty()
+      && AdminHelper::deleteRemoteAdmin( this, sernum ) )
+    {
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        if ( plr != nullptr && plr->getSocket() != nullptr )
+        {
+            plr->getSocket()->write( ":SR@MYour Remote Administrator privileges have been REVOKED by either the "
+                                     "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
+                                     "if this was in error.\r\n" );
+            admin->loadServerAdmins();
+        }
+    }
+    menuIndex = QModelIndex();
 }
 
 void ReMix::on_actionMakeAdmin_triggered()
@@ -368,7 +443,7 @@ void ReMix::on_actionMakeAdmin_triggered()
     QString sernum{ "" };
     if ( menuIndex.isValid() )
     {
-        sernum = plrViewModel->data( plrViewModel->index( menuIndex.row(), 1 ) ).toString();
+        sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
         if ( !sernum.isEmpty() && !AdminHelper::getIsRemoteAdmin( sernum ) )
         {
             ; //TODO: Request a Password from the selected User.

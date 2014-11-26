@@ -18,7 +18,6 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QTextEdit>
@@ -31,9 +30,6 @@ public:
     QGridLayout *gridLayout;
     QFrame *frame;
     QGridLayout *gridLayout_2;
-    QGroupBox *groupBox_3;
-    QGridLayout *gridLayout_5;
-    QLineEdit *pwdEdit;
     QGroupBox *groupBox_4;
     QGridLayout *gridLayout_6;
     QTextEdit *rulesEdit;
@@ -43,15 +39,15 @@ public:
     QGroupBox *groupBox;
     QGridLayout *gridLayout_3;
     QTextEdit *motdEdit;
-    QPushButton *saveSettings;
-    QPushButton *reloadSettings;
     QSpacerItem *horizontalSpacer;
+    QPushButton *reloadSettings;
+    QPushButton *saveSettings;
 
     void setupUi(QDialog *Messages)
     {
         if (Messages->objectName().isEmpty())
             Messages->setObjectName(QStringLiteral("Messages"));
-        Messages->resize(378, 415);
+        Messages->resize(378, 328);
         gridLayout = new QGridLayout(Messages);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         frame = new QFrame(Messages);
@@ -60,21 +56,6 @@ public:
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
-        groupBox_3 = new QGroupBox(frame);
-        groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
-        gridLayout_5 = new QGridLayout(groupBox_3);
-        gridLayout_5->setObjectName(QStringLiteral("gridLayout_5"));
-        pwdEdit = new QLineEdit(groupBox_3);
-        pwdEdit->setObjectName(QStringLiteral("pwdEdit"));
-        pwdEdit->setMaxLength(512);
-        pwdEdit->setEchoMode(QLineEdit::PasswordEchoOnEdit);
-        pwdEdit->setClearButtonEnabled(true);
-
-        gridLayout_5->addWidget(pwdEdit, 0, 0, 1, 1);
-
-
-        gridLayout_2->addWidget(groupBox_3, 3, 0, 1, 4);
-
         groupBox_4 = new QGroupBox(frame);
         groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
         gridLayout_6 = new QGridLayout(groupBox_4);
@@ -120,21 +101,21 @@ public:
 
         gridLayout_2->addWidget(groupBox, 0, 0, 1, 4);
 
-        saveSettings = new QPushButton(frame);
-        saveSettings->setObjectName(QStringLiteral("saveSettings"));
-        saveSettings->setAutoDefault(false);
+        horizontalSpacer = new QSpacerItem(246, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        gridLayout_2->addWidget(saveSettings, 4, 1, 1, 1);
+        gridLayout_2->addItem(horizontalSpacer, 3, 2, 1, 1);
 
         reloadSettings = new QPushButton(frame);
         reloadSettings->setObjectName(QStringLiteral("reloadSettings"));
         reloadSettings->setAutoDefault(false);
 
-        gridLayout_2->addWidget(reloadSettings, 4, 3, 1, 1);
+        gridLayout_2->addWidget(reloadSettings, 3, 3, 1, 1);
 
-        horizontalSpacer = new QSpacerItem(246, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        saveSettings = new QPushButton(frame);
+        saveSettings->setObjectName(QStringLiteral("saveSettings"));
+        saveSettings->setAutoDefault(false);
 
-        gridLayout_2->addItem(horizontalSpacer, 4, 2, 1, 1);
+        gridLayout_2->addWidget(saveSettings, 3, 1, 1, 1);
 
 
         gridLayout->addWidget(frame, 0, 0, 1, 1);
@@ -148,8 +129,6 @@ public:
     void retranslateUi(QDialog *Messages)
     {
         Messages->setWindowTitle(QApplication::translate("Messages", "System Messages", 0));
-        groupBox_3->setTitle(QApplication::translate("Messages", "Server password:", 0));
-        pwdEdit->setText(QString());
         groupBox_4->setTitle(QApplication::translate("Messages", "Server Rules:", 0));
         groupBox_2->setTitle(QApplication::translate("Messages", "Banished Message:", 0));
         banishedEdit->setHtml(QApplication::translate("Messages", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -163,8 +142,8 @@ public:
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">The administrator of this server reserves the right to disconnect or banish you if you are sufficiently unpleasant in name, chat, or action..... Other than that, WELCOME TO MY SERVER!</span></p></body></html>", 0));
-        saveSettings->setText(QApplication::translate("Messages", "Ok", 0));
         reloadSettings->setText(QApplication::translate("Messages", "Cancel", 0));
+        saveSettings->setText(QApplication::translate("Messages", "Ok", 0));
     } // retranslateUi
 
 };

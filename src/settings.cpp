@@ -13,14 +13,15 @@ Settings::Settings(QWidget *parent) :
     this->setWindowModality( Qt::WindowModal );
 
     //Load Settings from file.
-    this->setCheckedState( Options::ReqPwd, Helper::getRequirePassword() );
-    this->setCheckedState( Options::ReqAdminPwd, AdminHelper::getReqAdminAuth() );
-    this->setCheckedState( Options::AllowDupIP, Helper::getAllowDupedIP() );
-    this->setCheckedState( Options::BanDupIP, Helper::getBanDupedIP() );
-    this->setCheckedState( Options::BanHack, Helper::getBanHackers() );
-    this->setCheckedState( Options::ReqSernum, Helper::getReqSernums() );
+    this->setCheckedState( Options::ReqPwd,         Helper::getRequirePassword() );
+    this->setCheckedState( Options::ReqAdminPwd,    AdminHelper::getReqAdminAuth() );
+    this->setCheckedState( Options::AllowDupIP,     Helper::getAllowDupedIP() );
+    this->setCheckedState( Options::BanDupIP,       Helper::getBanDupedIP() );
+    this->setCheckedState( Options::BanHack,        Helper::getBanHackers() );
+    this->setCheckedState( Options::ReqSernum,      Helper::getReqSernums() );
     this->setCheckedState( Options::DisconnectIdle, Helper::getDisconnectIdles() );
-    this->setCheckedState( Options::AllowSSV, Helper::getAllowSSV() );
+    this->setCheckedState( Options::AllowSSV,       Helper::getAllowSSV() );
+    this->setCheckedState( Options::LogComments,    Helper::getLogComments() );
 }
 
 Settings::~Settings()
@@ -49,12 +50,41 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
     ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
     val = ui->settingsView->item( row, 0 )->checkState();
 
-
     QVariant state = val == Qt::Checked;
     switch ( row )
     {
         case Options::ReqPwd:
-            Helper::setRequirePassword( state );
+            {
+                QVariant txt = QString{ "" };
+                bool ok;
+
+                Helper::setRequirePassword( state );
+                if ( Helper::getPassword().isEmpty()
+                  && Helper::getRequirePassword() )
+                {
+                    txt = QInputDialog::getText( this, "Server Password:",
+                                                 "Password:", QLineEdit::PasswordEchoOnEdit,
+                                                 "", &ok );
+                    if ( ok && !txt.toString().isEmpty() )
+                        Helper::setPassword( txt, false );
+                    else    //Invalid dialog state or no input Password. Reset the Object's state.
+                    {
+                        ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
+
+                        state = false;
+                        Helper::setRequirePassword( state );
+                    }
+                }
+                else if ( !Helper::getRequirePassword() )
+                {
+                    int val = QMessageBox::question( this, "Remove Password:",
+                                                     "Do you wish to erase the stored Password hash?",
+                                                     QMessageBox::Yes | QMessageBox::No,
+                                                     QMessageBox::No );
+                    if ( val == QMessageBox::Yes )
+                        Helper::setPassword( txt, false );
+                }
+            }
         break;
         case Options::ReqAdminPwd:
             AdminHelper::setReqAdminAuth( state );
@@ -76,6 +106,9 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
         break;
         case Options::AllowSSV:
             Helper::setAllowSSV( state );
+        break;
+        case Options::LogComments:
+            Helper::setLogComments( state );
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";

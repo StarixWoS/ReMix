@@ -220,6 +220,16 @@ bool Helper::getAllowSSV()
     return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowSSV ] ).toBool();
 }
 
+void Helper::setLogComments(QVariant& value)
+{
+    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ], value );
+}
+
+bool Helper::getLogComments()
+{
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ] ).toBool();
+}
+
 void Helper::setServerID(QVariant& value)
 {
     setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Extension ], value );

@@ -43,10 +43,10 @@ class Admin : public QDialog
         explicit Admin(QWidget *parent = 0);
         ~Admin();
 
+        void loadServerAdmins();
         void showBanDialog();
 
     private:
-        void loadServerAdmins();
         void initContextMenu();
         void setAdminRank(int rank, QModelIndex index);
 

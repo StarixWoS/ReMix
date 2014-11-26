@@ -3,6 +3,8 @@
 #define PREFERENCES_HPP
 
 #include <QCryptographicHash>
+#include <QTextCursor>
+#include <QTextEdit>
 #include <QDateTime>
 #include <QSettings>
 #include <QString>
@@ -17,9 +19,11 @@ namespace Helper
     const QString keys[ 3 ]{ "options", "wrongIPs", "General" };
 
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3, ReqSernum = 4, AllowDupe = 5, AllowSSV = 6,
-                  BanDupes = 7, ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11, ReqAdminAuth = 12 };
-    const QString subKeys[ 13 ]{ "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK", "serverSupportsVariables",
-                                 "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES", "requireAdminAuth" };
+                  BanDupes = 7, ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11, ReqAdminAuth = 12, LogComments = 13 };
+    const QString subKeys[ 14 ]{ "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK", "serverSupportsVariables",
+                                 "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES", "requireAdminAuth",
+                                 "logComments"
+                               };
 
     template<typename T>
     QString intToStr(T val, int base = 10, int fill = 0, QChar filler = '0')
@@ -70,6 +74,9 @@ namespace Helper
 
     void setAllowSSV(QVariant& value);
     bool getAllowSSV();
+
+    void setLogComments(QVariant& value);
+    bool getLogComments();
 
     void setServerID(QVariant& value);
     int getServerID();

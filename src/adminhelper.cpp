@@ -58,24 +58,23 @@ namespace AdminHelper
         setAdminData( sernum, adminKeys[ AdminHelper::RANK ], value );
     }
 
-    quint32 changeRemoteAdminRank(QString& sernum)
+    quint32 changeRemoteAdminRank(QWidget* parent, QString& sernum)
     {
         bool ok;
-        QString item = QInputDialog::getItem( nullptr, "Admin Rank:",
+        QString item = QInputDialog::getItem( parent, "Admin Rank:",
                                               "Rank:", ranks, 0, false, &ok );
-
-        quint32 rank = 0;
+        quint32 rank = -1;
         if ( ok && !item.isEmpty() )
+        {
             rank = ranks.indexOf( item );
-
-        setRemoteAdminRank( sernum, rank );
-
+            setRemoteAdminRank( sernum, rank );
+        }
         return rank;
     }
 
-    bool deleteRemoteAdmin(QString& sernum)
+    bool deleteRemoteAdmin(QWidget* parent, QString& sernum)
     {
-        if ( QMessageBox::question( nullptr, "Revoke Admin:", "Are you certain you want to REVOKE ( " + sernum + " )'s powers?",
+        if ( QMessageBox::question( parent, "Revoke Admin:", "Are you certain you want to REVOKE ( " + sernum + " )'s powers?",
                                     QMessageBox::Yes | QMessageBox::No,
                                     QMessageBox::No ) == QMessageBox::Yes )
         {

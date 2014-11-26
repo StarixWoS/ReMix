@@ -33,7 +33,7 @@ public:
     {
         if (UserMessage->objectName().isEmpty())
             UserMessage->setObjectName(QStringLiteral("UserMessage"));
-        UserMessage->resize(489, 301);
+        UserMessage->resize(314, 140);
         gridLayout = new QGridLayout(UserMessage);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         frame = new QFrame(UserMessage);
@@ -44,8 +44,8 @@ public:
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
         msgView = new QTextEdit(frame);
         msgView->setObjectName(QStringLiteral("msgView"));
+        msgView->setUndoRedoEnabled(true);
         msgView->setReadOnly(true);
-        msgView->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
         gridLayout_2->addWidget(msgView, 0, 0, 1, 1);
 

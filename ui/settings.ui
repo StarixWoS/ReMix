@@ -116,6 +116,11 @@
           <string>7</string>
          </property>
         </row>
+        <row>
+         <property name="text">
+          <string>8</string>
+         </property>
+        </row>
         <column>
          <property name="text">
           <string>Options: ( Double-click to enable or disable )</string>
@@ -183,6 +188,14 @@
         <item row="7" column="0">
          <property name="text">
           <string>Allow Server Variables</string>
+         </property>
+         <property name="checkState">
+          <enum>Unchecked</enum>
+         </property>
+        </item>
+        <item row="8" column="0">
+         <property name="text">
+          <string>Log Comments to File</string>
          </property>
          <property name="checkState">
           <enum>Unchecked</enum>

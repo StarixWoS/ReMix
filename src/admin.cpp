@@ -32,7 +32,7 @@ Admin::Admin(QWidget *parent) :
     ui->adminTable->setModel( tableProxy );
 
     //Setup Objects.
-    banDialog = new BanDialog( this );
+    banDialog = new BanDialog( parent );
 
     this->setWindowModality( Qt::WindowModal );
 
@@ -56,6 +56,7 @@ void Admin::showBanDialog()
 
 void Admin::loadServerAdmins()
 {
+    tableModel->removeRows( 0, tableModel->rowCount() );
     if ( QFile( "adminData.ini" ).exists() )
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
@@ -175,7 +176,7 @@ void Admin::on_actionRevokeAdmin_triggered()
         QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
         if ( !sernum.isEmpty() )
         {
-            if (  AdminHelper::deleteRemoteAdmin( sernum ) )
+            if (  AdminHelper::deleteRemoteAdmin( this, sernum ) )
                 tableModel->removeRow( menuIndex.row() );
         }
     }
@@ -188,7 +189,7 @@ void Admin::on_actionChangeRank_triggered()
 
     quint32 rank = -1;
     if ( !sernum.isEmpty() )
-        rank = AdminHelper::changeRemoteAdminRank( sernum );
+        rank = AdminHelper::changeRemoteAdminRank( this, sernum );
 
     tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
                                             rank, Qt::DisplayRole );

@@ -4,8 +4,6 @@
 
 Player::Player()
 {
-    this->startLastPacketTime();
-
     connTimer.start( 1000 );
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
@@ -52,16 +50,6 @@ Player::~Player()
 qint64 Player::getConnTime() const
 {
     return connTime;
-}
-
-qint64 Player::getLastPacketTime() const
-{
-    return lastPacketTime.elapsed();
-}
-
-void Player::startLastPacketTime()
-{
-    lastPacketTime.restart();
 }
 
 QStandardItem* Player::getTableRow() const

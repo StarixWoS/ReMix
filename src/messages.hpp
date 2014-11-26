@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <QDebug>
 
 namespace Ui {
     class Messages;
@@ -22,12 +23,9 @@ class Messages : public QDialog
         QString getServerMOTD();
         QString getBanishMsg();
 
-        bool cmpPassword(QString& value);
-
     private slots:
         void on_saveSettings_clicked();
         void on_reloadSettings_clicked();
-        void on_pwdEdit_textEdited(const QString&);
 };
 
 #endif // MESSAGES_HPP

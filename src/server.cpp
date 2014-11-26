@@ -3,20 +3,27 @@
 
 #include "helper.hpp"
 #include "serverinfo.hpp"
+#include "usermessage.hpp"
 #include "admin.hpp"
 
-Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
+Server::Server(QWidget* parent, ServerInfo* svr, QStandardItemModel* plrView)
 {
     //Setup Objects.
     server = svr;
     plrViewModel = plrView;
 
     masterCheckIn.setInterval( 300000 );    //Every 5 Minutes.
+
+    //Setup Objects.
+    serverComments = new UserMessage( parent );
     masterSocket = new QUdpSocket( this );
 
     //Connect Objects.
     QObject::connect( this, &QTcpServer::newConnection,
                       this, &Server::newConnectionSlot );
+
+    QObject::connect( this, &Server::newUserCommentSignal,
+                      serverComments, &UserMessage::newUserCommentSlot );
 
     QObject::connect( masterSocket, &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
@@ -26,7 +33,7 @@ Server::Server(ServerInfo* svr, QStandardItemModel* plrView)
 
     QDir( "mixVariableCache" ).mkpath( "." );
 
-    //Ensure all possibple User slots are fillable.
+    //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
 }
 
@@ -34,6 +41,9 @@ Server::~Server()
 {
     masterSocket->close();
     masterSocket->deleteLater();
+
+    serverComments->close();
+    serverComments->deleteLater();
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -98,6 +108,14 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
         plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
     }
     return plrViewModel->item( row, 0 );
+}
+
+void Server::showServerComments()
+{
+    if ( serverComments->isVisible() )
+        serverComments->hide();
+    else
+        serverComments->show();
 }
 
 void Server::setupServerInfo()
@@ -648,68 +666,81 @@ void Server::readMIX5(QString& packet, Player* plr)
     if ( soc == nullptr )
         return;
 
-    quint64 bOut{ 0 };
-    if ( plr->getPwdRequested()
-      && !plr->getEnteredPwd() )
-    {
-        int index = packet.indexOf( ": " );
-        if ( index > 0 )
-        {
-            packet = packet.mid( index + 2 );
-            packet = packet.left( packet.length() - 2 );
+    QString sernum = plr->getSernum_s();
+    QString alias{ "" };
+    QString msg{ "" };
 
-            QVariant pwd( packet );
+    int index = packet.indexOf( ": " );
+    if ( index > 0 )
+    {
+        alias = packet.left( index );
+        alias = alias.mid( 10 );
+
+        msg = packet.mid( index + 2 );
+        msg = msg.left( msg.length() - 2 );
+    }
+
+    if ( !alias.isEmpty()
+      && !msg.isEmpty() )
+    {
+        QString msg{ "" };
+        quint64 bOut{ 0 };
+
+        bool disconnect{ false };
+
+        if ( plr->getPwdRequested()
+          && !plr->getEnteredPwd() )
+        {
+            QVariant pwd( msg );
             if ( Helper::cmpServerPassword( pwd ) )
             {
-                bOut = soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+                msg = ":SR@MCorrect password, welcome.\r\n";
 
+                plr->setPwdRequested( false );
                 plr->setEnteredPwd( true );
-                plr->setPwdRequested( false );  //No longer required. Set to false.
             }
             else
             {
-                bOut = soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
-                soc->waitForBytesWritten( 100 );
-                soc->abort();   //Abort the socket. This emits ::disconnected()
-                                //and will delete both the Socket and plr once it reaches it's control slot.
+                msg = ":SR@MIncorrect password, please go away.\r\n";
+                disconnect = true;
             }
-            plr->setPacketsOut( plr->getPacketsOut() + 1 );
-            plr->setBytesOut( plr->getBytesOut() + bOut );
-            server->setBytesOut( server->getBytesOut() + bOut );
         }
-        return;
-    }
-    else if ( plr->getAdminPwdRequested()
-           && !plr->getAdminPwdEntered() )
-    {
-        int index = packet.indexOf( ": " );
-        if ( index > 0 )
+        else if ( plr->getAdminPwdRequested()
+               && !plr->getAdminPwdEntered() )
         {
-            packet = packet.mid( index + 2 );
-            packet = packet.left( packet.length() - 2 );
-
-            QVariant pwd( packet );
+            QVariant pwd( msg );
             QString sernum = plr->getSernum_s();
             if ( AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
             {
-                bOut = soc->write( QByteArray( ":SR@MCorrect password, welcome.\r\n" ) );
+                msg = ":SR@MCorrect password, welcome.\r\n";
 
-                plr->setAdminPwdEntered( true );
                 plr->setAdminPwdRequested( false );
+                plr->setAdminPwdEntered( true );
             }
             else
             {
-                bOut = soc->write( QByteArray( ":SR@MIncorrect password, please go away.\r\n" ) );
-
-                soc->waitForBytesWritten( 100 );
-                soc->abort();   //Abort the socket. This emits ::disconnected()
-                                //and will delete both the Socket and plr once it reaches it's control slot.
+                msg = ":SR@MIncorrect password, please go away.\r\n";
+                disconnect = true;
             }
-            plr->setPacketsOut( plr->getPacketsOut() + 1 );
-            plr->setBytesOut( plr->getBytesOut() + bOut );
-            server->setBytesOut( server->getBytesOut() + bOut );
         }
-        return;
+        else
+            emit newUserCommentSignal( sernum, alias, msg );
+
+        if ( !msg.isEmpty() )
+        {
+            bOut = soc->write( msg.toLatin1() );
+            if ( disconnect );
+            {
+                soc->waitForBytesWritten( 100 );
+                soc->abort();
+            }
+            else if ( bOut >= 1 )
+            {
+                plr->setPacketsOut( plr->getPacketsOut() + 1 );
+                plr->setBytesOut( plr->getBytesOut() + bOut );
+                server->setBytesOut( server->getBytesOut() + bOut );
+            }
+        }
     }
 }
 
@@ -775,16 +806,21 @@ void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
     if ( plr == nullptr )
         return;
 
+    QString msg{ "" };
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {
-        QString reqAuth = QString( ":SR@MThe server Admin requires all Remote Administrators to authenticate themselves with their password. "
-                                   "Please enter your password or be denied access to the server. Thank you!"
-                                   "///PASSWORD REQUIRED NOW: \r\n" );
-        if ( plr->getSocket() != nullptr )
-            plr->getSocket()->write( reqAuth.toLatin1() );
+        msg = ":SR@MThe server Admin requires all Remote Administrators to authenticate themselves with their password. "
+              "Please enter your password or be denied access to the server. Thank you!"
+              "///PASSWORD REQUIRED NOW: \r\n";
 
         plr->setAdminPwdRequested( true );
+    }
+
+    if ( !msg.isEmpty()
+      && plr->getSocket() != nullptr )
+    {
+        plr->getSocket()->write( msg.toLatin1() );
     }
 }
 

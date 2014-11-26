@@ -1,7 +1,7 @@
+
 #include "messages.hpp"
 #include "ui_messages.h"
 
-#include <QDebug>
 #include "helper.hpp"
 
 Messages::Messages(QWidget *parent) :
@@ -33,12 +33,6 @@ QString Messages::getBanishMsg()
     return ui->banishedEdit->toPlainText();
 }
 
-bool Messages::cmpPassword(QString& value)
-{
-    value = QCryptographicHash::hash( value.toLatin1(), QCryptographicHash::Sha3_512 ).toHex();
-    return Helper::getPassword() != value;
-}
-
 void Messages::on_saveSettings_clicked()
 {
     QVariant motd = ui->motdEdit->toPlainText();
@@ -46,9 +40,6 @@ void Messages::on_saveSettings_clicked()
 
     QVariant banMsg = ui->banishedEdit->toPlainText();
     Helper::setBanishMesage( banMsg );
-
-    QVariant pwd = ui->pwdEdit->text();
-    pwdHashed = Helper::setPassword( pwd, pwdHashed );
 
     QVariant rules = ui->rulesEdit->toPlainText();
     Helper::setServerRules( rules );
@@ -67,21 +58,10 @@ void Messages::on_reloadSettings_clicked()
     if ( !var.isEmpty() )
         ui->banishedEdit->setText( Helper::getBanishMesage() );
 
-    QVariant qVar = Helper::getPassword();
-    if ( !qVar.toString().isEmpty() && qVar.toString().length() < 128 )
-        pwdHashed = Helper::setPassword( qVar, pwdHashed );
-
-    ui->pwdEdit->setText( Helper::getPassword() );
-
     var = Helper::getServerRules();
     if ( !var.isEmpty() )
         ui->rulesEdit->setText( Helper::getServerRules() );
 
     if ( this->isVisible() )
         this->hide();
-}
-
-void Messages::on_pwdEdit_textEdited(const QString&)
-{
-    pwdHashed = false;
 }

@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QDir>
 
+class UserMessage;
 class ServerInfo;
 class Player;
 
@@ -31,9 +32,10 @@ class Server : public QTcpServer
     QTimer masterCheckIn;
 
     ServerInfo* server{ nullptr };
+    UserMessage* serverComments{ nullptr };
 
     public:
-        Server(ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
+        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
         ~Server();
 
         void parseMasterServerResponse(QByteArray& mData);
@@ -44,6 +46,8 @@ class Server : public QTcpServer
         void sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port);
 
         QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert);
+
+        void showServerComments();
 
     private:
         void parsePacket(QString& packet, Player* plr = nullptr);
@@ -65,6 +69,7 @@ class Server : public QTcpServer
         void authRemoteAdmin(Player* plr, quint32 id );
 
     signals:
+        void newUserCommentSignal(QString& sernum, QString& alias, QString& message);
 
     private slots:
         void masterCheckInTimeOutSlot();

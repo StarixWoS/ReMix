@@ -10,6 +10,8 @@
 #include <QTimer>
 
 const int MAX_CMD_ATTEMPTS = 3;
+const int PACKET_FLOOD_LIMIT = 256; //Users are able to send 256 packets within PACKET_FLOOD_TIME.
+const int PACKET_FLOOD_TIME = 2000; //Anything above PACKET_FLOOD_LIMIT within 2000MS will disconnect/ban the User.
 class Player : public QObject
 {
     Q_OBJECT
@@ -41,6 +43,7 @@ class Player : public QObject
     bool adminPwdEntered{ false };
     quint32 adminCmdAttempts{ MAX_CMD_ATTEMPTS };  //Max limit is 3 attempts before auto-banning.
 
+    int packetFloodCount{ 0 };
     int packetsIn{ 0 };
     quint64 bytesIn{ 0 };
     quint32 avgBaudIn{ 0 };
@@ -58,9 +61,6 @@ class Player : public QObject
         ~Player();
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
-
-        qint64 getLastPacketTime() const;
-        void startLastPacketTime();
 
         qint64 getConnTime() const;
         void startConnTimer();

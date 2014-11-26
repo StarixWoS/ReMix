@@ -5,7 +5,9 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QNetworkInterface>
+#include <QSystemTrayIcon>
 #include <QElapsedTimer>
+#include <QInputDialog>
 #include <QMainWindow>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -19,7 +21,6 @@
 //ServerInfo structure.
 #include "serverinfo.hpp"
 
-class UserMessage;
 class Messages;
 class Settings;
 class Server;
@@ -35,20 +36,21 @@ class ReMix : public QMainWindow
 {
     Q_OBJECT
 
-    QSortFilterProxyModel* plrViewProxy{ nullptr };
-    QStandardItemModel* plrViewModel{ nullptr };
+    QSortFilterProxyModel* plrProxy{ nullptr };
+    QStandardItemModel* plrModel{ nullptr };
 
     Messages* sysMessages{ nullptr };
-    UserMessage* usrMsg{ nullptr };
     Server* tcpServer{ nullptr };
     Admin* admin{ nullptr };
     RandDev* randDev{ nullptr };
     Settings* settings{ nullptr };
 
-    ServerInfo* serverInfo{ nullptr };
+    ServerInfo* server{ nullptr };
 
     QMenu* contextMenu{ nullptr };
     QModelIndex menuIndex;
+
+    QSystemTrayIcon* trayIcon{ nullptr };
 
     public:
         explicit ReMix(QWidget *parent = 0);

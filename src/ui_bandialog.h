@@ -179,7 +179,7 @@ public:
 
         retranslateUi(BanDialog);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(BanDialog);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>378</width>
-    <height>415</height>
+    <height>328</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,31 +23,6 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="3" column="0" colspan="4">
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Server password:</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
-          <widget class="QLineEdit" name="pwdEdit">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="maxLength">
-            <number>512</number>
-           </property>
-           <property name="echoMode">
-            <enum>QLineEdit::PasswordEchoOnEdit</enum>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
       <item row="2" column="0" colspan="4">
        <widget class="QGroupBox" name="groupBox_4">
         <property name="title">
@@ -146,27 +121,7 @@ p, li { white-space: pre-wrap; }
         </layout>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="saveSettings">
-        <property name="text">
-         <string>Ok</string>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QPushButton" name="reloadSettings">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
+      <item row="3" column="2">
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -178,6 +133,26 @@ p, li { white-space: pre-wrap; }
          </size>
         </property>
        </spacer>
+      </item>
+      <item row="3" column="3">
+       <widget class="QPushButton" name="reloadSettings">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="saveSettings">
+        <property name="text">
+         <string>Ok</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
