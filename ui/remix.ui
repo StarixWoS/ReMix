@@ -471,6 +471,11 @@
     <string>Revoke Admin</string>
    </property>
   </action>
+  <action name="actionDisconnectUser">
+   <property name="text">
+    <string>Disconnect User</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

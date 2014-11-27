@@ -8,6 +8,7 @@
 #include "server.hpp"
 #include "settings.hpp"
 #include "admin.hpp"
+#include "bandialog.hpp"
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
@@ -130,7 +131,7 @@ ReMix::ReMix(QWidget *parent) :
 
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, plrModel );
+        tcpServer = new Server( this, server, admin, plrModel );
 }
 
 ReMix::~ReMix()
@@ -291,17 +292,18 @@ void ReMix::initContextMenu()
     contextMenu->addAction( ui->actionSendMessage );
     contextMenu->addAction( ui->actionRevokeAdmin );
     contextMenu->addAction( ui->actionMakeAdmin );
+    contextMenu->addAction( ui->actionDisconnectUser );
     contextMenu->addAction( ui->actionBANISHIPAddress );
     contextMenu->addAction( ui->actionBANISHSerNum );
 
-    contextMenu->insertSeparator( ui->actionBANISHIPAddress );
+    contextMenu->insertSeparator( ui->actionDisconnectUser );
 }
 
 void ReMix::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, plrModel );
+        tcpServer = new Server( this, server, admin, plrModel );
 
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
@@ -397,9 +399,11 @@ void ReMix::on_actionSendMessage_triggered()
     if ( menuIndex.row() >= 0 )
         plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
 
+    QString title{ "Admin Message:" };
+    QString prompt{ "Message to User(s): " };
+
     bool ok;
-    QString txt = QInputDialog::getMultiLineText( this, "Admin Message:",
-                                                  "Message to User(s): ", "", &ok );
+    QString txt = Helper::getTextResponse( this, title, prompt, &ok, 1 );
     if ( ok && !txt.isEmpty() )
     {
         msg = QString( ":SR@M%1\r\n" )
@@ -451,9 +455,50 @@ void ReMix::on_actionMakeAdmin_triggered()
     }
 }
 
+void ReMix::on_actionDisconnectUser_triggered()
+{
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( !sernum.isEmpty() )
+    {
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        if ( plr != nullptr && plr->getSocket() != nullptr )
+        {
+            QString title{ "Disconnect User:" };
+            QString prompt{ "Are you certain you want to DISCONNECT ( " + plr->getSernum_s() + " )?" };
+            if ( Helper::confirmAction( this, title, prompt ) )
+            {
+                plr->getSocket()->write( ":SR@MThe server Host or a Remote-Admin has disconnected you from the Server. "
+                                         "Please contact the Server Host if this was in error.\r\n" );
+                plr->getSocket()->waitForBytesWritten( 100 );
+                plr->getSocket()->abort();
+            }
+        }
+    }
+    menuIndex = QModelIndex();
+}
+
 void ReMix::on_actionBANISHIPAddress_triggered()
 {
-    ; //TODO: Implement hooks to the BannedIP class. Ban the IP address..
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( !sernum.isEmpty() )
+    {
+        QString title{ "Ban IP Address:" };
+        QString prompt{ "This command will BANISH the IP Address, which will prevent the User from "
+                        "making any connections in the future.\r\nAre you certain?" };
+
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        if ( plr != nullptr
+          && plr->getSocket() != nullptr )
+        {
+            QHostAddress ip = plr->getSocket()->peerAddress();
+            if ( Helper::confirmAction( this, title, prompt ) )
+            {
+                admin->getBanDialog()->addIPBan( ip, sernum );
+                plr->getSocket()->abort();
+            }
+        }
+    }
+    menuIndex = QModelIndex();
 }
 
 void ReMix::on_actionBANISHSerNum_triggered()

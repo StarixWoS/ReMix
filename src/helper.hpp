@@ -3,6 +3,8 @@
 #define PREFERENCES_HPP
 
 #include <QCryptographicHash>
+#include <QInputDialog>
+#include <QMessageBox>
 #include <QTextCursor>
 #include <QTextEdit>
 #include <QDateTime>
@@ -36,6 +38,9 @@ namespace Helper
 
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
+
+    bool confirmAction(QWidget* parent, QString& title, QString& prompt);
+    QString getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type = 0);
 
     void setSetting(const QString& key, const QString& subKey, QVariant& value);
     QVariant getSetting(const QString& key, const QString& subKey);

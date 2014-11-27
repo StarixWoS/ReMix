@@ -8,6 +8,7 @@
 #include <QSystemTrayIcon>
 #include <QElapsedTimer>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QMainWindow>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -76,6 +77,7 @@ class ReMix : public QMainWindow
         void on_playerView_customContextMenuRequested(const QPoint &pos);
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
+        void on_actionDisconnectUser_triggered();
         void on_actionBANISHIPAddress_triggered();
         void on_actionBANISHSerNum_triggered();
         void on_actionRevokeAdmin_triggered();

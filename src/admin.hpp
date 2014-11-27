@@ -44,6 +44,8 @@ class Admin : public QDialog
         ~Admin();
 
         void loadServerAdmins();
+
+        BanDialog* getBanDialog() const;
         void showBanDialog();
 
     private:

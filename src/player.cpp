@@ -190,7 +190,10 @@ void Player::setSlotPos(int value)
 
 QString Player::getPublicIP() const
 {
-    return publicIP;
+    if ( !publicIP.isEmpty() )
+        return publicIP;
+
+    return QString( "" );
 }
 
 void Player::setPublicIP(const QString& value)

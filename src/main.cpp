@@ -7,6 +7,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+#ifndef Q_OS_WIN
+    qApp->setFont( QFont( "Lucida Grande", 8 ) );
+#else
+    qApp->setFont( QFont( "Segoe UI", 8 ) );
+#endif
+
 #if USE_DARK_FUSION_UI
     qApp->setStyle( QStyleFactory::create( "Fusion" ) );
     QPalette darkPalette;

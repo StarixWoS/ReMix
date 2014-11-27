@@ -74,9 +74,10 @@ namespace AdminHelper
 
     bool deleteRemoteAdmin(QWidget* parent, QString& sernum)
     {
-        if ( QMessageBox::question( parent, "Revoke Admin:", "Are you certain you want to REVOKE ( " + sernum + " )'s powers?",
-                                    QMessageBox::Yes | QMessageBox::No,
-                                    QMessageBox::No ) == QMessageBox::Yes )
+        QString title{ "Revoke Admin:" };
+        QString prompt{ "Are you certain you want to REVOKE ( " + sernum + " )'s powers?" };
+
+        if ( Helper::confirmAction( parent, title, prompt ) )
         {
             QSettings adminData( "adminData.ini", QSettings::IniFormat );
                       adminData.remove( sernum );

@@ -46,6 +46,11 @@ Admin::~Admin()
     delete ui;
 }
 
+BanDialog* Admin::getBanDialog() const
+{
+    return banDialog;
+}
+
 void Admin::showBanDialog()
 {
     if ( banDialog->isVisible() )

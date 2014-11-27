@@ -36,6 +36,7 @@ public:
     QAction *actionBANISHIPAddress;
     QAction *actionBANISHSerNum;
     QAction *actionRevokeAdmin;
+    QAction *actionDisconnectUser;
     QWidget *centralWidget;
     QGridLayout *gridLayout;
     QFrame *frame;
@@ -79,6 +80,8 @@ public:
         actionBANISHSerNum->setObjectName(QStringLiteral("actionBANISHSerNum"));
         actionRevokeAdmin = new QAction(ReMix);
         actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
+        actionDisconnectUser = new QAction(ReMix);
+        actionDisconnectUser->setObjectName(QStringLiteral("actionDisconnectUser"));
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -312,6 +315,7 @@ public:
         actionBANISHIPAddress->setText(QApplication::translate("ReMix", "BANISH IP Address", 0));
         actionBANISHSerNum->setText(QApplication::translate("ReMix", "BANISH SerNum", 0));
         actionRevokeAdmin->setText(QApplication::translate("ReMix", "Revoke Admin", 0));
+        actionDisconnectUser->setText(QApplication::translate("ReMix", "Disconnect User", 0));
         isPublicServer->setText(QApplication::translate("ReMix", "Register as a public server", 0));
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));

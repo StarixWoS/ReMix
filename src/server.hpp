@@ -18,6 +18,7 @@
 class UserMessage;
 class ServerInfo;
 class Player;
+class Admin;
 
 class Server : public QTcpServer
 {
@@ -33,9 +34,11 @@ class Server : public QTcpServer
 
     ServerInfo* server{ nullptr };
     UserMessage* serverComments{ nullptr };
+    Admin* admin{ nullptr };
 
     public:
-        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr );
+        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, Admin* adminDlg = nullptr,
+               QStandardItemModel* plrView = nullptr );
         ~Server();
 
         void parseMasterServerResponse(QByteArray& mData);

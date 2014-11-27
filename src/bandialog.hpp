@@ -46,10 +46,20 @@ class BanDialog : public QDialog
         //SerNum-Ban Tab
         void loadBannedSernums();
 
+        //Check for banned Info.
+        bool getIsIPBanned(QHostAddress& ipAddr);
+        bool getisSernumBanned(QString& sernum);
+
+        void addIPBan(QHostAddress& ipInfo, QString& reason);
+        void addSerNumBan(QString& sernum, QString& reason);
+
     private slots:
         //IP-Ban Tab Slots
         void on_removeIPBan_clicked();
         void on_addIPBan_clicked();
+
+        void addIPBanImpl(QString& ip, QString& reason);
+        void addSernumBanImpl(QString& sernum, QString& reason);
 
         //SerNum-Ban Tab Slots
         void currentRowChangedSlot(const QModelIndex& index, const QModelIndex&);

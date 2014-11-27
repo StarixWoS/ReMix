@@ -51,6 +51,10 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
     val = ui->settingsView->item( row, 0 )->checkState();
 
     QVariant state = val == Qt::Checked;
+
+    QString title{ "" };
+    QString prompt{ "" };
+
     switch ( row )
     {
         case Options::ReqPwd:
@@ -62,9 +66,10 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
                 if ( Helper::getPassword().isEmpty()
                   && Helper::getRequirePassword() )
                 {
-                    txt = QInputDialog::getText( this, "Server Password:",
-                                                 "Password:", QLineEdit::PasswordEchoOnEdit,
-                                                 "", &ok );
+                    title = "Server Password:";
+                    prompt = "Password:";
+
+                    txt = Helper::getTextResponse( this, title, prompt, &ok, 0 );
                     if ( ok && !txt.toString().isEmpty() )
                         Helper::setPassword( txt, false );
                     else    //Invalid dialog state or no input Password. Reset the Object's state.
@@ -77,11 +82,10 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
                 }
                 else if ( !Helper::getRequirePassword() )
                 {
-                    int val = QMessageBox::question( this, "Remove Password:",
-                                                     "Do you wish to erase the stored Password hash?",
-                                                     QMessageBox::Yes | QMessageBox::No,
-                                                     QMessageBox::No );
-                    if ( val == QMessageBox::Yes )
+                    title = "Remove Password:";
+                    prompt = "Do you wish to erase the stored Password hash?";
+
+                    if ( Helper::confirmAction( this, title, prompt ) )
                         Helper::setPassword( txt, false );
                 }
             }

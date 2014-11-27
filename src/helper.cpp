@@ -50,6 +50,31 @@ QString Helper::serNumToIntStr(QString sernum)
         return QString( "%1" ).arg( intToStr( serNum, 16 ) );
 }
 
+bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
+{
+    quint32 value = QMessageBox::question( parent, title, prompt,
+                                        QMessageBox::Yes | QMessageBox::No,
+                                        QMessageBox::No );
+    return value == QMessageBox::Yes;
+}
+
+QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type)
+{
+    QString response{ "" };
+    if ( type == 0 )    //Single-line message.
+    {
+        response = QInputDialog::getText( parent, title, prompt,
+                                          QLineEdit::PasswordEchoOnEdit,
+                                          "", ok );
+    }
+    else if ( type == 1 )   //Multi-line message.
+    {
+        response = QInputDialog::getMultiLineText( parent, title, prompt,
+                                        "", ok );
+    }
+    return response;
+}
+
 void Helper::setSetting(const QString& key, const QString& subKey, QVariant& value)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );

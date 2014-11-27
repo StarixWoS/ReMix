@@ -4,13 +4,15 @@
 #include "helper.hpp"
 #include "serverinfo.hpp"
 #include "usermessage.hpp"
+#include "bandialog.hpp"
 #include "admin.hpp"
 
-Server::Server(QWidget* parent, ServerInfo* svr, QStandardItemModel* plrView)
+Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemModel* plrView)
 {
     //Setup Objects.
     server = svr;
     plrViewModel = plrView;
+    admin = adminDlg;
 
     masterCheckIn.setInterval( 300000 );    //Every 5 Minutes.
 
@@ -152,6 +154,8 @@ void Server::newConnectionSlot()
     if ( peer == nullptr )
         return;
 
+    QHostAddress peerAddr = peer->peerAddress();
+
     server->setUserCalls( server->getUserCalls() + 1 );
     int slot = server->getSocketSlot( peer );
     if ( slot < 0 )
@@ -161,9 +165,10 @@ void Server::newConnectionSlot()
 
     plr->setSocket( peer );
 
-    QString ip = QString( "%1" ).arg( peer->peerAddress().toString() );
+    QString ip = QString( "%1" ).arg( peerAddr.toString() );
     plr->setPublicIP( ip );
 
+    BanDialog* bandlg = admin->getBanDialog();
     for ( int i = 0, count = 0; i < MAX_PLAYERS; ++i )
     {
         Player* tmpPlr = server->getPlayer( i );
@@ -178,16 +183,15 @@ void Server::newConnectionSlot()
                 //Check if we're allowing users to use multiple Clients.
                 if ( !Helper::getAllowDupedIP() )
                 {
-                    plr->getSocket()->close();  //Close the duplicated IP. They're not allowed.
+                    QString reason = "Auto-ban: Duplicate IP Address.";
                     if ( Helper::getBanDupedIP() )
-                    {
-                        ;   //TODO: Add code to Ban the user.
-                    }
+                        bandlg->addIPBan( peerAddr, reason );
+
+                    plr->getSocket()->abort();  //Close the duplicated IP. They're not allowed.
                     server->setIpDc( server->getIpDc() + 1 );
                     return;
                 }
             }
-            //TODO: Check if the IP or SerNum is banned.
         }
     }
     ip = ip.append( ":%1" ).arg( peer->peerPort() );
@@ -276,11 +280,11 @@ void Server::newConnectionSlot()
     });
 
     //Update the User's Table row.
-    QByteArray data = udpDatas.value( peer->peerAddress() );
+    QByteArray data = udpDatas.value( peerAddr );
     if ( data.isEmpty() )
     {
-        udpDatas.insert( peer->peerAddress(), QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
-        data = udpDatas.value( peer->peerAddress() );
+        udpDatas.insert( peerAddr, QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
+        data = udpDatas.value( peerAddr );
     }
 
     if ( plrTableItems.contains( ip ) )
@@ -302,8 +306,10 @@ void Server::readyReadUDPSlot()
     QUdpSocket* sender = static_cast<QUdpSocket*>( QObject::sender() );
     if ( sender != nullptr )
     {
-        QHostAddress senderAddr;
-        quint16 senderPort = 0;
+        BanDialog* bandlg = admin->getBanDialog();
+        QHostAddress senderAddr{};
+        quint16 senderPort{ 0 };
+
         udpData.resize( sender->pendingDatagramSize() );
         sender->readDatagram( udpData.data(), udpData.size(), &senderAddr, &senderPort );
 
@@ -319,8 +325,29 @@ void Server::readyReadUDPSlot()
                     this->parseMasterServerResponse( udpData );
                 break;
                 case 'P':   //Store the Player information into a struct.
-                    udpDatas.insert( senderAddr, udpData.mid( 1 ) );
-                    this->sendServerInfo( sender, senderAddr, senderPort );
+                    {
+                        //Check for a banned IP-Address.
+                        udpDatas.insert( senderAddr, udpData.mid( 1 ) );
+                        if ( !bandlg->getIsIPBanned( senderAddr ) )
+                        {
+                            int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
+                            QString sernum{ "" };
+                            if ( index > 0 )
+                            {
+                                sernum = udpData.mid( index + 7 );
+                                sernum = sernum.left( sernum.indexOf( ',' ) );
+                            }
+
+                            //Check if the sernum is banned.
+                            if ( !sernum.isEmpty()
+                              && !bandlg->getisSernumBanned( sernum ) )
+                            {
+                                //Send the Server's information.
+                                this->sendServerInfo( sender, senderAddr, senderPort );
+                            }
+                            //TODO: Check for banned D and V variables. --Low priority.
+                        }
+                    }
                 break;
                 case 'Q':   //Send our online User information to the requestor.
                     this->sendUserList( sender, senderAddr, senderPort );
@@ -366,8 +393,6 @@ void Server::disconnectFromMaster()
 void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort)
 {
     //TODO: Format Server Usage variable.
-    //TODO: Check for banned D, V, and W variables and disconnect on positive matches.
-    //      If the variables are banned, no response will be sent.
 
     QString response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" );
     if ( !server->getGameInfo().isEmpty() )
@@ -470,7 +495,6 @@ void Server::parsePacket(QString& packet, Player* plr)
 
 void Server::parseSRPacket(QString& packet, Player* plr)
 {
-    //TODO: Send Packets to a specific User/Slot.
     if ( plr == nullptr )
         return;
 
