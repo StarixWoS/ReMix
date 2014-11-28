@@ -19,7 +19,7 @@ OBJECTS_DIR = build/obj
 ICON = resources/ReMix.ico
 win32: RC_FILE += resources/ReMix.rc
 
-DEFINES += USE_DARK_FUSION_UI=1 \ #This Qt to use a Non-Native UI color scheme.
+DEFINES += USE_DARK_FUSION_UI=1 \ #Tell Qt to use a Non-Native UI color scheme.
 
 #CONFIG += static c++11
 QMAKE_CXXFLAGS = -std=c++11 #-static-libstdc++ -static-libgcc -static -Os -s

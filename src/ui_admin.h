@@ -25,7 +25,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_Dialog
+class Ui_Admin
 {
 public:
     QAction *actionRevokeAdmin;
@@ -42,20 +42,20 @@ public:
     QComboBox *comboBox;
     QPushButton *makeAdmin;
 
-    void setupUi(QDialog *Dialog)
+    void setupUi(QDialog *Admin)
     {
-        if (Dialog->objectName().isEmpty())
-            Dialog->setObjectName(QStringLiteral("Dialog"));
-        Dialog->resize(499, 247);
-        actionRevokeAdmin = new QAction(Dialog);
+        if (Admin->objectName().isEmpty())
+            Admin->setObjectName(QStringLiteral("Admin"));
+        Admin->resize(499, 247);
+        actionRevokeAdmin = new QAction(Admin);
         actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
-        actionChangeRank = new QAction(Dialog);
+        actionChangeRank = new QAction(Admin);
         actionChangeRank->setObjectName(QStringLiteral("actionChangeRank"));
-        gridLayout = new QGridLayout(Dialog);
+        gridLayout = new QGridLayout(Admin);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         gridLayout->setContentsMargins(10, 10, 10, 10);
-        frame = new QFrame(Dialog);
+        frame = new QFrame(Admin);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
@@ -127,33 +127,33 @@ public:
         gridLayout->addWidget(frame, 0, 0, 1, 1);
 
 
-        retranslateUi(Dialog);
+        retranslateUi(Admin);
 
-        QMetaObject::connectSlotsByName(Dialog);
+        QMetaObject::connectSlotsByName(Admin);
     } // setupUi
 
-    void retranslateUi(QDialog *Dialog)
+    void retranslateUi(QDialog *Admin)
     {
-        Dialog->setWindowTitle(QApplication::translate("Dialog", "Remote Admins:", 0));
-        actionRevokeAdmin->setText(QApplication::translate("Dialog", "Revoke Admin", 0));
-        actionChangeRank->setText(QApplication::translate("Dialog", "Change Rank", 0));
-        label->setText(QApplication::translate("Dialog", "SerNum:", 0));
-        label_2->setText(QApplication::translate("Dialog", "Password:", 0));
-        label_3->setText(QApplication::translate("Dialog", "Rank:", 0));
+        Admin->setWindowTitle(QApplication::translate("Admin", "Remote Admins:", 0));
+        actionRevokeAdmin->setText(QApplication::translate("Admin", "Revoke Admin", 0));
+        actionChangeRank->setText(QApplication::translate("Admin", "Change Rank", 0));
+        label->setText(QApplication::translate("Admin", "SerNum:", 0));
+        label_2->setText(QApplication::translate("Admin", "Password:", 0));
+        label_3->setText(QApplication::translate("Admin", "Rank:", 0));
         comboBox->clear();
         comboBox->insertItems(0, QStringList()
-         << QApplication::translate("Dialog", "GM", 0)
-         << QApplication::translate("Dialog", "Co-Ad", 0)
-         << QApplication::translate("Dialog", "Admin", 0)
-         << QApplication::translate("Dialog", "Owner", 0)
+         << QApplication::translate("Admin", "GM", 0)
+         << QApplication::translate("Admin", "Co-Ad", 0)
+         << QApplication::translate("Admin", "Admin", 0)
+         << QApplication::translate("Admin", "Owner", 0)
         );
-        makeAdmin->setText(QApplication::translate("Dialog", "Make Admin", 0));
+        makeAdmin->setText(QApplication::translate("Admin", "Make Admin", 0));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class Dialog: public Ui_Dialog {};
+    class Admin: public Ui_Admin {};
 } // namespace Ui
 
 QT_END_NAMESPACE

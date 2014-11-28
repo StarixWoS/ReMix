@@ -41,6 +41,8 @@ class Server : public QTcpServer
                QStandardItemModel* plrView = nullptr );
         ~Server();
 
+        void checkBannedInfo(Player* plr = nullptr);
+
         void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo();
         void setupPublicServer(bool value);

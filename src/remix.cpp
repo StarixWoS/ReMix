@@ -28,15 +28,56 @@ ReMix::ReMix(QWidget *parent) :
         trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
         trayIcon->show();
 
+        QAction* showAction = new QAction( "Show", this );
+        QObject::connect( showAction, &QAction::triggered,
+                          this, &QMainWindow::show );
+
+        QAction* hideAction = new QAction( "Hide", this );
+        QObject::connect( hideAction, &QAction::triggered,
+                          this, &QMainWindow::hide );
+
+        QAction* minimizeAction = new QAction( "Minimize", this );
+        QObject::connect( minimizeAction, &QAction::triggered,
+                          this, &QMainWindow::hide );
+
+        QAction* maximizeAction = new QAction( "Maximize", this );
+        QObject::connect( maximizeAction, &QAction::triggered,
+                          this, &QMainWindow::showMaximized );
+
+        QAction* restoreAction = new QAction( "Restore", this);
+        QObject::connect( restoreAction, &QAction::triggered,
+                          this, &QMainWindow::showNormal );
+
+        QAction* quitAction = new QAction( "Quit", this);
+        QObject::connect( quitAction, &QAction::triggered,
+                          qApp, &QApplication::quit );
+
+        trayMenu = new QMenu( this );
+        trayMenu->addAction( showAction );
+        trayMenu->addAction( hideAction );
+        trayMenu->addSeparator();
+        trayMenu->addAction( minimizeAction );
+        trayMenu->addAction( maximizeAction );
+        trayMenu->addAction( restoreAction );
+        trayMenu->addAction( quitAction );
+
         QObject::connect( trayIcon, &QSystemTrayIcon::activated,
                           [=]( QSystemTrayIcon::ActivationReason reason )
         {
             if ( reason == QSystemTrayIcon::Trigger )
             {
                 if ( this->isHidden() )
+                {
                     this->show();
+                    this->setWindowState( Qt::WindowActive );
+                }
                 else
                     this->hide();
+            }
+            else if ( reason == QSystemTrayIcon::Context )
+            {
+                if ( trayMenu != nullptr )
+                    trayMenu->popup( QCursor::pos() );
             }
         });
     }
@@ -427,15 +468,14 @@ void ReMix::on_actionSendMessage_triggered()
 void ReMix::on_actionRevokeAdmin_triggered()
 {
     QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
-    if ( !sernum.isEmpty()
-      && AdminHelper::deleteRemoteAdmin( this, sernum ) )
+    if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
     {
         Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
         if ( plr != nullptr && plr->getSocket() != nullptr )
         {
             plr->getSocket()->write( ":SR@MYour Remote Administrator privileges have been REVOKED by either the "
                                      "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
-                                     "if this was in error.\r\n" );
+                                     "if you believe this was in error.\r\n" );
             admin->loadServerAdmins();
         }
     }
@@ -467,8 +507,8 @@ void ReMix::on_actionDisconnectUser_triggered()
             QString prompt{ "Are you certain you want to DISCONNECT ( " + plr->getSernum_s() + " )?" };
             if ( Helper::confirmAction( this, title, prompt ) )
             {
-                plr->getSocket()->write( ":SR@MThe server Host or a Remote-Admin has disconnected you from the Server. "
-                                         "Please contact the Server Host if this was in error.\r\n" );
+                plr->getSocket()->write( ":SR@MThe Server Host or a Remote-Admin has disconnected you from the Server. "
+                                         "Please contact the Server Host if you believe this was in error.\r\n" );
                 plr->getSocket()->waitForBytesWritten( 100 );
                 plr->getSocket()->abort();
             }
@@ -485,6 +525,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
         QString title{ "Ban IP Address:" };
         QString prompt{ "This command will BANISH the IP Address, which will prevent the User from "
                         "making any connections in the future.\r\nAre you certain?" };
+        QString reason{ "" };
 
         Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
         if ( plr != nullptr
@@ -493,7 +534,10 @@ void ReMix::on_actionBANISHIPAddress_triggered()
             QHostAddress ip = plr->getSocket()->peerAddress();
             if ( Helper::confirmAction( this, title, prompt ) )
             {
-                admin->getBanDialog()->addIPBan( ip, sernum );
+                //TODO: Send Banish reason to the User.
+                reason = Helper::getBanishReason( this );
+
+                admin->getBanDialog()->addIPBan( ip, reason );
                 plr->getSocket()->abort();
             }
         }
@@ -503,5 +547,37 @@ void ReMix::on_actionBANISHIPAddress_triggered()
 
 void ReMix::on_actionBANISHSerNum_triggered()
 {
-    ;  //TODO: Implement hooks to the BannedSernum class. Ban the sernum.
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( !sernum.isEmpty() )
+    {
+        QString title{ "Ban SerNum:" };
+        QString prompt{ "This command will BANISH the SerNum, which will prevent the User from "
+                        "making any connections in the future.\r\nAre you certain?" };
+        QString reason{ "" };
+
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        if ( plr != nullptr
+          && plr->getSocket() != nullptr )
+        {
+            if ( Helper::confirmAction( this, title, prompt ) )
+            {
+                //TODO: Send Banish reason to the User.
+                reason = Helper::getBanishReason( this );
+
+                admin->getBanDialog()->addSerNumBan( sernum, reason );
+                plr->getSocket()->abort();
+            }
+        }
+    }
+    menuIndex = QModelIndex();
+}
+
+void ReMix::changeEvent(QEvent* event)
+{
+    if ( event->type() == QEvent::WindowStateChange )
+    {
+        if ( this->isMinimized() )
+            this->hide();
+    }
+    QMainWindow::changeEvent( event );
 }

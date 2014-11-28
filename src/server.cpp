@@ -54,6 +54,72 @@ Server::~Server()
     udpDatas.clear();
 }
 
+void Server::checkBannedInfo(Player* plr)
+{
+    //TODO: Check for banned D and V variables. --Low Priority.
+    if ( plr == nullptr
+      || plr->getSocket() == nullptr )
+    {
+        return;
+    }
+
+    BanDialog* bandlg = admin->getBanDialog();
+    Player* tmpPlr{ nullptr };
+
+    //Prevent Banned IP's or SerNums from remaining connected.
+    if ( plr != nullptr
+      && plr->getSocket() != nullptr )
+    {
+        if ( bandlg->getIsIPBanned( plr->getPublicIP() )
+          || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
+        {
+            plr->getSocket()->abort();
+        }
+    }
+
+    //Disconnect and ban all duplicate IP's if required.
+    if ( !Helper::getAllowDupedIP() )
+    {
+        QString reason{ "Auto-ban: Duplicate IP Address." };
+        QString peerAddr{ plr->getPublicIP() };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = server->getPlayer( i );
+            if ( tmpPlr != nullptr
+              && tmpPlr != plr )
+            {
+                if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
+                {
+                    if ( Helper::getBanDupedIP() )
+                        bandlg->addIPBan( peerAddr, reason );
+
+                    plr->getSocket()->abort();
+                    server->setIpDc( server->getIpDc() + 1 );
+
+                    if ( tmpPlr->getSocket() != nullptr )
+                    {
+                        tmpPlr->getSocket()->abort();
+                        server->setIpDc( server->getIpDc() + 1 );
+                    }
+                }
+            }
+        }
+    }
+
+    //Disconnect new Players using the same SerNum. This is an un-optional disconnect
+    //due to how Private chat is handled. --Perhaps once a better fix is found we can remove this.
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        tmpPlr = server->getPlayer( i );
+        if ( tmpPlr != nullptr
+          && tmpPlr->getSernum() == plr->getSernum() )
+        {
+            if ( tmpPlr != plr )
+                plr->getSocket()->abort();
+        }
+    }
+}
+
 QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert)
 {
     QString bio = QString( data );
@@ -151,6 +217,7 @@ void Server::newConnectionSlot()
 {
     QTcpSocket* peer = this->nextPendingConnection();
     Player* plr{ nullptr };
+
     if ( peer == nullptr )
         return;
 
@@ -167,33 +234,6 @@ void Server::newConnectionSlot()
 
     QString ip = QString( "%1" ).arg( peerAddr.toString() );
     plr->setPublicIP( ip );
-
-    BanDialog* bandlg = admin->getBanDialog();
-    for ( int i = 0, count = 0; i < MAX_PLAYERS; ++i )
-    {
-        Player* tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr )
-        {
-            if ( tmpPlr->getPublicIP() == ip )
-                ++count;
-
-            //More than one User has this IP address.
-            if ( count > 1 )
-            {
-                //Check if we're allowing users to use multiple Clients.
-                if ( !Helper::getAllowDupedIP() )
-                {
-                    QString reason = "Auto-ban: Duplicate IP Address.";
-                    if ( Helper::getBanDupedIP() )
-                        bandlg->addIPBan( peerAddr, reason );
-
-                    plr->getSocket()->abort();  //Close the duplicated IP. They're not allowed.
-                    server->setIpDc( server->getIpDc() + 1 );
-                    return;
-                }
-            }
-        }
-    }
     ip = ip.append( ":%1" ).arg( peer->peerPort() );
 
     QString greeting = QString( ":SR@M" + Helper::getMOTDMessage().toLatin1() );
@@ -299,6 +339,7 @@ void Server::newConnectionSlot()
         server->setPlayerCount( server->getPlayerCount() + 1 );
         this->masterCheckInTimeOutSlot();
     }
+    this->checkBannedInfo( plr );
 }
 
 void Server::readyReadUDPSlot()
@@ -339,18 +380,30 @@ void Server::readyReadUDPSlot()
                             }
 
                             //Check if the sernum is banned.
-                            if ( !sernum.isEmpty()
-                              && !bandlg->getisSernumBanned( sernum ) )
-                            {
-                                //Send the Server's information.
+                            if ( !bandlg->getIsSernumBanned( sernum ) )
                                 this->sendServerInfo( sender, senderAddr, senderPort );
-                            }
+
                             //TODO: Check for banned D and V variables. --Low priority.
                         }
                     }
                 break;
                 case 'Q':   //Send our online User information to the requestor.
-                    this->sendUserList( sender, senderAddr, senderPort );
+                    if ( !bandlg->getIsIPBanned( senderAddr ) )
+                    {
+                        int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
+                        QString sernum{ "" };
+                        if ( index > 0 )
+                        {
+                            sernum = udpData.mid( index + 7 );
+                            sernum = sernum.left( sernum.indexOf( ',' ) );
+                        }
+
+                        //Check if the sernum is banned.
+                        if ( !bandlg->getIsSernumBanned( sernum ) )
+                            this->sendUserList( sender, senderAddr, senderPort );
+
+                        //TODO: Check for banned D and V variables. --Low priority.
+                    }
                 break;
                 case 'R':   //TODO: Command "R" with unknown use.
                 break;
@@ -657,22 +710,9 @@ void Server::readMIX3(QString& packet, Player* plr)
     QString sernum_s = packet.mid( 2 ).left( 8 );
     quint32 sernum_i = Helper::strToInt( sernum_s, 16 );
 
-    //Make certain no other Player Object is attuned to the incoming sernum.
-    Player* tmpPlr{ nullptr };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr
-          && tmpPlr->getSernum() == sernum_i )
-        {
-            if ( tmpPlr != plr )
-            {
-                plr->getSocket()->abort();  //Kill the socket and delete the Player when control returns.
-                return;
-            }
-        }
-    }
+    //Check if the User is banned or requires authentication.
     this->authRemoteAdmin( plr, sernum_i );
+    this->checkBannedInfo( plr );
 }
 
 void Server::readMIX4(QString& packet, Player* plr)
@@ -780,8 +820,9 @@ void Server::readMIX7(QString& packet, Player* plr)
     packet = packet.mid( 2 );
     packet = packet.left( packet.length() - 2 );
 
-    //Check if the User requires authentication.
+    //Check if the User is banned or requires authentication.
     this->authRemoteAdmin( plr, packet.toUInt( 0, 16 ) );
+    this->checkBannedInfo( plr );
 }
 
 void Server::readMIX8(QString& packet, Player* plr)

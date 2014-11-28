@@ -18,6 +18,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QTimer>
+#include <QEvent>
 
 //ServerInfo structure.
 #include "serverinfo.hpp"
@@ -49,6 +50,7 @@ class ReMix : public QMainWindow
     ServerInfo* server{ nullptr };
 
     QMenu* contextMenu{ nullptr };
+    QMenu* trayMenu{ nullptr };
     QModelIndex menuIndex;
 
     QSystemTrayIcon* trayIcon{ nullptr };
@@ -81,6 +83,9 @@ class ReMix : public QMainWindow
         void on_actionBANISHIPAddress_triggered();
         void on_actionBANISHSerNum_triggered();
         void on_actionRevokeAdmin_triggered();
+
+        //Handle Minimize events.
+        void changeEvent(QEvent* event);
 
     private:
         Ui::ReMix *ui;

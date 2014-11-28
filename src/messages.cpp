@@ -10,12 +10,22 @@ Messages::Messages(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    //Remove the "Help" button from the window title bars.
+    {
+        QIcon icon = this->windowIcon();
+        Qt::WindowFlags flags = this->windowFlags();
+        flags &= ~Qt::WindowContextHelpButtonHint;
+
+        this->setWindowFlags( flags );
+        this->setWindowIcon( icon );
+
+        this->setWindowModality( Qt::WindowModal );
+    }
+
     //Load settings from: Preferences.ini
     QObject::connect( this, &Messages::finished,
                       this, &Messages::on_reloadSettings_clicked );
     emit ui->reloadSettings->clicked();
-
-    this->setWindowModality( Qt::WindowModal );
 }
 
 Messages::~Messages()

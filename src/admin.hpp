@@ -19,14 +19,14 @@ class BanDialog;
 class RandDev;
 
 namespace Ui {
-    class Dialog;
+    class Admin;
 }
 
 class Admin : public QDialog
 {
     Q_OBJECT
 
-    Ui::Dialog *ui;
+    Ui::Admin *ui;
 
     QSortFilterProxyModel* tableProxy{ nullptr };
     QStandardItemModel* tableModel{ nullptr };

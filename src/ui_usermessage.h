@@ -33,7 +33,7 @@ public:
     {
         if (UserMessage->objectName().isEmpty())
             UserMessage->setObjectName(QStringLiteral("UserMessage"));
-        UserMessage->resize(314, 140);
+        UserMessage->resize(300, 110);
         gridLayout = new QGridLayout(UserMessage);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         frame = new QFrame(UserMessage);

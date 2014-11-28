@@ -63,7 +63,6 @@ public:
         rulesEdit = new QTextEdit(groupBox_4);
         rulesEdit->setObjectName(QStringLiteral("rulesEdit"));
         rulesEdit->setMinimumSize(QSize(0, 50));
-        rulesEdit->setMaximumSize(QSize(16777215, 50));
         rulesEdit->setAcceptRichText(false);
 
         gridLayout_6->addWidget(rulesEdit, 0, 0, 1, 1);
@@ -78,7 +77,6 @@ public:
         banishedEdit = new QTextEdit(groupBox_2);
         banishedEdit->setObjectName(QStringLiteral("banishedEdit"));
         banishedEdit->setMinimumSize(QSize(0, 50));
-        banishedEdit->setMaximumSize(QSize(16777215, 50));
         banishedEdit->setAcceptRichText(false);
 
         gridLayout_4->addWidget(banishedEdit, 0, 0, 1, 1);
@@ -93,7 +91,6 @@ public:
         motdEdit = new QTextEdit(groupBox);
         motdEdit->setObjectName(QStringLiteral("motdEdit"));
         motdEdit->setMinimumSize(QSize(0, 50));
-        motdEdit->setMaximumSize(QSize(16777215, 50));
         motdEdit->setAcceptRichText(false);
 
         gridLayout_3->addWidget(motdEdit, 0, 0, 1, 1);

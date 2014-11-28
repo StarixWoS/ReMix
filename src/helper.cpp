@@ -1,6 +1,15 @@
 
 #include "helper.hpp"
 
+QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, quint32 height)
+{
+    QInputDialog* dialog = new QInputDialog( parent );
+                  dialog->setInputMode( mode );
+                  dialog->setLabelText( label );
+                  dialog->resize( width, height );
+    return dialog;
+}
+
 QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
 {
     /* This overload is mainly used to reformat a QString's numeric format
@@ -64,7 +73,7 @@ QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt
     if ( type == 0 )    //Single-line message.
     {
         response = QInputDialog::getText( parent, title, prompt,
-                                          QLineEdit::PasswordEchoOnEdit,
+                                          QLineEdit::Normal,
                                           "", ok );
     }
     else if ( type == 1 )   //Multi-line message.
@@ -113,6 +122,21 @@ void Helper::setBanishMesage(QVariant& value)
 QString Helper::getBanishMesage()
 {
     return getSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ] ).toString();
+}
+
+QString Helper::getBanishReason(QWidget* parent)
+{
+    QString label{ "Ban Reason ( Sent to User ):" };
+    QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
+
+    dialog->exec();
+    dialog->deleteLater();
+
+    QString reason{ dialog->textValue() };
+    if ( reason.isEmpty() )
+        reason = "Manual Banish.";
+
+    return reason;
 }
 
 bool Helper::setPassword(QVariant& value, bool isHashed)

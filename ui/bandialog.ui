@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>515</width>
-    <height>277</height>
+    <width>479</width>
+    <height>267</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,7 +40,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0" colspan="4">
-        <widget class="QTableView" name="banTable">
+        <widget class="QTableView" name="ipBanTable">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -105,7 +105,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="banIP">
+        <widget class="QLineEdit" name="trgIPAddr">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -131,7 +131,7 @@
         </widget>
        </item>
        <item row="1" column="3">
-        <widget class="QLineEdit" name="banReason">
+        <widget class="QLineEdit" name="ipBanReason">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -141,22 +141,6 @@
         </widget>
        </item>
        <item row="2" column="0" colspan="2">
-        <widget class="QPushButton" name="removeIPBan">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Remove IP From List</string>
-         </property>
-         <property name="autoDefault">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2" colspan="2">
         <widget class="QPushButton" name="addIPBan">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -172,15 +156,34 @@
          </property>
         </widget>
        </item>
+       <item row="2" column="2" colspan="2">
+        <widget class="QPushButton" name="removeIPBan">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Forgive Selected IP</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
        <string>SerNum Bans</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0" colspan="4">
-        <widget class="QTableView" name="sernumTable">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0" colspan="5">
+        <widget class="QTableView" name="snBanTable">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -199,6 +202,9 @@
          <property name="sortingEnabled">
           <bool>true</bool>
          </property>
+         <property name="cornerButtonEnabled">
+          <bool>false</bool>
+         </property>
          <attribute name="horizontalHeaderMinimumSectionSize">
           <number>50</number>
          </attribute>
@@ -216,20 +222,56 @@
          </attribute>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Sernum:</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="1">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QLineEdit" name="trgSerNum">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>200</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
        <item row="1" column="2">
+        <widget class="QLabel" name="label_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Reason:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QPushButton" name="addSernumBan">
+         <property name="text">
+          <string>Add Sernum to List</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLineEdit" name="snBanReason"/>
+       </item>
+       <item row="2" column="2" colspan="3">
         <widget class="QPushButton" name="forgiveButton">
          <property name="enabled">
           <bool>false</bool>
@@ -241,19 +283,6 @@
           <bool>false</bool>
          </property>
         </widget>
-       </item>
-       <item row="1" column="3">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>200</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

@@ -10,7 +10,15 @@ UserMessage::UserMessage(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //this->setWindowModality( Qt::WindowModal );
+    //Remove the "Help" button from the window title bars.
+    {
+        QIcon icon = this->windowIcon();
+        Qt::WindowFlags flags = this->windowFlags();
+        flags &= ~Qt::WindowContextHelpButtonHint;
+
+        this->setWindowFlags( flags );
+        this->setWindowIcon( icon );
+    }
 }
 
 UserMessage::~UserMessage()

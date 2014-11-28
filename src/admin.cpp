@@ -7,9 +7,21 @@
 
 Admin::Admin(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Dialog)
+    ui(new Ui::Admin)
 {
     ui->setupUi(this);
+
+    //Remove the "Help" button from the window title bars.
+    {
+        QIcon icon = this->windowIcon();
+        Qt::WindowFlags flags = this->windowFlags();
+        flags &= ~Qt::WindowContextHelpButtonHint;
+
+        this->setWindowFlags( flags );
+        this->setWindowIcon( icon );
+
+        this->setWindowModality( Qt::WindowModal );
+    }
 
     //Setup our Random Device
     randDev = new RandDev();
@@ -34,7 +46,6 @@ Admin::Admin(QWidget *parent) :
     //Setup Objects.
     banDialog = new BanDialog( parent );
 
-    this->setWindowModality( Qt::WindowModal );
 
     this->loadServerAdmins();
     this->initContextMenu();

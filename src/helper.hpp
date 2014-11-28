@@ -26,6 +26,7 @@ namespace Helper
                                  "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES", "requireAdminAuth",
                                  "logComments"
                                };
+    QInputDialog* createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, quint32 height);
 
     template<typename T>
     QString intToStr(T val, int base = 10, int fill = 0, QChar filler = '0')
@@ -50,6 +51,7 @@ namespace Helper
 
     void setBanishMesage(QVariant& value);
     QString getBanishMesage();
+    QString getBanishReason(QWidget* parent = nullptr);
 
     QString hashPassword(QVariant& password);
     bool setPassword(QVariant& value, bool isHashed);

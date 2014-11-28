@@ -10,7 +10,17 @@ BanDialog::BanDialog(QWidget *parent) :
     ui(new Ui::BanDialog)
 {
     ui->setupUi(this);
-    this->setWindowModality( Qt::WindowModal );
+
+    //Remove the "Help" button from the window title bars.
+    {
+        QIcon icon = this->windowIcon();
+        Qt::WindowFlags flags = this->windowFlags();
+        flags &= ~Qt::WindowContextHelpButtonHint;
+
+        this->setWindowFlags( flags );
+        this->setWindowIcon( icon );
+        this->setWindowModality( Qt::WindowModal );
+    }
 
     //Setup the IP-Ban TableView.
     ipModel = new QStandardItemModel( 0, 3, 0 );
@@ -23,25 +33,28 @@ BanDialog::BanDialog(QWidget *parent) :
     ipProxy->setDynamicSortFilter( true );
     ipProxy->setSourceModel( ipModel );
     ipProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
-    ui->banTable->setModel( ipProxy );
+    ui->ipBanTable->setModel( ipProxy );
 
     //Setup the Sernum-Ban TableView.
-    snModel = new QStandardItemModel( 0, 4, 0 );
+    snModel = new QStandardItemModel( 0, 3, 0 );
     snModel->setHeaderData( 0, Qt::Horizontal, "Sernum" );
-    snModel->setHeaderData( 1, Qt::Horizontal, "Banned Until" );
-    snModel->setHeaderData( 2, Qt::Horizontal, "Expires" );
-    snModel->setHeaderData( 3, Qt::Horizontal, "Reason" );
+    snModel->setHeaderData( 1, Qt::Horizontal, "Reason" );
+    snModel->setHeaderData( 2, Qt::Horizontal, "Ban Time" );
 
     //Proxy model to support sorting without actually altering the underlying model
     snProxy = new QSortFilterProxyModel();
     snProxy->setDynamicSortFilter( true );
     snProxy->setSourceModel( snModel );
     snProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
-    ui->sernumTable->setModel( snProxy );
+    ui->snBanTable->setModel( snProxy );
 
-    QItemSelectionModel* snSelModel = ui->sernumTable->selectionModel();
+    QItemSelectionModel* ipSelModel = ui->snBanTable->selectionModel();
+    QObject::connect( ipSelModel, &QItemSelectionModel::currentChanged,
+                      this, &BanDialog::ipBanTableChangedRowSlot );
+
+    QItemSelectionModel* snSelModel = ui->snBanTable->selectionModel();
     QObject::connect( snSelModel, &QItemSelectionModel::currentChanged,
-                      this, &BanDialog::currentRowChangedSlot );
+                      this, &BanDialog::snBanTableChangedRowSlot );
 
     //Load BannedIP data.
     this->loadBannedIPs();
@@ -70,13 +83,13 @@ void BanDialog::loadBannedIPs()
 
         QString group;
 
-        int banTime = 0;
+        int banDate = 0;
 
         int row = -1;
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            banTime = banData.value( group + "/banUntil", 0 ).toInt();
+            banDate = banData.value( group + "/banDate", 0 ).toInt();
 
             row = ipModel->rowCount();
             ipModel->insertRow( row );
@@ -86,28 +99,52 @@ void BanDialog::loadBannedIPs()
             ipModel->setData( ipModel->index( row, 1 ), banData.value( group + "/banReason", 0 ), Qt::DisplayRole );
 
             ipModel->setData( ipModel->index( row, 2 ),
-                                 QDateTime::fromTime_t( banTime ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
+                                 QDateTime::fromTime_t( banDate ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
                                  Qt::DisplayRole );
         }
-        ui->banTable->selectRow( 0 );
-        ui->banTable->resizeColumnsToContents();
+        ui->ipBanTable->selectRow( 0 );
+        ui->ipBanTable->resizeColumnsToContents();
     }
 }
 
-void BanDialog::on_removeIPBan_clicked()
+bool BanDialog::getIsIPBanned(QHostAddress& ipAddr)
 {
-    QModelIndex index = ipProxy->mapToSource( ui->banTable->currentIndex() );
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    QString ip{ ipAddr.toString() };
+    return getIsIPBanned( ip );
+}
 
-    banData.remove( ipModel->data( ipModel->index( index.row(), 0 ) ).toString() );
-    ipModel->removeRow( index.row() );
+bool BanDialog::getIsIPBanned(QString ipAddr)
+{
+    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    QStringList bans = banData.childGroups();
+
+    return bans.contains( ipAddr );
 }
 
 void BanDialog::on_addIPBan_clicked()
 {
-    QString trgIP = ui->banIP->text();
-    QString reason = ui->banReason->text();
-    this->addIPBanImpl( trgIP, reason );
+    QString ip = ui->trgIPAddr->text();
+    QString reason = ui->ipBanReason->text();
+
+    this->addIPBan( ip, reason );
+
+    ui->trgIPAddr->setText( "127.0.0.1" );
+    ui->ipBanReason->clear();
+}
+
+void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
+{
+    QString ip{ ipInfo.toString() };
+    this->addIPBan( ip, reason );
+}
+
+void BanDialog::addIPBan(QString& ip, QString& reason)
+{
+    if ( reason.isEmpty() )
+        reason = "Manual Banish.";
+
+    if ( !ip.isEmpty() )
+        this->addIPBanImpl( ip, reason );
 }
 
 void BanDialog::addIPBanImpl(QString& ip, QString& reason)
@@ -115,28 +152,51 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
     QSettings banData( "ipBanData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
-    int row = -1;
+    int row{ -1 };
+
     if ( !ip.isEmpty() )
     {
-        row = ipModel->rowCount();
-        ipModel->insertRow( row );
+        //Prevent adding new rows for previously-banned users.
+        if ( !this->getIsIPBanned( ip ) )
+        {
+            row = ipModel->rowCount();
+            ipModel->insertRow( row );
 
-        ipModel->setData( ipModel->index( row, 0 ), ip, Qt::DisplayRole );
+            ipModel->setData( ipModel->index( row, 0 ), ip, Qt::DisplayRole );
 
-        ipModel->setData( ipModel->index( row, 1 ), reason, Qt::DisplayRole );
+            ipModel->setData( ipModel->index( row, 1 ), reason, Qt::DisplayRole );
 
-        ipModel->setData( ipModel->index( row, 2 ),
-                          QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                          Qt::DisplayRole );
-
-        banData.setValue( ip + "/banUntil", date );
+            ipModel->setData( ipModel->index( row, 2 ),
+                              QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
+                              Qt::DisplayRole );
+        }
+        banData.setValue( ip + "/banDate", date );
         banData.setValue( ip + "/banReason", reason );
     }
+    ui->ipBanTable->resizeColumnsToContents();
 }
 
-void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
+void BanDialog::on_ipBanTable_clicked(const QModelIndex &index)
 {
+    if ( index.row() >= 0 )
+        ui->removeIPBan->setEnabled( true );
+}
 
+void BanDialog::ipBanTableChangedRowSlot(const QModelIndex &index, const QModelIndex&)
+{
+    if ( index.row() >= 0 )
+        ui->removeIPBan->setEnabled( true );
+}
+
+void BanDialog::on_removeIPBan_clicked()
+{
+    QModelIndex index = ipProxy->mapToSource( ui->ipBanTable->currentIndex() );
+    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+
+    banData.remove( ipModel->data( ipModel->index( index.row(), 0 ) ).toString() );
+    ipModel->removeRow( index.row() );
+
+    ui->removeIPBan->setEnabled( false );
 }
 
 //Sernum-Ban Tab
@@ -149,45 +209,31 @@ void BanDialog::loadBannedSernums()
 
         QString group;
 
-        int curTime = 0;
-        int banTime = 0;
+        int banDate{ 0 };
+        int row{ -1 };
 
-        int row = -1;
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            curTime = QDateTime::currentDateTime().toTime_t();
-            banTime = banData.value( group + "/banUntil", 0 ).toInt();
+            banDate = banData.value( group + "/banDate", 0 ).toInt();
 
             row = snModel->rowCount();
             snModel->insertRow( row );
 
             snModel->setData( snModel->index( row, 0 ), group, Qt::DisplayRole );
 
-            snModel->setData( snModel->index( row, 1 ),
-                                 QDateTime::fromTime_t( banTime ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                                 Qt::DisplayRole );
+            snModel->setData( snModel->index( row, 1 ), banData.value( group + "/banReason", 0 ), Qt::DisplayRole );
 
             snModel->setData( snModel->index( row, 2 ),
-                                 QString::number( (banTime - curTime) / 60 / 60 / 24 ) + " days",
+                                 QDateTime::fromTime_t( banDate ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
                                  Qt::DisplayRole );
-
-            snModel->setData( snModel->index( row, 3 ), banData.value( group + "/banReason", 0 ), Qt::DisplayRole );
         }
-        ui->sernumTable->selectRow( 0 );
-        ui->sernumTable->resizeColumnsToContents();
+        ui->snBanTable->selectRow( 0 );
+        ui->snBanTable->resizeColumnsToContents();
     }
 }
 
-bool BanDialog::getIsIPBanned(QHostAddress& ipAddr)
-{
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
-    QStringList bans = banData.childGroups();
-
-    return bans.contains( ipAddr.toString() );
-}
-
-bool BanDialog::getisSernumBanned(QString& sernum)
+bool BanDialog::getIsSernumBanned(QString sernum)
 {
     if ( !sernum.isEmpty() )
     {
@@ -199,35 +245,61 @@ bool BanDialog::getisSernumBanned(QString& sernum)
     return false;
 }
 
-void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
+void BanDialog::on_addSernumBan_clicked()
 {
-    qDebug() << ipInfo;
-    if ( !ipInfo.isNull() )
-    {
-        QString trgIP = ipInfo.toString();
-        this->addIPBanImpl( trgIP, reason );
-    }
+    QString sernum = ui->trgSerNum->text();
+    QString reason = ui->snBanReason->text();
+
+    this->addSerNumBan( sernum, reason );
+
+    ui->trgSerNum->clear();
+    ui->snBanReason->clear();
 }
 
 void BanDialog::addSerNumBan(QString& sernum, QString& reason)
 {
-    qDebug() << sernum << reason;
-//    if ( !sernum.isEmpty() )
-//    {
-//        if ( !reason.isEmpty() )
-//            ;
-//        else
-//            ;
-//    }
+    if ( reason.isEmpty() )
+        reason = "Manual Banish.";
+
+    if ( !sernum.isEmpty() )
+        this->addSernumBanImpl( sernum, reason );
 }
 
-void BanDialog::on_sernumTable_clicked(const QModelIndex &index)
+void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
+{
+    QSettings banData( "snBanData.ini", QSettings::IniFormat );
+    quint64 date = QDateTime::currentDateTime().toTime_t();
+
+    int row = -1;
+    if ( !sernum.isEmpty() )
+    {
+        //Prevent adding new rows for previously-banned users.
+        if ( !this->getIsSernumBanned( sernum ) )
+        {
+            row = snModel->rowCount();
+            snModel->insertRow( row );
+
+            snModel->setData( snModel->index( row, 0 ), sernum, Qt::DisplayRole );
+
+            snModel->setData( snModel->index( row, 1 ), reason, Qt::DisplayRole );
+
+            snModel->setData( snModel->index( row, 2 ),
+                              QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
+                              Qt::DisplayRole );
+        }
+        banData.setValue( sernum + "/banDate", date );
+        banData.setValue( sernum + "/banReason", reason );
+    }
+    ui->snBanTable->resizeColumnsToContents();
+}
+
+void BanDialog::on_snBanTable_clicked(const QModelIndex &index)
 {
     if ( index.row() >= 0 )
         ui->forgiveButton->setEnabled( true );
 }
 
-void BanDialog::currentRowChangedSlot(const QModelIndex &index, const QModelIndex&)
+void BanDialog::snBanTableChangedRowSlot(const QModelIndex &index, const QModelIndex&)
 {
     if ( index.row() >= 0 )
         ui->forgiveButton->setEnabled( true );
@@ -235,7 +307,7 @@ void BanDialog::currentRowChangedSlot(const QModelIndex &index, const QModelInde
 
 void BanDialog::on_forgiveButton_clicked()
 {
-    QModelIndex index = snProxy->mapToSource( ui->sernumTable->currentIndex() );
+    QModelIndex index = snProxy->mapToSource( ui->snBanTable->currentIndex() );
     QSettings banData( "snBanData.ini", QSettings::IniFormat );
 
     banData.remove( snModel->data( snModel->index( index.row(), 0 ) ).toString() );

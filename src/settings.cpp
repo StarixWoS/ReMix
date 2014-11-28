@@ -10,7 +10,18 @@ Settings::Settings(QWidget *parent) :
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
-    this->setWindowModality( Qt::WindowModal );
+
+    //Remove the "Help" button from the window title bars.
+    {
+        QIcon icon = this->windowIcon();
+        Qt::WindowFlags flags = this->windowFlags();
+        flags &= ~Qt::WindowContextHelpButtonHint;
+
+        this->setWindowFlags( flags );
+        this->setWindowIcon( icon );
+
+        this->setWindowModality( Qt::WindowModal );
+    }
 
     //Load Settings from file.
     this->setCheckedState( Options::ReqPwd,         Helper::getRequirePassword() );
@@ -71,7 +82,9 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
 
                     txt = Helper::getTextResponse( this, title, prompt, &ok, 0 );
                     if ( ok && !txt.toString().isEmpty() )
+                    {
                         Helper::setPassword( txt, false );
+                    }
                     else    //Invalid dialog state or no input Password. Reset the Object's state.
                     {
                         ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
