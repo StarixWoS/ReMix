@@ -46,14 +46,20 @@ Admin::Admin(QWidget *parent) :
     //Setup Objects.
     banDialog = new BanDialog( parent );
 
-
     this->loadServerAdmins();
     this->initContextMenu();
 }
 
 Admin::~Admin()
 {
+    tableModel->deleteLater();
+    tableProxy->deleteLater();
     contextMenu->deleteLater();
+
+    banDialog->close();
+    banDialog->deleteLater();
+
+    delete randDev;
     delete ui;
 }
 

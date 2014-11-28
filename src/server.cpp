@@ -327,6 +327,7 @@ void Server::newConnectionSlot()
         data = udpDatas.value( peerAddr );
     }
 
+    plr->setBioData( data );
     if ( plrTableItems.contains( ip ) )
     {
         plr->setTableRow( this->updatePlrListRow( ip, data, plr, false ) );
@@ -354,62 +355,66 @@ void Server::readyReadUDPSlot()
         udpData.resize( sender->pendingDatagramSize() );
         sender->readDatagram( udpData.data(), udpData.size(), &senderAddr, &senderPort );
 
-        QString data( udpData );
-        if ( !data.isEmpty() )
+        //Check for a banned IP-Address. --Log the rejection to file.
+        if ( bandlg->getIsIPBanned( senderAddr ) )
         {
-            switch ( data.at( 0 ).toLatin1() )
+            QString logTxt{ "Ignoring UDP from banned %1 %2:%3 sent command: %4" };
+            QString log{ "ignored.txt" };
+            logTxt = logTxt.arg( "IP Address" )
+                           .arg( senderAddr.toString() )
+                           .arg( senderPort )
+                           .arg( QString( udpData ) );
+
+            Helper::logToFile( log, logTxt, true, true );
+        }
+        else    //Read the incoming command.
+        {
+            QString data( udpData );
+            if ( !data.isEmpty() )
             {
-                case 'G':   //Set the Server's gameInfoString.
-                    server->setGameInfo( data.mid( 1 ) );
-                break;
-                case 'M':   //Read the response to the Master Server checkin.
-                    this->parseMasterServerResponse( udpData );
-                break;
-                case 'P':   //Store the Player information into a struct.
+                QString sernum{ "" };
+                if ( data.at( 0 ) == 'P'
+                  || data.at( 0 ) == 'Q' )
+                {
+                    int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
+                    if ( index > 0 )
                     {
-                        //Check for a banned IP-Address.
-                        udpDatas.insert( senderAddr, udpData.mid( 1 ) );
-                        if ( !bandlg->getIsIPBanned( senderAddr ) )
-                        {
-                            int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
-                            QString sernum{ "" };
-                            if ( index > 0 )
-                            {
-                                sernum = udpData.mid( index + 7 );
-                                sernum = sernum.left( sernum.indexOf( ',' ) );
-                            }
-
-                            //Check if the sernum is banned.
-                            if ( !bandlg->getIsSernumBanned( sernum ) )
-                                this->sendServerInfo( sender, senderAddr, senderPort );
-
-                            //TODO: Check for banned D and V variables. --Low priority.
-                        }
+                        sernum = udpData.mid( index + 7 );
+                        sernum = sernum.left( sernum.indexOf( ',' ) );
                     }
-                break;
-                case 'Q':   //Send our online User information to the requestor.
-                    if ( !bandlg->getIsIPBanned( senderAddr ) )
-                    {
-                        int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
-                        QString sernum{ "" };
-                        if ( index > 0 )
-                        {
-                            sernum = udpData.mid( index + 7 );
-                            sernum = sernum.left( sernum.indexOf( ',' ) );
-                        }
+                }
 
+                switch ( data.at( 0 ).toLatin1() )
+                {
+                    case 'G':   //Set the Server's gameInfoString.
+                        server->setGameInfo( data.mid( 1 ) );
+                    break;
+                    case 'M':   //Read the response to the Master Server checkin.
+                        this->parseMasterServerResponse( udpData );
+                    break;
+                    case 'P':   //Store the Player information into a struct.
                         //Check if the sernum is banned.
                         if ( !bandlg->getIsSernumBanned( sernum ) )
-                            this->sendUserList( sender, senderAddr, senderPort );
-
+                        {
+                            udpDatas.insert( senderAddr, udpData.mid( 1 ) );
+                            this->sendServerInfo( sender, senderAddr, senderPort );
+                        }
                         //TODO: Check for banned D and V variables. --Low priority.
-                    }
-                break;
-                case 'R':   //TODO: Command "R" with unknown use.
-                break;
-                default:    //Do nothing; Unknown command.
+                    break;
+                    case 'Q':   //Send our online User information to the requestor.
+                        //Check if the sernum is banned.
+                        if ( !bandlg->getIsSernumBanned( sernum ) )
+                        {
+                            this->sendUserList( sender, senderAddr, senderPort );
+                        }
+                        //TODO: Check for banned D and V variables. --Low priority.
+                    break;
+                    case 'R':   //TODO: Command "R" with unknown use.
+                    break;
+                    default:    //Do nothing; Unknown command.
                     return;
-                break;
+                    break;
+                }
             }
         }
     }

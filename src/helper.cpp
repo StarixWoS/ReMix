@@ -59,6 +59,26 @@ QString Helper::serNumToIntStr(QString sernum)
         return QString( "%1" ).arg( intToStr( serNum, 16 ) );
 }
 
+void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLine)
+{
+    QFile log( file );
+    if ( log.open( QFile::WriteOnly | QFile::Append ) )
+    {
+        if ( timeStamp )
+        {
+            quint64 date = QDateTime::currentDateTime().toTime_t();
+            text.prepend( QDateTime::fromTime_t( date ).toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
+        }
+
+        if ( newLine )
+            text.prepend( "\r\n" );
+
+        log.write( text.toLatin1() );
+
+        log.close();
+    }
+}
+
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
     quint32 value = QMessageBox::question( parent, title, prompt,

@@ -24,6 +24,7 @@ class Player : public QObject
     QString alias{ "" };
     QString playTime{ "" };
 
+    QByteArray bioData;
     QByteArray outBuff;
 
     quint32 sernum{ 0 };
@@ -94,6 +95,9 @@ class Player : public QObject
 
         QString getAlias() const;
         void setAlias(const QString& value);
+
+        QByteArray getBioData() const;
+        void setBioData(const QByteArray& value);
 
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);

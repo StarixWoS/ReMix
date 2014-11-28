@@ -38,7 +38,7 @@ BanDialog::BanDialog(QWidget *parent) :
     //Setup the Sernum-Ban TableView.
     snModel = new QStandardItemModel( 0, 3, 0 );
     snModel->setHeaderData( 0, Qt::Horizontal, "Sernum" );
-    snModel->setHeaderData( 1, Qt::Horizontal, "Reason" );
+    snModel->setHeaderData( 1, Qt::Horizontal, "Ban Reason" );
     snModel->setHeaderData( 2, Qt::Horizontal, "Ban Time" );
 
     //Proxy model to support sorting without actually altering the underlying model

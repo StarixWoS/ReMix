@@ -40,6 +40,8 @@ namespace Helper
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
 
+    void logToFile(QString& file, QString& text, bool timeStamp = false, bool newLine = false);
+
     bool confirmAction(QWidget* parent, QString& title, QString& prompt);
     QString getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type = 0);
 

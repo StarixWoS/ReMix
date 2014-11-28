@@ -69,7 +69,12 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias, QString& m
 
     if ( Helper::getLogComments() )
     {
-        ;   //Log incoming comments to: mixComments/DATE_Comments.txt
+        QDir comments{ "mixComments" };
+        if ( !comments.exists( "mixComments" ) )
+            comments.mkpath( "." );
+
+        QString log = QDate::currentDate().toString( "mixComments/yyyy-MM-dd.txt" );
+        Helper::logToFile( log, comment, false, false );
     }
 
     //Show the Dialog when a new comment is recieved.

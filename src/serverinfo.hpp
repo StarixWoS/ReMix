@@ -4,6 +4,7 @@
 
 #include <QHostInfo>
 #include <QString>
+#include <QDir>
 
 #include "helper.hpp"
 #include "player.hpp"
@@ -57,6 +58,8 @@ class ServerInfo
     quint64 bytesOut{ 0 };
     quint64 baudOut{ 0 };
 
+    bool logUsage{ false };
+
     public:
         ServerInfo();
         ~ServerInfo();
@@ -69,6 +72,8 @@ class ServerInfo
         int getSocketSlot(QTcpSocket* soc);
         int getSernumSlot(quint32 sernum);
         int getQItemSlot(QStandardItem* index);
+
+        void sendToAllConnected(QString packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -156,6 +161,9 @@ class ServerInfo
 
         quint64 getBaudOut() const;
         void setBaudOut(const quint64& bOut);
+
+        bool getLogUsage() const;
+        void setLogUsage(bool value);
 };
 
 #endif // SERVERINFO_HPP

@@ -10,6 +10,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QMainWindow>
+#include <QCloseEvent>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QUdpSocket>
@@ -86,6 +87,8 @@ class ReMix : public QMainWindow
 
         //Handle Minimize events.
         void changeEvent(QEvent* event);
+        void closeEvent(QCloseEvent* event);
+        bool rejectCloseEvent();
 
     private:
         Ui::ReMix *ui;

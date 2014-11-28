@@ -50,6 +50,28 @@ Player* ServerInfo::getPlayer(int slot)
 
 void ServerInfo::deletePlayer(int slot)
 {
+    if ( this->getLogUsage() )
+    {
+        QDir usage{ "mixUsage" };
+        if ( !usage.exists( "mixUsage" ) )
+            usage.mkpath( "." );
+
+        Player* plr = this->getPlayer( slot );
+
+        QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
+        QString logMsg{ "Client:%1 was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
+        if ( plr != nullptr )
+        {
+            logMsg = logMsg.arg( plr->getPublicIP() )
+                     .arg( plr->getConnTime() / 60 )
+                     .arg( plr->getBytesIn() )
+                     .arg( plr->getPacketsIn() )
+                     .arg( plr->getAvgBaudIn() )
+                     .arg( QString( plr->getBioData() ));
+            Helper::logToFile( log, logMsg, true, true );
+        }
+    }
+
     QTcpSocket* soc = players[ slot ]->getSocket();
                 soc->disconnect();
                 soc->deleteLater();
@@ -115,6 +137,20 @@ int ServerInfo::getQItemSlot(QStandardItem* index)
         }
     }
     return slot;
+}
+
+void ServerInfo::sendToAllConnected(QString packet)
+{
+    Player* tmpPlr{ nullptr };
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        tmpPlr = this->getPlayer( i );
+        if ( tmpPlr != nullptr
+          && tmpPlr->getSocket() != nullptr )
+        {
+            tmpPlr->getSocket()->write( packet.toLatin1() );
+        }
+    }
 }
 
 quint64 ServerInfo::getUpTime() const
@@ -418,4 +454,14 @@ void ServerInfo::setBaudOut(const quint64& bOut)
         baud = 10000 * bOut / time;
 
     baudOut = baud;
+}
+
+bool ServerInfo::getLogUsage() const
+{
+    return logUsage;
+}
+
+void ServerInfo::setLogUsage(bool value)
+{
+    logUsage = value;
 }

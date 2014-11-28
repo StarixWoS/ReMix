@@ -157,6 +157,16 @@ void Player::setAlias(const QString& value)
     alias = value;
 }
 
+QByteArray Player::getBioData() const
+{
+    return bioData;
+}
+
+void Player::setBioData(const QByteArray& value)
+{
+    bioData = value;
+}
+
 QByteArray Player::getOutBuff() const
 {
     return outBuff;
