@@ -60,7 +60,7 @@ namespace AdminHelper
 
     quint32 changeRemoteAdminRank(QWidget* parent, QString& sernum)
     {
-        bool ok;
+        bool ok{ false };
         QString item = QInputDialog::getItem( parent, "Admin Rank:",
                                               "Rank:", ranks, 0, false, &ok );
         quint32 rank = -1;

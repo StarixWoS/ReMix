@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QChar>
+#include <QDir>
 
 namespace Ui {
     class BanDialog;

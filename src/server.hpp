@@ -15,6 +15,13 @@
 #include <QTimer>
 #include <QDir>
 
+//#ifdef DECRYPT_PACKET_PLUGIN
+//    #include <QCoreApplication>
+//    #include <QPluginLoader>
+
+//    #include "packetdecryptinterface.hpp"
+//#endif
+
 class UserMessage;
 class ServerInfo;
 class Player;
@@ -36,12 +43,19 @@ class Server : public QTcpServer
     UserMessage* serverComments{ nullptr };
     Admin* admin{ nullptr };
 
+//#ifdef DECRYPT_PACKET_PLUGIN
+//    PacketDecryptInterface* packetInterface{ nullptr };
+//    QPluginLoader* pluginManager{ nullptr };
+//    bool loadPlugin();
+//#endif
+
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, Admin* adminDlg = nullptr,
                QStandardItemModel* plrView = nullptr );
         ~Server();
 
         void checkBannedInfo(Player* plr = nullptr);
+        void detectPacketFlood(Player* plr);
 
         void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo();
@@ -49,6 +63,7 @@ class Server : public QTcpServer
         void disconnectFromMaster();
         void sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort);
         void sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port);
+        quint64 sendServerRules(Player* plr);
 
         QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert);
 

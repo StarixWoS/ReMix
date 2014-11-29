@@ -90,7 +90,7 @@ void Admin::loadServerAdmins()
         QString salt{ "" };
         int rank{ 0 };
 
-        int row = -1;
+        int row{ -1 };
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );

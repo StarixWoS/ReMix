@@ -8,42 +8,54 @@ Player::Player()
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
-
-        QStandardItem* row = this->getTableRow();
-        if ( row != nullptr )
+        
+        //Disconnect Users with pending (forced) disconnections.
+        if ( this->getForcedDisconnect() )
         {
-            QStandardItemModel* model = row->model();
-            if ( model != nullptr )
+            this->getSocket()->flush();
+            this->getSocket()->close();
+        }
+        else
+        {
+            QStandardItem* row = this->getTableRow();
+            if ( row != nullptr )
             {
-                model->setData( row->model()->index( row->row(), 4 ),
-                                QString( "%1:%2:%3" )
-                                    .arg( connTime / 3600, 2, 10, QChar( '0' ) )
-                                    .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
-                                    .arg( connTime % 60, 2, 10, QChar( '0' ) ),
-                                Qt::DisplayRole );
+                QStandardItemModel* model = row->model();
+                if ( model != nullptr )
+                {
+                    model->setData( row->model()->index( row->row(), 4 ),
+                                    QString( "%1:%2:%3" )
+                                        .arg( connTime / 3600, 2, 10, QChar( '0' ) )
+                                        .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                        .arg( connTime % 60, 2, 10, QChar( '0' ) ),
+                                    Qt::DisplayRole );
 
-                this->setAvgBaudIn( this->getBytesIn() );
-                model->setData( row->model()->index( row->row(), 5 ),
-                                       QString( "%1Bd, %2B, %3 Pkts" )
-                                           .arg( this->getAvgBaudIn() )
-                                           .arg( this->getBytesIn() )
-                                           .arg( this->getPacketsIn() ),
-                                       Qt::DisplayRole );
+                    this->setAvgBaudIn( this->getBytesIn() );
+                    model->setData( row->model()->index( row->row(), 5 ),
+                                    QString( "%1Bd, %2B, %3 Pkts" )
+                                        .arg( this->getAvgBaudIn() )
+                                        .arg( this->getBytesIn() )
+                                        .arg( this->getPacketsIn() ),
+                                    Qt::DisplayRole );
 
-                this->setAvgBaudOut( this->getBytesOut() );
-                model->setData( row->model()->index( row->row(), 6 ),
-                                       QString( "%1Bd, %2B, %3 Pkts" )
-                                           .arg( this->getAvgBaudOut() )
-                                           .arg( this->getBytesOut() )
-                                           .arg( this->getPacketsOut() ),
-                                       Qt::DisplayRole );
+                    this->setAvgBaudOut( this->getBytesOut() );
+                    model->setData( row->model()->index( row->row(), 6 ),
+                                    QString( "%1Bd, %2B, %3 Pkts" )
+                                        .arg( this->getAvgBaudOut() )
+                                        .arg( this->getBytesOut() )
+                                        .arg( this->getPacketsOut() ),
+                                    Qt::DisplayRole );
+                }
             }
         }
     });
+
+    floodTimer.start();
 }
 
 Player::~Player()
 {
+    connTimer.stop();
     connTimer.disconnect();
 }
 
@@ -81,7 +93,7 @@ void Player::setSernum(quint32 value)
 {
     if ( Helper::getReqSernums() && value <= 0 )
     {
-        this->getSocket()->abort();
+        this->setForcedDisconnect( true );
         return;
     }
     sernum = value;
@@ -145,6 +157,16 @@ QString Player::getPlayTime() const
 void Player::setPlayTime(const QString& value)
 {
     playTime = value;
+}
+
+QString Player::getGameInfo() const
+{
+    return worldName;
+}
+
+void Player::setGameInfo(const QString& value)
+{
+    worldName = value;
 }
 
 QString Player::getAlias() const
@@ -211,6 +233,16 @@ void Player::setPublicIP(const QString& value)
     publicIP = value;
 }
 
+quint32 Player::getPublicPort() const
+{
+    return publicPort;
+}
+
+void Player::setPublicPort(const quint32& value)
+{
+    publicPort = value;
+}
+
 bool Player::getEnteredPwd() const
 {
     return enteredPwd;
@@ -221,14 +253,35 @@ void Player::setEnteredPwd(bool value)
     enteredPwd = value;
 }
 
+quint64 Player::getFloodTime() const
+{
+    return floodTimer.elapsed();
+}
+
+void Player::restartFloodTimer()
+{
+    floodTimer.restart();
+}
+
+int Player::getPacketFloodCount() const
+{
+    return packetFloodCount;
+}
+
+void Player::setPacketFloodCount(int value)
+{
+    packetFloodCount = value;
+}
+
 int Player::getPacketsIn() const
 {
     return packetsIn;
 }
 
-void Player::setPacketsIn(int value)
+void Player::setPacketsIn(int value, int incr)
 {
-    packetsIn = value;
+    packetsIn = value + incr;
+    this->setPacketFloodCount( this->getPacketFloodCount() + incr );
 }
 
 quint64 Player::getBytesIn() const
@@ -314,4 +367,14 @@ bool Player::getAdminPwdEntered() const
 void Player::setAdminPwdEntered(bool value)
 {
     adminPwdEntered = value;
+}
+
+bool Player::getForcedDisconnect() const
+{
+    return pendingDisconnect;
+}
+
+void Player::setForcedDisconnect(bool value)
+{
+    pendingDisconnect = value;
 }

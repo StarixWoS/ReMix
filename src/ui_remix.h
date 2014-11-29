@@ -68,7 +68,8 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(697, 272);
+        ReMix->resize(666, 272);
+        ReMix->setMinimumSize(QSize(0, 272));
         ReMix->setDockNestingEnabled(false);
         actionSendMessage = new QAction(ReMix);
         actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));

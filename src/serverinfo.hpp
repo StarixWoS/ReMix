@@ -72,8 +72,10 @@ class ServerInfo
         int getSocketSlot(QTcpSocket* soc);
         int getSernumSlot(quint32 sernum);
         int getQItemSlot(QStandardItem* index);
+        int getIPAddrSlot(QString ip);
 
-        void sendToAllConnected(QString packet);
+        quint64 sendMasterMessage(QString packet, Player* plr = nullptr, bool toAll = false);
+        quint64 sendToAllConnected(QString packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();

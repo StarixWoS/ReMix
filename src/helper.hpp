@@ -53,7 +53,9 @@ namespace Helper
 
     void setBanishMesage(QVariant& value);
     QString getBanishMesage();
+
     QString getBanishReason(QWidget* parent = nullptr);
+    QString getDisconnectReason(QWidget* parent = nullptr);
 
     QString hashPassword(QVariant& password);
     bool setPassword(QVariant& value, bool isHashed);

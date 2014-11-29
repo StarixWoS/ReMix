@@ -44,8 +44,8 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias, QString& m
                           .arg( message );
 
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
-    int selStart = 0;
-    int selEnd = 0;
+    int selStart{ 0 };
+    int selEnd{ 0 };
 
     QTextCursor cursor( obj->textCursor() );
     if ( cursor.hasSelection() )

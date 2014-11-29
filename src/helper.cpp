@@ -30,7 +30,7 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
 int Helper::strToInt(QString& str, int base)
 {
     bool base16 = ( base != 10 );
-    bool ok = false;
+    bool ok{ false };
 
     int val = str.toInt( &ok, base );
     if ( !ok && !base16 )
@@ -155,6 +155,21 @@ QString Helper::getBanishReason(QWidget* parent)
     QString reason{ dialog->textValue() };
     if ( reason.isEmpty() )
         reason = "Manual Banish.";
+
+    return reason;
+}
+
+QString Helper::getDisconnectReason(QWidget* parent)
+{
+    QString label{ "Disconnect Reason ( Sent to User ):" };
+    QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
+
+    dialog->exec();
+    dialog->deleteLater();
+
+    QString reason{ dialog->textValue() };
+    if ( reason.isEmpty() )
+        reason = "Manual Disconnect.";
 
     return reason;
 }

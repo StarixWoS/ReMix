@@ -37,6 +37,10 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
 
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
+
+//#ifdef DECRYPT_PACKET_PLUGIN
+//    this->loadPlugin();
+//#endif
 }
 
 Server::~Server()
@@ -73,7 +77,7 @@ void Server::checkBannedInfo(Player* plr)
         if ( bandlg->getIsIPBanned( plr->getPublicIP() )
           || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
         {
-            plr->getSocket()->abort();
+            plr->setForcedDisconnect( true );
         }
     }
 
@@ -93,12 +97,12 @@ void Server::checkBannedInfo(Player* plr)
                     if ( Helper::getBanDupedIP() )
                         bandlg->addIPBan( peerAddr, reason );
 
-                    plr->getSocket()->abort();
+                    plr->setForcedDisconnect( true );
                     server->setIpDc( server->getIpDc() + 1 );
 
                     if ( tmpPlr->getSocket() != nullptr )
                     {
-                        tmpPlr->getSocket()->abort();
+                        tmpPlr->setForcedDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
                     }
                 }
@@ -115,7 +119,60 @@ void Server::checkBannedInfo(Player* plr)
           && tmpPlr->getSernum() == plr->getSernum() )
         {
             if ( tmpPlr != plr )
-                plr->getSocket()->abort();
+                plr->setForcedDisconnect( true );
+        }
+    }
+}
+
+void Server::detectPacketFlood(Player* plr)
+{
+    if ( plr == nullptr
+      || plr->getSocket() == nullptr )
+    {
+        return;
+    }
+
+    int floodCount = plr->getPacketFloodCount();
+    if ( floodCount >= 1 )
+    {
+        quint64 time = plr->getFloodTime();
+        if ( time <= PACKET_FLOOD_TIME )
+        {
+            if ( floodCount >= PACKET_FLOOD_LIMIT )
+            {
+                QDir usage{ "banLog" };
+                if ( !usage.exists( "banLog" ) )
+                    usage.mkpath( "." );
+
+                QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
+                QString logMsg = QString( "*** This hoser [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
+                                     .arg( plr->getPublicIP() )
+                                     .arg( plr->getPublicPort() )
+                                     .arg( floodCount )
+                                     .arg( time );
+
+                Helper::logToFile( log, logMsg, true, true );
+                if ( Helper::getBanHackers() )
+                {
+                    BanDialog* banDlg = admin->getBanDialog();
+                    if ( banDlg != nullptr )
+                    {
+                        logMsg = QString( "Auto-Banish; suspicious data from: [ %1:%2 ]: %3" )
+                                     .arg( plr->getPublicIP() )
+                                     .arg( plr->getPublicPort() )
+                                     .arg( QString( plr->getBioData() ) );
+
+                        QString ip{ plr->getPublicIP() };
+                        banDlg->addIPBan( ip, logMsg );
+                    }
+                }
+                plr->setForcedDisconnect( true );
+            }
+        }
+        else if ( time >= PACKET_FLOOD_TIME )
+        {
+            plr->restartFloodTimer();
+            plr->setPacketFloodCount( 0 );
         }
     }
 }
@@ -123,7 +180,7 @@ void Server::checkBannedInfo(Player* plr)
 QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert)
 {
     QString bio = QString( data );
-    int row = -1;
+    int row{ -1 };
 
     QStandardItem* item;
     if ( !insert )
@@ -232,29 +289,31 @@ void Server::newConnectionSlot()
 
     plr->setSocket( peer );
 
-    QString ip = QString( "%1" ).arg( peerAddr.toString() );
+    QString ip{ peerAddr.toString() };
     plr->setPublicIP( ip );
+    plr->setPublicPort( peer->peerPort() );
     ip = ip.append( ":%1" ).arg( peer->peerPort() );
 
-    QString greeting = QString( ":SR@M" + Helper::getMOTDMessage().toLatin1() );
+    QString greeting = Helper::getMOTDMessage();
     if ( Helper::getRequirePassword() )
     {
         greeting.append( "///PASSWORD REQUIRED NOW: " );
         plr->setPwdRequested( true );
     }
+    greeting.append( "\r\n" );
 
     quint64 bOut{ 0 };
     if ( peer != nullptr )
     {
         if ( !greeting.isEmpty() )
         {
-            bOut += peer->write( greeting.toLatin1() + "\r\n" );
+            bOut += server->sendMasterMessage( greeting, plr, false );
             plr->setPacketsOut( plr->getPacketsOut() + 1 );
         }
 
         if ( !server->getServerRules().isEmpty() )
         {
-            bOut += peer->write( ":SR$" + server->getServerRules().toLatin1() + "\r\n" );
+            bOut += this->sendServerRules( plr );
             plr->setPacketsOut( plr->getPacketsOut() + 1 );
         }
         plr->setBytesOut( plr->getBytesIn() + bOut );
@@ -310,10 +369,11 @@ void Server::newConnectionSlot()
 
                 plr->setOutBuff( data );
 
-                plr->setPacketsIn( plr->getPacketsIn() + 1 );
+                plr->setPacketsIn( plr->getPacketsIn(), 1 );
                 plr->setBytesIn( plr->getBytesIn() + packet.length() );
 
                 this->parsePacket( packet, plr );
+                this->detectPacketFlood( plr );
                 emit peer->readyRead();
             }
         }
@@ -387,7 +447,18 @@ void Server::readyReadUDPSlot()
                 switch ( data.at( 0 ).toLatin1() )
                 {
                     case 'G':   //Set the Server's gameInfoString.
-                        server->setGameInfo( data.mid( 1 ) );
+//                        {
+//                        #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
+//                            //Allow Multi-World Servers.
+//                            Player* tmpPlr{ nullptr };
+//                                    tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
+
+//                            if ( tmpPlr != nullptr )
+//                                tmpPlr->setGameInfo( data.mid( 1 ) );
+//                        #else
+                            server->setGameInfo( data.mid( 1 ) );
+//                        #endif
+//                        }
                     break;
                     case 'M':   //Read the response to the Master Server checkin.
                         this->parseMasterServerResponse( udpData );
@@ -491,6 +562,20 @@ void Server::sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port)
         soc->writeDatagram( response.toLatin1(), response.size() + 1, addr, port );
 }
 
+quint64 Server::sendServerRules(Player* plr)
+{
+    if ( plr == nullptr
+      || plr->getSocket() == nullptr )
+    {
+        return 0;
+    }
+
+    QString rules{ ":SR$%1\r\n" };
+            rules = rules.arg( server->getServerRules() );
+
+    return plr->getSocket()->write( rules.toLatin1(), rules.length() );
+}
+
 void Server::masterCheckInTimeOutSlot()
 {
     QString response = QString( "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" );
@@ -513,9 +598,9 @@ void Server::masterCheckInTimeOutSlot()
 
 void Server::parseMasterServerResponse(QByteArray& mData)
 {
-    int opcode = 0;
-    int pubIP = 0;
-    int pubPort = 0;
+    int opcode{ 0 };
+    int pubIP{ 0 };
+    int pubPort{ 0 };
 
     if ( !mData.isEmpty() )
     {
@@ -624,11 +709,28 @@ void Server::parseSRPacket(QString& packet, Player* plr)
 
                     if ( send && isAuth )
                     {
+//                    #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
+//                        if ( packetInterface != nullptr )
+//                        {
+//                            if ( plr->getGameInfo() == tmpPlr->getGameInfo() )
+//                            {
+//                                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+//                            }
+//                            else if ( packetInterface->canSendPacket( packet ) )
+//                            {
+//                                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+//                            }
+//                        }
+//                        else
+//                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+//                    #else
                         bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+//                    #endif
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
                         server->setBytesOut( server->getBytesOut() + bOut );
+
                     }
                     else
                         qDebug() << QString( "Skipping packet to unauthenticated User (%1)." ).arg( tmpPlr->getPublicIP() );
@@ -731,10 +833,6 @@ void Server::readMIX4(QString& packet, Player* plr)
 
 void Server::readMIX5(QString& packet, Player* plr)
 {
-    QTcpSocket* soc = plr->getSocket();
-    if ( soc == nullptr )
-        return;
-
     QString sernum = plr->getSernum_s();
     QString alias{ "" };
     QString msg{ "" };
@@ -755,6 +853,9 @@ void Server::readMIX5(QString& packet, Player* plr)
         QString response{ "" };
         quint64 bOut{ 0 };
 
+        QString invalid{ "Correct password, welcome." };
+        QString valid{ "Incorrect password, please go away." };
+
         bool disconnect{ false };
         if ( plr->getPwdRequested()
           && !plr->getEnteredPwd() )
@@ -762,14 +863,14 @@ void Server::readMIX5(QString& packet, Player* plr)
             QVariant pwd( msg );
             if ( Helper::cmpServerPassword( pwd ) )
             {
-                response = ":SR@MCorrect password, welcome.\r\n";
+                response = valid;
 
                 plr->setPwdRequested( false );
                 plr->setEnteredPwd( true );
             }
             else
             {
-                response = ":SR@MIncorrect password, please go away.\r\n";
+                response = invalid;
                 disconnect = true;
             }
         }
@@ -780,14 +881,14 @@ void Server::readMIX5(QString& packet, Player* plr)
             QString sernum = plr->getSernum_s();
             if ( AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
             {
-                response = ":SR@MCorrect password, welcome.\r\n";
+                response = valid;
 
                 plr->setAdminPwdRequested( false );
                 plr->setAdminPwdEntered( true );
             }
             else
             {
-                response = ":SR@MIncorrect password, please go away.\r\n";
+                response = invalid;
                 disconnect = true;
             }
         }
@@ -796,11 +897,10 @@ void Server::readMIX5(QString& packet, Player* plr)
 
         if ( !response.isEmpty() )
         {
-            bOut = soc->write( response.toLatin1() );
+            bOut = server->sendMasterMessage( response, plr, false );
             if ( disconnect )
             {
-                soc->waitForBytesWritten( 100 );
-                soc->abort();
+                plr->setForcedDisconnect( true );
             }
             else if ( bOut >= 1 )
             {
@@ -875,21 +975,18 @@ void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
     if ( plr == nullptr )
         return;
 
-    QString msg{ "" };
+    QString msg{ "The server Admin requires all Remote Administrators to authenticate themselves with their password. "
+                 "Please enter your password or be denied access to the server. Thank you!"
+                 "///PASSWORD REQUIRED NOW:" };
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {
-        msg = ":SR@MThe server Admin requires all Remote Administrators to authenticate themselves with their password. "
-              "Please enter your password or be denied access to the server. Thank you!"
-              "///PASSWORD REQUIRED NOW: \r\n";
-
         plr->setAdminPwdRequested( true );
-    }
-
-    if ( !msg.isEmpty()
-      && plr->getSocket() != nullptr )
-    {
-        plr->getSocket()->write( msg.toLatin1() );
+        if ( plr->getSocket() != nullptr )
+        {
+            quint64 bOut = server->sendMasterMessage( msg, plr, false );
+            server->setBytesOut( server->getBytesOut() + bOut );
+        }
     }
 }
 
@@ -899,7 +996,7 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
         return;
 
     if (( plr->getSernum() != id
-      && id != 0 )
+       && id != 0 )
       || plr->getSernum() == 0 )
     {
         QString serNum_s = Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) );
@@ -918,6 +1015,42 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
             this->sendRemoteAdminPwdReq( plr, serNum_s );
         }
         else if ( id > 0 && plr->getSernum() != id )
-            plr->getSocket()->abort();   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
+            plr->setForcedDisconnect( true );   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
     }
 }
+
+//#ifdef DECRYPT_PACKET_PLUGIN
+//bool Server::loadPlugin()
+//{
+//    QDir pluginsDir( qApp->applicationDirPath() );
+
+//#if defined(Q_OS_WIN)
+//    if ( pluginsDir.dirName().toLower() == "debug"
+//      || pluginsDir.dirName().toLower() == "release")
+//    {
+//        pluginsDir.cdUp();
+//    }
+
+//#elif defined(Q_OS_MAC)
+//    if (pluginsDir.dirName() == "MacOS") {
+//        pluginsDir.cdUp();
+//        pluginsDir.cdUp();
+//        pluginsDir.cdUp();
+//    }
+//#endif
+
+//    pluginsDir.cd( "plugins" );
+//    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ))
+//    {
+//        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ));
+//        QObject *plugin = pluginLoader.instance();
+//        if ( plugin )
+//        {
+//            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
+//            if ( packetInterface )
+//                return true;
+//        }
+//    }
+//    return false;
+//}
+//#endif

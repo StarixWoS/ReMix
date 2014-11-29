@@ -8,6 +8,8 @@
 #include <QTcpSocket>
 #include <QObject>
 #include <QTimer>
+#include <QFile>
+#include <QDir>
 
 const int MAX_CMD_ATTEMPTS = 3;
 const int PACKET_FLOOD_LIMIT = 256; //Users are able to send 256 packets within PACKET_FLOOD_TIME.
@@ -20,9 +22,11 @@ class Player : public QObject
 
     QTcpSocket* socket{ nullptr };
     QString publicIP{ "" };
+    quint32 publicPort{ 0 };
 
     QString alias{ "" };
     QString playTime{ "" };
+    QString worldName{ "" };
 
     QByteArray bioData;
     QByteArray outBuff;
@@ -44,7 +48,9 @@ class Player : public QObject
     bool adminPwdEntered{ false };
     quint32 adminCmdAttempts{ MAX_CMD_ATTEMPTS };  //Max limit is 3 attempts before auto-banning.
 
+    QElapsedTimer floodTimer;
     int packetFloodCount{ 0 };
+
     int packetsIn{ 0 };
     quint64 bytesIn{ 0 };
     quint32 avgBaudIn{ 0 };
@@ -57,6 +63,7 @@ class Player : public QObject
     quint64 connTime{ 0 };
     QElapsedTimer lastPacketTime;
 
+    bool pendingDisconnect{ false };
     public:
         explicit Player();
         ~Player();
@@ -93,6 +100,9 @@ class Player : public QObject
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
 
+        QString getGameInfo() const;
+        void setGameInfo(const QString& value);
+
         QString getAlias() const;
         void setAlias(const QString& value);
 
@@ -111,11 +121,20 @@ class Player : public QObject
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
 
+        quint32 getPublicPort() const;
+        void setPublicPort(const quint32& value);
+
         bool getEnteredPwd() const;
         void setEnteredPwd(bool value);
 
+        quint64 getFloodTime() const;
+        void restartFloodTimer();
+
+        int getPacketFloodCount() const;
+        void setPacketFloodCount(int value);
+
         int getPacketsIn() const;
-        void setPacketsIn(int value);
+        void setPacketsIn(int value, int incr);
 
         quint64 getBytesIn() const;
         void setBytesIn(const quint64& value);
@@ -140,6 +159,9 @@ class Player : public QObject
 
         int getAdminRank() const;
         void setAdminRank(int value);
+
+        bool getForcedDisconnect() const;
+        void setForcedDisconnect(bool value);
 };
 
 #endif // PLAYER_HPP

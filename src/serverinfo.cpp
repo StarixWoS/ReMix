@@ -50,41 +50,46 @@ Player* ServerInfo::getPlayer(int slot)
 
 void ServerInfo::deletePlayer(int slot)
 {
-    if ( this->getLogUsage() )
+    Player* plr = this->getPlayer( slot );
+    if ( plr != nullptr )
     {
-        QDir usage{ "mixUsage" };
-        if ( !usage.exists( "mixUsage" ) )
-            usage.mkpath( "." );
-
-        Player* plr = this->getPlayer( slot );
-
-        QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
-        QString logMsg{ "Client:%1 was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
-        if ( plr != nullptr )
+        if ( this->getLogUsage() )
         {
-            logMsg = logMsg.arg( plr->getPublicIP() )
-                     .arg( plr->getConnTime() / 60 )
-                     .arg( plr->getBytesIn() )
-                     .arg( plr->getPacketsIn() )
-                     .arg( plr->getAvgBaudIn() )
-                     .arg( QString( plr->getBioData() ));
-            Helper::logToFile( log, logMsg, true, true );
+            QDir usage{ "mixUsage" };
+            if ( !usage.exists( "mixUsage" ) )
+                usage.mkpath( "." );
+
+            QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
+            QString logMsg{ "Client:%1 was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
+            if ( plr != nullptr )
+            {
+                logMsg = logMsg.arg( plr->getPublicIP() )
+                               .arg( plr->getConnTime() / 60 )
+                               .arg( plr->getBytesIn() )
+                               .arg( plr->getPacketsIn() )
+                               .arg( plr->getAvgBaudIn() )
+                               .arg( QString( plr->getBioData() ));
+                Helper::logToFile( log, logMsg, true, true );
+            }
         }
+
+        QTcpSocket* soc = plr->getSocket();
+        if ( soc != nullptr )
+        {
+            soc->disconnect();
+            soc->deleteLater();
+        }
+        plr->setSocket( nullptr );
     }
+    plr = nullptr;
 
-    QTcpSocket* soc = players[ slot ]->getSocket();
-                soc->disconnect();
-                soc->deleteLater();
-
-    players[ slot ]->setSocket( nullptr );
     delete players[ slot ];
-
     players[ slot ] = nullptr;
 }
 
 int ServerInfo::getEmptySlot()
 {
-    int slot = -1;
+    int slot{ -1 };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         slot = i;
@@ -96,7 +101,7 @@ int ServerInfo::getEmptySlot()
 
 int ServerInfo::getSocketSlot(QTcpSocket* soc)
 {
-    int slot = -1;
+    int slot{ -1 };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         if ( players[ i ] != nullptr
@@ -111,7 +116,7 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
 
 int ServerInfo::getSernumSlot(quint32 sernum)
 {
-    int slot = -1;
+    int slot{ -1 };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         if ( players[ i ] != nullptr
@@ -126,7 +131,7 @@ int ServerInfo::getSernumSlot(quint32 sernum)
 
 int ServerInfo::getQItemSlot(QStandardItem* index)
 {
-    int slot = -1;
+    int slot{ -1 };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         if ( players[ i ] != nullptr
@@ -139,18 +144,59 @@ int ServerInfo::getQItemSlot(QStandardItem* index)
     return slot;
 }
 
-void ServerInfo::sendToAllConnected(QString packet)
+int ServerInfo::getIPAddrSlot(QString ip)
+{
+    int slot{ -1 };
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        if ( players[ i ] != nullptr
+          && players[ i ]->getPublicIP() == ip )
+        {
+            slot = i;
+            break;
+        }
+    }
+    return slot;
+}
+
+quint64 ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
+{
+    QString msg = QString( ":SR@M%1\r\n" )
+                      .arg( packet );
+    quint64 bOut{ 0 };
+    if ( toAll )
+    {
+        bOut = this->sendToAllConnected( msg );
+    }
+    else if ( plr == nullptr
+           && !toAll )
+    {
+        bOut = this->sendToAllConnected( msg );
+    }
+    else if (( plr != nullptr
+            && plr->getSocket() != nullptr )
+           && !toAll )
+    {
+        bOut = plr->getSocket()->write( msg.toLatin1(), msg.length() );
+    }
+    return bOut;
+}
+
+quint64 ServerInfo::sendToAllConnected(QString packet)
 {
     Player* tmpPlr{ nullptr };
+    quint64 bOut{ 0 };
+
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = this->getPlayer( i );
         if ( tmpPlr != nullptr
           && tmpPlr->getSocket() != nullptr )
         {
-            tmpPlr->getSocket()->write( packet.toLatin1() );
+            bOut = tmpPlr->getSocket()->write( packet.toLatin1(), packet.length() );
         }
     }
+    return bOut;
 }
 
 quint64 ServerInfo::getUpTime() const
