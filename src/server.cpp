@@ -846,7 +846,6 @@ void Server::readMIX5(QString& packet, Player* plr)
     if ( !alias.isEmpty()
       && !msg.isEmpty() )
     {
-        qDebug() << msg.startsWith( "/password ", Qt::CaseInsensitive );
         QString response{ "" };
         quint64 bOut{ 0 };
 
