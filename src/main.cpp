@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-//                 a.setQuitOnLastWindowClosed( false );
+                 a.setQuitOnLastWindowClosed( false );
 
 #ifndef Q_OS_WIN
     qApp->setFont( QFont( "Lucida Grande", 8 ) );

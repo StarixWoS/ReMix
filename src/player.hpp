@@ -44,9 +44,12 @@ class Player : public QObject
     bool enteredPwd{ false };
     int slotPos{ -1 };
 
-    bool adminPwdRequested{ false };
-    bool adminPwdEntered{ false };
+    bool reqAuthPwd{ false };
+    bool gotAuthPwd{ false };
     quint32 adminCmdAttempts{ MAX_CMD_ATTEMPTS };  //Max limit is 3 attempts before auto-banning.
+
+    bool reqNewAuthPwd{ false };
+    bool gotNewAuthPwd{ false };
 
     QElapsedTimer floodTimer;
     int packetFloodCount{ 0 };
@@ -151,14 +154,19 @@ class Player : public QObject
         quint64 getAvgBaudOut() const;
         void setAvgBaudOut(const quint64& bOut);
 
-        bool getAdminPwdRequested() const;
-        void setAdminPwdRequested(bool value);
+        void resetAdminAuth();
 
-        bool getAdminPwdEntered() const;
-        void setAdminPwdEntered(bool value);
+        bool getReqAuthPwd() const;
+        void setReqAuthPwd(bool value);
 
-        int getAdminRank() const;
-        void setAdminRank(int value);
+        bool getGotAuthPwd() const;
+        void setGotAuthPwd(bool value);
+
+        bool getReqNewAuthPwd() const;
+        void setReqNewAuthPwd(bool value);
+
+        bool getGotNewAuthPwd() const;
+        void setGotNewAuthPwd(bool value);
 
         bool getForcedDisconnect() const;
         void setForcedDisconnect(bool value);

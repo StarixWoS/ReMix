@@ -21,8 +21,8 @@ win32: RC_FILE += resources/ReMix.rc
 
 #INCLUDEPATH += "Decrypt Plugin/src"
 DEFINES += USE_DARK_FUSION_UI=1 \ #Tell Qt to use a Non-Native UI color scheme.
-           #DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
-           #USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
+#           DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
+#           USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
 #CONFIG += static c++11
 QMAKE_CXXFLAGS = -std=c++11 #-static-libstdc++ -static-libgcc -static -Os -s
@@ -62,4 +62,3 @@ FORMS   += ui/remix.ui \
            ui/settings.ui
 
 RESOURCES += resources/icons.qrc \
-

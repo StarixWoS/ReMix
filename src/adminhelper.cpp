@@ -41,8 +41,8 @@ namespace AdminHelper
         QString recSalt = getAdminData( serNum, adminKeys[ AdminHelper::SALT ] ).toString();
         QString recHash = getAdminData( serNum, adminKeys[ AdminHelper::HASH ] ).toString();
 
-        QVariant pwd( value.toString() + recSalt );
-        QString hash = Helper::hashPassword( pwd );
+        QVariant hash( recSalt + value.toString() );
+                 hash = Helper::hashPassword( hash );
 
         return hash == recHash;
     }

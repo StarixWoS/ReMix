@@ -51,6 +51,11 @@ Server::~Server()
     serverComments->close();
     serverComments->deleteLater();
 
+//#ifdef DECRYPT_PACKET_PLUGIN
+//    if ( pluginManager != nullptr )
+//        pluginManager->unload();
+//#endif
+
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         server->deletePlayer( i );
@@ -300,7 +305,6 @@ void Server::newConnectionSlot()
         greeting.append( "///PASSWORD REQUIRED NOW: " );
         plr->setPwdRequested( true );
     }
-    greeting.append( "\r\n" );
 
     quint64 bOut{ 0 };
     if ( peer != nullptr )
@@ -529,8 +533,8 @@ void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 s
         response = response.arg( server->getName() )
                            .arg( server->getGameInfo() )
                            .arg( server->getServerRules() )
-                           .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
-                           .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
+                           .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
                            .arg( "999.999.999" );
     }
     else
@@ -538,8 +542,8 @@ void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 s
         response = QString( "#name=%1 //Rules: %2 //ID:%3 //TM:%4 //US:%5" );
         response = response.arg( server->getName() )
                            .arg( server->getServerRules() )
-                           .arg( QString::number( server->getServerID(), 16 ).toUpper(), 8, QChar( '0' ) )
-                           .arg( QString::number( QDateTime::currentDateTime().toTime_t(), 16 ).toUpper(), 8, QChar( '0' ) )
+                           .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
+                           .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
                            .arg( "999.999.999" );
     }
 
@@ -654,7 +658,7 @@ void Server::parseSRPacket(QString& packet, Player* plr)
 
     //Only parse packets from Users that have entered the correct password.
     if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
-      && ( plr->getAdminPwdEntered() || !plr->getAdminPwdRequested() ))
+      && ( plr->getGotAuthPwd() || !plr->getReqAuthPwd() ))
     {
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
@@ -670,7 +674,7 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                 {
                     tmpSoc = tmpPlr->getSocket();
                     if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
-                      && ( tmpPlr->getAdminPwdEntered() || !tmpPlr->getAdminPwdRequested() ))
+                      && ( tmpPlr->getGotAuthPwd() || !tmpPlr->getReqAuthPwd() ))
                     {
                         isAuth = true;
                         switch ( plr->getTargetType() )
@@ -732,14 +736,10 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                         server->setBytesOut( server->getBytesOut() + bOut );
 
                     }
-                    else
-                        qDebug() << QString( "Skipping packet to unauthenticated User (%1)." ).arg( tmpPlr->getPublicIP() );
                 }
             }
         }
     }
-    else
-        qDebug() << QString( "Ignoring packet from unauthenticated User (%1)." ).arg( plr->getPublicIP() );
 }
 
 void Server::parseMIXPacket(QString& packet, Player* plr)
@@ -853,8 +853,8 @@ void Server::readMIX5(QString& packet, Player* plr)
         QString response{ "" };
         quint64 bOut{ 0 };
 
-        QString invalid{ "Correct password, welcome." };
-        QString valid{ "Incorrect password, please go away." };
+        QString invalid{ "Incorrect password, please go away." };
+        QString valid{ "Correct password, welcome." };
 
         bool disconnect{ false };
         if ( plr->getPwdRequested()
@@ -874,22 +874,51 @@ void Server::readMIX5(QString& packet, Player* plr)
                 disconnect = true;
             }
         }
-        else if ( plr->getAdminPwdRequested()
-               && !plr->getAdminPwdEntered() )
+        else if ( plr->getReqAuthPwd()
+               && !plr->getGotAuthPwd() )
         {
             QVariant pwd( msg );
             QString sernum = plr->getSernum_s();
+
+            //TODO: Support Users sending a pre-hashed password: #HASH#SALT#
+            //NOTE1: Support for a pre-hashed password will simply strip the two variables.
+            //NOTE2: This means the Server and User must have a program using the same SHA_512 hash Algo.
             if ( AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
             {
                 response = valid;
 
-                plr->setAdminPwdRequested( false );
-                plr->setAdminPwdEntered( true );
+                plr->setReqAuthPwd( false );
+                plr->setGotAuthPwd( true );
             }
             else
             {
                 response = invalid;
                 disconnect = true;
+            }
+        }
+        else if ( plr->getReqNewAuthPwd()
+               && !plr->getGotNewAuthPwd() )
+        {
+            QString pwd( msg );
+            QString sernum = plr->getSernum_s();
+            if ( admin->makeAdmin( sernum, pwd ) )
+            {
+                response = "You are now registered as an Admin with the Server. "
+                           "You are currently Rank-0 (Game Master) with limited commands.";
+
+                plr->setReqNewAuthPwd( false );
+                plr->setGotNewAuthPwd( true );
+
+                //Prevent the server from attempting to authenticate the new Admin.
+                plr->setReqAuthPwd( false );
+                plr->setGotAuthPwd( true );
+            }
+            else
+            {
+                response = "You are not registered as an Admin with the Server. "
+                           "It seems something has gone wrong or you were already registered as an Admin.";
+                plr->setReqNewAuthPwd( false );
+                plr->setGotNewAuthPwd( false );
             }
         }
         else
@@ -981,7 +1010,7 @@ void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {
-        plr->setAdminPwdRequested( true );
+        plr->setReqAuthPwd( true );
         if ( plr->getSocket() != nullptr )
         {
             quint64 bOut = server->sendMasterMessage( msg, plr, false );

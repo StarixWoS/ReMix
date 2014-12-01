@@ -349,24 +349,52 @@ void Player::setAvgBaudOut(const quint64& bOut)
         avgBaudOut = baud;
 }
 
-bool Player::getAdminPwdRequested() const
+void Player::resetAdminAuth()
 {
-    return adminPwdRequested;
+    this->setReqAuthPwd( false );
+    this->setGotAuthPwd( false );
+    this->setReqNewAuthPwd( false );
+    this->setGotNewAuthPwd( false );
 }
 
-void Player::setAdminPwdRequested(bool value)
+bool Player::getReqAuthPwd() const
 {
-    adminPwdRequested = value;
+    return reqAuthPwd;
 }
 
-bool Player::getAdminPwdEntered() const
+void Player::setReqAuthPwd(bool value)
 {
-    return adminPwdEntered;
+    reqAuthPwd = value;
 }
 
-void Player::setAdminPwdEntered(bool value)
+bool Player::getGotAuthPwd() const
 {
-    adminPwdEntered = value;
+    return gotAuthPwd;
+}
+
+void Player::setGotAuthPwd(bool value)
+{
+    gotAuthPwd = value;
+}
+
+bool Player::getReqNewAuthPwd() const
+{
+    return reqNewAuthPwd;
+}
+
+void Player::setReqNewAuthPwd(bool value)
+{
+    reqNewAuthPwd = value;
+}
+
+bool Player::getGotNewAuthPwd() const
+{
+    return gotNewAuthPwd;
+}
+
+void Player::setGotNewAuthPwd(bool value)
+{
+    gotNewAuthPwd = value;
 }
 
 bool Player::getForcedDisconnect() const

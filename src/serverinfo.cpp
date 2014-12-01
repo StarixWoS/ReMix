@@ -169,7 +169,7 @@ quint64 ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         bOut = this->sendToAllConnected( msg );
     }
     else if ( plr == nullptr
-           && !toAll )
+           && toAll )
     {
         bOut = this->sendToAllConnected( msg );
     }

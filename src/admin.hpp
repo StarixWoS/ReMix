@@ -48,9 +48,12 @@ class Admin : public QDialog
         BanDialog* getBanDialog() const;
         void showBanDialog();
 
+        bool makeAdmin(QString& sernum, QString& pwd);
+
     private:
         void initContextMenu();
         void setAdminRank(int rank, QModelIndex index);
+        bool makeAdminImpl(QString& sernum, QString& pwd);
 
     private slots:
         void on_makeAdmin_clicked();

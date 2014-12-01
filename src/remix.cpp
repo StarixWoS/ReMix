@@ -24,7 +24,8 @@ ReMix::ReMix(QWidget *parent) :
 
 //While possible to create a system tray icon, some versions of linux
 //disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
-#ifndef Q_OS_LINUX
+//Also disable the feature on OSX. --Unable to test.
+#if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
     if ( QSystemTrayIcon::isSystemTrayAvailable() )
     {
         trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
@@ -215,16 +216,8 @@ ReMix::~ReMix()
 
 int ReMix::genServerID()
 {
-    int id = randDev->genRandNum( 0, 32767 );
-        id = id << 4;
-        id = id ^ randDev->genRandNum( 0, 32767 );
-        id = id << 4;
-        id = id ^ ( randDev->genRandNum( 0, 32767 ) << 10 );
-        id = id ^ randDev->genRandNum( 0, 32767 );
-        id = id << 4;
-        id = id ^ ( randDev->genRandNum( 0, 32767 ) << 10 );
-        id = id ^ randDev->genRandNum( 0, 32767 );
-    return id;
+    //Server ID may be between 0 and 0x7FFFFFFF - 0x1
+    return randDev->genRandNum( 0, 0x7FFFFFFE );
 }
 
 void ReMix::parseCMDLArgs()
@@ -293,7 +286,7 @@ void ReMix::parseCMDLArgs()
         }
     }
 
-    ui->serverPort->setText( QString::number( server->getPrivatePort() ) );
+    ui->serverPort->setText( Helper::intToStr( server->getPrivatePort(), 10 ) );
     ui->isPublicServer->setChecked( server->getIsPublic() );
     ui->serverName->setText( server->getName() );
 }
@@ -493,13 +486,16 @@ void ReMix::on_actionRevokeAdmin_triggered()
     QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
     QString msg{ "Your Remote Administrator privileges have been REVOKED by either the "
                  "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
-                 "if you believe this was in error.\r\n" };
+                 "if you believe this was in error." };
 
     if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
     {
         Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
         if ( plr != nullptr && plr->getSocket() != nullptr )
         {
+            //The User is no longer a registered Admin. Revoke their current permissions.
+            plr->resetAdminAuth();
+
             quint64 bOut = server->sendMasterMessage( msg, plr, false );
             server->setBytesOut( server->getBytesOut() + bOut );
             admin->loadServerAdmins();
@@ -510,13 +506,23 @@ void ReMix::on_actionRevokeAdmin_triggered()
 
 void ReMix::on_actionMakeAdmin_triggered()
 {
+    QString msg{ "The server Admin is attempting to register you as an Admin with the server. "
+                 "Please reply to this message using the (/admin) pop-up dialog with a password of your liking. "
+                 "Note: The server Host and other Admins will not have access to this information as it will be hashed+salted. "
+                 "///PASSWORD REQUIRED NOW:" };
+
     QString sernum{ "" };
     if ( menuIndex.isValid() )
     {
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
         sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
         if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
         {
-            ; //TODO: Request a Password from the selected User.
+            if ( plr != nullptr )
+            {
+                server->sendMasterMessage( msg, plr, false );
+                plr->setReqNewAuthPwd( true );
+            }
         }
     }
 }
@@ -529,7 +535,7 @@ void ReMix::on_actionDisconnectUser_triggered()
     {
         QString title{ "Disconnect User:" };
         QString prompt{ "Are you certain you want to DISCONNECT ( " + plr->getSernum_s() + " )?" };
-        QString inform{ "The Server Host or a Remote-Admin has disconnected you from the Server. Reason: %1\r\n" };
+        QString inform{ "The Server Host or a Remote-Admin has disconnected you from the Server. Reason: %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
@@ -550,7 +556,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
     QString prompt{ "This command will BANISH the IP Address, which will prevent the User from "
                     "making any connections in the future.\r\nAre you certain?" };
     QString reason{ "" };
-    QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2\r\n" };
+    QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2" };
 
     Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
     if ( plr != nullptr
@@ -582,7 +588,7 @@ void ReMix::on_actionBANISHSerNum_triggered()
     QString prompt{ "This command will BANISH the SerNum, which will prevent the User from "
                     "making any connections in the future.\r\nAre you certain?" };
     QString reason{ "" };
-    QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2\r\n" };
+    QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2" };
 
     Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
     if ( plr != nullptr
@@ -626,7 +632,13 @@ void ReMix::closeEvent(QCloseEvent* event)
     {
         //Allow rejection of a CloseEvent.
         if ( !this->rejectCloseEvent() )
+        {
             event->accept();
+
+            //Explicitly tell the program to close as merely accepting the event
+            //may not be enough.
+            qApp->quit();
+        }
         else
             event->ignore();
     }
@@ -644,10 +656,10 @@ bool ReMix::rejectCloseEvent()
                               "Are you certain?" )
                           .arg( server->getPlayerCount() );
 
-    server->sendMasterMessage( "The admin is taking this server down...\r\n", nullptr, true );
+    server->sendMasterMessage( "The admin is taking this server down...", nullptr, true );
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
-        server->sendMasterMessage( "The admin changed his or her mind! (yay!)...\r\n", nullptr, true );
+        server->sendMasterMessage( "The admin changed his or her mind! (yay!)...", nullptr, true );
         return true;
     }
     return false;
