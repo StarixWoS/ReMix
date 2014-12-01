@@ -483,15 +483,16 @@ void ReMix::on_actionSendMessage_triggered()
 
 void ReMix::on_actionRevokeAdmin_triggered()
 {
-    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
     QString msg{ "Your Remote Administrator privileges have been REVOKED by either the "
                  "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
                  "if you believe this was in error." };
 
-    if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+
+    if ( plr != nullptr && plr->getSocket() != nullptr )
     {
-        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-        if ( plr != nullptr && plr->getSocket() != nullptr )
+        if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
         {
             //The User is no longer a registered Admin. Revoke their current permissions.
             plr->resetAdminAuth();
@@ -511,20 +512,20 @@ void ReMix::on_actionMakeAdmin_triggered()
                  "Note: The server Host and other Admins will not have access to this information as it will be hashed+salted. "
                  "///PASSWORD REQUIRED NOW:" };
 
-    QString sernum{ "" };
-    if ( menuIndex.isValid() )
+    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();;
+    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+
+    if ( plr != nullptr
+      && plr->getSocket() != nullptr )
     {
-        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-        sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
-        if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
+        if ( !AdminHelper::getIsRemoteAdmin( sernum )
+          && AdminHelper::createRemoteAdmin( this, sernum ) )
         {
-            if ( plr != nullptr )
-            {
-                server->sendMasterMessage( msg, plr, false );
-                plr->setReqNewAuthPwd( true );
-            }
+            server->sendMasterMessage( msg, plr, false );
+            plr->setReqNewAuthPwd( true );
         }
     }
+    menuIndex = QModelIndex();
 }
 
 void ReMix::on_actionDisconnectUser_triggered()
@@ -555,7 +556,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
     QString title{ "Ban IP Address:" };
     QString prompt{ "This command will BANISH the IP Address, which will prevent the User from "
                     "making any connections in the future.\r\nAre you certain?" };
-    QString reason{ "" };
+    QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2" };
 
     Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
@@ -565,13 +566,18 @@ void ReMix::on_actionBANISHIPAddress_triggered()
         QHostAddress ip = plr->getSocket()->peerAddress();
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            reason = Helper::getBanishReason( this );
-            admin->getBanDialog()->addIPBan( ip, reason );
-
+            reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( ip.toString() )
                            .arg( reason ).toLatin1();
             quint64 bOut = server->sendMasterMessage( inform, plr, false );
             server->setBytesOut( server->getBytesOut() + bOut );
+
+            reason = QString( "%1 [ %2:%3 ]: %4" )
+                         .arg( reason )
+                         .arg( plr->getPublicIP() )
+                         .arg( plr->getPublicPort() )
+                         .arg( QString( plr->getBioData() ) );
+            admin->getBanDialog()->addIPBan( ip, reason );
 
             if ( plr->getSocket()->waitForBytesWritten() )
                 plr->setForcedDisconnect( true );
@@ -587,7 +593,7 @@ void ReMix::on_actionBANISHSerNum_triggered()
     QString title{ "Ban SerNum:" };
     QString prompt{ "This command will BANISH the SerNum, which will prevent the User from "
                     "making any connections in the future.\r\nAre you certain?" };
-    QString reason{ "" };
+    QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2" };
 
     Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
@@ -596,13 +602,18 @@ void ReMix::on_actionBANISHSerNum_triggered()
     {
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            reason = Helper::getBanishReason( this );
-            admin->getBanDialog()->addSerNumBan( sernum, reason );
-
+            reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( sernum )
                            .arg( reason ).toLatin1();
             quint64 bOut = server->sendMasterMessage( inform, plr, false );
             server->setBytesOut( server->getBytesOut() + bOut );
+
+            reason = QString( "%1 [ %2:%3 ]: %4" )
+                         .arg( reason )
+                         .arg( plr->getPublicIP() )
+                         .arg( plr->getPublicPort() )
+                         .arg( QString( plr->getBioData() ) );
+            admin->getBanDialog()->addSerNumBan( sernum, reason );
 
             if ( plr->getSocket()->waitForBytesWritten() )
                 plr->setForcedDisconnect( true );

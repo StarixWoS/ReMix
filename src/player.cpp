@@ -377,6 +377,16 @@ void Player::setGotAuthPwd(bool value)
     gotAuthPwd = value;
 }
 
+qint32 Player::getCmdAttempts() const
+{
+    return cmdAttempts;
+}
+
+void Player::setCmdAttempts(const qint32& value)
+{
+    cmdAttempts = value;
+}
+
 bool Player::getReqNewAuthPwd() const
 {
     return reqNewAuthPwd;

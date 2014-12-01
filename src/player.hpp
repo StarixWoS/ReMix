@@ -46,7 +46,7 @@ class Player : public QObject
 
     bool reqAuthPwd{ false };
     bool gotAuthPwd{ false };
-    quint32 adminCmdAttempts{ MAX_CMD_ATTEMPTS };  //Max limit is 3 attempts before auto-banning.
+    qint32 cmdAttempts{ 0 };  //Max limit is 3 attempts before auto-banning.
 
     bool reqNewAuthPwd{ false };
     bool gotNewAuthPwd{ false };
@@ -161,6 +161,9 @@ class Player : public QObject
 
         bool getGotAuthPwd() const;
         void setGotAuthPwd(bool value);
+
+        qint32 getCmdAttempts() const;
+        void setCmdAttempts(const qint32& value);
 
         bool getReqNewAuthPwd() const;
         void setReqNewAuthPwd(bool value);

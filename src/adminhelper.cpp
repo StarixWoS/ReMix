@@ -85,4 +85,19 @@ namespace AdminHelper
         }
         return false;
     }
+
+    bool createRemoteAdmin(QWidget* parent, QString& sernum)
+    {
+        QString title{ "Create Admin:" };
+        QString prompt{ "Are you certain you want to MAKE ( %1 ) a Remote Admin?\r\n\r\n"
+                        "Please make sure you trust ( %2 ) as this will allow the them to utilize Admin "
+                        "commands that can remove the ability for other users to connect to the Server." };
+        prompt = prompt.arg( sernum )
+                       .arg( sernum );
+
+        if ( Helper::confirmAction( parent, title, prompt ) )
+            return true;
+
+        return false;
+    }
 }

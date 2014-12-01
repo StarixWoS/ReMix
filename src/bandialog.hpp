@@ -38,7 +38,7 @@ class BanDialog : public QDialog
         bool getIsIPBanned(QString ipAddr);
 
         void addIPBan(QHostAddress& ipInfo, QString& reason);
-        void addIPBan(QString& ip, QString& reason);
+        void addIPBan(QString ip, QString& reason);
 
         //SerNum-Ban Tab
         void loadBannedSernums();

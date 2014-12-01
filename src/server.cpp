@@ -145,10 +145,6 @@ void Server::detectPacketFlood(Player* plr)
         {
             if ( floodCount >= PACKET_FLOOD_LIMIT )
             {
-                QDir usage{ "banLog" };
-                if ( !usage.exists( "banLog" ) )
-                    usage.mkpath( "." );
-
                 QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
                 QString logMsg = QString( "*** This hoser [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
                                      .arg( plr->getPublicIP() )
@@ -850,6 +846,7 @@ void Server::readMIX5(QString& packet, Player* plr)
     if ( !alias.isEmpty()
       && !msg.isEmpty() )
     {
+        qDebug() << msg.startsWith( "/password ", Qt::CaseInsensitive );
         QString response{ "" };
         quint64 bOut{ 0 };
 
@@ -878,7 +875,6 @@ void Server::readMIX5(QString& packet, Player* plr)
                && !plr->getGotAuthPwd() )
         {
             QVariant pwd( msg );
-            QString sernum = plr->getSernum_s();
 
             //TODO: Support Users sending a pre-hashed password: #HASH#SALT#
             //NOTE1: Support for a pre-hashed password will simply strip the two variables.
@@ -900,7 +896,6 @@ void Server::readMIX5(QString& packet, Player* plr)
                && !plr->getGotNewAuthPwd() )
         {
             QString pwd( msg );
-            QString sernum = plr->getSernum_s();
             if ( admin->makeAdmin( sernum, pwd ) )
             {
                 response = "You are now registered as an Admin with the Server. "
@@ -919,6 +914,30 @@ void Server::readMIX5(QString& packet, Player* plr)
                            "It seems something has gone wrong or you were already registered as an Admin.";
                 plr->setReqNewAuthPwd( false );
                 plr->setGotNewAuthPwd( false );
+            }
+        }
+        else if ( msg.startsWith( "/password ", Qt::CaseInsensitive )
+               || msg.startsWith( "/pwd ", Qt::CaseInsensitive ))
+        {
+            int index = msg.indexOf( " ", Qt::CaseInsensitive );
+            QVariant pwd{ "" };
+
+            if ( index > 0 )
+                pwd = msg.mid( index + 1 );
+
+            //The User is attempting to Manually Authenticate.
+            if ( !pwd.toString().isEmpty()
+              && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
+            {
+                response = valid;
+
+                plr->setReqAuthPwd( false );
+                plr->setGotAuthPwd( true );
+            }
+            else
+            {
+                response = invalid;
+                disconnect = true;
             }
         }
         else
@@ -941,9 +960,57 @@ void Server::readMIX5(QString& packet, Player* plr)
     }
 }
 
-void Server::readMIX6(QString&, Player*)
+void Server::readMIX6(QString& packet, Player* plr)
 {
-    //TODO: Handle incoming Admin commands.
+    if ( plr == nullptr
+      || plr->getSocket() == nullptr )
+    {
+        return;
+    }
+
+    QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
+                    "are unable to use these commands. Please reply to this message with (/password *pwd) "
+                    "and the server will authenticate you." };
+
+    QString invalid{ "Your SerNum is not registered as a Remote Admin. Please refrain from attempting to use "
+                     "Remote Admin commands as you will be banned after ( %1 ) more tries." };
+    QString valid{ "It has been done. I hope you entered the right command!" };
+
+
+    QString sernum = plr->getSernum_s();
+    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
+    {
+        if ( plr->getGotAuthPwd() )
+        {
+            server->sendMasterMessage( valid, plr, false);
+        }
+        else
+            server->sendMasterMessage( unauth, plr, false);
+    }
+    else
+    {
+        plr->setCmdAttempts( plr->getCmdAttempts() + 1 );
+        invalid = invalid.arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
+
+        if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
+        {
+            QString reason = QString( "Auto-Banish; <Unregistered Remote Admin %1 command attempts>" )
+                                 .arg( plr->getCmdAttempts() );
+
+            server->sendMasterMessage( reason, plr, false );
+
+            //Append BIO data to the reason for the Ban log.
+            reason.append( " [ %1:%2 ]: %3" );
+            reason = reason.arg( plr->getPublicIP() )
+                           .arg( plr->getPublicPort() )
+                           .arg( QString( plr->getBioData() ) );
+            admin->getBanDialog()->addIPBan( plr->getPublicIP(), reason );
+            plr->setForcedDisconnect( true );
+        }
+        else
+            server->sendMasterMessage( invalid, plr, false );
+    }
+
 }
 
 void Server::readMIX7(QString& packet, Player* plr)

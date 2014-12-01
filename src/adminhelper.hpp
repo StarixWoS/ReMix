@@ -32,6 +32,7 @@ namespace AdminHelper
 
     quint32 changeRemoteAdminRank(QWidget* parent, QString& sernum);
     bool deleteRemoteAdmin(QWidget* parent, QString& sernum);
+    bool createRemoteAdmin(QWidget* parent, QString& sernum);
 }
 
 #endif // ADMINHELPER_HPP

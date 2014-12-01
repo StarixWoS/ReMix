@@ -62,6 +62,10 @@ QString Helper::serNumToIntStr(QString sernum)
 void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLine)
 {
     QFile log( file );
+    QFileInfo logInfo( log );
+    if ( !logInfo.dir().exists() )
+        logInfo.dir().mkdir( "." );
+
     if ( log.open( QFile::WriteOnly | QFile::Append ) )
     {
         if ( timeStamp )
@@ -152,11 +156,7 @@ QString Helper::getBanishReason(QWidget* parent)
     dialog->exec();
     dialog->deleteLater();
 
-    QString reason{ dialog->textValue() };
-    if ( reason.isEmpty() )
-        reason = "Manual Banish.";
-
-    return reason;
+    return dialog->textValue();
 }
 
 QString Helper::getDisconnectReason(QWidget* parent)
@@ -167,11 +167,7 @@ QString Helper::getDisconnectReason(QWidget* parent)
     dialog->exec();
     dialog->deleteLater();
 
-    QString reason{ dialog->textValue() };
-    if ( reason.isEmpty() )
-        reason = "Manual Disconnect.";
-
-    return reason;
+    return dialog->textValue();
 }
 
 bool Helper::setPassword(QVariant& value, bool isHashed)

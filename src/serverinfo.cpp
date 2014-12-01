@@ -55,10 +55,6 @@ void ServerInfo::deletePlayer(int slot)
     {
         if ( this->getLogUsage() )
         {
-            QDir usage{ "mixUsage" };
-            if ( !usage.exists( "mixUsage" ) )
-                usage.mkpath( "." );
-
             QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
             QString logMsg{ "Client:%1 was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
             if ( plr != nullptr )

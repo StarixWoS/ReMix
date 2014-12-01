@@ -138,7 +138,7 @@ void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
     this->addIPBan( ip, reason );
 }
 
-void BanDialog::addIPBan(QString& ip, QString& reason)
+void BanDialog::addIPBan(QString ip, QString& reason)
 {
     if ( reason.isEmpty() )
         reason = "Manual Banish.";
@@ -146,10 +146,6 @@ void BanDialog::addIPBan(QString& ip, QString& reason)
     if ( !ip.isEmpty() )
     {
         this->addIPBanImpl( ip, reason );
-
-        QDir usage{ "banLog" };
-        if ( !usage.exists( "banLog" ) )
-            usage.mkpath( "." );
 
         QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
         Helper::logToFile( log, reason, true, true );
@@ -271,7 +267,12 @@ void BanDialog::addSerNumBan(QString& sernum, QString& reason)
         reason = "Manual Banish.";
 
     if ( !sernum.isEmpty() )
+    {
         this->addSernumBanImpl( sernum, reason );
+
+        QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
+        Helper::logToFile( log, reason, true, true );
+    }
 }
 
 void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)

@@ -9,9 +9,11 @@
 #include <QTextEdit>
 #include <QDateTime>
 #include <QSettings>
+#include <QFileInfo>
 #include <QString>
 #include <QDebug>
 #include <QFile>
+#include <QDir>
 
 #include "randdev.hpp"
 
