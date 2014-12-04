@@ -4,12 +4,32 @@
 
 #include "bandialog.hpp"
 #include "helper.hpp"
+#include "player.hpp"
+#include "serverinfo.hpp"
 
-Admin::Admin(QWidget *parent) :
+//class ChatCommands
+//{
+//    QString cmd{ "" };
+//    qint32 rank{ 0 };
+//    QString cmdHelp{ "" };
+
+//    public:
+//        QString getCmd() const;
+//        void setCmd(const QString& value);
+
+//        qint32 getRank() const;
+//        void setRank(const qint32& value);
+
+//        QString getCmdHelp() const;
+//        void setCmdHelp(const QString& value);
+//};
+
+Admin::Admin(QWidget *parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::Admin)
 {
     ui->setupUi(this);
+    server = svr;
 
     //Remove the "Help" button from the window title bars.
     {
@@ -95,9 +115,9 @@ void Admin::loadServerAdmins()
         {
             group = groups.at( i );
 
-            rank = adminData.value( group + "/rank", 0 ).toInt();
-            hash = adminData.value( group + "/hash", "" ).toString();
-            salt = adminData.value( group + "/salt", "" ).toString();
+            rank = adminData.value( group % "/rank", 0 ).toInt();
+            hash = adminData.value( group % "/hash", "" ).toString();
+            salt = adminData.value( group % "/salt", "" ).toString();
 
             row = tableModel->rowCount();
             tableModel->insertRow( row );
@@ -127,7 +147,7 @@ void Admin::setAdminRank(int rank, QModelIndex index)
         QString txt = tableModel->data( tableModel->index( index.row(), 0 ) ).toString();
         if ( !txt.isEmpty() )
         {
-            adminData.setValue( txt + "/rank", rank );
+            adminData.setValue( txt % "/rank", rank );
             tableModel->setData( tableModel->index( index.row(), 1 ), rank, Qt::DisplayRole );
         }
     }
@@ -168,7 +188,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         QString j{ "" };
         for ( int i = 0; i < groups.count(); ++i )
         {
-            j = adminData.value( groups.at( i ) + "/salt" ).toString();
+            j = adminData.value( groups.at( i ) % "/salt" ).toString();
 
             //Check if the Salt is already used.
             if ( j == salt )
@@ -181,9 +201,9 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         QVariant hash( salt + pwd );
                  hash = Helper::hashPassword( hash );
 
-        adminData.setValue( sernum + "/rank", ui->comboBox->currentIndex() );
-        adminData.setValue( sernum + "/hash", hash );
-        adminData.setValue( sernum + "/salt", salt );
+        adminData.setValue( sernum % "/rank", ui->comboBox->currentIndex() );
+        adminData.setValue( sernum % "/hash", hash );
+        adminData.setValue( sernum % "/salt", salt );
 
         int row = tableModel->rowCount();
         tableModel->insertRow( row );
@@ -234,4 +254,15 @@ void Admin::on_actionChangeRank_triggered()
 
     tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
                                             rank, Qt::DisplayRole );
+}
+
+//Handle Admin commands.
+bool Admin::parseCommand(QString& packet, Player* plr)
+{
+    if ( packet.isEmpty()
+      || plr == nullptr )
+    {
+        return false;
+    }
+    return true;
 }

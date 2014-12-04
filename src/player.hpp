@@ -26,7 +26,6 @@ class Player : public QObject
 
     QString alias{ "" };
     QString playTime{ "" };
-    QString worldName{ "" };
 
     QByteArray bioData;
     QByteArray outBuff;
@@ -46,6 +45,8 @@ class Player : public QObject
 
     bool reqAuthPwd{ false };
     bool gotAuthPwd{ false };
+    qint32 adminRank{ -1 };
+
     qint32 cmdAttempts{ 0 };  //Max limit is 3 attempts before auto-banning.
 
     bool reqNewAuthPwd{ false };
@@ -67,6 +68,12 @@ class Player : public QObject
     QElapsedTimer lastPacketTime;
 
     bool pendingDisconnect{ false };
+
+    #ifdef DECRYPT_PACKET_PLUGIN
+        QString gameInfo{ "" };
+        bool hasWorldInfo{ false };
+    #endif
+
     public:
         explicit Player();
         ~Player();
@@ -102,9 +109,6 @@ class Player : public QObject
 
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
-
-        QString getGameInfo() const;
-        void setGameInfo(const QString& value);
 
         QString getAlias() const;
         void setAlias(const QString& value);
@@ -162,6 +166,9 @@ class Player : public QObject
         bool getGotAuthPwd() const;
         void setGotAuthPwd(bool value);
 
+        qint32 getAdminRank() const;
+        void setAdminRank(const qint32& value);
+
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);
 
@@ -173,6 +180,14 @@ class Player : public QObject
 
         bool getForcedDisconnect() const;
         void setForcedDisconnect(bool value);
+
+        #ifdef DECRYPT_PACKET_PLUGIN
+            QString getGameInfo() const;
+            void setGameInfo(const QString& value);
+
+            bool getHasGameInfo() const;
+            void setHasGameInfo(bool value);
+        #endif
 };
 
 #endif // PLAYER_HPP

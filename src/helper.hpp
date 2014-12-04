@@ -3,6 +3,7 @@
 #define PREFERENCES_HPP
 
 #include <QCryptographicHash>
+#include <QStringBuilder>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QTextCursor>
@@ -38,6 +39,8 @@ namespace Helper
 
     QString intSToStr(QString val, int base = 16, int fill = 0, QChar filler = '0');
     int strToInt(QString& str, int base = 16);
+
+    QString getStr(const QString& str, QString& indStr, QString& left);
 
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);

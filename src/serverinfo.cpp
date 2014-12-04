@@ -56,7 +56,7 @@ void ServerInfo::deletePlayer(int slot)
         if ( this->getLogUsage() )
         {
             QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
-            QString logMsg{ "Client:%1 was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
+            QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
             if ( plr != nullptr )
             {
                 logMsg = logMsg.arg( plr->getPublicIP() )

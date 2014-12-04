@@ -113,11 +113,14 @@ ReMix::ReMix(QWidget *parent) :
 
     //Setup Dialog Objects.
     sysMessages = new Messages( this );
-    admin = new Admin( this );
     settings = new Settings( this );
 
     //Setup Server/Player Info objects.
     server = new ServerInfo();
+
+    //Setup Other Objects.
+    admin = new Admin( this, server );
+
     server->setServerID( Helper::getServerID() );
     if ( server->getServerID() <= 0 )
     {
@@ -324,7 +327,7 @@ void ReMix::getSynRealData()
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( server->getGameName() + "/master" ).toString();
+            QString str = settings.value( server->getGameName() % "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
@@ -384,6 +387,10 @@ void ReMix::on_openRemoteAdmins_clicked()
 
 void ReMix::on_isPublicServer_stateChanged(int)
 {
+    //Setup Networking Objects.
+    if ( tcpServer == nullptr )
+        tcpServer = new Server( this, server, admin, plrModel );
+
     if ( ui->isPublicServer->isChecked() )
         tcpServer->setupPublicServer( true );   //Setup a connection with the Master Server.
     else
@@ -535,7 +542,7 @@ void ReMix::on_actionDisconnectUser_triggered()
       && plr->getSocket() != nullptr )
     {
         QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT ( " + plr->getSernum_s() + " )?" };
+        QString prompt{ "Are you certain you want to DISCONNECT ( " % plr->getSernum_s() % " )?" };
         QString inform{ "The Server Host or a Remote-Admin has disconnected you from the Server. Reason: %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
@@ -598,7 +605,7 @@ void ReMix::on_actionBANISHSerNum_triggered()
 
     Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
     if ( plr != nullptr
-         && plr->getSocket() != nullptr )
+      && plr->getSocket() != nullptr )
     {
         if ( Helper::confirmAction( this, title, prompt ) )
         {

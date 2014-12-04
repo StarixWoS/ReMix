@@ -89,14 +89,14 @@ void BanDialog::loadBannedIPs()
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            banDate = banData.value( group + "/banDate", 0 ).toInt();
+            banDate = banData.value( group % "/banDate", 0 ).toInt();
 
             row = ipModel->rowCount();
             ipModel->insertRow( row );
 
             ipModel->setData( ipModel->index( row, 0 ), group, Qt::DisplayRole );
 
-            ipModel->setData( ipModel->index( row, 1 ), banData.value( group + "/banReason", 0 ), Qt::DisplayRole );
+            ipModel->setData( ipModel->index( row, 1 ), banData.value( group % "/banReason", 0 ), Qt::DisplayRole );
 
             ipModel->setData( ipModel->index( row, 2 ),
                                  QDateTime::fromTime_t( banDate ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
@@ -124,7 +124,8 @@ bool BanDialog::getIsIPBanned(QString ipAddr)
 void BanDialog::on_addIPBan_clicked()
 {
     QString ip = ui->trgIPAddr->text();
-    QString reason = ui->ipBanReason->text();
+    QString reason{ "Manual Banish; %1" };
+            reason = reason.arg( ui->ipBanReason->text() );
 
     this->addIPBan( ip, reason );
 
@@ -141,7 +142,10 @@ void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
 void BanDialog::addIPBan(QString ip, QString& reason)
 {
     if ( reason.isEmpty() )
-        reason = "Manual Banish.";
+    {
+        reason = "Manual Banish; Unknown reason: [ %1 ]";
+        reason = reason.arg( ip );
+    }
 
     if ( !ip.isEmpty() )
     {
@@ -175,8 +179,8 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
                               QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
                               Qt::DisplayRole );
         }
-        banData.setValue( ip + "/banDate", date );
-        banData.setValue( ip + "/banReason", reason );
+        banData.setValue( ip % "/banDate", date );
+        banData.setValue( ip % "/banReason", reason );
     }
     ui->ipBanTable->resizeColumnsToContents();
 }
@@ -220,14 +224,14 @@ void BanDialog::loadBannedSernums()
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            banDate = banData.value( group + "/banDate", 0 ).toInt();
+            banDate = banData.value( group % "/banDate", 0 ).toInt();
 
             row = snModel->rowCount();
             snModel->insertRow( row );
 
             snModel->setData( snModel->index( row, 0 ), group, Qt::DisplayRole );
 
-            snModel->setData( snModel->index( row, 1 ), banData.value( group + "/banReason", 0 ), Qt::DisplayRole );
+            snModel->setData( snModel->index( row, 1 ), banData.value( group % "/banReason", 0 ), Qt::DisplayRole );
 
             snModel->setData( snModel->index( row, 2 ),
                                  QDateTime::fromTime_t( banDate ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
@@ -253,7 +257,8 @@ bool BanDialog::getIsSernumBanned(QString sernum)
 void BanDialog::on_addSernumBan_clicked()
 {
     QString sernum = ui->trgSerNum->text();
-    QString reason = ui->snBanReason->text();
+    QString reason{ "Manual Banish; %1" };
+            reason = reason.arg( ui->snBanReason->text() );
 
     this->addSerNumBan( sernum, reason );
 
@@ -264,7 +269,10 @@ void BanDialog::on_addSernumBan_clicked()
 void BanDialog::addSerNumBan(QString& sernum, QString& reason)
 {
     if ( reason.isEmpty() )
-        reason = "Manual Banish.";
+    {
+        reason = "Manual Banish; Unknown reason: [ %1 ]";
+        reason = reason.arg( sernum );
+    }
 
     if ( !sernum.isEmpty() )
     {
@@ -297,8 +305,8 @@ void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
                               QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ),
                               Qt::DisplayRole );
         }
-        banData.setValue( sernum + "/banDate", date );
-        banData.setValue( sernum + "/banReason", reason );
+        banData.setValue( sernum % "/banDate", date );
+        banData.setValue( sernum % "/banReason", reason );
     }
     ui->snBanTable->resizeColumnsToContents();
 }

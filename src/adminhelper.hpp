@@ -27,10 +27,10 @@ namespace AdminHelper
     bool getIsRemoteAdmin(QString& serNum);
     bool cmpRemoteAdminPwd(QString& serNum, QVariant& value);
 
-    quint32 getRemoteAdminRank(QString& sernum);
-    void setRemoteAdminRank(QString& sernum, quint32 rank);
+    qint32 getRemoteAdminRank(QString& sernum);
+    void setRemoteAdminRank(QString& sernum, qint32 rank);
 
-    quint32 changeRemoteAdminRank(QWidget* parent, QString& sernum);
+    qint32 changeRemoteAdminRank(QWidget* parent, QString& sernum);
     bool deleteRemoteAdmin(QWidget* parent, QString& sernum);
     bool createRemoteAdmin(QWidget* parent, QString& sernum);
 }

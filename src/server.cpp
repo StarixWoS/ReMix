@@ -14,7 +14,9 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
     plrViewModel = plrView;
     admin = adminDlg;
 
-    masterCheckIn.setInterval( 300000 );    //Every 5 Minutes.
+    //Every 2 Seconds we will attempt to Obtain Master Info.
+    //This will be set to 300000 (5-Minutes) once Master info is obtained.
+    masterCheckIn.setInterval( 2000 );
 
     //Setup Objects.
     serverComments = new UserMessage( parent );
@@ -33,14 +35,12 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
     QObject::connect( &masterCheckIn, &QTimer::timeout,
                       this, &Server::masterCheckInTimeOutSlot );
 
-    QDir( "mixVariableCache" ).mkpath( "." );
-
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
 
-//#ifdef DECRYPT_PACKET_PLUGIN
-//    this->loadPlugin();
-//#endif
+#ifdef DECRYPT_PACKET_PLUGIN
+    this->loadPlugin();
+#endif
 }
 
 Server::~Server()
@@ -51,10 +51,10 @@ Server::~Server()
     serverComments->close();
     serverComments->deleteLater();
 
-//#ifdef DECRYPT_PACKET_PLUGIN
-//    if ( pluginManager != nullptr )
-//        pluginManager->unload();
-//#endif
+#ifdef DECRYPT_PACKET_PLUGIN
+    if ( pluginManager != nullptr )
+        pluginManager->unload();
+#endif
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -89,7 +89,7 @@ void Server::checkBannedInfo(Player* plr)
     //Disconnect and ban all duplicate IP's if required.
     if ( !Helper::getAllowDupedIP() )
     {
-        QString reason{ "Auto-ban: Duplicate IP Address." };
+        QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 }: %3" };
         QString peerAddr{ plr->getPublicIP() };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
@@ -99,6 +99,10 @@ void Server::checkBannedInfo(Player* plr)
             {
                 if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
                 {
+                    reason = reason.arg( plr->getPublicIP() )
+                                   .arg( plr->getPublicPort() )
+                                   .arg( QString( plr->getBioData() ) );
+
                     if ( Helper::getBanDupedIP() )
                         bandlg->addIPBan( peerAddr, reason );
 
@@ -146,7 +150,7 @@ void Server::detectPacketFlood(Player* plr)
             if ( floodCount >= PACKET_FLOOD_LIMIT )
             {
                 QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
-                QString logMsg = QString( "*** This hoser [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
+                QString logMsg = QString( "Auto Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
                                      .arg( plr->getPublicIP() )
                                      .arg( plr->getPublicPort() )
                                      .arg( floodCount )
@@ -158,7 +162,7 @@ void Server::detectPacketFlood(Player* plr)
                     BanDialog* banDlg = admin->getBanDialog();
                     if ( banDlg != nullptr )
                     {
-                        logMsg = QString( "Auto-Banish; suspicious data from: [ %1:%2 ]: %3" )
+                        logMsg = QString( "Auto-Banish; Suspicious data from: [ %1:%2 ]: %3" )
                                      .arg( plr->getPublicIP() )
                                      .arg( plr->getPublicPort() )
                                      .arg( QString( plr->getBioData() ) );
@@ -255,8 +259,8 @@ void Server::setupServerInfo()
         {
             QString tmp = ipList.at( i ).toString();
             if ( ipList.at( i ) != QHostAddress::LocalHost
-                 && ipList.at( i ).toIPv4Address()
-                 && !Helper::isInvalidIPAddress( tmp ) )
+              && ipList.at( i ).toIPv4Address()
+              && !Helper::isInvalidIPAddress( tmp ) )
             {
                 server->setPrivateIP( ipList.at(i).toString() );   //Use first non-local IP address.
                 break;
@@ -372,8 +376,8 @@ void Server::newConnectionSlot()
                 plr->setPacketsIn( plr->getPacketsIn(), 1 );
                 plr->setBytesIn( plr->getBytesIn() + packet.length() );
 
-                this->parsePacket( packet, plr );
                 this->detectPacketFlood( plr );
+                this->parsePacket( packet, plr );
                 emit peer->readyRead();
             }
         }
@@ -418,7 +422,7 @@ void Server::readyReadUDPSlot()
         //Check for a banned IP-Address. --Log the rejection to file.
         if ( bandlg->getIsIPBanned( senderAddr ) )
         {
-            QString logTxt{ "Ignoring UDP from banned %1 %2:%3 sent command: %4" };
+            QString logTxt{ "Ignoring UDP from banned %1: [ %2:%3 ] sent command: %4" };
             QString log{ "ignored.txt" };
             logTxt = logTxt.arg( "IP Address" )
                            .arg( senderAddr.toString() )
@@ -433,8 +437,8 @@ void Server::readyReadUDPSlot()
             if ( !data.isEmpty() )
             {
                 QString sernum{ "" };
-                if ( data.at( 0 ) == 'P'
-                  || data.at( 0 ) == 'Q' )
+                if ( data.at( 0 ) == QLatin1Char( 'P' )
+                  || data.at( 0 ) == QLatin1Char( 'Q' ) )
                 {
                     int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
                     if ( index > 0 )
@@ -447,18 +451,21 @@ void Server::readyReadUDPSlot()
                 switch ( data.at( 0 ).toLatin1() )
                 {
                     case 'G':   //Set the Server's gameInfoString.
-//                        {
-//                        #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
-//                            //Allow Multi-World Servers.
-//                            Player* tmpPlr{ nullptr };
-//                                    tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
+                        #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
+                            //This will not work. The incoming port from UDP isn't usable due to TCP using a random port.
+                            //What we may be able to do is unconditionally allow Users with the same IP to communicate
+                            //in an unbiased manner. (e.g. assume both IP addresses are on the same world.)
 
-//                            if ( tmpPlr != nullptr )
-//                                tmpPlr->setGameInfo( data.mid( 1 ) );
-//                        #else
+                            //The above is our last option available if we would like a multi-world implementation.
+                            {
+                            qDebug() << senderPort;
+                                Player* tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
+                                if ( tmpPlr != nullptr )
+                                    tmpPlr->setGameInfo( data.mid( 1 ) );
+                            }
+                        #else
                             server->setGameInfo( data.mid( 1 ) );
-//                        #endif
-//                        }
+                        #endif
                     break;
                     case 'M':   //Read the response to the Master Server checkin.
                         this->parseMasterServerResponse( udpData );
@@ -555,7 +562,7 @@ void Server::sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port)
     {
         plr = server->getPlayer( i );
         if ( plr != nullptr && plr->getSernum() > 0 )
-            response += Helper::intToStr( plr->getSernum(), 16 ) + ",";
+            response += Helper::intToStr( plr->getSernum(), 16 ) % ",";
     }
 
     if ( !response.isEmpty() && soc != nullptr )
@@ -611,6 +618,10 @@ void Server::parseMasterServerResponse(QByteArray& mData)
 
         server->setPublicIP( QHostAddress( pubIP ).toString() );
         server->setPublicPort( qFromBigEndian( pubPort ) );
+
+        //We've obtained valid Master information.
+        //Reset check-in to every 5 minutes.
+        masterCheckIn.setInterval( 300000 );
     }
 }
 
@@ -659,7 +670,8 @@ void Server::parseSRPacket(QString& packet, Player* plr)
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             isAuth = false;
-            send = false;
+            tmpPlr = nullptr;
+            tmpSoc = nullptr;
 
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr
@@ -668,11 +680,11 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                 tmpSoc = tmpPlr->getSocket();
                 if ( plr->getSocket() != tmpSoc )
                 {
-                    tmpSoc = tmpPlr->getSocket();
                     if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
                       && ( tmpPlr->getGotAuthPwd() || !tmpPlr->getReqAuthPwd() ))
                     {
                         isAuth = true;
+                        send = false;
                         switch ( plr->getTargetType() )
                         {
                             case Player::ALL:
@@ -684,9 +696,6 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                                 {
                                     if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
                                         send = true;
-
-                                    plr->setTargetType( Player::ALL );
-                                    plr->setTargetSerNum( 0 );
                                 }
                             break;
                             case Player::SCENE:
@@ -697,8 +706,6 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                                     {
                                         send = true;
                                     }
-                                    plr->setTargetType( Player::ALL );
-                                    plr->setTargetScene( 0 );
                                 }
                             break;
                             default:
@@ -709,23 +716,22 @@ void Server::parseSRPacket(QString& packet, Player* plr)
 
                     if ( send && isAuth )
                     {
-//                    #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
-//                        if ( packetInterface != nullptr )
-//                        {
-//                            if ( plr->getGameInfo() == tmpPlr->getGameInfo() )
-//                            {
-//                                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-//                            }
-//                            else if ( packetInterface->canSendPacket( packet ) )
-//                            {
-//                                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-//                            }
-//                        }
-//                        else
-//                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-//                    #else
+                    #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
+                        qDebug() << tmpPlr << tmpPlr->getHasGameInfo() << tmpPlr->getGameInfo()
+                                 << plr << plr->getHasGameInfo() << plr->getGameInfo();
+                        if ( tmpPlr->getHasGameInfo()
+                          && tmpPlr->getGameInfo().compare( plr->getGameInfo(), Qt::CaseInsensitive ) )
+                        {
+                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+                        }
+                        else if ( packetInterface != nullptr
+                               && packetInterface->canSendPacket( packet ) )
+                        {
+                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+                        }
+                    #else
                         bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-//                    #endif
+                    #endif
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
@@ -736,6 +742,11 @@ void Server::parseSRPacket(QString& packet, Player* plr)
             }
         }
     }
+
+    //Reset the User's target information.
+    plr->setTargetType( Player::ALL );
+    plr->setTargetSerNum( 0 );
+    plr->setTargetScene( 0 );
 }
 
 void Server::parseMIXPacket(QString& packet, Player* plr)
@@ -975,13 +986,13 @@ void Server::readMIX6(QString& packet, Player* plr)
                      "Remote Admin commands as you will be banned after ( %1 ) more tries." };
     QString valid{ "It has been done. I hope you entered the right command!" };
 
-
     QString sernum = plr->getSernum_s();
     if ( AdminHelper::getIsRemoteAdmin( sernum ) )
     {
         if ( plr->getGotAuthPwd() )
         {
             server->sendMasterMessage( valid, plr, false);
+            //admin->parseCommand( packet );
         }
         else
             server->sendMasterMessage( unauth, plr, false);
@@ -993,7 +1004,7 @@ void Server::readMIX6(QString& packet, Player* plr)
 
         if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
         {
-            QString reason = QString( "Auto-Banish; <Unregistered Remote Admin %1 command attempts>" )
+            QString reason = QString( "Auto-Banish; <Unregistered Remote Admin: ( %1 ) command attempts>" )
                                  .arg( plr->getCmdAttempts() );
 
             server->sendMasterMessage( reason, plr, false );
@@ -1027,32 +1038,38 @@ void Server::readMIX7(QString& packet, Player* plr)
 
 void Server::readMIX8(QString& packet, Player* plr)
 {
-    QString sernum = packet.mid( 2 ).left( 8 );
-
-    packet = packet.mid( 10 );
-    packet = packet.left( packet.length() - 2 );
-
-    QStringList vars = packet.split( ',' );
-    QString val{ "" };
-
-    if ( Helper::getAllowSSV()
-      && !vars.contains( "Admin", Qt::CaseInsensitive ))
+    QDir ssvDir( "mixVariableCache" );
+    if ( ssvDir.exists() )
     {
-        QSettings ssv( "mixVariableCache/" + vars.value( 0 ) + ".ini", QSettings::IniFormat );
-        val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
-                  .arg( sernum )
-                  .arg( vars.value( 0 ) )
-                  .arg( vars.value( 1 ) )
-                  .arg( vars.value( 2 ) )
-                  .arg( ssv.value( vars.value( 1 ) + "/" + vars.value( 2 ), "" ).toString() );
-    }
+        QString sernum = packet.mid( 2 ).left( 8 );
 
-    if ( !val.isEmpty() )
-        plr->getSocket()->write( val.toLatin1(), val.length() );
+        packet = packet.mid( 10 );
+        packet = packet.left( packet.length() - 2 );
+
+        QStringList vars = packet.split( ',' );
+        QString val{ "" };
+
+        if ( Helper::getAllowSSV()
+          && !vars.contains( "Admin", Qt::CaseInsensitive ))
+        {
+            QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini", QSettings::IniFormat );
+            val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
+                      .arg( sernum )
+                      .arg( vars.value( 0 ) )
+                      .arg( vars.value( 1 ) )
+                      .arg( vars.value( 2 ) )
+                      .arg( ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString() );
+        }
+
+        if ( !val.isEmpty() )
+            plr->getSocket()->write( val.toLatin1(), val.length() );
+    }
 }
 
 void Server::readMIX9(QString& packet, Player*)
 {
+    QDir( "mixVariableCache" ).mkpath( "." );
+
     packet = packet.mid( 10 );
     packet = packet.left( packet.length() - 2 );
 
@@ -1060,8 +1077,8 @@ void Server::readMIX9(QString& packet, Player*)
     if ( Helper::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
-        QSettings ssv( "mixVariableCache/" + vars.value( 0 ) + ".ini", QSettings::IniFormat );
-                  ssv.setValue( vars.value( 1 ) + "/" + vars.value( 2 ), vars.value( 3 ) );
+        QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini", QSettings::IniFormat );
+                  ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ), vars.value( 3 ) );
     }
 }
 
@@ -1114,38 +1131,39 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
     }
 }
 
-//#ifdef DECRYPT_PACKET_PLUGIN
-//bool Server::loadPlugin()
-//{
-//    QDir pluginsDir( qApp->applicationDirPath() );
+#ifdef DECRYPT_PACKET_PLUGIN
+bool Server::loadPlugin()
+{
+    QDir pluginsDir( qApp->applicationDirPath() );
 
-//#if defined(Q_OS_WIN)
-//    if ( pluginsDir.dirName().toLower() == "debug"
-//      || pluginsDir.dirName().toLower() == "release")
-//    {
-//        pluginsDir.cdUp();
-//    }
+    #if defined(Q_OS_WIN)
+        if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
+          || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
+        {
+            pluginsDir.cdUp();
+        }
 
-//#elif defined(Q_OS_MAC)
-//    if (pluginsDir.dirName() == "MacOS") {
-//        pluginsDir.cdUp();
-//        pluginsDir.cdUp();
-//        pluginsDir.cdUp();
-//    }
-//#endif
+    #elif defined(Q_OS_MAC)
+        if (pluginsDir.dirName() == QLatin1String( "MacOS" ) )
+        {
+            pluginsDir.cdUp();
+            pluginsDir.cdUp();
+            pluginsDir.cdUp();
+        }
+    #endif
 
-//    pluginsDir.cd( "plugins" );
-//    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ))
-//    {
-//        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ));
-//        QObject *plugin = pluginLoader.instance();
-//        if ( plugin )
-//        {
-//            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
-//            if ( packetInterface )
-//                return true;
-//        }
-//    }
-//    return false;
-//}
-//#endif
+    pluginsDir.cd( "plugins" );
+    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ))
+    {
+        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ));
+        QObject *plugin = pluginLoader.instance();
+        if ( plugin )
+        {
+            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
+            if ( packetInterface )
+                return true;
+        }
+    }
+    return false;
+}
+#endif

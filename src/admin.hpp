@@ -15,13 +15,17 @@
 
 #include "adminhelper.hpp"
 
+//class ChatCommands;
+class ServerInfo;
 class BanDialog;
 class RandDev;
+class Player;
 
 namespace Ui {
     class Admin;
 }
 
+//const int ADMIN_COMMAND_COUNT{ 256 };
 class Admin : public QDialog
 {
     Q_OBJECT
@@ -31,16 +35,21 @@ class Admin : public QDialog
     QSortFilterProxyModel* tableProxy{ nullptr };
     QStandardItemModel* tableModel{ nullptr };
 
+    ServerInfo* server{ nullptr };
     RandDev* randDev{ nullptr };
     BanDialog* banDialog{ nullptr };
 
     QMenu* contextMenu{ nullptr };
     QModelIndex menuIndex;
 
+    //Not sure if I want an easy to modify array,
+    //or a hardcoded switch defining available commands..
+    //ChatCommands adminCmds[ ADMIN_COMMAND_COUNT ]{ nullptr };
+
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
 
-        explicit Admin(QWidget *parent = 0);
+        explicit Admin(QWidget *parent = nullptr, ServerInfo* svr = nullptr);
         ~Admin();
 
         void loadServerAdmins();
@@ -49,6 +58,7 @@ class Admin : public QDialog
         void showBanDialog();
 
         bool makeAdmin(QString& sernum, QString& pwd);
+        bool parseCommand(QString& packet, Player* plr);
 
     private:
         void initContextMenu();

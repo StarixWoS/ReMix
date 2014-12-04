@@ -2,6 +2,8 @@
 #include "player.hpp"
 #include "helper.hpp"
 
+#include "adminhelper.hpp"
+
 Player::Player()
 {
     connTimer.start( 1000 );
@@ -157,16 +159,6 @@ QString Player::getPlayTime() const
 void Player::setPlayTime(const QString& value)
 {
     playTime = value;
-}
-
-QString Player::getGameInfo() const
-{
-    return worldName;
-}
-
-void Player::setGameInfo(const QString& value)
-{
-    worldName = value;
 }
 
 QString Player::getAlias() const
@@ -375,6 +367,20 @@ bool Player::getGotAuthPwd() const
 void Player::setGotAuthPwd(bool value)
 {
     gotAuthPwd = value;
+
+    QString sernum = this->getSernum_s();
+    if ( gotAuthPwd )
+        this->setAdminRank( AdminHelper::getRemoteAdminRank( sernum ) );
+}
+
+qint32 Player::getAdminRank() const
+{
+    return adminRank;
+}
+
+void Player::setAdminRank(const qint32& value)
+{
+    adminRank = value;
 }
 
 qint32 Player::getCmdAttempts() const
@@ -416,3 +422,29 @@ void Player::setForcedDisconnect(bool value)
 {
     pendingDisconnect = value;
 }
+
+#ifdef DECRYPT_PACKET_PLUGIN
+QString Player::getGameInfo() const
+{
+    return gameInfo;
+}
+
+void Player::setGameInfo(const QString& value)
+{
+    gameInfo = value;
+    if ( !gameInfo.isEmpty() )
+        this->setHasGameInfo( true );
+    else
+        this->setHasGameInfo( false );
+}
+
+bool Player::getHasGameInfo() const
+{
+    return hasWorldInfo;
+}
+
+void Player::setHasGameInfo(bool value)
+{
+    hasWorldInfo = value;
+}
+#endif

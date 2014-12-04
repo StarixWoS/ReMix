@@ -4,6 +4,7 @@
 
 #include <QStandardItemModel>
 #include <QNetworkInterface>
+#include <QStringBuilder>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QUdpSocket>
@@ -15,12 +16,12 @@
 #include <QTimer>
 #include <QDir>
 
-//#ifdef DECRYPT_PACKET_PLUGIN
-//    #include <QCoreApplication>
-//    #include <QPluginLoader>
+#ifdef DECRYPT_PACKET_PLUGIN
+    #include <QCoreApplication>
+    #include <QPluginLoader>
 
-//    #include "packetdecryptinterface.hpp"
-//#endif
+    #include "packetdecryptinterface.hpp"
+#endif
 
 class UserMessage;
 class ServerInfo;
@@ -43,11 +44,11 @@ class Server : public QTcpServer
     UserMessage* serverComments{ nullptr };
     Admin* admin{ nullptr };
 
-//#ifdef DECRYPT_PACKET_PLUGIN
-//    PacketDecryptInterface* packetInterface{ nullptr };
-//    QPluginLoader* pluginManager{ nullptr };
-//    bool loadPlugin();
-//#endif
+#ifdef DECRYPT_PACKET_PLUGIN
+    PacketDecryptInterface* packetInterface{ nullptr };
+    QPluginLoader* pluginManager{ nullptr };
+    bool loadPlugin();
+#endif
 
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, Admin* adminDlg = nullptr,

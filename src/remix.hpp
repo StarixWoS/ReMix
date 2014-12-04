@@ -6,6 +6,7 @@
 #include <QStandardItemModel>
 #include <QNetworkInterface>
 #include <QSystemTrayIcon>
+#include <QStringBuilder>
 #include <QElapsedTimer>
 #include <QInputDialog>
 #include <QMessageBox>

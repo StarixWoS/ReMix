@@ -42,6 +42,36 @@ int Helper::strToInt(QString& str, int base)
     return val;
 }
 
+QString Helper::getStr(const QString& str, QString& indStr, QString& left)
+{
+    QString tmp = str;
+    int index{ 0 };
+
+    if ( !tmp.isEmpty() )
+    {
+        index = tmp.indexOf( indStr );
+        if ( index >= 0 )   //-1 if str didn't contain indStr.
+        {
+            tmp = tmp.mid( index + indStr.length() );
+            if ( !left.isEmpty() )
+            {
+                index = tmp.indexOf( left );
+                if ( index >= 0 )   //-1 if str didn't contain indStr.
+                {
+                    if ( left.length() > 1 )
+                        tmp = tmp.left( index + left.length() );
+                    else
+                        tmp = tmp.left( index );
+                }
+            }
+        }
+
+        if ( !tmp.isEmpty() )
+            return tmp;
+    }
+    return QString();
+}
+
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     if ( sernum.contains( "SOUL " ) )
@@ -112,20 +142,20 @@ void Helper::setSetting(const QString& key, const QString& subKey, QVariant& val
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );
 
-    if ( key == "General" )
+    if ( key == QLatin1String( "General" ) )
         setting.setValue( subKey, value );
     else
-        setting.setValue( key + "/" + subKey, value );
+        setting.setValue( key % "/" % subKey, value );
 }
 
 QVariant Helper::getSetting(const QString& key, const QString& subKey)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );
 
-    if ( key == "General" )
+    if ( key == QLatin1String( "General" ) )
         return setting.value( subKey );
 
-    return setting.value( key + "/" + subKey );
+    return setting.value( key % "/" % subKey );
 }
 
 void Helper::setMOTDMessage(QVariant& value)

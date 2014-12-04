@@ -7,16 +7,16 @@ namespace AdminHelper
     void setAdminData(const QString& key, const QString& subKey, QVariant& value)
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
-        adminData.setValue( key + "/" + subKey, value );
+        adminData.setValue( key % "/" % subKey, value );
     }
 
     QVariant getAdminData(const QString& key, const QString& subKey)
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
-        if ( subKey == "rank" )
-            return adminData.value( key + "/" + subKey, -1 );
+        if ( subKey == QLatin1String( "rank" ) )
+            return adminData.value( key % "/" % subKey, -1 );
         else
-            return adminData.value( key + "/" + subKey );
+            return adminData.value( key % "/" % subKey );
     }
 
     void setReqAdminAuth(QVariant& value)
@@ -47,23 +47,23 @@ namespace AdminHelper
         return hash == recHash;
     }
 
-    quint32 getRemoteAdminRank(QString& sernum)
+    qint32 getRemoteAdminRank(QString& sernum)
     {
         return getAdminData( sernum, adminKeys[ AdminHelper::RANK ] ).toUInt();
     }
 
-    void setRemoteAdminRank(QString& sernum, quint32 rank)
+    void setRemoteAdminRank(QString& sernum, qint32 rank)
     {
         QVariant value = rank;
         setAdminData( sernum, adminKeys[ AdminHelper::RANK ], value );
     }
 
-    quint32 changeRemoteAdminRank(QWidget* parent, QString& sernum)
+    qint32 changeRemoteAdminRank(QWidget* parent, QString& sernum)
     {
         bool ok{ false };
         QString item = QInputDialog::getItem( parent, "Admin Rank:",
                                               "Rank:", ranks, 0, false, &ok );
-        quint32 rank = -1;
+        qint32 rank{ -1 };
         if ( ok && !item.isEmpty() )
         {
             rank = ranks.indexOf( item );
@@ -75,7 +75,7 @@ namespace AdminHelper
     bool deleteRemoteAdmin(QWidget* parent, QString& sernum)
     {
         QString title{ "Revoke Admin:" };
-        QString prompt{ "Are you certain you want to REVOKE ( " + sernum + " )'s powers?" };
+        QString prompt{ "Are you certain you want to REVOKE ( " % sernum % " )'s powers?" };
 
         if ( Helper::confirmAction( parent, title, prompt ) )
         {
