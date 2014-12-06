@@ -57,6 +57,12 @@ class ReMix : public QMainWindow
 
     QSystemTrayIcon* trayIcon{ nullptr };
 
+    enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4, FUDGE = 5 };
+    const QStringList cmdlArgs =
+    {
+        QStringList() << "game" << "master" << "public" << "listen" << "name" << "fudge"
+    };
+
     public:
         explicit ReMix(QWidget *parent = 0);
         ~ReMix();

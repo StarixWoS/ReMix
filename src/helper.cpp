@@ -27,7 +27,7 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
         return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler ).toUpper();
 }
 
-int Helper::strToInt(QString& str, int base)
+int Helper::strToInt(QString str, int base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };
@@ -42,33 +42,54 @@ int Helper::strToInt(QString& str, int base)
     return val;
 }
 
-QString Helper::getStr(const QString& str, QString& indStr, QString& left)
+QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QString left)
 {
+    /* Search an input string and return a sub-string based on the input strings.
+     * indStr --- Sub-string to search for.
+     * mid --- Obtain data after this sub-string.
+     * left --- Obtain data before this sub-string.
+     */
+
     QString tmp = str;
     int index{ 0 };
 
-    if ( !tmp.isEmpty() )
+    if ( !tmp.isEmpty()
+      && !indStr.isEmpty() )
     {
-        index = tmp.indexOf( indStr );
+        index = tmp.indexOf( indStr, Qt::CaseInsensitive );
         if ( index >= 0 )   //-1 if str didn't contain indStr.
         {
-            tmp = tmp.mid( index + indStr.length() );
-            if ( !left.isEmpty() )
-            {
-                index = tmp.indexOf( left );
-                if ( index >= 0 )   //-1 if str didn't contain indStr.
-                {
-                    if ( left.length() > 1 )
-                        tmp = tmp.left( index + left.length() );
-                    else
-                        tmp = tmp.left( index );
-                }
-            }
+            if ( !mid.isEmpty() )
+                tmp = tmp.mid( index + indStr.length() );
+            else
+                tmp = tmp.mid( index ); //Get the actual search string.
         }
-
-        if ( !tmp.isEmpty() )
-            return tmp;
     }
+
+    if ( !tmp.isEmpty()
+      && !mid.isEmpty() )
+    {
+        index = tmp.indexOf( mid, Qt::CaseInsensitive );
+        if ( index >= 0 )   //-1 if str didn't contain mid.
+        {
+            if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
+                tmp = tmp.mid( index + mid.length() );
+            else
+                tmp = tmp.mid( index );
+        }
+    }
+
+    if ( !tmp.isEmpty()
+      && !left.isEmpty() )
+    {
+        index = tmp.indexOf( left, Qt::CaseInsensitive );
+        if ( index >= 0 )   //-1 if str didn't contain left.
+            tmp = tmp.left( index );
+    }
+
+    if ( !tmp.isEmpty() )
+        return tmp;
+
     return QString();
 }
 
@@ -87,6 +108,14 @@ QString Helper::serNumToIntStr(QString sernum)
         return QString( "SOUL %1" ).arg( intToStr( serNum, 10 ) );
     else
         return QString( "%1" ).arg( intToStr( serNum, 16 ) );
+}
+
+qint32 Helper::serNumtoInt(QString& sernum)
+{
+    if ( sernum.contains( "SOUL " ) )
+        return strToInt( sernum.mid( sernum.indexOf( " " ) + 1 ), 10 );
+    else
+        return strToInt( sernum, 16 );
 }
 
 void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLine)

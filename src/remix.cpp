@@ -76,10 +76,14 @@ ReMix::ReMix(QWidget *parent) :
                 if ( this->isHidden() )
                 {
                     this->show();
-                    this->setWindowState( Qt::WindowActive );
+                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
+                    this->activateWindow();
                 }
                 else
+                {
                     this->hide();
+                    this->setWindowState( Qt::WindowMinimized );
+                }
             }
             else if ( reason == QSystemTrayIcon::Context )
             {
@@ -226,66 +230,76 @@ int ReMix::genServerID()
 void ReMix::parseCMDLArgs()
 {
     QStringList args = qApp->arguments();
+    QString tmpArg{ "" };
+    QString arg{ "" };
+    QString tmp{ "" };
 
-    QString tmpArg;
+    int argIndex{ -1 };
     for ( int i = 0; i < args.count(); ++i )
     {
-        int index{ 0 };
+        arg = args.at( i );
+        tmpArg.clear();
+        tmp.clear();
 
-        QString arg = args.at( i );
-        if ( arg.startsWith( "/game", Qt::CaseInsensitive ) )
+        argIndex = -1;
+        for ( int j = 0; j < cmdlArgs.count(); ++j )
         {
-            index = arg.indexOf( '=' );
-            if ( index > 0 )
-                server->setGameName( arg.mid( index + 1 ) );
-        }
-        else if ( arg.startsWith( "/master", Qt::CaseInsensitive ) )
-        {
-            index = arg.indexOf( '=' );
-            if ( index > 0 )
+            if ( arg.contains( cmdlArgs.at( j ), Qt::CaseInsensitive ) )
             {
-               tmpArg = arg.mid( index + 1 );
-               if ( !tmpArg.isEmpty() )
-               {
-                   server->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
-                   server->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
-               }
+                tmpArg = cmdlArgs.at( j );
+                argIndex = j;
+                break;
             }
         }
-        else if ( arg.startsWith( "/public", Qt::CaseInsensitive ) )
+
+        if ( !tmpArg.isEmpty() )
         {
-            index = arg.indexOf( '=' );
-            if ( index > 0 )
+            switch ( argIndex )
             {
-               tmpArg = arg.mid( index + 1 );
-               if ( !tmpArg.isEmpty() )
-               {
-                   server->setMasterIP( tmpArg.left( tmpArg.indexOf( ':' ) ) );
-                   server->setMasterPort( tmpArg.mid( tmpArg.indexOf( ':' ) + 1 ).toInt() );
-               }
+                case CMDLArgs::GAME:
+                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
+                    if ( !tmp.isEmpty() )
+                        server->setGameName( tmp );
+                break;
+                case CMDLArgs::MASTER:
+                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
+                    if ( !tmp.isEmpty() )
+                    {
+                        server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
+                        server->setMasterPort( tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() );
+                    }
+                break;
+                case CMDLArgs::PUBLIC:
+                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
+                    if ( !tmp.isEmpty() )
+                    {
+                        server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
+                        server->setMasterPort( tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() );
+                    }
+                    ui->isPublicServer->setChecked( true );
+                break;
+                case CMDLArgs::LISTEN:
+                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
+                    if ( !tmp.isEmpty() )
+                    {
+                        server->setPrivatePort( tmp.toInt() );
+                        if ( server->getMasterIP().isEmpty() )
+                            this->getSynRealData();
+                    }
+                    emit ui->enableNetworking->clicked();
+                break;
+                case CMDLArgs::NAME:
+                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
+                    if ( !tmp.isEmpty() )
+                        server->setName( tmp );
+                break;
+                case CMDLArgs::FUDGE:
+                    server->setLogUsage( true );
+                break;
+                default:
+                    qDebug() << "Unknown Command Line Argument: " << tmp;
+                break;
             }
-            ui->isPublicServer->setChecked( true );
-        }
-        else if ( arg.startsWith( "/listen", Qt::CaseInsensitive ) )
-        {
-            index = arg.indexOf( '=' );
-            if ( index > 0 )
-                server->setPrivatePort( arg.mid( index + 1 ).toInt() );
-
-            if ( server->getMasterIP().isEmpty() )
-                this->getSynRealData();
-
-            emit ui->enableNetworking->clicked();
-        }
-        else if ( arg.startsWith( "/name", Qt::CaseInsensitive ) )
-        {
-            tmpArg = arg.mid( arg.indexOf( '=' ) + 1 );
-            if ( !tmpArg.isEmpty() )
-                server->setName( tmpArg );
-        }
-        else if ( arg.startsWith( "/fudge", Qt::CaseInsensitive ) )
-        {
-            server->setLogUsage( true );
         }
     }
 
@@ -552,7 +566,7 @@ void ReMix::on_actionDisconnectUser_triggered()
             server->setBytesOut( server->getBytesOut() + bOut );
 
             if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setForcedDisconnect( true );
+                plr->setSoftDisconnect( true );
         }
     }
     menuIndex = QModelIndex();
@@ -587,7 +601,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
             admin->getBanDialog()->addIPBan( ip, reason );
 
             if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setForcedDisconnect( true );
+                plr->setSoftDisconnect( true );
         }
     }
     menuIndex = QModelIndex();
@@ -623,7 +637,7 @@ void ReMix::on_actionBANISHSerNum_triggered()
             admin->getBanDialog()->addSerNumBan( sernum, reason );
 
             if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setForcedDisconnect( true );
+                plr->setSoftDisconnect( true );
         }
     }
     menuIndex = QModelIndex();

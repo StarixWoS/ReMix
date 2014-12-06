@@ -106,10 +106,13 @@ void Server::checkBannedInfo(Player* plr)
                     if ( Helper::getBanDupedIP() )
                         bandlg->addIPBan( peerAddr, reason );
 
-                    plr->setForcedDisconnect( true );
-                    server->setIpDc( server->getIpDc() + 1 );
+                    if ( plr != nullptr )
+                    {
+                        plr->setForcedDisconnect( true );
+                        server->setIpDc( server->getIpDc() + 1 );
+                    }
 
-                    if ( tmpPlr->getSocket() != nullptr )
+                    if ( tmpPlr != nullptr )
                     {
                         tmpPlr->setForcedDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
@@ -121,14 +124,17 @@ void Server::checkBannedInfo(Player* plr)
 
     //Disconnect new Players using the same SerNum. This is an un-optional disconnect
     //due to how Private chat is handled. --Perhaps once a better fix is found we can remove this.
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    if ( plr != nullptr )
     {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr
-          && tmpPlr->getSernum() == plr->getSernum() )
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
-            if ( tmpPlr != plr )
-                plr->setForcedDisconnect( true );
+            tmpPlr = server->getPlayer( i );
+            if ( tmpPlr != nullptr
+                 && tmpPlr->getSernum() == plr->getSernum() )
+            {
+                if ( tmpPlr != plr )
+                    plr->setForcedDisconnect( true );
+            }
         }
     }
 }
@@ -147,7 +153,8 @@ void Server::detectPacketFlood(Player* plr)
         quint64 time = plr->getFloodTime();
         if ( time <= PACKET_FLOOD_TIME )
         {
-            if ( floodCount >= PACKET_FLOOD_LIMIT )
+            if ( floodCount >= PACKET_FLOOD_LIMIT
+              && !plr->getForcedDisconnect() )
             {
                 QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
                 QString logMsg = QString( "Auto Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
@@ -198,42 +205,29 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
         row = plrViewModel->rowCount();
         plrViewModel->insertRow( row );
     }
-    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
 
-    int index = 0;
+    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
-        QString sernum{ "" };
-        index = bio.indexOf( "sernum=", Qt::CaseInsensitive );
-        if ( index > 0 )
+        QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
+        if ( !sernum.isEmpty() )
         {
-            sernum = bio.mid( index + 7 );
-            sernum = sernum.left( sernum.indexOf( ',' ) );
-
             plr->setSernum( Helper::serNumToHexStr( sernum ).toUInt( 0, 16 ) );
             plr->setSernum_s( sernum );
 
             this->sendRemoteAdminPwdReq( plr, sernum );
         }
-        plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 1 ),
+                               sernum,
+                               Qt::DisplayRole );
 
-        QString playTime{ "" };
-        index = bio.indexOf( "HHMM=", Qt::CaseInsensitive );
-        if ( index > 0 )
-        {
-            playTime = bio.mid( index + 5 );
-            playTime = playTime.left( playTime.indexOf( ',' ) );
-        }
-        plrViewModel->setData( plrViewModel->index( row, 2 ), playTime, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 2 ),
+                               Helper::getStrStr( bio, "HHMM", "=", "," ),
+                               Qt::DisplayRole );
 
-        QString alias{ "" };
-        index = bio.indexOf( "lias=", Qt::CaseInsensitive );
-        if ( index > 0 )
-        {
-            alias = bio.mid( index + 5 );
-            alias = alias.left( alias.indexOf( ',' ) );
-        }
-        plrViewModel->setData( plrViewModel->index( row, 3 ), alias, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 3 ),
+                               Helper::getStrStr( bio, "lias", "=", "," ),
+                               Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
     }
@@ -437,17 +431,6 @@ void Server::readyReadUDPSlot()
             if ( !data.isEmpty() )
             {
                 QString sernum{ "" };
-                if ( data.at( 0 ) == QLatin1Char( 'P' )
-                  || data.at( 0 ) == QLatin1Char( 'Q' ) )
-                {
-                    int index = udpData.indexOf( "sernum=", Qt::CaseInsensitive );
-                    if ( index > 0 )
-                    {
-                        sernum = udpData.mid( index + 7 );
-                        sernum = sernum.left( sernum.indexOf( ',' ) );
-                    }
-                }
-
                 switch ( data.at( 0 ).toLatin1() )
                 {
                     case 'G':   //Set the Server's gameInfoString.
@@ -471,19 +454,27 @@ void Server::readyReadUDPSlot()
                         this->parseMasterServerResponse( udpData );
                     break;
                     case 'P':   //Store the Player information into a struct.
-                        //Check if the sernum is banned.
-                        if ( !bandlg->getIsSernumBanned( sernum ) )
+                        sernum = Helper::getStrStr( data, "sernum", "=", "," );
+                        if (( Helper::getReqSernums()
+                           && Helper::serNumtoInt( sernum ) )
+                          || !Helper::getReqSernums() )
                         {
-                            udpDatas.insert( senderAddr, udpData.mid( 1 ) );
-                            this->sendServerInfo( sender, senderAddr, senderPort );
+                            if ( !bandlg->getIsSernumBanned( sernum ) )
+                            {
+                                udpDatas.insert( senderAddr, udpData.mid( 1 ) );
+                                this->sendServerInfo( sender, senderAddr, senderPort );
+                            }
                         }
                         //TODO: Check for banned D and V variables. --Low priority.
                     break;
                     case 'Q':   //Send our online User information to the requestor.
-                        //Check if the sernum is banned.
-                        if ( !bandlg->getIsSernumBanned( sernum ) )
+                        sernum = Helper::getStrStr( data, "sernum", "=", "," );
+                        if (( Helper::getReqSernums()
+                           && Helper::serNumtoInt( sernum ) )
+                          || !Helper::getReqSernums() )
                         {
-                            this->sendUserList( sender, senderAddr, senderPort );
+                            if ( !bandlg->getIsSernumBanned( sernum ) )
+                                this->sendUserList( sender, senderAddr, senderPort );
                         }
                         //TODO: Check for banned D and V variables. --Low priority.
                     break;
@@ -530,25 +521,18 @@ void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 s
 {
     //TODO: Format Server Usage variable.
 
-    QString response = QString( "#name=%1 [%2] //Rules: %3 //ID:%4 //TM:%5 //US:%6" );
+    QString response = QString( "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6" )
+                           .arg( server->getName() );
+
     if ( !server->getGameInfo().isEmpty() )
-    {
-        response = response.arg( server->getName() )
-                           .arg( server->getGameInfo() )
-                           .arg( server->getServerRules() )
-                           .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
-                           .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
-                           .arg( "999.999.999" );
-    }
+        response = response.arg( " [" % server->getGameInfo() % "]" );
     else
-    {
-        response = QString( "#name=%1 //Rules: %2 //ID:%3 //TM:%4 //US:%5" );
-        response = response.arg( server->getName() )
-                           .arg( server->getServerRules() )
-                           .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
-                           .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
-                           .arg( "999.999.999" );
-    }
+        response = response.arg( "" );
+
+    response = response.arg( server->getServerRules() )
+                       .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
+                       .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
+                       .arg( "999.999.999" );
 
     if ( socket != nullptr )
         socket->writeDatagram( response.toLatin1(), response.size() + 1, socAddr, socPort );
@@ -755,7 +739,7 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
         return;
 
     QChar opCode = packet.at( 4 );
-    QString tmp = packet.mid( packet.indexOf( ":MIX", Qt::CaseInsensitive ) + 5 );
+    QString tmp = Helper::getStrStr( packet, "", ":MIX", "" ).mid( 1 );
 
     switch ( opCode.toLatin1() )
     {
@@ -798,19 +782,19 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
 void Server::readMIX0(QString& packet, Player* plr)
 {
     QString sernum_s = packet.mid( 2 ).left( 8 );
-    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
+    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
     //Send the next Packet to the Scene's Host.
-    plr->setTargetScene( sernum_a );
+    plr->setTargetScene( sernum_i );
     plr->setTargetType( Player::SCENE );
 }
 
 void Server::readMIX1(QString& packet, Player* plr)
 {
     QString sernum_s = packet.mid( 2 ).left( 8 );
-    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
+    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
-    plr->setSceneHost( sernum_a );
+    plr->setSceneHost( sernum_i );
 }
 
 void Server::readMIX2(QString&, Player* plr)
@@ -822,7 +806,7 @@ void Server::readMIX2(QString&, Player* plr)
 void Server::readMIX3(QString& packet, Player* plr)
 {
     QString sernum_s = packet.mid( 2 ).left( 8 );
-    quint32 sernum_i = Helper::strToInt( sernum_s, 16 );
+    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
     //Check if the User is banned or requires authentication.
     this->authRemoteAdmin( plr, sernum_i );
@@ -832,27 +816,18 @@ void Server::readMIX3(QString& packet, Player* plr)
 void Server::readMIX4(QString& packet, Player* plr)
 {
     QString sernum_s = packet.mid( 2 ).left( 8 );
-    quint32 sernum_a = Helper::strToInt( sernum_s, 16 );
+    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
-    plr->setTargetSerNum( sernum_a );
+    plr->setTargetSerNum( sernum_i );
     plr->setTargetType( Player::PLAYER );
 }
 
 void Server::readMIX5(QString& packet, Player* plr)
 {
     QString sernum = plr->getSernum_s();
-    QString alias{ "" };
-    QString msg{ "" };
-
-    int index = packet.indexOf( ": " );
-    if ( index > 0 )
-    {
-        alias = packet.left( index );
-        alias = alias.mid( 10 );
-
-        msg = packet.mid( index + 2 );
-        msg = msg.left( msg.length() - 2 );
-    }
+    QString alias = Helper::getStrStr( packet, "", "", ": " ).mid( 10 );
+    QString msg = Helper::getStrStr( packet, ": ", ": ", "" );
+            msg = msg.left( msg.length() - 2 );
 
     if ( !alias.isEmpty()
       && !msg.isEmpty() )
@@ -929,11 +904,7 @@ void Server::readMIX5(QString& packet, Player* plr)
         else if ( msg.startsWith( "/password ", Qt::CaseInsensitive )
                || msg.startsWith( "/pwd ", Qt::CaseInsensitive ))
         {
-            int index = msg.indexOf( " ", Qt::CaseInsensitive );
-            QVariant pwd{ "" };
-
-            if ( index > 0 )
-                pwd = msg.mid( index + 1 );
+            QVariant pwd = Helper::getStrStr( msg, " ", " ", "" );
 
             //The User is attempting to Manually Authenticate.
             if ( !pwd.toString().isEmpty()
@@ -958,7 +929,7 @@ void Server::readMIX5(QString& packet, Player* plr)
             bOut = server->sendMasterMessage( response, plr, false );
             if ( disconnect )
             {
-                plr->setForcedDisconnect( true );
+                plr->setSoftDisconnect( true );
             }
             else if ( bOut >= 1 )
             {
@@ -970,7 +941,7 @@ void Server::readMIX5(QString& packet, Player* plr)
     }
 }
 
-void Server::readMIX6(QString& packet, Player* plr)
+void Server::readMIX6(QString&, Player* plr)
 {
     if ( plr == nullptr
       || plr->getSocket() == nullptr )
@@ -1015,7 +986,7 @@ void Server::readMIX6(QString& packet, Player* plr)
                            .arg( plr->getPublicPort() )
                            .arg( QString( plr->getBioData() ) );
             admin->getBanDialog()->addIPBan( plr->getPublicIP(), reason );
-            plr->setForcedDisconnect( true );
+            plr->setSoftDisconnect( true );
         }
         else
             server->sendMasterMessage( invalid, plr, false );
@@ -1032,7 +1003,7 @@ void Server::readMIX7(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    this->authRemoteAdmin( plr, packet.toUInt( 0, 16 ) );
+    this->authRemoteAdmin( plr, packet.toInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 
@@ -1102,7 +1073,7 @@ void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
     }
 }
 
-void Server::authRemoteAdmin(Player* plr, quint32 id)
+void Server::authRemoteAdmin(Player* plr, qint32 id)
 {
     if ( plr == nullptr )
         return;
@@ -1121,6 +1092,12 @@ void Server::authRemoteAdmin(Player* plr, quint32 id)
                                        Qt::DisplayRole );
             }
 
+            //Disconnect the User if they have no SerNum, as we require SerNums.
+            if ( Helper::getReqSernums()
+              && id <= 0 )
+            {
+                plr->setForcedDisconnect( true );
+            }
             plr->setSernum( id );
             plr->setSernum_s( serNum_s );
 
@@ -1144,7 +1121,7 @@ bool Server::loadPlugin()
         }
 
     #elif defined(Q_OS_MAC)
-        if (pluginsDir.dirName() == QLatin1String( "MacOS" ) )
+        if ( pluginsDir.dirName() == QLatin1String( "MacOS" ) )
         {
             pluginsDir.cdUp();
             pluginsDir.cdUp();
@@ -1153,9 +1130,9 @@ bool Server::loadPlugin()
     #endif
 
     pluginsDir.cd( "plugins" );
-    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ))
+    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ) )
     {
-        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ));
+        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ) );
         QObject *plugin = pluginLoader.instance();
         if ( plugin )
         {

@@ -30,13 +30,13 @@ class Player : public QObject
     QByteArray bioData;
     QByteArray outBuff;
 
-    quint32 sernum{ 0 };
+    qint32 sernum{ 0 };
     QString sernum_s{ "" };
 
-    quint32 sceneHost{ 0 };
+    qint32 sceneHost{ 0 };
 
-    quint32 targetHost{ 0 };
-    quint32 targetSerNum{ 0 };
+    qint32 targetHost{ 0 };
+    qint32 targetSerNum{ 0 };
     int targetType{ 0 };
 
     bool pwdRequested{ false };
@@ -67,7 +67,11 @@ class Player : public QObject
     quint64 connTime{ 0 };
     QElapsedTimer lastPacketTime;
 
-    bool pendingDisconnect{ false };
+    QTimer hardKillTimer;
+    bool pendingHardDisconnect{ false };
+
+    QTimer softKillTimer;
+    bool pendingSoftDisconnect{ false };
 
     #ifdef DECRYPT_PACKET_PLUGIN
         QString gameInfo{ "" };
@@ -89,20 +93,20 @@ class Player : public QObject
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
-        quint32 getSernum() const;
-        void setSernum(quint32 value);
+        qint32 getSernum() const;
+        void setSernum(qint32 value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);
 
-        quint32 getTargetScene() const;
-        void setTargetScene(quint32 value);
+        qint32 getTargetScene() const;
+        void setTargetScene(qint32 value);
 
-        quint32 getSceneHost() const;
-        void setSceneHost(quint32 value);
+        qint32 getSceneHost() const;
+        void setSceneHost(qint32 value);
 
-        quint32 getTargetSerNum() const;
-        void setTargetSerNum(quint32 value);
+        qint32 getTargetSerNum() const;
+        void setTargetSerNum(qint32 value);
 
         int getTargetType() const;
         void setTargetType(int value);
@@ -178,8 +182,13 @@ class Player : public QObject
         bool getGotNewAuthPwd() const;
         void setGotNewAuthPwd(bool value);
 
+        //Note: A User will be disconnected on their next update.
+        //Usually every 1,000 MS.
         bool getForcedDisconnect() const;
         void setForcedDisconnect(bool value);
+
+        bool getSoftDisconnect() const;
+        void setSoftDisconnect(bool value);
 
         #ifdef DECRYPT_PACKET_PLUGIN
             QString getGameInfo() const;

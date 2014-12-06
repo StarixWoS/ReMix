@@ -6,49 +6,66 @@
 
 Player::Player()
 {
+    //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
-        
-        //Disconnect Users with pending (forced) disconnections.
+
+        QStandardItem* row = this->getTableRow();
+        if ( row != nullptr )
+        {
+            QStandardItemModel* model = row->model();
+            if ( model != nullptr )
+            {
+                model->setData( row->model()->index( row->row(), 4 ),
+                                QString( "%1:%2:%3" )
+                                    .arg( connTime / 3600, 2, 10, QChar( '0' ) )
+                                    .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                    .arg( connTime % 60, 2, 10, QChar( '0' ) ),
+                                Qt::DisplayRole );
+
+                this->setAvgBaudIn( this->getBytesIn() );
+                model->setData( row->model()->index( row->row(), 5 ),
+                                QString( "%1Bd, %2B, %3 Pkts" )
+                                    .arg( this->getAvgBaudIn() )
+                                    .arg( this->getBytesIn() )
+                                    .arg( this->getPacketsIn() ),
+                                Qt::DisplayRole );
+
+                this->setAvgBaudOut( this->getBytesOut() );
+                model->setData( row->model()->index( row->row(), 6 ),
+                                QString( "%1Bd, %2B, %3 Pkts" )
+                                    .arg( this->getAvgBaudOut() )
+                                    .arg( this->getBytesOut() )
+                                    .arg( this->getPacketsOut() ),
+                                Qt::DisplayRole );
+            }
+        }
+    });
+
+
+    //The Timer is initialized within the force-disconnect function to prevent unnecessary checks.
+    QObject::connect( &hardKillTimer, &QTimer::timeout, [=]()
+    {
+        //Disconnect Users with pending (forced) disconnections. --Every 5MS
+        //This is meant to disconnect the User in an ungraceful manner (aborting the connection itself)
+        //in the event the server has detected something that could cause major issues for
+        //the network or the actual experience of other Users. (e.g. packet flooding)
+
         if ( this->getForcedDisconnect() )
+            this->getSocket()->abort();
+    });
+
+    //The Timer is initialized within the soft-disconnect function to prevent unnecessary checks.
+    QObject::connect( &softKillTimer, &QTimer::timeout, [=]()
+    {
+        //This is meant to disconnect the User in a graceful manner (flushing the output buffers)
+        //in the event the User has broken a rule or was manually disconnected with a reason being sent to them.
+        if ( this->getSoftDisconnect() )
         {
             this->getSocket()->flush();
             this->getSocket()->close();
-        }
-        else
-        {
-            QStandardItem* row = this->getTableRow();
-            if ( row != nullptr )
-            {
-                QStandardItemModel* model = row->model();
-                if ( model != nullptr )
-                {
-                    model->setData( row->model()->index( row->row(), 4 ),
-                                    QString( "%1:%2:%3" )
-                                        .arg( connTime / 3600, 2, 10, QChar( '0' ) )
-                                        .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
-                                        .arg( connTime % 60, 2, 10, QChar( '0' ) ),
-                                    Qt::DisplayRole );
-
-                    this->setAvgBaudIn( this->getBytesIn() );
-                    model->setData( row->model()->index( row->row(), 5 ),
-                                    QString( "%1Bd, %2B, %3 Pkts" )
-                                        .arg( this->getAvgBaudIn() )
-                                        .arg( this->getBytesIn() )
-                                        .arg( this->getPacketsIn() ),
-                                    Qt::DisplayRole );
-
-                    this->setAvgBaudOut( this->getBytesOut() );
-                    model->setData( row->model()->index( row->row(), 6 ),
-                                    QString( "%1Bd, %2B, %3 Pkts" )
-                                        .arg( this->getAvgBaudOut() )
-                                        .arg( this->getBytesOut() )
-                                        .arg( this->getPacketsOut() ),
-                                    Qt::DisplayRole );
-                }
-            }
         }
     });
 
@@ -59,6 +76,12 @@ Player::~Player()
 {
     connTimer.stop();
     connTimer.disconnect();
+
+    hardKillTimer.stop();
+    hardKillTimer.disconnect();
+
+    softKillTimer.stop();
+    softKillTimer.disconnect();
 }
 
 qint64 Player::getConnTime() const
@@ -86,13 +109,15 @@ void Player::setSocket(QTcpSocket* value)
     socket = value;
 }
 
-quint32 Player::getSernum() const
+qint32 Player::getSernum() const
 {
     return sernum;
 }
 
-void Player::setSernum(quint32 value)
+void Player::setSernum(qint32 value)
 {
+    //The User has no serNum, and we require a serNum;
+    //forcibly remove the User from the server.
     if ( Helper::getReqSernums() && value <= 0 )
     {
         this->setForcedDisconnect( true );
@@ -111,32 +136,32 @@ void Player::setSernum_s(const QString& value)
     sernum_s = value;
 }
 
-quint32 Player::getTargetScene() const
+qint32 Player::getTargetScene() const
 {
     return targetHost;
 }
 
-void Player::setTargetScene(quint32 value)
+void Player::setTargetScene(qint32 value)
 {
     targetHost = value;
 }
 
-quint32 Player::getSceneHost() const
+qint32 Player::getSceneHost() const
 {
     return sceneHost;
 }
 
-void Player::setSceneHost(quint32 value)
+void Player::setSceneHost(qint32 value)
 {
     sceneHost = value;
 }
 
-quint32 Player::getTargetSerNum() const
+qint32 Player::getTargetSerNum() const
 {
     return targetSerNum;
 }
 
-void Player::setTargetSerNum(quint32 value)
+void Player::setTargetSerNum(qint32 value)
 {
     targetSerNum = value;
 }
@@ -415,12 +440,30 @@ void Player::setGotNewAuthPwd(bool value)
 
 bool Player::getForcedDisconnect() const
 {
-    return pendingDisconnect;
+    return pendingHardDisconnect;
 }
 
 void Player::setForcedDisconnect(bool value)
 {
-    pendingDisconnect = value;
+    pendingHardDisconnect = value;
+    if ( pendingHardDisconnect )
+    {
+        hardKillTimer.start( 5 );
+    }
+}
+
+bool Player::getSoftDisconnect() const
+{
+    return pendingSoftDisconnect;
+}
+
+void Player::setSoftDisconnect(bool value)
+{
+    pendingSoftDisconnect = value;
+    if ( pendingSoftDisconnect )
+    {
+        softKillTimer.start( 250 );
+    }
 }
 
 #ifdef DECRYPT_PACKET_PLUGIN

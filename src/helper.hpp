@@ -38,12 +38,13 @@ namespace Helper
     }
 
     QString intSToStr(QString val, int base = 16, int fill = 0, QChar filler = '0');
-    int strToInt(QString& str, int base = 16);
+    int strToInt(QString str, int base = 16);
 
-    QString getStr(const QString& str, QString& indStr, QString& left);
+    QString getStrStr(const QString& str, QString indStr, QString mid, QString left);
 
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
+    qint32 serNumtoInt(QString& sernum);
 
     void logToFile(QString& file, QString& text, bool timeStamp = false, bool newLine = false);
 

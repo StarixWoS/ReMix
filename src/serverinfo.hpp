@@ -70,7 +70,7 @@ class ServerInfo
 
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
-        int getSernumSlot(quint32 sernum);
+        int getSernumSlot(qint32 sernum);
         int getQItemSlot(QStandardItem* index);
         int getIPAddrSlot(QString ip);
 

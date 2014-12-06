@@ -87,7 +87,7 @@ class Server : public QTcpServer
         void readMIX9(QString& packet, Player* plr);
 
         void sendRemoteAdminPwdReq(Player* plr, QString& serNum);
-        void authRemoteAdmin(Player* plr, quint32 id );
+        void authRemoteAdmin(Player* plr, qint32 id );
 
     signals:
         void newUserCommentSignal(QString& sernum, QString& alias, QString& message);
