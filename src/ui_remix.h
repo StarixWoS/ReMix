@@ -70,6 +70,7 @@ public:
             ReMix->setObjectName(QStringLiteral("ReMix"));
         ReMix->resize(666, 272);
         ReMix->setMinimumSize(QSize(0, 272));
+        ReMix->setMaximumSize(QSize(16777215, 414));
         ReMix->setDockNestingEnabled(false);
         actionSendMessage = new QAction(ReMix);
         actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));
@@ -130,7 +131,7 @@ public:
         sizePolicy2.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
         groupBox_2->setSizePolicy(sizePolicy2);
         groupBox_2->setMinimumSize(QSize(130, 0));
-        groupBox_2->setMaximumSize(QSize(130, 339));
+        groupBox_2->setMaximumSize(QSize(130, 350));
         groupBox_2->setAlignment(Qt::AlignCenter);
         gridLayout_4 = new QGridLayout(groupBox_2);
         gridLayout_4->setSpacing(6);

@@ -12,11 +12,8 @@
 namespace AdminHelper
 {
     enum Keys{ RANK = 0, HASH = 1, SALT = 2 };
-    const QString adminKeys[ 3 ]{ "rank", "hash", "salt" };
-    const QStringList ranks
-    {
-        QStringList() << "Game Master" << "Co-Admin" << "Admin" << "Owner"
-    };
+    extern const QString adminKeys[ 3 ];
+    extern const QStringList ranks;
 
     void setAdminData(const QString& key, const QString& subKey, QVariant& value);
     QVariant getAdminData(const QString& key, const QString& subKey);

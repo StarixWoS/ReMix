@@ -83,9 +83,9 @@ void BanDialog::loadBannedIPs()
 
         QString group;
 
-        int banDate = 0;
+        int banDate{ 0 };
+        int row{ -1 };
 
-        int row = -1;
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
@@ -288,7 +288,7 @@ void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
     QSettings banData( "snBanData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
-    int row = -1;
+    int row{ -1 };
     if ( !sernum.isEmpty() )
     {
         //Prevent adding new rows for previously-banned users.

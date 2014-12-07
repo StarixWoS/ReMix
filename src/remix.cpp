@@ -10,6 +10,12 @@
 #include "admin.hpp"
 #include "bandialog.hpp"
 
+//Initialize our accepted Commandline Argument List.
+const QStringList ReMix::cmdlArgs =
+{
+    QStringList() << "game" << "master" << "public" << "listen" << "name" << "fudge"
+};
+
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
@@ -22,77 +28,8 @@ ReMix::ReMix(QWidget *parent) :
     //Create our Context Menus
     contextMenu = new QMenu( this );
 
-//While possible to create a system tray icon, some versions of linux
-//disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
-//Also disable the feature on OSX. --Unable to test.
-#if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
-    if ( QSystemTrayIcon::isSystemTrayAvailable() )
-    {
-        trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
-        trayIcon->show();
-
-        QAction* showAction = new QAction( "Show", this );
-        QObject::connect( showAction, &QAction::triggered,
-                          this, &QMainWindow::show );
-
-        QAction* hideAction = new QAction( "Hide", this );
-        QObject::connect( hideAction, &QAction::triggered,
-                          this, &QMainWindow::hide );
-
-        QAction* minimizeAction = new QAction( "Minimize", this );
-        QObject::connect( minimizeAction, &QAction::triggered,
-                          this, &QMainWindow::hide );
-
-        QAction* maximizeAction = new QAction( "Maximize", this );
-        QObject::connect( maximizeAction, &QAction::triggered,
-                          this, &QMainWindow::showMaximized );
-
-        QAction* restoreAction = new QAction( "Restore", this);
-        QObject::connect( restoreAction, &QAction::triggered,
-                          this, &QMainWindow::showNormal );
-
-        QAction* quitAction = new QAction( "Quit", this);
-        QObject::connect( quitAction, &QAction::triggered, [=]()
-        {
-            //Allow Rejection of a Global CloseEvent.
-            if ( !this->rejectCloseEvent() )
-                qApp->quit();
-        });
-
-        trayMenu = new QMenu( this );
-        trayMenu->addAction( showAction );
-        trayMenu->addAction( hideAction );
-        trayMenu->addSeparator();
-        trayMenu->addAction( minimizeAction );
-        trayMenu->addAction( maximizeAction );
-        trayMenu->addAction( restoreAction );
-        trayMenu->addAction( quitAction );
-
-        QObject::connect( trayIcon, &QSystemTrayIcon::activated,
-                          [=]( QSystemTrayIcon::ActivationReason reason )
-        {
-            if ( reason == QSystemTrayIcon::Trigger )
-            {
-                if ( this->isHidden() )
-                {
-                    this->show();
-                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
-                    this->activateWindow();
-                }
-                else
-                {
-                    this->hide();
-                    this->setWindowState( Qt::WindowMinimized );
-                }
-            }
-            else if ( reason == QSystemTrayIcon::Context )
-            {
-                if ( trayMenu != nullptr )
-                    trayMenu->popup( QCursor::pos() );
-            }
-        });
-    }
-#endif
+    //Initialize our Tray Icon if available.
+    this->initTrayIcon();
 
     //Initialize our Context Menu Items.
     this->initContextMenu();
@@ -141,6 +78,128 @@ ReMix::ReMix(QWidget *parent) :
         this->getSynRealData();
 
     //Create and Connect Lamda Objects
+    this->initUIUpdateLambda();
+
+    //Setup Networking Objects.
+    if ( tcpServer == nullptr )
+        tcpServer = new Server( this, server, admin, plrModel );
+}
+
+ReMix::~ReMix()
+{
+    contextMenu->deleteLater();
+
+    if ( trayIcon != nullptr )
+        trayIcon->deleteLater();
+
+    if ( trayMenu != nullptr )
+        trayMenu->deleteLater();
+
+    plrModel->deleteLater();
+    plrProxy->deleteLater();
+
+    sysMessages->close();
+    sysMessages->deleteLater();
+
+    admin->close();
+    admin->deleteLater();
+
+    settings->close();
+    settings->deleteLater();
+
+    tcpServer->disconnectFromMaster();
+    tcpServer->close();
+    tcpServer->deleteLater();
+
+    delete randDev;
+    delete server;
+    delete ui;
+}
+
+int ReMix::genServerID()
+{
+    //Server ID may be between 0 and 0x7FFFFFFF - 0x1
+    return randDev->genRandNum( 0, 0x7FFFFFFE );
+}
+
+void ReMix::initTrayIcon()
+{
+    //While possible to create a system tray icon, some versions of linux
+    //disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
+    //Also disable the feature on OSX. --Unable to test.
+    #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
+        if ( QSystemTrayIcon::isSystemTrayAvailable() )
+        {
+            trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
+            trayIcon->show();
+
+            QAction* showAction = new QAction( "Show", this );
+            QObject::connect( showAction, &QAction::triggered,
+                              this, &QMainWindow::show );
+
+            QAction* hideAction = new QAction( "Hide", this );
+            QObject::connect( hideAction, &QAction::triggered,
+                              this, &QMainWindow::hide );
+
+            QAction* minimizeAction = new QAction( "Minimize", this );
+            QObject::connect( minimizeAction, &QAction::triggered,
+                              this, &QMainWindow::hide );
+
+            QAction* maximizeAction = new QAction( "Maximize", this );
+            QObject::connect( maximizeAction, &QAction::triggered,
+                              this, &QMainWindow::showMaximized );
+
+            QAction* restoreAction = new QAction( "Restore", this);
+            QObject::connect( restoreAction, &QAction::triggered,
+                              this, &QMainWindow::showNormal );
+
+            QAction* quitAction = new QAction( "Quit", this);
+            QObject::connect( quitAction, &QAction::triggered, [=]()
+            {
+                //Allow Rejection of a Global CloseEvent.
+                if ( !this->rejectCloseEvent() )
+                    qApp->quit();
+            });
+
+            trayMenu = new QMenu( this );
+            trayMenu->addAction( showAction );
+            trayMenu->addAction( hideAction );
+            trayMenu->addSeparator();
+            trayMenu->addAction( minimizeAction );
+            trayMenu->addAction( maximizeAction );
+            trayMenu->addAction( restoreAction );
+            trayMenu->addAction( quitAction );
+
+            QObject::connect( trayIcon, &QSystemTrayIcon::activated,
+                              [=]( QSystemTrayIcon::ActivationReason reason )
+            {
+                if ( reason == QSystemTrayIcon::Trigger )
+                {
+                    if ( this->isHidden() )
+                    {
+                        this->show();
+                        this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
+                        this->activateWindow();
+                    }
+                    else
+                    {
+                        this->hide();
+                        this->setWindowState( Qt::WindowMinimized );
+                    }
+                }
+                else if ( reason == QSystemTrayIcon::Context )
+                {
+                    if ( trayMenu != nullptr )
+                        trayMenu->popup( QCursor::pos() );
+                }
+            });
+        }
+#endif
+}
+
+void ReMix::initUIUpdateLambda()
+{
+    //Create and Connect Lamda Objects
     QObject::connect( server->getUpTimer(), &QTimer::timeout, [=]()
     {
         quint64 time = server->getUpTime();
@@ -184,47 +243,6 @@ ReMix::ReMix(QWidget *parent) :
         }
         ui->playerView->resizeColumnsToContents();
     });
-
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, admin, plrModel );
-}
-
-ReMix::~ReMix()
-{
-    contextMenu->deleteLater();
-
-    if ( trayIcon != nullptr )
-        trayIcon->deleteLater();
-
-    if ( trayMenu != nullptr )
-        trayMenu->deleteLater();
-
-    plrModel->deleteLater();
-    plrProxy->deleteLater();
-
-    sysMessages->close();
-    sysMessages->deleteLater();
-
-    admin->close();
-    admin->deleteLater();
-
-    settings->close();
-    settings->deleteLater();
-
-    tcpServer->disconnectFromMaster();
-    tcpServer->close();
-    tcpServer->deleteLater();
-
-    delete randDev;
-    delete server;
-    delete ui;
-}
-
-int ReMix::genServerID()
-{
-    //Server ID may be between 0 and 0x7FFFFFFF - 0x1
-    return randDev->genRandNum( 0, 0x7FFFFFFE );
 }
 
 void ReMix::parseCMDLArgs()

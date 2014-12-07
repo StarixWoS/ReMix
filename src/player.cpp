@@ -44,7 +44,6 @@ Player::Player()
         }
     });
 
-
     //The Timer is initialized within the force-disconnect function to prevent unnecessary checks.
     QObject::connect( &hardKillTimer, &QTimer::timeout, [=]()
     {

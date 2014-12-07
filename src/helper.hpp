@@ -20,15 +20,13 @@
 
 namespace Helper
 {
-    enum Keys{ Options = 0, WrongIP = 1, General = 2 };
-    const QString keys[ 3 ]{ "options", "wrongIPs", "General" };
+    extern const QString keys[ 3 ];
+    extern const QString subKeys[ 14 ];
 
+    enum Keys{ Options = 0, WrongIP = 1, General = 2 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3, ReqSernum = 4, AllowDupe = 5, AllowSSV = 6,
                   BanDupes = 7, ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11, ReqAdminAuth = 12, LogComments = 13 };
-    const QString subKeys[ 14 ]{ "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK", "serverSupportsVariables",
-                                 "banishDupes", "requirePassword", "MOTD", "BANISHED", "RULES", "requireAdminAuth",
-                                 "logComments"
-                               };
+
     QInputDialog* createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, quint32 height);
 
     template<typename T>

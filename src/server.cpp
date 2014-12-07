@@ -642,15 +642,14 @@ void Server::parseSRPacket(QString& packet, Player* plr)
     QTcpSocket* tmpSoc{ nullptr };
     Player* tmpPlr{ nullptr };
 
-    bool isAuth = false;
-    bool send = false;
-
     quint64 bOut{ 0 };
 
     //Only parse packets from Users that have entered the correct password.
     if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
       && ( plr->getGotAuthPwd() || !plr->getReqAuthPwd() ))
     {
+        bool isAuth{ false };
+        bool send{ false };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             isAuth = false;
@@ -856,27 +855,6 @@ void Server::readMIX5(QString& packet, Player* plr)
                 disconnect = true;
             }
         }
-        else if ( plr->getReqAuthPwd()
-               && !plr->getGotAuthPwd() )
-        {
-            QVariant pwd( msg );
-
-            //TODO: Support Users sending a pre-hashed password: #HASH#SALT#
-            //NOTE1: Support for a pre-hashed password will simply strip the two variables.
-            //NOTE2: This means the Server and User must have a program using the same SHA_512 hash Algo.
-            if ( AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
-            {
-                response = valid;
-
-                plr->setReqAuthPwd( false );
-                plr->setGotAuthPwd( true );
-            }
-            else
-            {
-                response = invalid;
-                disconnect = true;
-            }
-        }
         else if ( plr->getReqNewAuthPwd()
                && !plr->getGotNewAuthPwd() )
         {
@@ -901,24 +879,30 @@ void Server::readMIX5(QString& packet, Player* plr)
                 plr->setGotNewAuthPwd( false );
             }
         }
-        else if ( msg.startsWith( "/password ", Qt::CaseInsensitive )
-               || msg.startsWith( "/pwd ", Qt::CaseInsensitive ))
+        else if (( msg.startsWith( "/password ", Qt::CaseInsensitive )
+                || msg.startsWith( "/pwd ", Qt::CaseInsensitive ) ) )
         {
-            QVariant pwd = Helper::getStrStr( msg, " ", " ", "" );
-
-            //The User is attempting to Manually Authenticate.
-            if ( !pwd.toString().isEmpty()
-              && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
+            if ( !plr->getGotAuthPwd()
+              || plr->getReqAuthPwd() )
             {
-                response = valid;
+                QVariant pwd = Helper::getStrStr( msg, "/password", " ", "" );
+                if ( pwd.toString().isEmpty() )
+                    pwd = Helper::getStrStr( msg, "/pwd", " ", "" );
 
-                plr->setReqAuthPwd( false );
-                plr->setGotAuthPwd( true );
-            }
-            else
-            {
-                response = invalid;
-                disconnect = true;
+                //The User is attempting to Manually Authenticate.
+                if ( !pwd.toString().isEmpty()
+                  && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
+                {
+                    response = valid;
+
+                    plr->setReqAuthPwd( false );
+                    plr->setGotAuthPwd( true );
+                }
+                else
+                {
+                    response = invalid;
+                    disconnect = true;
+                }
             }
         }
         else
@@ -950,7 +934,7 @@ void Server::readMIX6(QString&, Player* plr)
     }
 
     QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
-                    "are unable to use these commands. Please reply to this message with (/password *pwd) "
+                    "are unable to use these commands. Please reply to this message with (/password *PASS) "
                     "and the server will authenticate you." };
 
     QString invalid{ "Your SerNum is not registered as a Remote Admin. Please refrain from attempting to use "
@@ -1059,8 +1043,7 @@ void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
         return;
 
     QString msg{ "The server Admin requires all Remote Administrators to authenticate themselves with their password. "
-                 "Please enter your password or be denied access to the server. Thank you!"
-                 "///PASSWORD REQUIRED NOW:" };
+                 "Please enter your password with the command (/password *PASS) or be denied access to the server. Thank you!" };
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {

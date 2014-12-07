@@ -1,6 +1,19 @@
 
 #include "helper.hpp"
 
+//Initialize Settings keys/subKeys lists
+const QString Helper::keys[ 3 ] =
+{
+    "options", "wrongIPs", "General"
+};
+
+const QString Helper::subKeys[ 14 ] =
+{
+    "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK",
+    "serverSupportsVariables", "banishDupes", "requirePassword", "MOTD", "BANISHED",
+    "RULES", "requireAdminAuth", "logComments"
+};
+
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, quint32 height)
 {
     QInputDialog* dialog = new QInputDialog( parent );
