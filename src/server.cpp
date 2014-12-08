@@ -10,6 +10,7 @@
 Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemModel* plrView)
 {
     //Setup Objects.
+    mother = parent;
     server = svr;
     plrViewModel = plrView;
     admin = adminDlg;
@@ -91,6 +92,7 @@ void Server::checkBannedInfo(Player* plr)
     {
         QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 }: %3" };
         QString peerAddr{ plr->getPublicIP() };
+
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             tmpPlr = server->getPlayer( i );
@@ -260,8 +262,29 @@ void Server::setupServerInfo()
                 break;
             }
         }
-        masterSocket->bind( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
-        this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+
+        bool validUDP = masterSocket->bind( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+        bool validTCP = this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+
+        if ( !validUDP
+          || !validTCP )
+        {
+            QString title{ "Invalid Port [ %1 ]" };
+                    title = title.arg( server->getPrivatePort() );
+
+            QString prompt{ "The selected UDP/TCP Port [ %1 ] is either invalid or already in use. "
+                            "You may try to continue with these settings or close the program via "
+                            "the Close button." };
+                    prompt = prompt.arg( server->getPrivatePort() );
+
+            //(ok) designates whether or not the User is accepting or ignoring the warning.
+            qint32 ok = Helper::warningMessage( mother, title, prompt );
+
+            //Close the program if the User has accepted the warning.
+            //TODO: Find working close/quit method. qApp-> doesn't seem to function outside of the main window.
+            if ( ok == QMessageBox::Close )
+                qApp->exit();
+        }
 
         server->setIsSetUp( true );
         if ( server->getIsPublic() && this->isListening() )

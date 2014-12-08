@@ -62,15 +62,15 @@ void Messages::on_reloadSettings_clicked()
 {
     QString var = Helper::getMOTDMessage();
     if ( !var.isEmpty() )
-        ui->motdEdit->setText( Helper::getMOTDMessage() );
+        ui->motdEdit->setText( var );
 
     var = Helper::getBanishMesage();
     if ( !var.isEmpty() )
-        ui->banishedEdit->setText( Helper::getBanishMesage() );
+        ui->banishedEdit->setText( var );
 
     var = Helper::getServerRules();
     if ( !var.isEmpty() )
-        ui->rulesEdit->setText( Helper::getServerRules() );
+        ui->rulesEdit->setText( var );
 
     if ( this->isVisible() )
         this->hide();

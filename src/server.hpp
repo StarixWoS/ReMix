@@ -36,6 +36,7 @@ class Server : public QTcpServer
     QHash<QString, QStandardItem*> plrTableItems;
     QHash<QHostAddress, QByteArray> udpDatas;
 
+    QWidget* mother{ nullptr };
     QUdpSocket* masterSocket{ nullptr };
     QByteArray udpData;
     QTimer masterCheckIn;

@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QStringBuilder>
 #include <QInputDialog>
+#include <QApplication>
 #include <QMessageBox>
 #include <QTextCursor>
 #include <QTextEdit>
@@ -47,6 +48,8 @@ namespace Helper
     void logToFile(QString& file, QString& text, bool timeStamp = false, bool newLine = false);
 
     bool confirmAction(QWidget* parent, QString& title, QString& prompt);
+    qint32 warningMessage(QWidget* parent, QString& title, QString& prompt );
+
     QString getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type = 0);
 
     void setSetting(const QString& key, const QString& subKey, QVariant& value);

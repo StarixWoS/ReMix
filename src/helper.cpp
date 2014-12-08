@@ -63,46 +63,47 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
      * left --- Obtain data before this sub-string.
      */
 
-    QString tmp = str;
+    QString tmp{ "" };
     int index{ 0 };
 
-    if ( !tmp.isEmpty()
-      && !indStr.isEmpty() )
+    if ( !str.isEmpty() )
     {
-        index = tmp.indexOf( indStr, Qt::CaseInsensitive );
-        if ( index >= 0 )   //-1 if str didn't contain indStr.
+        if ( !indStr.isEmpty() )
         {
-            if ( !mid.isEmpty() )
-                tmp = tmp.mid( index + indStr.length() );
-            else
-                tmp = tmp.mid( index ); //Get the actual search string.
+            index = str.indexOf( indStr, Qt::CaseInsensitive );
+            if ( index >= 0 )   //-1 if str didn't contain indStr.
+            {
+                if ( !mid.isEmpty() )
+                    tmp = str.mid( index + indStr.length() );
+                else
+                    tmp = str.mid( index ); //Get the actual search string.
+            }
         }
-    }
 
-    if ( !tmp.isEmpty()
-      && !mid.isEmpty() )
-    {
-        index = tmp.indexOf( mid, Qt::CaseInsensitive );
-        if ( index >= 0 )   //-1 if str didn't contain mid.
+        if ( !tmp.isEmpty()
+          && !mid.isEmpty() )
         {
-            if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
-                tmp = tmp.mid( index + mid.length() );
-            else
-                tmp = tmp.mid( index );
+            index = tmp.indexOf( mid, Qt::CaseInsensitive );
+            if ( index >= 0 )   //-1 if str didn't contain mid.
+            {
+                if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
+                    tmp = tmp.mid( index + mid.length() );
+                else
+                    tmp = tmp.mid( index );
+            }
         }
+
+        if ( !tmp.isEmpty()
+          && !left.isEmpty() )
+        {
+            index = tmp.indexOf( left, Qt::CaseInsensitive );
+            if ( index >= 0 )   //-1 if str didn't contain left.
+                tmp = tmp.left( index );
+        }
+
+        if ( !tmp.isEmpty() )
+            return tmp;
     }
-
-    if ( !tmp.isEmpty()
-      && !left.isEmpty() )
-    {
-        index = tmp.indexOf( left, Qt::CaseInsensitive );
-        if ( index >= 0 )   //-1 if str didn't contain left.
-            tmp = tmp.left( index );
-    }
-
-    if ( !tmp.isEmpty() )
-        return tmp;
-
     return QString();
 }
 
@@ -157,10 +158,17 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLin
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
-    quint32 value = QMessageBox::question( parent, title, prompt,
-                                        QMessageBox::Yes | QMessageBox::No,
-                                        QMessageBox::No );
+    qint32 value = QMessageBox::question( parent, title, prompt,
+                                          QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::No );
     return value == QMessageBox::Yes;
+}
+
+qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
+{
+    return QMessageBox::warning( parent, title, prompt,
+                                 QMessageBox::Ignore,
+                                 QMessageBox::Close );
 }
 
 QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type)
