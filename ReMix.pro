@@ -4,9 +4,10 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network
+QT += core \
+      gui \
+      widgets \
+      network
 
 TARGET = ReMix
 TEMPLATE = app
@@ -25,9 +26,9 @@ DEFINES += USE_DARK_FUSION_UI=1 \ #Tell Qt to use a Non-Native UI color scheme.
            #USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
 #CONFIG += static c++11
-QMAKE_CXXFLAGS = -std=c++11 -O3 #-static-libstdc++ -static-libgcc -static
+QMAKE_CXXFLAGS = -std=c++14 -O3 #-static-libstdc++ -static-libgcc -static
 
-SOURCES += src/main.cpp\
+SOURCES += src/main.cpp \
            src/remix.cpp \
            src/player.cpp \
            src/messages.cpp \

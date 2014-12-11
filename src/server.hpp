@@ -12,7 +12,6 @@
 #include <QDateTime>
 #include <QtEndian>
 #include <QString>
-#include <QDebug>
 #include <QTimer>
 #include <QDir>
 
@@ -62,9 +61,6 @@ class Server : public QTcpServer
         void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo();
         void setupPublicServer(bool value);
-        void disconnectFromMaster();
-        void sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort);
-        void sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port);
         quint64 sendServerRules(Player* plr);
 
         QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert);
@@ -94,7 +90,6 @@ class Server : public QTcpServer
         void newUserCommentSignal(QString& sernum, QString& alias, QString& message);
 
     private slots:
-        void masterCheckInTimeOutSlot();
         void newConnectionSlot();
         void readyReadUDPSlot();
 };

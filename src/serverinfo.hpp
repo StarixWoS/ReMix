@@ -2,6 +2,7 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
+#include <QUdpSocket>
 #include <QHostInfo>
 #include <QString>
 #include <QDir>
@@ -12,6 +13,8 @@
 const int MAX_PLAYERS = 256;
 class ServerInfo
 {
+    QUdpSocket* masterSocket{ nullptr };
+
     QTimer upTimer;
     quint64 upTime{ 0 };
 
@@ -22,7 +25,7 @@ class ServerInfo
     int privatePort{ 8888 };
 
     QString publicIP{ "" };
-    int publicPort{ 8888 };
+    quint16 publicPort{ 8888 };
 
     int playerCount{ 0 };
     int serverID{ 0 };
@@ -31,7 +34,7 @@ class ServerInfo
     bool isPublic{ false };
 
     QString masterIP{ "" };
-    int masterPort{ 23999 };
+    quint16 masterPort{ 23999 };
 
     float versionID_f{ 1.10f };
     int versionID_i{ 41252 };
@@ -48,7 +51,8 @@ class ServerInfo
 
     quint32 userCalls{ 0 };
     quint32 serNumDc{ 0 };
-    quint32 dupIPDc{ 0 };
+    quint32 dupDc{ 0 };
+    quint32 pktDc{ 0 };
     quint32 ipDc{ 0 };
 
     QElapsedTimer baudTime;
@@ -63,6 +67,12 @@ class ServerInfo
     public:
         ServerInfo();
         ~ServerInfo();
+
+        void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
+
+        void sendServerInfo(QHostAddress& addr, quint16 port);
+        void sendUserList(QHostAddress& addr, quint16 port);
+        void sendMasterInfo(bool disconnect = false);
 
         Player* createPlayer(int slot);
         Player* getPlayer(int slot);
@@ -101,7 +111,7 @@ class ServerInfo
         float getVersionID_f() const;
         void setVersionID_f(float value);
 
-        int getMasterPort() const;
+        quint16 getMasterPort() const;
         void setMasterPort(int value);
 
         QString getMasterIP() const;
@@ -119,8 +129,8 @@ class ServerInfo
         int getPlayerCount() const;
         void setPlayerCount(int value);
 
-        int getPublicPort() const;
-        void setPublicPort(int value);
+        quint16 getPublicPort() const;
+        void setPublicPort(quint16 value);
 
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
@@ -146,8 +156,11 @@ class ServerInfo
         quint32 getSerNumDc() const;
         void setSerNumDc(const quint32& value);
 
-        quint32 getDupIPDc() const;
-        void setDupIPDc(const quint32& value);
+        quint32 getDupDc() const;
+        void setDupDc(const quint32& value);
+
+        quint32 getPktDc() const;
+        void setPktDc(const quint32& value);
 
         quint32 getIpDc() const;
         void setIpDc(const quint32& value);
@@ -166,6 +179,9 @@ class ServerInfo
 
         bool getLogUsage() const;
         void setLogUsage(bool value);
+
+        QUdpSocket* getMasterSocket() const;
+        bool initMasterSocket(QHostAddress& addr, quint16 port);
 };
 
 #endif // SERVERINFO_HPP

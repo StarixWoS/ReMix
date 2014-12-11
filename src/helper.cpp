@@ -70,7 +70,7 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
     {
         if ( !indStr.isEmpty() )
         {
-            index = str.indexOf( indStr, Qt::CaseInsensitive );
+            index = str.indexOf( indStr, 0, Qt::CaseInsensitive );
             if ( index >= 0 )   //-1 if str didn't contain indStr.
             {
                 if ( !mid.isEmpty() )
@@ -80,25 +80,30 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
             }
         }
 
-        if ( !tmp.isEmpty()
-          && !mid.isEmpty() )
+        if ( !mid.isEmpty()
+          || !left.isEmpty() )
         {
-            index = tmp.indexOf( mid, Qt::CaseInsensitive );
-            if ( index >= 0 )   //-1 if str didn't contain mid.
-            {
-                if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
-                    tmp = tmp.mid( index + mid.length() );
-                else
-                    tmp = tmp.mid( index );
-            }
-        }
+            if ( indStr.isEmpty() )
+                tmp = str;
 
-        if ( !tmp.isEmpty()
-          && !left.isEmpty() )
-        {
-            index = tmp.indexOf( left, Qt::CaseInsensitive );
-            if ( index >= 0 )   //-1 if str didn't contain left.
-                tmp = tmp.left( index );
+            if ( !mid.isEmpty() )
+            {
+                index = tmp.indexOf( mid, 0, Qt::CaseInsensitive );
+                if ( index >= 0 )   //-1 if str didn't contain mid.
+                {
+                    if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
+                        tmp = tmp.mid( index + mid.length() );
+                    else
+                        tmp = tmp.mid( index );
+                }
+            }
+
+            if ( !left.isEmpty() )
+            {
+                index = tmp.indexOf( left, 0, Qt::CaseInsensitive );
+                if ( index >= 0 )   //-1 if str didn't contain left.
+                    tmp = tmp.left( index );
+            }
         }
 
         if ( !tmp.isEmpty() )
@@ -126,10 +131,13 @@ QString Helper::serNumToIntStr(QString sernum)
 
 qint32 Helper::serNumtoInt(QString& sernum)
 {
+    int sernum_i{ 0 };
     if ( sernum.contains( "SOUL " ) )
-        return strToInt( sernum.mid( sernum.indexOf( " " ) + 1 ), 10 );
+        sernum_i = strToInt( sernum.mid( sernum.indexOf( " " ) + 1 ), 10 );
     else
-        return strToInt( sernum, 16 );
+        sernum_i = strToInt( sernum, 16 );
+
+    return sernum_i;
 }
 
 void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLine)
@@ -167,8 +175,8 @@ bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
 {
     return QMessageBox::warning( parent, title, prompt,
-                                 QMessageBox::Ignore,
-                                 QMessageBox::Close );
+                                 QMessageBox::Ok,
+                                 QMessageBox::NoButton );
 }
 
 QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type)

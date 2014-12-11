@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remix.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.1
+** Created by: Qt User Interface Compiler version 5.4.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -37,6 +37,8 @@ public:
     QAction *actionBANISHSerNum;
     QAction *actionRevokeAdmin;
     QAction *actionDisconnectUser;
+    QAction *actionMuteNetwork;
+    QAction *actionUnMuteNetwork;
     QWidget *centralWidget;
     QGridLayout *gridLayout;
     QFrame *frame;
@@ -50,7 +52,7 @@ public:
     QVBoxLayout *verticalLayout;
     QLabel *callCount;
     QLabel *packetDCCount;
-    QLabel *duplicateCount;
+    QLabel *dupDCCount;
     QLabel *ipDCCount;
     QLabel *packetINBD;
     QLabel *packetOUTBD;
@@ -84,6 +86,10 @@ public:
         actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
         actionDisconnectUser = new QAction(ReMix);
         actionDisconnectUser->setObjectName(QStringLiteral("actionDisconnectUser"));
+        actionMuteNetwork = new QAction(ReMix);
+        actionMuteNetwork->setObjectName(QStringLiteral("actionMuteNetwork"));
+        actionUnMuteNetwork = new QAction(ReMix);
+        actionUnMuteNetwork->setObjectName(QStringLiteral("actionUnMuteNetwork"));
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -169,13 +175,13 @@ public:
 
         verticalLayout->addWidget(packetDCCount);
 
-        duplicateCount = new QLabel(groupBox);
-        duplicateCount->setObjectName(QStringLiteral("duplicateCount"));
-        sizePolicy1.setHeightForWidth(duplicateCount->sizePolicy().hasHeightForWidth());
-        duplicateCount->setSizePolicy(sizePolicy1);
-        duplicateCount->setMaximumSize(QSize(16777215, 20));
+        dupDCCount = new QLabel(groupBox);
+        dupDCCount->setObjectName(QStringLiteral("dupDCCount"));
+        sizePolicy1.setHeightForWidth(dupDCCount->sizePolicy().hasHeightForWidth());
+        dupDCCount->setSizePolicy(sizePolicy1);
+        dupDCCount->setMaximumSize(QSize(16777215, 20));
 
-        verticalLayout->addWidget(duplicateCount);
+        verticalLayout->addWidget(dupDCCount);
 
         ipDCCount = new QLabel(groupBox);
         ipDCCount->setObjectName(QStringLiteral("ipDCCount"));
@@ -319,15 +325,17 @@ public:
         actionBANISHSerNum->setText(QApplication::translate("ReMix", "BANISH SerNum", 0));
         actionRevokeAdmin->setText(QApplication::translate("ReMix", "Revoke Admin", 0));
         actionDisconnectUser->setText(QApplication::translate("ReMix", "Disconnect User", 0));
+        actionMuteNetwork->setText(QApplication::translate("ReMix", "Mute Network", 0));
+        actionUnMuteNetwork->setText(QApplication::translate("ReMix", "Un-Mute Network", 0));
         isPublicServer->setText(QApplication::translate("ReMix", "Register as a public server", 0));
         serverName->setText(QApplication::translate("ReMix", "Server Name", 0));
         onlineTime->setText(QApplication::translate("ReMix", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMix", "TCP/IP Port#", 0));
         groupBox->setTitle(QApplication::translate("ReMix", "Stats", 0));
         callCount->setText(QApplication::translate("ReMix", "#Calls: 0", 0));
-        packetDCCount->setText(QApplication::translate("ReMix", "#PktDC: 0", 0));
-        duplicateCount->setText(QApplication::translate("ReMix", "#DupDc: 0", 0));
-        ipDCCount->setText(QApplication::translate("ReMix", "#IPDc: 0", 0));
+        packetDCCount->setText(QApplication::translate("ReMix", "#Pkt-DC: 0", 0));
+        dupDCCount->setText(QApplication::translate("ReMix", "#Dup-DC: 0", 0));
+        ipDCCount->setText(QApplication::translate("ReMix", "#IP-DC: 0", 0));
         packetINBD->setText(QApplication::translate("ReMix", "#IN: 0 BD", 0));
         packetOUTBD->setText(QApplication::translate("ReMix", "#OUT: 0 BD", 0));
         openBanDialog->setText(QApplication::translate("ReMix", "Bans", 0));

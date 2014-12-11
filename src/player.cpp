@@ -42,6 +42,13 @@ Player::Player()
                                 Qt::DisplayRole );
             }
         }
+
+        //Disconnect Idle Users after 10 minutes (600000 MS).
+        if ( Helper::getDisconnectIdles()
+          && idleTime.elapsed() >= 600000 )
+        {
+            this->setHardDisconnect( true );
+        }
     });
 
     //The Timer is initialized within the force-disconnect function to prevent unnecessary checks.
@@ -52,7 +59,7 @@ Player::Player()
         //in the event the server has detected something that could cause major issues for
         //the network or the actual experience of other Users. (e.g. packet flooding)
 
-        if ( this->getForcedDisconnect() )
+        if ( this->getHardDisconnect() )
             this->getSocket()->abort();
     });
 
@@ -119,7 +126,7 @@ void Player::setSernum(qint32 value)
     //forcibly remove the User from the server.
     if ( Helper::getReqSernums() && value <= 0 )
     {
-        this->setForcedDisconnect( true );
+        this->setHardDisconnect( true );
         return;
     }
     sernum = value;
@@ -297,6 +304,10 @@ int Player::getPacketsIn() const
 void Player::setPacketsIn(int value, int incr)
 {
     packetsIn = value + incr;
+
+    //Reset the Idle timer.
+    idleTime.restart();
+
     this->setPacketFloodCount( this->getPacketFloodCount() + incr );
 }
 
@@ -437,12 +448,12 @@ void Player::setGotNewAuthPwd(bool value)
     gotNewAuthPwd = value;
 }
 
-bool Player::getForcedDisconnect() const
+bool Player::getHardDisconnect() const
 {
     return pendingHardDisconnect;
 }
 
-void Player::setForcedDisconnect(bool value)
+void Player::setHardDisconnect(bool value)
 {
     pendingHardDisconnect = value;
     if ( pendingHardDisconnect )
@@ -463,6 +474,16 @@ void Player::setSoftDisconnect(bool value)
     {
         softKillTimer.start( 250 );
     }
+}
+
+bool Player::getNetworkMuted() const
+{
+    return networkMuted;
+}
+
+void Player::setNetworkMuted(bool value)
+{
+    networkMuted = value;
 }
 
 #ifdef DECRYPT_PACKET_PLUGIN

@@ -21,7 +21,6 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
 
     //Setup Objects.
     serverComments = new UserMessage( parent );
-    masterSocket = new QUdpSocket( this );
 
     //Connect Objects.
     QObject::connect( this, &QTcpServer::newConnection,
@@ -30,11 +29,13 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
     QObject::connect( this, &Server::newUserCommentSignal,
                       serverComments, &UserMessage::newUserCommentSlot );
 
-    QObject::connect( masterSocket, &QUdpSocket::readyRead,
+    QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
-    QObject::connect( &masterCheckIn, &QTimer::timeout,
-                      this, &Server::masterCheckInTimeOutSlot );
+    QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
+    {
+        server->sendMasterInfo();
+    });
 
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
@@ -46,9 +47,6 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemM
 
 Server::~Server()
 {
-    masterSocket->close();
-    masterSocket->deleteLater();
-
     serverComments->close();
     serverComments->deleteLater();
 
@@ -83,7 +81,10 @@ void Server::checkBannedInfo(Player* plr)
         if ( bandlg->getIsIPBanned( plr->getPublicIP() )
           || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
         {
-            plr->setForcedDisconnect( true );
+            plr->setSoftDisconnect( true );
+            server->setIpDc( server->getIpDc() + 1 );
+
+            server->sendMasterMessage( Helper::getBanishMesage(), plr, false );
         }
     }
 
@@ -110,14 +111,16 @@ void Server::checkBannedInfo(Player* plr)
 
                     if ( plr != nullptr )
                     {
-                        plr->setForcedDisconnect( true );
+                        plr->setHardDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
+                        server->setDupDc( server->getDupDc() + 1 );
                     }
 
                     if ( tmpPlr != nullptr )
                     {
-                        tmpPlr->setForcedDisconnect( true );
+                        tmpPlr->setHardDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
+                        server->setDupDc( server->getDupDc() + 1 );
                     }
                 }
             }
@@ -132,10 +135,13 @@ void Server::checkBannedInfo(Player* plr)
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr
-                 && tmpPlr->getSernum() == plr->getSernum() )
+              && tmpPlr->getSernum() == plr->getSernum() )
             {
                 if ( tmpPlr != plr )
-                    plr->setForcedDisconnect( true );
+                {
+                    plr->setHardDisconnect( true );
+                    server->setDupDc( server->getDupDc() + 1 );
+                }
             }
         }
     }
@@ -143,11 +149,8 @@ void Server::checkBannedInfo(Player* plr)
 
 void Server::detectPacketFlood(Player* plr)
 {
-    if ( plr == nullptr
-      || plr->getSocket() == nullptr )
-    {
+    if ( plr == nullptr )
         return;
-    }
 
     int floodCount = plr->getPacketFloodCount();
     if ( floodCount >= 1 )
@@ -156,14 +159,14 @@ void Server::detectPacketFlood(Player* plr)
         if ( time <= PACKET_FLOOD_TIME )
         {
             if ( floodCount >= PACKET_FLOOD_LIMIT
-              && !plr->getForcedDisconnect() )
+              && !plr->getHardDisconnect() )
             {
                 QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
-                QString logMsg = QString( "Auto Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" )
-                                     .arg( plr->getPublicIP() )
-                                     .arg( plr->getPublicPort() )
-                                     .arg( floodCount )
-                                     .arg( time );
+                QString logMsg{ "Auto Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" };
+                        logMsg = logMsg.arg( plr->getPublicIP() )
+                                       .arg( plr->getPublicPort() )
+                                       .arg( floodCount )
+                                       .arg( time );
 
                 Helper::logToFile( log, logMsg, true, true );
                 if ( Helper::getBanHackers() )
@@ -171,16 +174,17 @@ void Server::detectPacketFlood(Player* plr)
                     BanDialog* banDlg = admin->getBanDialog();
                     if ( banDlg != nullptr )
                     {
-                        logMsg = QString( "Auto-Banish; Suspicious data from: [ %1:%2 ]: %3" )
-                                     .arg( plr->getPublicIP() )
-                                     .arg( plr->getPublicPort() )
-                                     .arg( QString( plr->getBioData() ) );
+                        logMsg = QString( "Auto-Banish; Suspicious data from: [ %1:%2 ]: %3" );
+                        logMsg = logMsg.arg( plr->getPublicIP() )
+                                       .arg( plr->getPublicPort() )
+                                       .arg( QString( plr->getBioData() ) );
 
                         QString ip{ plr->getPublicIP() };
                         banDlg->addIPBan( ip, logMsg );
                     }
                 }
-                plr->setForcedDisconnect( true );
+                plr->setHardDisconnect( true );
+                server->setPktDc( server->getPktDc() + 1 );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )
@@ -228,7 +232,7 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 3 ),
-                               Helper::getStrStr( bio, "lias", "=", "," ),
+                               Helper::getStrStr( bio, "alias", "=", "," ),
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
@@ -263,8 +267,9 @@ void Server::setupServerInfo()
             }
         }
 
-        bool validUDP = masterSocket->bind( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
-        bool validTCP = this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+        QHostAddress addr{ server->getPrivateIP() };
+        bool validUDP = server->initMasterSocket( addr, server->getPrivatePort() );
+        bool validTCP = this->listen( addr, server->getPrivatePort() );
 
         if ( !validUDP
           || !validTCP )
@@ -272,23 +277,16 @@ void Server::setupServerInfo()
             QString title{ "Invalid Port [ %1 ]" };
                     title = title.arg( server->getPrivatePort() );
 
-            QString prompt{ "The selected UDP/TCP Port [ %1 ] is either invalid or already in use. "
-                            "You may try to continue with these settings or close the program via "
-                            "the Close button." };
+            QString prompt{ "The selected UDP/TCP Port [ %1 ]\r\n"
+                            "is either invalid or already in use." };
                     prompt = prompt.arg( server->getPrivatePort() );
 
-            //(ok) designates whether or not the User is accepting or ignoring the warning.
-            qint32 ok = Helper::warningMessage( mother, title, prompt );
-
-            //Close the program if the User has accepted the warning.
-            //TODO: Find working close/quit method. qApp-> doesn't seem to function outside of the main window.
-            if ( ok == QMessageBox::Close )
-                qApp->exit();
+            Helper::warningMessage( mother, title, prompt );
         }
 
         server->setIsSetUp( true );
         if ( server->getIsPublic() && this->isListening() )
-            this->masterCheckInTimeOutSlot();
+            server->sendMasterInfo();
     }
 }
 
@@ -360,9 +358,9 @@ void Server::newConnectionSlot()
             server->setPlayerCount( 0 );
             server->setGameInfo( "" );
         }
-        this->masterCheckInTimeOutSlot();
 
         server->deletePlayer( plr->getSlotPos() );
+        server->sendMasterInfo();
     });
 
     //Connect the pending Connection to a ReadyRead lambda.
@@ -419,7 +417,7 @@ void Server::newConnectionSlot()
         plr->setTableRow( plrTableItems.value( ip ) );
 
         server->setPlayerCount( server->getPlayerCount() + 1 );
-        this->masterCheckInTimeOutSlot();
+        server->sendMasterInfo();
     }
     this->checkBannedInfo( plr );
 }
@@ -485,7 +483,7 @@ void Server::readyReadUDPSlot()
                             if ( !bandlg->getIsSernumBanned( sernum ) )
                             {
                                 udpDatas.insert( senderAddr, udpData.mid( 1 ) );
-                                this->sendServerInfo( sender, senderAddr, senderPort );
+                                server->sendServerInfo( senderAddr, senderPort );
                             }
                         }
                         //TODO: Check for banned D and V variables. --Low priority.
@@ -497,7 +495,7 @@ void Server::readyReadUDPSlot()
                           || !Helper::getReqSernums() )
                         {
                             if ( !bandlg->getIsSernumBanned( sernum ) )
-                                this->sendUserList( sender, senderAddr, senderPort );
+                                server->sendUserList( senderAddr, senderPort );
                         }
                         //TODO: Check for banned D and V variables. --Low priority.
                     break;
@@ -519,61 +517,15 @@ void Server::setupPublicServer(bool value)
         if ( !server->getIsPublic() )
         {
             masterCheckIn.start();
-            this->masterCheckInTimeOutSlot();
+            server->sendMasterInfo();
         }
         else
         {
             masterCheckIn.stop();
-            this->disconnectFromMaster();
+            server->sendMasterInfo( true );
         }
         server->setIsPublic( value );
     }
-}
-
-void Server::disconnectFromMaster()
-{
-    if ( server->getIsSetUp() )
-    {
-        char ex = 'X';
-        masterSocket->writeDatagram( &ex, 2,
-                                     QHostAddress( server->getMasterIP() ), server->getMasterPort() );
-    }
-}
-
-void Server::sendServerInfo(QUdpSocket* socket, QHostAddress& socAddr, quint16 socPort)
-{
-    //TODO: Format Server Usage variable.
-
-    QString response = QString( "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6" )
-                           .arg( server->getName() );
-
-    if ( !server->getGameInfo().isEmpty() )
-        response = response.arg( " [" % server->getGameInfo() % "]" );
-    else
-        response = response.arg( "" );
-
-    response = response.arg( server->getServerRules() )
-                       .arg( Helper::intToStr( server->getServerID(), 16, 8 ) )
-                       .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
-                       .arg( "999.999.999" );
-
-    if ( socket != nullptr )
-        socket->writeDatagram( response.toLatin1(), response.size() + 1, socAddr, socPort );
-}
-
-void Server::sendUserList(QUdpSocket* soc, QHostAddress& addr, quint16 port)
-{
-    Player* plr{ nullptr };
-    QString response{ "Q" };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        plr = server->getPlayer( i );
-        if ( plr != nullptr && plr->getSernum() > 0 )
-            response += Helper::intToStr( plr->getSernum(), 16 ) % ",";
-    }
-
-    if ( !response.isEmpty() && soc != nullptr )
-        soc->writeDatagram( response.toLatin1(), response.size() + 1, addr, port );
 }
 
 quint64 Server::sendServerRules(Player* plr)
@@ -590,26 +542,6 @@ quint64 Server::sendServerRules(Player* plr)
     return plr->getSocket()->write( rules.toLatin1(), rules.length() );
 }
 
-void Server::masterCheckInTimeOutSlot()
-{
-    QString response = QString( "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" );
-    if ( server->getIsSetUp() )
-    {
-        response = response.arg( server->getVersionID_i() )
-                           .arg( server->getPlayerCount() )
-                           .arg( server->getGameId() )
-                           .arg( server->getGameName() )
-                           .arg( server->getHostInfo().localHostName() )
-                           .arg( server->getServerID() )
-                           .arg( server->getPrivatePort() )
-                           .arg( server->getGameInfo() )
-                           .arg( server->getName() );
-
-        masterSocket->writeDatagram( response.toLatin1(), response.length() + 1,
-                                     QHostAddress( server->getMasterIP() ), server->getMasterPort() );
-    }
-}
-
 void Server::parseMasterServerResponse(QByteArray& mData)
 {
     int opcode{ 0 };
@@ -624,7 +556,7 @@ void Server::parseMasterServerResponse(QByteArray& mData)
                     mDataStream >> pubPort;
 
         server->setPublicIP( QHostAddress( pubIP ).toString() );
-        server->setPublicPort( qFromBigEndian( pubPort ) );
+        server->setPublicPort( static_cast<quint16>( qFromBigEndian( pubPort ) ) );
 
         //We've obtained valid Master information.
         //Reset check-in to every 5 minutes.
@@ -647,7 +579,9 @@ void Server::parsePacket(QString& packet, Player* plr)
         if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
             return;
 
-        this->parseSRPacket( packet, plr );
+        //Prevent re-sending packets from Users with a muted Network.
+        if ( !plr->getNetworkMuted() )
+            this->parseSRPacket( packet, plr );
     }
 
     if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
@@ -937,6 +871,7 @@ void Server::readMIX5(QString& packet, Player* plr)
             if ( disconnect )
             {
                 plr->setSoftDisconnect( true );
+                server->setIpDc( server->getIpDc() + 1 );
             }
             else if ( bOut >= 1 )
             {
@@ -993,7 +928,9 @@ void Server::readMIX6(QString&, Player* plr)
                            .arg( plr->getPublicPort() )
                            .arg( QString( plr->getBioData() ) );
             admin->getBanDialog()->addIPBan( plr->getPublicIP(), reason );
+
             plr->setSoftDisconnect( true );
+            server->setIpDc( server->getIpDc() + 1 );
         }
         else
             server->sendMasterMessage( invalid, plr, false );
@@ -1089,7 +1026,7 @@ void Server::authRemoteAdmin(Player* plr, qint32 id)
       || plr->getSernum() == 0 )
     {
         QString serNum_s = Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) );
-        if ( plr->getSernum() <= 0 )
+        if ( plr->getSernum() == 0 )
         {
             if ( plr->getTableRow() != nullptr )
             {
@@ -1100,17 +1037,22 @@ void Server::authRemoteAdmin(Player* plr, qint32 id)
 
             //Disconnect the User if they have no SerNum, as we require SerNums.
             if ( Helper::getReqSernums()
-              && id <= 0 )
+              && id == 0 )
             {
-                plr->setForcedDisconnect( true );
+                plr->setHardDisconnect( true );
+                server->setIpDc( server->getIpDc() + 1 );
             }
             plr->setSernum( id );
             plr->setSernum_s( serNum_s );
 
             this->sendRemoteAdminPwdReq( plr, serNum_s );
         }
-        else if ( id > 0 && plr->getSernum() != id )
-            plr->setForcedDisconnect( true );   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
+        else if (( id != 0 && plr->getSernum() != id )
+               && plr->getSernum() != 0 )
+        {
+            plr->setHardDisconnect( true );   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
+            server->setIpDc( server->getIpDc() + 1 );
+        }
     }
 }
 

@@ -184,12 +184,12 @@
                 </size>
                </property>
                <property name="text">
-                <string>#PktDC: 0</string>
+                <string>#Pkt-DC: 0</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="duplicateCount">
+              <widget class="QLabel" name="dupDCCount">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -203,7 +203,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>#DupDc: 0</string>
+                <string>#Dup-DC: 0</string>
                </property>
               </widget>
              </item>
@@ -222,7 +222,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>#IPDc: 0</string>
+                <string>#IP-DC: 0</string>
                </property>
               </widget>
              </item>
@@ -492,6 +492,16 @@
   <action name="actionDisconnectUser">
    <property name="text">
     <string>Disconnect User</string>
+   </property>
+  </action>
+  <action name="actionMuteNetwork">
+   <property name="text">
+    <string>Mute Network</string>
+   </property>
+  </action>
+  <action name="actionUnMuteNetwork">
+   <property name="text">
+    <string>Un-Mute Network</string>
    </property>
   </action>
  </widget>

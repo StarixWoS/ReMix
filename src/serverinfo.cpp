@@ -3,6 +3,8 @@
 
 ServerInfo::ServerInfo()
 {
+    masterSocket = new QUdpSocket();
+
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         players[ i ] = nullptr;
@@ -29,7 +31,100 @@ ServerInfo::ServerInfo()
 
 ServerInfo::~ServerInfo()
 {
+    masterSocket->close();
+    masterSocket->deleteLater();
+
     upTimer.disconnect();
+}
+
+QUdpSocket* ServerInfo::getMasterSocket() const
+{
+    return masterSocket;
+}
+
+bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
+{
+    return masterSocket->bind( addr, port );
+}
+
+void ServerInfo::sendUDPData(QHostAddress& addr, quint16 port, QString& data)
+{
+    if ( masterSocket != nullptr )
+        masterSocket->writeDatagram( data.toLatin1(), data.size() + 1, addr, port );
+}
+
+void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
+{
+    if ( addr.isNull() )
+        return;
+
+    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6" };
+            response = response.arg( this->getName() );
+
+    if ( !this->getGameInfo().isEmpty() )
+        response = response.arg( " [" % this->getGameInfo() % "]" );
+    else
+        response = response.arg( "" );
+
+    response = response.arg( this->getServerRules() )
+                       .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
+                       .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
+                       .arg( "999.999.999" );
+
+    if ( !response.isEmpty() )
+        this->sendUDPData( addr, port, response );
+}
+
+void ServerInfo::sendUserList(QHostAddress& addr, quint16 port)
+{
+    if ( addr.isNull() )
+        return;
+
+    Player* plr{ nullptr };
+    QString response{ "Q" };
+
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        plr = this->getPlayer( i );
+        if ( plr != nullptr
+          && plr->getSernum() != 0 )
+        {
+            response += Helper::intToStr( plr->getSernum(), 16 ) % ",";
+        }
+    }
+
+    if ( !response.isEmpty() )
+        this->sendUDPData( addr, port, response );
+}
+
+void ServerInfo::sendMasterInfo(bool disconnect)
+{
+    QHostAddress addr{ this->getMasterIP() };
+    quint16 port{ this->getMasterPort() };
+    QString response{ "X" };
+
+    if ( !disconnect )
+    {
+        if ( this->getIsSetUp() )
+        {
+            response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" };
+            response = response.arg( this->getVersionID_i() )
+                               .arg( this->getPlayerCount() )
+                               .arg( this->getGameId() )
+                               .arg( this->getGameName() )
+                               .arg( this->getHostInfo().localHostName() )
+                               .arg( this->getServerID() )
+                               .arg( this->getPrivatePort() )
+                               .arg( this->getGameInfo() )
+                               .arg( this->getName() );
+        }
+    }
+
+    if ( !response.isEmpty()
+      && this->getIsSetUp() )
+    {
+        this->sendUDPData( addr, port, response );
+    }
 }
 
 Player* ServerInfo::createPlayer(int slot)
@@ -275,7 +370,7 @@ void ServerInfo::setVersionID_f(float value)
     versionID_f = value;
 }
 
-int ServerInfo::getMasterPort() const
+quint16 ServerInfo::getMasterPort() const
 {
     return masterPort;
 }
@@ -335,12 +430,12 @@ void ServerInfo::setPlayerCount(int value)
     playerCount = value;
 }
 
-int ServerInfo::getPublicPort() const
+quint16 ServerInfo::getPublicPort() const
 {
     return publicPort;
 }
 
-void ServerInfo::setPublicPort(int value)
+void ServerInfo::setPublicPort(quint16 value)
 {
     publicPort = value;
 }
@@ -426,14 +521,24 @@ void ServerInfo::setSerNumDc(const quint32& value)
     serNumDc = value;
 }
 
-quint32 ServerInfo::getDupIPDc() const
+quint32 ServerInfo::getDupDc() const
 {
-    return dupIPDc;
+    return dupDc;
 }
 
-void ServerInfo::setDupIPDc(const quint32& value)
+void ServerInfo::setDupDc(const quint32& value)
 {
-    dupIPDc = value;
+    dupDc = value;
+}
+
+quint32 ServerInfo::getPktDc() const
+{
+    return pktDc;
+}
+
+void ServerInfo::setPktDc(const quint32& value)
+{
+    pktDc = value;
 }
 
 quint32 ServerInfo::getIpDc() const

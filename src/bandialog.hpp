@@ -7,7 +7,6 @@
 #include <QtEndian>
 #include <QDialog>
 #include <QString>
-#include <QDebug>
 #include <QFile>
 #include <QChar>
 #include <QDir>

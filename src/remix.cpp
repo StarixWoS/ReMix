@@ -29,7 +29,9 @@ ReMix::ReMix(QWidget *parent) :
     contextMenu = new QMenu( this );
 
     //Initialize our Tray Icon if available.
-    this->initTrayIcon();
+    #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
+        this->initSysTray();
+    #endif
 
     //Initialize our Context Menu Items.
     this->initContextMenu();
@@ -78,7 +80,7 @@ ReMix::ReMix(QWidget *parent) :
         this->getSynRealData();
 
     //Create and Connect Lamda Objects
-    this->initUIUpdateLambda();
+    this->initUIUpdate();
 
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
@@ -107,7 +109,7 @@ ReMix::~ReMix()
     settings->close();
     settings->deleteLater();
 
-    tcpServer->disconnectFromMaster();
+    server->sendMasterInfo( true );
     tcpServer->close();
     tcpServer->deleteLater();
 
@@ -122,82 +124,83 @@ int ReMix::genServerID()
     return randDev->genRandNum( 0, 0x7FFFFFFE );
 }
 
-void ReMix::initTrayIcon()
+#if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
+void ReMix::initSysTray()
 {
     //While possible to create a system tray icon, some versions of linux
     //disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
     //Also disable the feature on OSX. --Unable to test.
-    #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
-        if ( QSystemTrayIcon::isSystemTrayAvailable() )
+
+    if ( QSystemTrayIcon::isSystemTrayAvailable() )
+    {
+        trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
+        trayIcon->show();
+
+        QAction* showAction = new QAction( "Show", this );
+        QObject::connect( showAction, &QAction::triggered,
+                          this, &QMainWindow::show );
+
+        QAction* hideAction = new QAction( "Hide", this );
+        QObject::connect( hideAction, &QAction::triggered,
+                          this, &QMainWindow::hide );
+
+        QAction* minimizeAction = new QAction( "Minimize", this );
+        QObject::connect( minimizeAction, &QAction::triggered,
+                          this, &QMainWindow::hide );
+
+        QAction* maximizeAction = new QAction( "Maximize", this );
+        QObject::connect( maximizeAction, &QAction::triggered,
+                          this, &QMainWindow::showMaximized );
+
+        QAction* restoreAction = new QAction( "Restore", this);
+        QObject::connect( restoreAction, &QAction::triggered,
+                          this, &QMainWindow::showNormal );
+
+        QAction* quitAction = new QAction( "Quit", this);
+        QObject::connect( quitAction, &QAction::triggered, [=]()
         {
-            trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
-            trayIcon->show();
+            //Allow Rejection of a Global CloseEvent.
+            if ( !this->rejectCloseEvent() )
+                qApp->quit();
+        });
 
-            QAction* showAction = new QAction( "Show", this );
-            QObject::connect( showAction, &QAction::triggered,
-                              this, &QMainWindow::show );
+        trayMenu = new QMenu( this );
+        trayMenu->addAction( showAction );
+        trayMenu->addAction( hideAction );
+        trayMenu->addSeparator();
+        trayMenu->addAction( minimizeAction );
+        trayMenu->addAction( maximizeAction );
+        trayMenu->addAction( restoreAction );
+        trayMenu->addAction( quitAction );
 
-            QAction* hideAction = new QAction( "Hide", this );
-            QObject::connect( hideAction, &QAction::triggered,
-                              this, &QMainWindow::hide );
-
-            QAction* minimizeAction = new QAction( "Minimize", this );
-            QObject::connect( minimizeAction, &QAction::triggered,
-                              this, &QMainWindow::hide );
-
-            QAction* maximizeAction = new QAction( "Maximize", this );
-            QObject::connect( maximizeAction, &QAction::triggered,
-                              this, &QMainWindow::showMaximized );
-
-            QAction* restoreAction = new QAction( "Restore", this);
-            QObject::connect( restoreAction, &QAction::triggered,
-                              this, &QMainWindow::showNormal );
-
-            QAction* quitAction = new QAction( "Quit", this);
-            QObject::connect( quitAction, &QAction::triggered, [=]()
+        QObject::connect( trayIcon, &QSystemTrayIcon::activated,
+                          [=]( QSystemTrayIcon::ActivationReason reason )
+        {
+            if ( reason == QSystemTrayIcon::Trigger )
             {
-                //Allow Rejection of a Global CloseEvent.
-                if ( !this->rejectCloseEvent() )
-                    qApp->quit();
-            });
-
-            trayMenu = new QMenu( this );
-            trayMenu->addAction( showAction );
-            trayMenu->addAction( hideAction );
-            trayMenu->addSeparator();
-            trayMenu->addAction( minimizeAction );
-            trayMenu->addAction( maximizeAction );
-            trayMenu->addAction( restoreAction );
-            trayMenu->addAction( quitAction );
-
-            QObject::connect( trayIcon, &QSystemTrayIcon::activated,
-                              [=]( QSystemTrayIcon::ActivationReason reason )
+                if ( this->isHidden() )
+                {
+                    this->show();
+                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
+                    this->activateWindow();
+                }
+                else
+                {
+                    this->hide();
+                    this->setWindowState( Qt::WindowMinimized );
+                }
+            }
+            else if ( reason == QSystemTrayIcon::Context )
             {
-                if ( reason == QSystemTrayIcon::Trigger )
-                {
-                    if ( this->isHidden() )
-                    {
-                        this->show();
-                        this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
-                        this->activateWindow();
-                    }
-                    else
-                    {
-                        this->hide();
-                        this->setWindowState( Qt::WindowMinimized );
-                    }
-                }
-                else if ( reason == QSystemTrayIcon::Context )
-                {
-                    if ( trayMenu != nullptr )
-                        trayMenu->popup( QCursor::pos() );
-                }
-            });
-        }
-#endif
+                if ( trayMenu != nullptr )
+                    trayMenu->popup( QCursor::pos() );
+            }
+        });
+    }
 }
+#endif
 
-void ReMix::initUIUpdateLambda()
+void ReMix::initUIUpdate()
 {
     //Create and Connect Lamda Objects
     QObject::connect( server->getUpTimer(), &QTimer::timeout, [=]()
@@ -211,16 +214,25 @@ void ReMix::initUIUpdateLambda()
 
         ui->onlineTime->setText( time_s );
         ui->callCount->setText( QString( "#Calls: %1" ).arg( server->getUserCalls() ) );
-        ui->packetINBD->setText( QString( "#IN: %1Bd" ).arg( server->getBaudIn() ) );
-        ui->packetOUTBD->setText( QString( "#OUT: %1Bd" ).arg( server->getBaudOut() ) );
+        ui->packetDCCount->setText( QString( "#Pkt-DC: %1" ).arg( server->getPktDc() ) );
+        ui->dupDCCount->setText( QString( "#Dup-DC: %1" ).arg( server->getDupDc() ) );
+        ui->ipDCCount->setText( QString( "#IP-DC: %1" ).arg( server->getIpDc() ) );
+
+        ui->packetINBD->setText( QString( "#IN: %1 Bd" ).arg( server->getBaudIn() ) );
+        ui->packetOUTBD->setText( QString( "#OUT: %1 Bd" ).arg( server->getBaudOut() ) );
 
         if ( trayIcon != nullptr )
         {
             QString tTip = QString( "ReMix Server: %1 (%2)\r\n" "#Calls: %3\r\n"
-                                    "#IN: %4\r\n" "#OUT: %5\r\n" )
+                                    "#Pkt-DC: %4\r\n" "#Dup-DC: %5\r\n"
+                                    "#IP-DC: %6\r\n" "#IN: %7\r\n"
+                                    "#OUT: %8\r\n" )
                                .arg( server->getName() )
                                .arg( time_s )
                                .arg( server->getUserCalls() )
+                               .arg( server->getPktDc() )
+                               .arg( server->getDupDc() )
+                               .arg( server->getIpDc() )
                                .arg( server->getBaudIn() )
                                .arg( server->getBaudOut() );
             trayIcon->setToolTip( tTip );
@@ -284,7 +296,9 @@ void ReMix::parseCMDLArgs()
                     if ( !tmp.isEmpty() )
                     {
                         server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
-                        server->setMasterPort( tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() );
+                        server->setMasterPort(
+                                    static_cast<quint16>(
+                                        tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() ) );
                     }
                 break;
                 case CMDLArgs::PUBLIC:
@@ -292,7 +306,9 @@ void ReMix::parseCMDLArgs()
                     if ( !tmp.isEmpty() )
                     {
                         server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
-                        server->setMasterPort( tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() );
+                        server->setMasterPort(
+                                    static_cast<quint16>(
+                                        tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() ) );
                     }
                     ui->isPublicServer->setChecked( true );
                 break;
@@ -342,7 +358,7 @@ void ReMix::getSynRealData()
     //The file was older than 48 hours or did not exist. Request a fresh copy.
     if ( downloadFile )
     {
-        QTcpSocket *socket = new QTcpSocket;
+        QTcpSocket* socket = new QTcpSocket;
 
         socket->connectToHost( "www.synthetic-reality.com", 80 );
         QObject::connect(socket, &QTcpSocket::connected, [socket]()
@@ -364,11 +380,16 @@ void ReMix::getSynRealData()
             if ( index > 0 )
             {
                 server->setMasterIP( str.left( index ) );
-                server->setMasterPort( str.mid( index + 1 ).toInt() );
+                server->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
             }
         });
 
-        QObject::connect( socket, &QTcpSocket::disconnected, [socket](){ socket->deleteLater(); } );
+        QObject::connect( socket, &QTcpSocket::disconnected, [=]()
+        {
+            socket->deleteLater();
+        });
     }
     else
     {
@@ -378,7 +399,9 @@ void ReMix::getSynRealData()
         if ( index > 0 )
         {
             server->setMasterIP( str.left( index ) );
-            server->setMasterPort( str.mid( index + 1 ).toInt() );
+            server->setMasterPort(
+                        static_cast<quint16>(
+                            str.mid( index + 1 ).toInt() ) );
         }
     }
 }
@@ -391,6 +414,8 @@ void ReMix::initContextMenu()
     contextMenu->addAction( ui->actionSendMessage );
     contextMenu->addAction( ui->actionRevokeAdmin );
     contextMenu->addAction( ui->actionMakeAdmin );
+    contextMenu->addAction( ui->actionMuteNetwork );
+    contextMenu->addAction( ui->actionUnMuteNetwork );
     contextMenu->addAction( ui->actionDisconnectUser );
     contextMenu->addAction( ui->actionBANISHIPAddress );
     contextMenu->addAction( ui->actionBANISHSerNum );
@@ -471,17 +496,28 @@ void ReMix::on_serverName_textChanged(const QString &arg1)
 
 void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
 {
-    menuIndex = plrProxy->mapToSource( ui->playerView->indexAt( pos ) );
+    QModelIndex menuIndex = plrProxy->mapToSource( ui->playerView->indexAt( pos ) );
 
     this->initContextMenu();
     if ( menuIndex.row() >= 0 )
     {
-        QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        if ( plr != nullptr )
+            menuTarget = plr;
+
+        QString sernum = menuTarget->getSernum_s();
         if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
             contextMenu->removeAction( ui->actionRevokeAdmin );
         else
             contextMenu->removeAction( ui->actionMakeAdmin );
 
+        if ( plr != nullptr )
+        {
+            if( plr->getNetworkMuted() )
+                contextMenu->removeAction( ui->actionMuteNetwork );
+            else
+                contextMenu->removeAction( ui->actionUnMuteNetwork );
+        }
         contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
     }
     else
@@ -489,6 +525,8 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
         ui->actionSendMessage->setText( "Send Message to Everyone" );
         contextMenu->removeAction( ui->actionRevokeAdmin );
         contextMenu->removeAction( ui->actionMakeAdmin );
+        contextMenu->removeAction( ui->actionMuteNetwork );
+        contextMenu->removeAction( ui->actionUnMuteNetwork );
         contextMenu->removeAction( ui->actionDisconnectUser );
         contextMenu->removeAction( ui->actionBANISHSerNum );
         contextMenu->removeAction( ui->actionBANISHIPAddress );
@@ -498,9 +536,8 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
 
 void ReMix::on_actionSendMessage_triggered()
 {
-    Player* plr{ nullptr };
-    if ( menuIndex.row() >= 0 )
-        plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+    if ( menuTarget == nullptr )
+        return;
 
     QString title{ "Admin Message:" };
     QString prompt{ "Message to User(s): " };
@@ -510,155 +547,202 @@ void ReMix::on_actionSendMessage_triggered()
     if ( ok && !txt.isEmpty() )
     {
         quint64 bOut{ 0 };
-        if ( plr != nullptr )
-            bOut = server->sendMasterMessage( txt, plr, false );
+        if ( menuTarget != nullptr )
+            bOut = server->sendMasterMessage( txt, menuTarget, false );
         else
             bOut = server->sendMasterMessage( txt, nullptr, true );
 
         server->setBytesOut( server->getBytesOut() + bOut );
     }
-    menuIndex = QModelIndex();
+    menuTarget = nullptr;
 }
 
 void ReMix::on_actionRevokeAdmin_triggered()
 {
+    if ( menuTarget == nullptr )
+        return;
+
+    QString sernum = menuTarget->getSernum_s();
     QString msg{ "Your Remote Administrator privileges have been REVOKED by either the "
                  "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
                  "if you believe this was in error." };
 
-    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
-    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-
-    if ( plr != nullptr && plr->getSocket() != nullptr )
+    if ( menuTarget->getSocket() != nullptr )
     {
         if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
         {
-            //The User is no longer a registered Admin. Revoke their current permissions.
-            plr->resetAdminAuth();
+            //The User is no longer a registered Admin. --Revoke their current permissions.
+            menuTarget->resetAdminAuth();
 
-            quint64 bOut = server->sendMasterMessage( msg, plr, false );
+            quint64 bOut = server->sendMasterMessage( msg, menuTarget, false );
             server->setBytesOut( server->getBytesOut() + bOut );
             admin->loadServerAdmins();
         }
     }
-    menuIndex = QModelIndex();
+    menuTarget = nullptr;
 }
 
 void ReMix::on_actionMakeAdmin_triggered()
 {
+    if ( menuTarget == nullptr )
+        return;
+
+    QString sernum = menuTarget->getSernum_s();
     QString msg{ "The server Admin is attempting to register you as an Admin with the server. "
                  "Please reply to this message using the (/admin) pop-up dialog with a password of your liking. "
                  "Note: The server Host and other Admins will not have access to this information as it will be hashed+salted. "
                  "///PASSWORD REQUIRED NOW:" };
 
-    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();;
-    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-
-    if ( plr != nullptr
-      && plr->getSocket() != nullptr )
+    if ( !AdminHelper::getIsRemoteAdmin( sernum )
+      && AdminHelper::createRemoteAdmin( this, sernum ) )
     {
-        if ( !AdminHelper::getIsRemoteAdmin( sernum )
-          && AdminHelper::createRemoteAdmin( this, sernum ) )
-        {
-            server->sendMasterMessage( msg, plr, false );
-            plr->setReqNewAuthPwd( true );
-        }
+        server->sendMasterMessage( msg, menuTarget, false );
+        menuTarget->setReqNewAuthPwd( true );
     }
-    menuIndex = QModelIndex();
+
+    menuTarget = nullptr;
+}
+
+void ReMix::on_actionMuteNetwork_triggered()
+{
+    //Mute the selected User's Network. --We do not inform the User of this event.
+    //This tells the Server to not re-send incoming packets from this User to other connected Users.
+
+    if ( menuTarget != nullptr )
+    {
+        QString title{ "Mute User:" };
+        QString prompt{ "Are you certain you want to MUTE ( " % menuTarget->getSernum_s() % " )'s Network?" };
+
+        if ( Helper::confirmAction( this, title, prompt ) )
+            menuTarget->setNetworkMuted( true );
+    }
+    menuTarget = nullptr;
+}
+
+void ReMix::on_actionUnMuteNetwork_triggered()
+{
+    //Un-Mute the selected User's Network. --We do not inform the User of this event.
+    //This tells the Server to re-send incoming packets from this User to other connected Users.
+
+    if ( menuTarget != nullptr )
+    {
+        QString title{ "Un-Mute User:" };
+        QString prompt{ "Are you certain you want to UN-MUTE ( " % menuTarget->getSernum_s() % " )'s Network?" };
+
+        if ( Helper::confirmAction( this, title, prompt ) )
+            menuTarget->setNetworkMuted( false );
+    }
+    menuTarget = nullptr;
 }
 
 void ReMix::on_actionDisconnectUser_triggered()
 {
-    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-    if ( plr != nullptr
-      && plr->getSocket() != nullptr )
+    if ( menuTarget == nullptr )
+        return;
+
+    QTcpSocket* sock = menuTarget->getSocket();
+    if ( sock != nullptr )
     {
         QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT ( " % plr->getSernum_s() % " )?" };
+        QString prompt{ "Are you certain you want to DISCONNECT ( " % menuTarget->getSernum_s() % " )?" };
         QString inform{ "The Server Host or a Remote-Admin has disconnected you from the Server. Reason: %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             inform = inform.arg( Helper::getDisconnectReason( this ) );
-            quint64 bOut = server->sendMasterMessage( inform, plr, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
-            if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setSoftDisconnect( true );
+            if ( sock->waitForBytesWritten() )
+            {
+                menuTarget->setSoftDisconnect( true );
+                server->setIpDc( server->getIpDc() + 1 );
+            }
         }
     }
-    menuIndex = QModelIndex();
+    menuTarget = nullptr;
 }
 
 void ReMix::on_actionBANISHIPAddress_triggered()
 {
+    if ( menuTarget == nullptr )
+        return;
+
+    QString sernum = menuTarget->getSernum_s();
+    QString ipAddr = menuTarget->getPublicIP();
+
     QString title{ "Ban IP Address:" };
-    QString prompt{ "This command will BANISH the IP Address, which will prevent the User from "
-                    "making any connections in the future.\r\nAre you certain?" };
+    QString prompt{ "Are you certain you want to BANISH ( " % sernum % " )'s IP Address ( " % ipAddr % " )?" };
     QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2" };
 
-    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-    if ( plr != nullptr
-      && plr->getSocket() != nullptr )
+    QTcpSocket* sock = menuTarget->getSocket();
+    if ( sock != nullptr )
     {
-        QHostAddress ip = plr->getSocket()->peerAddress();
+        QHostAddress ip = sock->peerAddress();
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( ip.toString() )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, plr, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
                          .arg( reason )
-                         .arg( plr->getPublicIP() )
-                         .arg( plr->getPublicPort() )
-                         .arg( QString( plr->getBioData() ) );
+                         .arg( menuTarget->getPublicIP() )
+                         .arg( menuTarget->getPublicPort() )
+                         .arg( QString( menuTarget->getBioData() ) );
             admin->getBanDialog()->addIPBan( ip, reason );
 
-            if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setSoftDisconnect( true );
+            if ( sock->waitForBytesWritten() )
+            {
+                menuTarget->setSoftDisconnect( true );
+                server->setIpDc( server->getIpDc() + 1 );
+            }
         }
     }
-    menuIndex = QModelIndex();
+    menuTarget = nullptr;
 }
 
 void ReMix::on_actionBANISHSerNum_triggered()
 {
-    QString sernum = plrModel->data( plrModel->index( menuIndex.row(), 1 ) ).toString();
+    if ( menuTarget == nullptr )
+        return;
+
+    QString sernum = menuTarget->getSernum_s();
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "This command will BANISH the SerNum, which will prevent the User from "
-                    "making any connections in the future.\r\nAre you certain?" };
+    QString prompt{ "Are you certain you want to BANISH the SerNum ( " % sernum % " )?" };
     QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2" };
 
-    Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
-    if ( plr != nullptr
-      && plr->getSocket() != nullptr )
+    QTcpSocket* sock = menuTarget->getSocket();
+    if ( sock != nullptr )
     {
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( sernum )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, plr, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
                          .arg( reason )
-                         .arg( plr->getPublicIP() )
-                         .arg( plr->getPublicPort() )
-                         .arg( QString( plr->getBioData() ) );
+                         .arg( menuTarget->getPublicIP() )
+                         .arg( menuTarget->getPublicPort() )
+                         .arg( QString( menuTarget->getBioData() ) );
             admin->getBanDialog()->addSerNumBan( sernum, reason );
 
-            if ( plr->getSocket()->waitForBytesWritten() )
-                plr->setSoftDisconnect( true );
+            if ( sock->waitForBytesWritten() )
+            {
+                menuTarget->setSoftDisconnect( true );
+                server->setIpDc( server->getIpDc() + 1 );
+            }
         }
     }
-    menuIndex = QModelIndex();
+    menuTarget = nullptr;
 }
 
 void ReMix::changeEvent(QEvent* event)
@@ -704,7 +788,7 @@ bool ReMix::rejectCloseEvent()
     QString prompt = QString( "You are about to shut down your ReMix game server!\r\n"
                               "This will affect ( %1 ) User(s) connected to it.\r\n\r\n"
                               "Are you certain?" )
-                          .arg( server->getPlayerCount() );
+                         .arg( server->getPlayerCount() );
 
     server->sendMasterMessage( "The admin is taking this server down...", nullptr, true );
     if ( !Helper::confirmAction( this, title, prompt ) )

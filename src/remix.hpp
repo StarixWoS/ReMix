@@ -18,7 +18,6 @@
 #include <QDateTime>
 #include <QHostInfo>
 #include <QFileInfo>
-#include <QDebug>
 #include <QTimer>
 #include <QEvent>
 
@@ -53,7 +52,8 @@ class ReMix : public QMainWindow
 
     QMenu* contextMenu{ nullptr };
     QMenu* trayMenu{ nullptr };
-    QModelIndex menuIndex;
+
+    Player* menuTarget{ nullptr };
 
     QSystemTrayIcon* trayIcon{ nullptr };
 
@@ -61,8 +61,11 @@ class ReMix : public QMainWindow
     static const QStringList cmdlArgs;
 
     private:
-        void initTrayIcon();
-        void initUIUpdateLambda();
+
+    #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
+        void initSysTray();
+    #endif
+        void initUIUpdate();
 
     public:
         explicit ReMix(QWidget *parent = 0);
@@ -88,6 +91,8 @@ class ReMix : public QMainWindow
         void on_playerView_customContextMenuRequested(const QPoint &pos);
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
+        void on_actionMuteNetwork_triggered();
+        void on_actionUnMuteNetwork_triggered();
         void on_actionDisconnectUser_triggered();
         void on_actionBANISHIPAddress_triggered();
         void on_actionBANISHSerNum_triggered();

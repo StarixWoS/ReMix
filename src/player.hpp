@@ -65,13 +65,15 @@ class Player : public QObject
 
     QTimer connTimer;
     quint64 connTime{ 0 };
-    QElapsedTimer lastPacketTime;
+    QElapsedTimer idleTime;
 
     QTimer hardKillTimer;
     bool pendingHardDisconnect{ false };
 
     QTimer softKillTimer;
     bool pendingSoftDisconnect{ false };
+
+    bool networkMuted{ false };
 
     #ifdef DECRYPT_PACKET_PLUGIN
         QString gameInfo{ "" };
@@ -184,11 +186,14 @@ class Player : public QObject
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
-        bool getForcedDisconnect() const;
-        void setForcedDisconnect(bool value);
+        bool getHardDisconnect() const;
+        void setHardDisconnect(bool value);
 
         bool getSoftDisconnect() const;
         void setSoftDisconnect(bool value);
+
+        bool getNetworkMuted() const;
+        void setNetworkMuted(bool value);
 
         #ifdef DECRYPT_PACKET_PLUGIN
             QString getGameInfo() const;

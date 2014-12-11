@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QString>
-#include <QDebug>
 
 namespace Ui {
     class Messages;
