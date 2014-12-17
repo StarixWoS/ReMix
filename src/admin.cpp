@@ -252,8 +252,11 @@ void Admin::on_actionChangeRank_triggered()
     if ( !sernum.isEmpty() )
         rank = AdminHelper::changeRemoteAdminRank( this, sernum );
 
-    tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
-                                            rank, Qt::DisplayRole );
+    if ( rank >= 0 )
+    {
+        tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
+                             rank, Qt::DisplayRole );
+    }
 }
 
 //Handle Admin commands.
