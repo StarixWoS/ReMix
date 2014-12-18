@@ -162,7 +162,7 @@ void Server::detectPacketFlood(Player* plr)
               && !plr->getHardDisconnect() )
             {
                 QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
-                QString logMsg{ "Auto Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" };
+                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" };
                         logMsg = logMsg.arg( plr->getPublicIP() )
                                        .arg( plr->getPublicPort() )
                                        .arg( floodCount )
@@ -322,22 +322,19 @@ void Server::newConnectionSlot()
     }
 
     quint64 bOut{ 0 };
-    if ( peer != nullptr )
+    if ( !greeting.isEmpty() )
     {
-        if ( !greeting.isEmpty() )
-        {
-            bOut += server->sendMasterMessage( greeting, plr, false );
-            plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        }
-
-        if ( !server->getServerRules().isEmpty() )
-        {
-            bOut += this->sendServerRules( plr );
-            plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        }
-        plr->setBytesOut( plr->getBytesIn() + bOut );
-        server->setBytesOut( server->getBytesOut() + bOut );
+        bOut += server->sendMasterMessage( greeting, plr, false );
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
     }
+
+    if ( !server->getServerRules().isEmpty() )
+    {
+        bOut += this->sendServerRules( plr );
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
+    }
+    plr->setBytesOut( plr->getBytesIn() + bOut );
+    server->setBytesOut( server->getBytesOut() + bOut );
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, [=]()
@@ -350,6 +347,8 @@ void Server::newConnectionSlot()
                 plrViewModel->removeRow( item->row() );
                 plr->setTableRow( nullptr );
             }
+            else    //The item is unrelated to our User, re-insert it.
+                plrTableItems.insert( ip, item );
         }
 
         server->setPlayerCount( server->getPlayerCount() - 1 );
@@ -437,10 +436,9 @@ void Server::readyReadUDPSlot()
         //Check for a banned IP-Address. --Log the rejection to file.
         if ( bandlg->getIsIPBanned( senderAddr ) )
         {
-            QString logTxt{ "Ignoring UDP from banned %1: [ %2:%3 ] sent command: %4" };
+            QString logTxt{ "Ignoring UDP from banned IP Address: [ %2:%3 ] sent command: %4" };
             QString log{ "ignored.txt" };
-            logTxt = logTxt.arg( "IP Address" )
-                           .arg( senderAddr.toString() )
+            logTxt = logTxt.arg( senderAddr.toString() )
                            .arg( senderPort )
                            .arg( QString( udpData ) );
 
@@ -791,9 +789,6 @@ void Server::readMIX5(QString& packet, Player* plr)
         QString response{ "" };
         quint64 bOut{ 0 };
 
-        QString invalid{ "Incorrect password, please go away." };
-        QString valid{ "Correct password, welcome." };
-
         bool disconnect{ false };
         if ( plr->getPwdRequested()
           && !plr->getEnteredPwd() )
@@ -801,63 +796,64 @@ void Server::readMIX5(QString& packet, Player* plr)
             QVariant pwd( msg );
             if ( Helper::cmpServerPassword( pwd ) )
             {
-                response = valid;
+                response = "Correct password, welcome.";
 
                 plr->setPwdRequested( false );
                 plr->setEnteredPwd( true );
             }
             else
             {
-                response = invalid;
+                response = "Incorrect password, please go away.";
                 disconnect = true;
             }
         }
-        else if ( plr->getReqNewAuthPwd()
-               && !plr->getGotNewAuthPwd() )
-        {
-            QString pwd( msg );
-            if ( admin->makeAdmin( sernum, pwd ) )
-            {
-                response = "You are now registered as an Admin with the Server. "
-                           "You are currently Rank-0 (Game Master) with limited commands.";
-
-                plr->setReqNewAuthPwd( false );
-                plr->setGotNewAuthPwd( true );
-
-                //Prevent the server from attempting to authenticate the new Admin.
-                plr->setReqAuthPwd( false );
-                plr->setGotAuthPwd( true );
-            }
-            else
-            {
-                response = "You are not registered as an Admin with the Server. "
-                           "It seems something has gone wrong or you were already registered as an Admin.";
-                plr->setReqNewAuthPwd( false );
-                plr->setGotNewAuthPwd( false );
-            }
-        }
         else if (( msg.startsWith( "/password ", Qt::CaseInsensitive )
-                || msg.startsWith( "/pwd ", Qt::CaseInsensitive ) ) )
+               || msg.startsWith( "/pwd ", Qt::CaseInsensitive ) ) )
         {
-            if ( !plr->getGotAuthPwd()
-              || plr->getReqAuthPwd() )
-            {
-                QVariant pwd = Helper::getStrStr( msg, "/password", " ", "" );
-                if ( pwd.toString().isEmpty() )
-                    pwd = Helper::getStrStr( msg, "/pwd", " ", "" );
+            QVariant pwd = Helper::getStrStr( msg, "/password", " ", "" );
+            if ( pwd.toString().isEmpty() )
+                pwd = Helper::getStrStr( msg, "/pwd", " ", "" );
 
+            //Check if the User is creating a Password.
+            if ( plr->getReqNewAuthPwd()
+              && !plr->getGotNewAuthPwd() )
+            {
+                QString pass( pwd.toString() );
+                if ( admin->makeAdmin( sernum, pass ) )
+                {
+                    response = "You are now registered as an Admin with the Server. "
+                               "You are currently Rank-0 (Game Master) with limited commands.";
+
+                    plr->setReqNewAuthPwd( false );
+                    plr->setGotNewAuthPwd( true );
+
+                    //Prevent the server from attempting to authenticate the new Admin.
+                    plr->setReqAuthPwd( false );
+                    plr->setGotAuthPwd( true );
+                }
+                else
+                {
+                    response = "You are not registered as an Admin with the Server. "
+                               "It seems something has gone wrong or you were already registered as an Admin.";
+                    plr->setReqNewAuthPwd( false );
+                    plr->setGotNewAuthPwd( false );
+                }
+            }   //Check if the User needs to have their password confirmed.
+            else if ( !plr->getGotAuthPwd()
+                   || plr->getReqAuthPwd() )
+            {
                 //The User is attempting to Manually Authenticate.
                 if ( !pwd.toString().isEmpty()
                   && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
                 {
-                    response = valid;
+                    response = "Correct password, welcome.";
 
                     plr->setReqAuthPwd( false );
                     plr->setGotAuthPwd( true );
                 }
                 else
                 {
-                    response = invalid;
+                    response = "Incorrect password, please go away.";
                     disconnect = true;
                 }
             }
@@ -904,8 +900,8 @@ void Server::readMIX6(QString&, Player* plr)
     {
         if ( plr->getGotAuthPwd() )
         {
-            server->sendMasterMessage( valid, plr, false);
             //admin->parseCommand( packet );
+            server->sendMasterMessage( valid, plr, false);
         }
         else
             server->sendMasterMessage( unauth, plr, false);

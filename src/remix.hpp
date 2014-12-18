@@ -60,6 +60,7 @@ class ReMix : public QMainWindow
     enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4, FUDGE = 5 };
     static const QStringList cmdlArgs;
 
+    bool hasSysTray{ false };
     private:
 
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -99,7 +100,10 @@ class ReMix : public QMainWindow
         void on_actionRevokeAdmin_triggered();
 
         //Handle Minimize events.
-        void changeEvent(QEvent* event);
+        #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
+            void changeEvent(QEvent* event);
+        #endif
+
         void closeEvent(QCloseEvent* event);
         bool rejectCloseEvent();
 

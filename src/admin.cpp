@@ -7,23 +7,6 @@
 #include "player.hpp"
 #include "serverinfo.hpp"
 
-//class ChatCommands
-//{
-//    QString cmd{ "" };
-//    qint32 rank{ 0 };
-//    QString cmdHelp{ "" };
-
-//    public:
-//        QString getCmd() const;
-//        void setCmd(const QString& value);
-
-//        qint32 getRank() const;
-//        void setRank(const qint32& value);
-
-//        QString getCmdHelp() const;
-//        void setCmdHelp(const QString& value);
-//};
-
 Admin::Admin(QWidget *parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::Admin)
@@ -246,16 +229,19 @@ void Admin::on_actionRevokeAdmin_triggered()
 
 void Admin::on_actionChangeRank_triggered()
 {
-    QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
-
-    quint32 rank = -1;
-    if ( !sernum.isEmpty() )
-        rank = AdminHelper::changeRemoteAdminRank( this, sernum );
-
-    if ( rank >= 0 )
+    if ( menuIndex.isValid() )
     {
-        tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
-                             rank, Qt::DisplayRole );
+        QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
+
+        qint32 rank{ -1 };
+        if ( !sernum.isEmpty() )
+            rank = AdminHelper::changeRemoteAdminRank( this, sernum );
+
+        if ( rank >= 0 )
+        {
+            tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
+                                 rank, Qt::DisplayRole );
+        }
     }
 }
 

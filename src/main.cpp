@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 #else
     qApp->setFont( QFont( "Segoe UI", 8 ) );
 #endif
+    qApp->font().setFixedPitch( true );
 
 #if USE_DARK_FUSION_UI
     qApp->setStyle( QStyleFactory::create( "Fusion" ) );

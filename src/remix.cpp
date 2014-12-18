@@ -196,6 +196,7 @@ void ReMix::initSysTray()
                     trayMenu->popup( QCursor::pos() );
             }
         });
+        hasSysTray = true;
     }
 }
 #endif
@@ -349,8 +350,8 @@ void ReMix::getSynRealData()
     bool downloadFile = true;
     if ( synRealFile.exists() )
     {
-        int curTime = static_cast<int>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
-        int modTime = static_cast<int>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
+        qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
 
         downloadFile = ( curTime - modTime >= 172800 ); //Check if the file is 48 hours old and set our bool.
     }
@@ -395,13 +396,16 @@ void ReMix::getSynRealData()
     {
         QSettings settings( "synReal.ini", QSettings::IniFormat );
         QString str = settings.value( "WoS/master" ).toString();
-        int index = str.indexOf( ":" );
-        if ( index > 0 )
+        if ( !str.isEmpty() )
         {
-            server->setMasterIP( str.left( index ) );
-            server->setMasterPort(
-                        static_cast<quint16>(
-                            str.mid( index + 1 ).toInt() ) );
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                server->setMasterIP( str.left( index ) );
+                server->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
+            }
         }
     }
 }
@@ -536,17 +540,15 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
 
 void ReMix::on_actionSendMessage_triggered()
 {
-    if ( menuTarget == nullptr )
-        return;
-
     QString title{ "Admin Message:" };
     QString prompt{ "Message to User(s): " };
+    quint64 bOut{ 0 };
 
-    bool ok;
+    bool ok{ false };
     QString txt = Helper::getTextResponse( this, title, prompt, &ok, 1 );
-    if ( ok && !txt.isEmpty() )
+    if ( !txt.isEmpty()
+      && ok )
     {
-        quint64 bOut{ 0 };
         if ( menuTarget != nullptr )
             bOut = server->sendMasterMessage( txt, menuTarget, false );
         else
@@ -593,13 +595,14 @@ void ReMix::on_actionMakeAdmin_triggered()
                  "Note: The server Host and other Admins will not have access to this information as it will be hashed+salted. "
                  "///PASSWORD REQUIRED NOW:" };
 
-    if ( !AdminHelper::getIsRemoteAdmin( sernum )
-      && AdminHelper::createRemoteAdmin( this, sernum ) )
+    if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
     {
-        server->sendMasterMessage( msg, menuTarget, false );
-        menuTarget->setReqNewAuthPwd( true );
+        if ( AdminHelper::createRemoteAdmin( this, sernum ) )
+        {
+            server->sendMasterMessage( msg, menuTarget, false );
+            menuTarget->setReqNewAuthPwd( true );
+        }
     }
-
     menuTarget = nullptr;
 }
 
@@ -673,8 +676,8 @@ void ReMix::on_actionBANISHIPAddress_triggered()
 
     QString title{ "Ban IP Address:" };
     QString prompt{ "Are you certain you want to BANISH ( " % sernum % " )'s IP Address ( " % ipAddr % " )?" };
-    QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2" };
+    QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
     if ( sock != nullptr )
@@ -714,8 +717,8 @@ void ReMix::on_actionBANISHSerNum_triggered()
 
     QString title{ "Ban SerNum:" };
     QString prompt{ "Are you certain you want to BANISH the SerNum ( " % sernum % " )?" };
-    QString reason{ "Manual Banish; %1" };
     QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2" };
+    QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
     if ( sock != nullptr )
@@ -745,17 +748,20 @@ void ReMix::on_actionBANISHSerNum_triggered()
     menuTarget = nullptr;
 }
 
+#if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
-#ifndef Q_OS_LINUX
-    if ( event->type() == QEvent::WindowStateChange )
+    if ( hasSysTray )
     {
-        if ( this->isMinimized() )
-            this->hide();
+        if ( event->type() == QEvent::WindowStateChange )
+        {
+            if ( this->isMinimized() )
+                this->hide();
+        }
     }
     QMainWindow::changeEvent( event );
-#endif
 }
+#endif
 
 void ReMix::closeEvent(QCloseEvent* event)
 {

@@ -14,7 +14,6 @@
 
 #include "adminhelper.hpp"
 
-//class ChatCommands;
 class ServerInfo;
 class BanDialog;
 class RandDev;
@@ -24,7 +23,6 @@ namespace Ui {
     class Admin;
 }
 
-//const int ADMIN_COMMAND_COUNT{ 256 };
 class Admin : public QDialog
 {
     Q_OBJECT
@@ -40,10 +38,6 @@ class Admin : public QDialog
 
     QMenu* contextMenu{ nullptr };
     QModelIndex menuIndex;
-
-    //Not sure if I want an easy to modify array,
-    //or a hardcoded switch defining available commands..
-    //ChatCommands adminCmds[ ADMIN_COMMAND_COUNT ]{ nullptr };
 
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };

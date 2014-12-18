@@ -5,6 +5,8 @@
 #include "adminhelper.hpp"
 #include "helper.hpp"
 
+#include "player.hpp"
+
 BanDialog::BanDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BanDialog)
@@ -133,6 +135,24 @@ void BanDialog::on_addIPBan_clicked()
     ui->ipBanReason->clear();
 }
 
+void BanDialog::remoteAddIPBan(Player* admin, Player* target, QString& reason)
+{
+    if ( admin == nullptr )
+        return;
+
+    if ( target == nullptr )
+        return;
+
+    QString ip{ target->getPublicIP() };
+    if ( reason.isEmpty() )
+    {
+        reason = "Remote-Banish by [ %1 ]; Unknwon Reason: [ %2 ]";
+        reason.arg( admin->getSernum_s() )
+              .arg( ip );
+    }
+    this->addIPBanImpl( ip, reason );
+}
+
 void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
 {
     QString ip{ ipInfo.toString() };
@@ -143,7 +163,7 @@ void BanDialog::addIPBan(QString ip, QString& reason)
 {
     if ( reason.isEmpty() )
     {
-        reason = "Manual Banish; Unknown reason: [ %1 ]";
+        reason = "Manual-Banish; Unknown reason: [ %1 ]";
         reason = reason.arg( ip );
     }
 
@@ -185,6 +205,30 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
     ui->ipBanTable->resizeColumnsToContents();
 }
 
+void BanDialog::removeIPBanImpl(QString& ip)
+{
+    QList<QStandardItem *> list = snModel->findItems( ip, Qt::MatchExactly, 0 );
+    if ( list.count() > 1 && list.count() > 0 )
+    {
+        return; //Too many listed Bans, do nothing. --Inform the User later?
+    }
+    else
+    {
+        QModelIndex index = list.at( 0 )->index();
+        this->removeIPBanImpl( index );
+    }
+}
+
+void BanDialog::removeIPBanImpl(QModelIndex& index)
+{
+    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    if ( index.isValid() )
+    {
+        banData.remove( ipModel->data( ipModel->index( index.row(), 0 ) ).toString() );
+        ipModel->removeRow( index.row() );
+    }
+}
+
 void BanDialog::on_ipBanTable_clicked(const QModelIndex &index)
 {
     if ( index.row() >= 0 )
@@ -200,10 +244,7 @@ void BanDialog::ipBanTableChangedRowSlot(const QModelIndex &index, const QModelI
 void BanDialog::on_removeIPBan_clicked()
 {
     QModelIndex index = ipProxy->mapToSource( ui->ipBanTable->currentIndex() );
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
-
-    banData.remove( ipModel->data( ipModel->index( index.row(), 0 ) ).toString() );
-    ipModel->removeRow( index.row() );
+    this->removeIPBanImpl( index );
 
     ui->removeIPBan->setEnabled( false );
 }
@@ -266,24 +307,42 @@ void BanDialog::on_addSernumBan_clicked()
     ui->snBanReason->clear();
 }
 
+void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reason)
+{
+    if ( admin == nullptr )
+        return;
+
+    if ( target == nullptr )
+        return;
+
+    QString sernum{ target->getSernum_s() };
+    if ( reason.isEmpty() )
+    {
+        reason = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
+        reason.arg( admin->getSernum_s() )
+              .arg( target->getSernum_s() );
+    }
+    this->addSerNumBanImpl( sernum, reason );
+}
+
 void BanDialog::addSerNumBan(QString& sernum, QString& reason)
 {
     if ( reason.isEmpty() )
     {
-        reason = "Manual Banish; Unknown reason: [ %1 ]";
+        reason = "Manual-Banish; Unknown reason: [ %1 ]";
         reason = reason.arg( sernum );
     }
 
     if ( !sernum.isEmpty() )
     {
-        this->addSernumBanImpl( sernum, reason );
+        this->addSerNumBanImpl( sernum, reason );
 
         QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
         Helper::logToFile( log, reason, true, true );
     }
 }
 
-void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
+void BanDialog::addSerNumBanImpl(QString& sernum, QString& reason)
 {
     QSettings banData( "snBanData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
@@ -311,6 +370,30 @@ void BanDialog::addSernumBanImpl(QString& sernum, QString& reason)
     ui->snBanTable->resizeColumnsToContents();
 }
 
+void BanDialog::removeSerNumBanImpl(QString& sernum)
+{
+    QList<QStandardItem *> list = snModel->findItems( sernum, Qt::MatchExactly, 0 );
+    if ( list.count() > 1 && list.count() > 0 )
+    {
+        return; //Too many Bans, do nothing. --Inform the User later?
+    }
+    else
+    {
+        QModelIndex index = list.at( 0 )->index();
+        this->removeSerNumBanImpl( index );
+    }
+}
+
+void BanDialog::removeSerNumBanImpl(QModelIndex& index)
+{
+    QSettings banData( "snBanData.ini", QSettings::IniFormat );
+    if ( index.isValid() )
+    {
+        banData.remove( snModel->data( snModel->index( index.row(), 0 ) ).toString() );
+        snModel->removeRow( index.row() );
+    }
+}
+
 void BanDialog::on_snBanTable_clicked(const QModelIndex &index)
 {
     if ( index.row() >= 0 )
@@ -326,10 +409,7 @@ void BanDialog::snBanTableChangedRowSlot(const QModelIndex &index, const QModelI
 void BanDialog::on_forgiveButton_clicked()
 {
     QModelIndex index = snProxy->mapToSource( ui->snBanTable->currentIndex() );
-    QSettings banData( "snBanData.ini", QSettings::IniFormat );
-
-    banData.remove( snModel->data( snModel->index( index.row(), 0 ) ).toString() );
-    snModel->removeRow( index.row() );
+    this->removeSerNumBanImpl( index );
 
     ui->forgiveButton->setEnabled( false );
 }
