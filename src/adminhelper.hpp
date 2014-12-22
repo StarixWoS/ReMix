@@ -2,12 +2,7 @@
 #ifndef ADMINHELPER_HPP
 #define ADMINHELPER_HPP
 
-#include <QInputDialog>
-#include <QMessageBox>
-#include <QStringList>
-#include <QVariant>
-#include <QString>
-#include <QObject>
+#include "prototypes.hpp"
 
 namespace AdminHelper
 {

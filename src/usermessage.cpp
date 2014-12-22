@@ -1,8 +1,6 @@
 
-#include "usermessage.hpp"
+#include "includes.hpp"
 #include "ui_usermessage.h"
-
-#include "helper.hpp"
 
 UserMessage::UserMessage(QWidget *parent) :
     QDialog(parent),

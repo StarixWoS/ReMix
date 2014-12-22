@@ -1,11 +1,5 @@
 
-#include "server.hpp"
-
-#include "helper.hpp"
-#include "serverinfo.hpp"
-#include "usermessage.hpp"
-#include "bandialog.hpp"
-#include "admin.hpp"
+#include "includes.hpp"
 
 Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemModel* plrView)
 {
@@ -663,7 +657,7 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                             bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
                         }
                         else if ( packetInterface != nullptr
-                               && packetInterface->canSendPacket( packet ) )
+                               && packetInterface->canSendPacket( packet, server->getGameName() ) )
                         {
                             bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
                         }
@@ -1057,7 +1051,7 @@ bool Server::loadPlugin()
 {
     QDir pluginsDir( qApp->applicationDirPath() );
 
-    #if defined(Q_OS_WIN)
+    #if defined( Q_OS_WIN )
         if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
           || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
         {

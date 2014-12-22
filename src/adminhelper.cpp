@@ -1,6 +1,5 @@
 
-#include "adminhelper.hpp"
-#include "helper.hpp"
+#include "includes.hpp"
 
 //Initialize QStrings.
 const QString AdminHelper::adminKeys[ 3 ] =

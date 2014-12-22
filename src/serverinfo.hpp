@@ -2,13 +2,10 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
-#include <QUdpSocket>
-#include <QHostInfo>
-#include <QString>
-#include <QDir>
+#include "prototypes.hpp"
 
-#include "helper.hpp"
-#include "player.hpp"
+//Required Qt Includes.
+#include <QObject>
 
 const int MAX_PLAYERS = 256;
 class ServerInfo

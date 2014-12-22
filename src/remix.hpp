@@ -2,37 +2,13 @@
 #ifndef REMIX_HPP
 #define REMIX_HPP
 
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QNetworkInterface>
-#include <QSystemTrayIcon>
-#include <QStringBuilder>
-#include <QElapsedTimer>
-#include <QInputDialog>
-#include <QMessageBox>
+#include "prototypes.hpp"
+
+//Required Qt Includes..
 #include <QMainWindow>
-#include <QCloseEvent>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QUdpSocket>
-#include <QDateTime>
-#include <QHostInfo>
-#include <QFileInfo>
-#include <QTimer>
-#include <QEvent>
-
-//ServerInfo structure.
-#include "serverinfo.hpp"
-
-class Messages;
-class Settings;
-class Server;
-class Admin;
-
-class RandDev;
 
 namespace Ui {
-class ReMix;
+    class ReMix;
 }
 
 class ReMix : public QMainWindow

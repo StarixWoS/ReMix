@@ -2,7 +2,7 @@
 #ifndef RANDDEV_HPP
 #define RANDDEV_HPP
 
-#include <QDateTime>
+#include "prototypes.hpp"
 
 //C++/11 Standard Headers
 #include <random>

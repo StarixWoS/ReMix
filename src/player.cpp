@@ -1,8 +1,5 @@
 
-#include "player.hpp"
-#include "helper.hpp"
-
-#include "adminhelper.hpp"
+#include "includes.hpp"
 
 Player::Player()
 {

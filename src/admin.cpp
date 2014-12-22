@@ -1,11 +1,6 @@
 
-#include "admin.hpp"
+#include "includes.hpp"
 #include "ui_admin.h"
-
-#include "bandialog.hpp"
-#include "helper.hpp"
-#include "player.hpp"
-#include "serverinfo.hpp"
 
 Admin::Admin(QWidget *parent, ServerInfo* svr) :
     QDialog(parent),

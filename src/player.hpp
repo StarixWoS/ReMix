@@ -1,18 +1,16 @@
+
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
-#include <QStandardItemModel>
+#include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QElapsedTimer>
-#include <QStandardItem>
-#include <QHostAddress>
-#include <QTcpSocket>
 #include <QObject>
 #include <QTimer>
-#include <QFile>
-#include <QDir>
 
 const int MAX_CMD_ATTEMPTS = 3;
-const int PACKET_FLOOD_LIMIT = 256; //Users are able to send 256 packets within PACKET_FLOOD_TIME.
+const int PACKET_FLOOD_LIMIT = 100; //Users are able to send 256 packets within PACKET_FLOOD_TIME.
 const int PACKET_FLOOD_TIME = 2000; //Anything above PACKET_FLOOD_LIMIT within 2000MS will disconnect/ban the User.
 class Player : public QObject
 {

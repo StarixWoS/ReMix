@@ -4,29 +4,38 @@
 #
 #-------------------------------------------------
 
+VERSION = 1.0.0
 QT += core \
       gui \
       widgets \
       network
 
-TARGET = ReMix
 TEMPLATE = app
 
-UI_DIR = src
-MOC_DIR = build/moc
-RCC_DIR = build/rcc
-OBJECTS_DIR = build/obj
+INCLUDEPATH += "./plugin/src"
+UI_DIR = "./src"
 
-ICON = resources/ReMix.ico
-win32: RC_FILE += resources/ReMix.rc
+Release:QMAKE_CXXFLAGS = -std=c++14 -Os -s
+Release:TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
+Release:DESTDIR = "./build-$$QT_VERSION/release"
+Release:RCC_DIR = "./build-$$QT_VERSION/release/rcc"
+Release:MOC_DIR = "./build-$$QT_VERSION/release/moc"
+Release:OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
 
-INCLUDEPATH += "plugin/src"
-DEFINES += USE_DARK_FUSION_UI=1 \ #Tell Qt to use a Non-Native UI color scheme.
-           #DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
-           #USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
+Debug:QMAKE_CXXFLAGS = -std=c++14
+Debug:TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
+Debug:DESTDIR = "./build-$$QT_VERSION/debug"
+Debug:RCC_DIR = "./build-$$QT_VERSION/debug/rcc"
+Debug:MOC_DIR = "./build-$$QT_VERSION/debug/moc"
+Debug:OBJECTS_DIR = "./build-$$QT_VERSION/debug/obj"
 
-#CONFIG += static c++11
-QMAKE_CXXFLAGS = -std=c++14 -O3 #-static-libstdc++ -static-libgcc -static
+ICON = "./resources/ReMix.ico"
+win32:RC_FILE += "./resources/ReMix.rc"
+
+#Unfortunately, there is no way to declare specific defines for release/build.
+DEFINES += USE_DARK_FUSION_UI=1 #Tell Qt to use a Non-Native UI color scheme.
+#DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
+#USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
 SOURCES += src/main.cpp \
            src/remix.cpp \
@@ -53,13 +62,15 @@ HEADERS += src/player.hpp \
            src/admin.hpp \
            src/adminhelper.hpp \
            src/bandialog.hpp \
-           src/settings.hpp
+           src/settings.hpp \
+           src/includes.hpp \
+           src/prototypes.hpp
 
-FORMS   += ui/remix.ui \
-           ui/messages.ui \
-           ui/usermessage.ui \
-           ui/admin.ui \
-           ui/bandialog.ui \
-           ui/settings.ui
+FORMS += ui/remix.ui \
+         ui/messages.ui \
+         ui/usermessage.ui \
+         ui/admin.ui \
+         ui/bandialog.ui \
+         ui/settings.ui
 
-RESOURCES += resources/icons.qrc \
+RESOURCES += resources/icons.qrc

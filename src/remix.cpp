@@ -1,14 +1,6 @@
 
-#include "remix.hpp"
+#include "includes.hpp"
 #include "ui_remix.h"
-
-#include "helper.hpp"
-#include "usermessage.hpp"
-#include "messages.hpp"
-#include "server.hpp"
-#include "settings.hpp"
-#include "admin.hpp"
-#include "bandialog.hpp"
 
 //Initialize our accepted Commandline Argument List.
 const QStringList ReMix::cmdlArgs =
@@ -243,13 +235,13 @@ void ReMix::initUIUpdate()
         if ( server->getIsSetUp() )
         {
             QString tmp = QString( "Listening for incoming calls to %1:%2" )
-                                .arg( server->getPrivateIP() )
-                                .arg( server->getPrivatePort() );
+                              .arg( server->getPrivateIP() )
+                              .arg( server->getPrivatePort() );
             if ( server->getIsPublic() )
             {
                 QString tmp2 = QString( " ( Need port forward from %1:%2 )" )
-                                     .arg( server->getPublicIP() )
-                                     .arg( server->getPublicPort() );
+                                   .arg( server->getPublicIP() )
+                                   .arg( server->getPublicPort() );
                 tmp.append( tmp2 );
             }
             ui->networkStatus->setText( tmp );
@@ -361,6 +353,7 @@ void ReMix::getSynRealData()
     {
         QTcpSocket* socket = new QTcpSocket;
 
+        //TODO: Make our host-website dynamic. (Supposing we want to support calling to non-Syn-Real Masters.)
         socket->connectToHost( "www.synthetic-reality.com", 80 );
         QObject::connect(socket, &QTcpSocket::connected, [socket]()
         {

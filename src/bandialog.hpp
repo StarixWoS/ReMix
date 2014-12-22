@@ -1,17 +1,11 @@
+
 #ifndef BANDIALOG_HPP
 #define BANDIALOG_HPP
 
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QHostAddress>
-#include <QtEndian>
-#include <QDialog>
-#include <QString>
-#include <QFile>
-#include <QChar>
-#include <QDir>
+#include "prototypes.hpp"
 
-class Player;
+//Required Qt Includes.
+#include <QDialog>
 
 namespace Ui {
     class BanDialog;

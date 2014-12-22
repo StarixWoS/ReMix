@@ -1,5 +1,5 @@
 
-#include "helper.hpp"
+#include "includes.hpp"
 
 //Initialize Settings keys/subKeys lists
 const QString Helper::keys[ 3 ] =

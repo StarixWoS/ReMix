@@ -2,7 +2,9 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
-#include <QMessageBox>
+#include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
 
 namespace Ui {

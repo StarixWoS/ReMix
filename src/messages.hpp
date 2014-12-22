@@ -1,8 +1,11 @@
+
 #ifndef MESSAGES_HPP
 #define MESSAGES_HPP
 
+#include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
-#include <QString>
 
 namespace Ui {
     class Messages;

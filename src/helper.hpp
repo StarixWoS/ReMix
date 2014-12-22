@@ -2,22 +2,7 @@
 #ifndef PREFERENCES_HPP
 #define PREFERENCES_HPP
 
-#include <QCryptographicHash>
-#include <QStringBuilder>
-#include <QInputDialog>
-#include <QApplication>
-#include <QMessageBox>
-#include <QTextCursor>
-#include <QTextEdit>
-#include <QDateTime>
-#include <QSettings>
-#include <QFileInfo>
-#include <QString>
-#include <QDebug>
-#include <QFile>
-#include <QDir>
-
-#include "randdev.hpp"
+#include "prototypes.hpp"
 
 namespace Helper
 {

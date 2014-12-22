@@ -2,30 +2,11 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <QStandardItemModel>
-#include <QNetworkInterface>
-#include <QStringBuilder>
+#include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QTcpServer>
-#include <QTcpSocket>
-#include <QUdpSocket>
-#include <QByteArray>
-#include <QDateTime>
-#include <QtEndian>
-#include <QString>
 #include <QTimer>
-#include <QDir>
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    #include <QCoreApplication>
-    #include <QPluginLoader>
-
-    #include "packetdecryptinterface.hpp"
-#endif
-
-class UserMessage;
-class ServerInfo;
-class Player;
-class Admin;
 
 class Server : public QTcpServer
 {

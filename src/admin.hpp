@@ -2,22 +2,12 @@
 #ifndef READMIN_HPP
 #define READMIN_HPP
 
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QCryptographicHash>
-#include <QInputDialog>
-#include <QMessageBox>
-#include <QSettings>
+#include "prototypes.hpp"
+
+//Required Qt Includes.
+#include <QModelIndex>
 #include <QDialog>
-#include <QMenu>
-#include <QFile>
-
-#include "adminhelper.hpp"
-
-class ServerInfo;
-class BanDialog;
-class RandDev;
-class Player;
+#include <QObject>
 
 namespace Ui {
     class Admin;

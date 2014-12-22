@@ -1,12 +1,11 @@
+
 #ifndef USERMESSAGE_HPP
 #define USERMESSAGE_HPP
 
-#include <QTextCursor>
-#include <QScrollBar>
-#include <QTextEdit>
-#include <QDateTime>
+#include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
-#include <QDir>
 
 namespace Ui {
     class UserMessage;

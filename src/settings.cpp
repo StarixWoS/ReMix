@@ -1,9 +1,6 @@
 
-#include "settings.hpp"
+#include "includes.hpp"
 #include "ui_settings.h"
-
-#include "adminhelper.hpp"
-#include "helper.hpp"
 
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
