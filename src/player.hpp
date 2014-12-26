@@ -28,6 +28,7 @@ class Player : public QObject
     QByteArray bioData;
     QByteArray outBuff;
 
+    bool hasSernum{ false };
     qint32 sernum{ 0 };
     QString sernum_s{ "" };
 
@@ -200,6 +201,9 @@ class Player : public QObject
             bool getHasGameInfo() const;
             void setHasGameInfo(bool value);
         #endif
+
+    signals:
+        void sendRemoteAdminPwdReqSignal(Player* plr, QString& serNum);
 };
 
 #endif // PLAYER_HPP

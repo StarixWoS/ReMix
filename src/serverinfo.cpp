@@ -37,6 +37,39 @@ ServerInfo::~ServerInfo()
     upTimer.disconnect();
 }
 
+QString ServerInfo::getMasterInfoHost() const
+{
+    return masterInfoHost;
+}
+
+void ServerInfo::setMasterInfoHost(const QString& value)
+{
+//    QString title{ "Invalid Master URL:" };
+//    QString prompt{ "The selected Master Information Host URL [ %1 ] is invalid. "
+//                    "The server will be defaulting to the Syn-Real Host-URL." };
+//            prompt = prompt.arg( value );
+
+//    //Note: This does not check for syntatically correct URL addresses.
+//    //      We may want to change this later on to check for syntax.
+//    //      This will also only match URL addresses which are lowercase.
+//    QRegExp urlRegex( "((?:https?|ftp)://\\S+)" );
+    QString url{ value };
+
+//    if ( !url.contains( urlRegex ) )
+//    {
+//        masterInfoHost = "http://synthetic-reality.com/synreal.ini";
+//        Helper::warningMessage( nullptr, title, prompt );
+//    }
+//    else
+//    {
+        QFile synRealIni( "synreal.ini" );
+        if ( masterInfoHost != url )
+            synRealIni.remove();
+
+        masterInfoHost = url;
+ //   }
+}
+
 QUdpSocket* ServerInfo::getMasterSocket() const
 {
     return masterSocket;

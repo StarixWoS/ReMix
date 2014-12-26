@@ -175,8 +175,8 @@ bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
 {
     return QMessageBox::warning( parent, title, prompt,
-                                 QMessageBox::Ok,
-                                 QMessageBox::NoButton );
+                                 QMessageBox::NoButton,
+                                 QMessageBox::Ok );
 }
 
 QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type)

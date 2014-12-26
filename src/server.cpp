@@ -59,27 +59,20 @@ Server::~Server()
 void Server::checkBannedInfo(Player* plr)
 {
     //TODO: Check for banned D and V variables. --Low Priority.
-    if ( plr == nullptr
-      || plr->getSocket() == nullptr )
-    {
+    if ( plr == nullptr )
         return;
-    }
 
     BanDialog* bandlg = admin->getBanDialog();
     Player* tmpPlr{ nullptr };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( plr != nullptr
-      && plr->getSocket() != nullptr )
+    if ( bandlg->getIsIPBanned( plr->getPublicIP() )
+      || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
     {
-        if ( bandlg->getIsIPBanned( plr->getPublicIP() )
-          || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
-        {
-            plr->setSoftDisconnect( true );
-            server->setIpDc( server->getIpDc() + 1 );
+        plr->setSoftDisconnect( true );
+        server->setIpDc( server->getIpDc() + 1 );
 
-            server->sendMasterMessage( Helper::getBanishMesage(), plr, false );
-        }
+        server->sendMasterMessage( Helper::getBanishMesage(), plr, false );
     }
 
     //Disconnect and ban all duplicate IP's if required.
@@ -214,8 +207,6 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
         {
             plr->setSernum( Helper::serNumToHexStr( sernum ).toUInt( 0, 16 ) );
             plr->setSernum_s( sernum );
-
-            this->sendRemoteAdminPwdReq( plr, sernum );
         }
         plrViewModel->setData( plrViewModel->index( row, 1 ),
                                sernum,
@@ -301,6 +292,8 @@ void Server::newConnectionSlot()
     else
         plr = server->getPlayer( slot );
 
+    QObject::connect( plr, &Player::sendRemoteAdminPwdReqSignal,
+                      this, &Server::sendRemoteAdminPwdReqSlot );
     plr->setSocket( peer );
 
     QString ip{ peerAddr.toString() };
@@ -875,11 +868,8 @@ void Server::readMIX5(QString& packet, Player* plr)
 
 void Server::readMIX6(QString&, Player* plr)
 {
-    if ( plr == nullptr
-      || plr->getSocket() == nullptr )
-    {
+    if ( plr == nullptr )
         return;
-    }
 
     QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
                     "are unable to use these commands. Please reply to this message with (/password *PASS) "
@@ -973,7 +963,9 @@ void Server::readMIX8(QString& packet, Player* plr)
 
 void Server::readMIX9(QString& packet, Player*)
 {
-    QDir( "mixVariableCache" ).mkpath( "." );
+    QDir ssvDir( "mixVariableCache" );
+    if ( !ssvDir.exists() )
+        ssvDir.mkpath( "." );
 
     packet = packet.mid( 10 );
     packet = packet.left( packet.length() - 2 );
@@ -987,22 +979,20 @@ void Server::readMIX9(QString& packet, Player*)
     }
 }
 
-void Server::sendRemoteAdminPwdReq(Player* plr, QString& serNum)
+void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
 {
     if ( plr == nullptr )
         return;
 
     QString msg{ "The server Admin requires all Remote Administrators to authenticate themselves with their password. "
                  "Please enter your password with the command (/password *PASS) or be denied access to the server. Thank you!" };
+
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {
         plr->setReqAuthPwd( true );
-        if ( plr->getSocket() != nullptr )
-        {
-            quint64 bOut = server->sendMasterMessage( msg, plr, false );
-            server->setBytesOut( server->getBytesOut() + bOut );
-        }
+        server->setBytesOut( server->getBytesOut()
+                           + server->sendMasterMessage( msg, plr, false ) );
     }
 }
 
@@ -1034,8 +1024,6 @@ void Server::authRemoteAdmin(Player* plr, qint32 id)
             }
             plr->setSernum( id );
             plr->setSernum_s( serNum_s );
-
-            this->sendRemoteAdminPwdReq( plr, serNum_s );
         }
         else if (( id != 0 && plr->getSernum() != id )
                && plr->getSernum() != 0 )

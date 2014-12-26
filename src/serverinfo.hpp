@@ -11,6 +11,7 @@ const int MAX_PLAYERS = 256;
 class ServerInfo
 {
     QUdpSocket* masterSocket{ nullptr };
+    QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
 
     QTimer upTimer;
     quint64 upTime{ 0 };
@@ -179,6 +180,9 @@ class ServerInfo
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(QHostAddress& addr, quint16 port);
+
+        QString getMasterInfoHost() const;
+        void setMasterInfoHost(const QString& value);
 };
 
 #endif // SERVERINFO_HPP

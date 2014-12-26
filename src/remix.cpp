@@ -68,8 +68,7 @@ ReMix::ReMix(QWidget *parent) :
     server->setServerRules( Helper::getServerRules() );
 
     this->parseCMDLArgs();
-    if ( server->getMasterIP().isEmpty() )
-        this->getSynRealData();
+    this->getSynRealData();
 
     //Create and Connect Lamda Objects
     this->initUIUpdate();
@@ -287,12 +286,7 @@ void ReMix::parseCMDLArgs()
                 case CMDLArgs::MASTER:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
-                    {
-                        server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
-                        server->setMasterPort(
-                                    static_cast<quint16>(
-                                        tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() ) );
-                    }
+                        server->setMasterInfoHost( tmp );
                 break;
                 case CMDLArgs::PUBLIC:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
@@ -308,11 +302,8 @@ void ReMix::parseCMDLArgs()
                 case CMDLArgs::LISTEN:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
-                    {
                         server->setPrivatePort( tmp.toInt() );
-                        if ( server->getMasterIP().isEmpty() )
-                            this->getSynRealData();
-                    }
+
                     emit ui->enableNetworking->clicked();
                 break;
                 case CMDLArgs::NAME:
@@ -352,15 +343,17 @@ void ReMix::getSynRealData()
     if ( downloadFile )
     {
         QTcpSocket* socket = new QTcpSocket;
+        QUrl url( server->getMasterInfoHost() );
 
-        //TODO: Make our host-website dynamic. (Supposing we want to support calling to non-Syn-Real Masters.)
-        socket->connectToHost( "www.synthetic-reality.com", 80 );
-        QObject::connect(socket, &QTcpSocket::connected, [socket]()
+        socket->connectToHost( url.host(), 80 );
+        QObject::connect( socket, &QTcpSocket::connected, [=]()
         {
-            socket->write( QByteArray( "GET http://synthetic-reality.com/synreal.ini\r\n" ));
+            socket->write( QString( "GET %1\r\n" )
+                               .arg( server->getMasterInfoHost() )
+                               .toLatin1() );
         });
 
-        QObject::connect( socket, &QTcpSocket::readyRead, [socket, this]()
+        QObject::connect( socket, &QTcpSocket::readyRead, [=]()
         {
             QFile synreal( "synReal.ini" );
             if ( synreal.open( QIODevice::WriteOnly ) )
@@ -388,7 +381,7 @@ void ReMix::getSynRealData()
     else
     {
         QSettings settings( "synReal.ini", QSettings::IniFormat );
-        QString str = settings.value( "WoS/master" ).toString();
+        QString str = settings.value( server->getGameName() % "/master" ).toString();
         if ( !str.isEmpty() )
         {
             int index = str.indexOf( ":" );

@@ -46,6 +46,18 @@ Player::Player()
         {
             this->setHardDisconnect( true );
         }
+
+        //Authenticate Remote Admins as required.
+        if ( this->getSernum() != 0
+          && this->getReqAuthPwd() )
+        {
+            QString sernum{ this->getSernum_s() };
+            if ( this->getEnteredPwd() )
+            {
+                if ( !this->getGotAuthPwd() )
+                    emit sendRemoteAdminPwdReqSignal( this, sernum );
+            }
+        }
     });
 
     //The Timer is initialized within the force-disconnect function to prevent unnecessary checks.
@@ -85,6 +97,8 @@ Player::~Player()
 
     softKillTimer.stop();
     softKillTimer.disconnect();
+
+    this->disconnect();
 }
 
 qint64 Player::getConnTime() const
@@ -126,6 +140,7 @@ void Player::setSernum(qint32 value)
         this->setHardDisconnect( true );
         return;
     }
+    hasSernum = true;
     sernum = value;
 }
 
