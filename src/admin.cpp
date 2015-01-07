@@ -2,6 +2,12 @@
 #include "includes.hpp"
 #include "ui_admin.h"
 
+//Initialize our accepted Command List.
+const QStringList Admin::commands =
+{
+    QStringList() << "ban" << "kick" << "mute" << "msg"
+};
+
 Admin::Admin(QWidget *parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::Admin)
@@ -152,6 +158,7 @@ bool Admin::makeAdmin(QString& sernum, QString& pwd)
 bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
+    Helper::serNumToHexStr( sernum, 8 );
 
     if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
@@ -160,7 +167,27 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         if ( adminData.childGroups().contains( sernum, Qt::CaseInsensitive ) )
             return false;
 
-        QString salt = Helper::intToStr( randDev->genRandNum( 0x10000000, 0x7FFFFFFF ), 16, 8 );
+        auto genSalt = [this](auto length)
+        {
+            QString salt{ "" };
+            QString charList
+            {
+                "0123456789"
+                "!@#$%^&*"
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                "abcdefghijklmnopqrstuvwxyz"
+            };
+
+            qint32 chrPos{ -1 };
+            while ( salt.length() < length )
+            {
+                chrPos = randDev->genRandNum( 0, charList.length() - 1 );
+                salt.append( charList.at( chrPos ) );
+            }
+            return salt;
+        };
+
+        QString salt = genSalt( SALT_LENGTH );
 
         QStringList groups = adminData.childGroups();
         QString j{ "" };
@@ -171,7 +198,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
             //Check if the Salt is already used.
             if ( j == salt )
             {   //If so, generate another and restart the loop.
-                salt = Helper::intToStr( randDev->genRandNum( 0x10000000, 0x7FFFFFFF ), 16, 8 );
+                salt = genSalt( SALT_LENGTH );
                 i = 0;
             }
         }
@@ -243,10 +270,99 @@ void Admin::on_actionChangeRank_triggered()
 //Handle Admin commands.
 bool Admin::parseCommand(QString& packet, Player* plr)
 {
-    if ( packet.isEmpty()
-      || plr == nullptr )
+    if ( !packet.isEmpty()
+      || plr != nullptr )
     {
-        return false;
+        qint32 argIndex{ -1 };
+
+        for ( int i = 0; i < commands.count(); ++i )
+        {
+            argIndex = -1;
+            for ( int j = 0; j < commands.count(); ++j )
+            {
+                if ( packet.contains( commands.at( j ),
+                                      Qt::CaseInsensitive ) )
+                {
+                    argIndex = j;
+                    break;
+                }
+            }
+
+            //TODO: Check for sub-commands.
+            switch ( argIndex )
+            {
+                case CMDS::BAN:
+                    {
+                        qDebug() << "Ban command found!";
+                        //Sub-Commands:
+                        //  IP (if known)
+                        //  SERNUM
+
+                        //  ALL *IP or *SERNUM
+                        //  The ALL sub-command will ban both the User's IP and SERNUM.
+
+                        //  If no SERNUM or IP is appended to the ALL command,
+                        //  all connected Users will be IP and SERNUM banned.
+
+                        return true;
+                    }
+                break;
+                case CMDS::KICK:
+                    {
+                        qDebug() << "Kick command found!";
+                        //Sub-Commands:
+                        //  IP (if known)
+                        //  SERNUM
+
+                        //  ALL *IP or *SERNUM
+                        //  The ALL command will remove all Users with the select IP or SERNUM.
+
+                        //  If no SERNUM or IP is appended to the ALL command,
+                        //  all connected Users will be disconnected.
+
+                        return true;
+                    }
+                break;
+                case CMDS::MUTE:
+                    {
+                        qDebug() << "Mute command found!";
+                        //Sub-Commands:
+                        //  IP (if known)
+                        //  SERNUM
+
+                        //  ALL *IP or *SERNUM
+                        //  The ALL command will mute all Users with the select IP or SERNUM.
+
+                        //  If no SERNUM or IP is appended to the ALL command,
+                        //  all connected Users will be muted.
+
+                        return true;
+                    }
+                break;
+                case CMDS::MSG:
+                    {
+                        qDebug() << "Message command found!";
+                        //Sub-Commands:
+                        //  IP (if known)
+                        //  SERNUM
+
+                        //  ALL *IP or *SERNUM
+                        //  The ALL command forward the message to all
+                        //  Users with the select IP or SERNUM.
+
+                        //  If no SERNUM or IP is appended to the ALL command,
+                        //  the message will be forwarded to all Users.
+
+                        return true;
+                    }
+                break;
+                default:
+                    {
+                        qDebug() << "NO command found!";
+                        return false;
+                    }
+            }
+        }
     }
-    return true;
+    return false;
 }

@@ -64,7 +64,7 @@
     namespace AdminHelper
     {}
 
-    namespace Help
+    namespace Helper
     {}
 
     class UserMessage;
@@ -81,5 +81,24 @@
     #ifdef DECRYPT_PACKET_PLUGIN
         class PacketDecryptInterface;
     #endif // DECRYPT_PACKET_PLUGIN
+
+    #ifndef REMIX_GLOBALS
+
+        //Anything above PACKET_FLOOD_LIMIT (2000MS) will disconnect/ban the User.
+        static const int PACKET_FLOOD_TIME{ 2000 };
+
+        //Users are able to send 100 packets within PACKET_FLOOD_TIME.
+        static const int PACKET_FLOOD_LIMIT{ 100 };
+
+        //Amount of times an un-authenticated (admin) can use commands.
+        static const int MAX_CMD_ATTEMPTS{ 3 };
+
+        //Amount of Players that are able to connect to the server.
+        static const int MAX_PLAYERS{ 256 };
+
+        //Length of a Remote Admin's password salt.
+        static const int SALT_LENGTH{ 12 };
+
+    #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

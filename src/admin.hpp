@@ -29,8 +29,11 @@ class Admin : public QDialog
     QMenu* contextMenu{ nullptr };
     QModelIndex menuIndex;
 
+    static const QStringList commands;
+
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
+        enum CMDS{ BAN = 0, KICK = 1, MUTE = 2, MSG = 3 };
 
         explicit Admin(QWidget *parent = nullptr, ServerInfo* svr = nullptr);
         ~Admin();

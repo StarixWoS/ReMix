@@ -9,9 +9,6 @@
 #include <QObject>
 #include <QTimer>
 
-const int MAX_CMD_ATTEMPTS = 3;
-const int PACKET_FLOOD_LIMIT = 100; //Users are able to send 256 packets within PACKET_FLOOD_TIME.
-const int PACKET_FLOOD_TIME = 2000; //Anything above PACKET_FLOOD_LIMIT within 2000MS will disconnect/ban the User.
 class Player : public QObject
 {
     Q_OBJECT
@@ -66,10 +63,8 @@ class Player : public QObject
     quint64 connTime{ 0 };
     QElapsedTimer idleTime;
 
-    QTimer hardKillTimer;
+    QTimer killTimer;
     bool pendingHardDisconnect{ false };
-
-    QTimer softKillTimer;
     bool pendingSoftDisconnect{ false };
 
     bool networkMuted{ false };

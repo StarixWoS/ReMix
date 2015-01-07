@@ -7,7 +7,6 @@
 //Required Qt Includes.
 #include <QObject>
 
-const int MAX_PLAYERS = 256;
 class ServerInfo
 {
     QUdpSocket* masterSocket{ nullptr };

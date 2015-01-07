@@ -60,30 +60,20 @@ Player::Player()
         }
     });
 
-    //The Timer is initialized within the force-disconnect function to prevent unnecessary checks.
-    QObject::connect( &hardKillTimer, &QTimer::timeout, [=]()
+    QObject::connect( &killTimer, &QTimer::timeout, [this]()
     {
-        //Disconnect Users with pending (forced) disconnections. --Every 5MS
-        //This is meant to disconnect the User in an ungraceful manner (aborting the connection itself)
-        //in the event the server has detected something that could cause major issues for
-        //the network or the actual experience of other Users. (e.g. packet flooding)
-
-        if ( this->getHardDisconnect() )
-            this->getSocket()->abort();
-    });
-
-    //The Timer is initialized within the soft-disconnect function to prevent unnecessary checks.
-    QObject::connect( &softKillTimer, &QTimer::timeout, [=]()
-    {
-        //This is meant to disconnect the User in a graceful manner (flushing the output buffers)
-        //in the event the User has broken a rule or was manually disconnected with a reason being sent to them.
         if ( this->getSoftDisconnect() )
         {
+            //Gracefully Disconnect the User.
             this->getSocket()->flush();
             this->getSocket()->close();
         }
+        else if ( this->getHardDisconnect() )
+        {
+            //Forcefully disconnect the User..
+            this->getSocket()->abort();
+        }
     });
-
     floodTimer.start();
 }
 
@@ -92,11 +82,8 @@ Player::~Player()
     connTimer.stop();
     connTimer.disconnect();
 
-    hardKillTimer.stop();
-    hardKillTimer.disconnect();
-
-    softKillTimer.stop();
-    softKillTimer.disconnect();
+    killTimer.stop();
+    killTimer.disconnect();
 
     this->disconnect();
 }
@@ -470,7 +457,7 @@ void Player::setHardDisconnect(bool value)
     pendingHardDisconnect = value;
     if ( pendingHardDisconnect )
     {
-        hardKillTimer.start( 5 );
+        killTimer.start( 5 );
     }
 }
 
@@ -484,7 +471,7 @@ void Player::setSoftDisconnect(bool value)
     pendingSoftDisconnect = value;
     if ( pendingSoftDisconnect )
     {
-        softKillTimer.start( 250 );
+        killTimer.start( 250 );
     }
 }
 

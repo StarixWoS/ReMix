@@ -85,36 +85,6 @@ namespace Helper
     int getServerID();
 
     bool isInvalidIPAddress(const QString& value);
-
-    template<typename T>
-    bool readBinaryFile(T& Struct, QString file)
-    {
-        QFile data( file );
-        if ( data.open( QFile::ReadOnly ) )
-        {
-            if ( !data.read( (char*)&Struct, sizeof( T ) ) )
-                return false;    //Return false if it wasn't.
-
-            data.close( );   //If we get here, close the stream.
-            return true;
-        }
-        return false;
-    }
-
-    template<typename T>
-    bool writeBinaryFile(T& Struct, QString file)
-    {
-        QFile data( file );
-        if ( data.open( QFile::WriteOnly ) )
-        {
-            if ( !data.write( (char*)&Struct, sizeof( T ) ) )
-                return false;    //Return false if it wasn't.
-
-            data.close( );   //If we get here, close the stream.
-            return true;
-        }
-        return false;
-    }
 }
 
 #endif // PREFERENCES_HPP

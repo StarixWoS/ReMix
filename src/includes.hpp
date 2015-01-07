@@ -39,6 +39,7 @@
     #include <QMenu>
     #include <QChar>
     #include <QFile>
+    #include <QChar>
     #include <QDir>
 
     #ifdef DECRYPT_PACKET_PLUGIN

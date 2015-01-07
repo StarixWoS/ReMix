@@ -502,7 +502,7 @@ void Server::setupPublicServer(bool value)
         if ( !server->getIsPublic() )
         {
             masterCheckIn.start();
-            server->sendMasterInfo();
+            server->sendMasterInfo( false );
         }
         else
         {
@@ -866,10 +866,13 @@ void Server::readMIX5(QString& packet, Player* plr)
     }
 }
 
-void Server::readMIX6(QString&, Player* plr)
+void Server::readMIX6(QString& packet, Player* plr)
 {
     if ( plr == nullptr )
         return;
+
+    QString cmd = Helper::getStrStr( packet, ": ", ": ", "" );
+            cmd = cmd.left( cmd.length() - 2 );
 
     QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
                     "are unable to use these commands. Please reply to this message with (/password *PASS) "
@@ -884,7 +887,7 @@ void Server::readMIX6(QString&, Player* plr)
     {
         if ( plr->getGotAuthPwd() )
         {
-            //admin->parseCommand( packet );
+            admin->parseCommand( cmd, plr );
             server->sendMasterMessage( valid, plr, false);
         }
         else

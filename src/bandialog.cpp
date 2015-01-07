@@ -141,7 +141,7 @@ void BanDialog::remoteAddIPBan(Player* admin, Player* target, QString& reason)
     QString ip{ target->getPublicIP() };
     if ( reason.isEmpty() )
     {
-        reason = "Remote-Banish by [ %1 ]; Unknwon Reason: [ %2 ]";
+        reason = "Remote-Banish by [ %1 ]; Unknown Reason: [ %2 ]";
         reason.arg( admin->getSernum_s() )
               .arg( ip );
     }

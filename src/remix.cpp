@@ -122,7 +122,8 @@ void ReMix::initSysTray()
     //disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
     //Also disable the feature on OSX. --Unable to test.
 
-    if ( QSystemTrayIcon::isSystemTrayAvailable() )
+    if ( QSystemTrayIcon::isSystemTrayAvailable()
+      && !hasSysTray )
     {
         trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
         trayIcon->show();
@@ -143,11 +144,11 @@ void ReMix::initSysTray()
         QObject::connect( maximizeAction, &QAction::triggered,
                           this, &QMainWindow::showMaximized );
 
-        QAction* restoreAction = new QAction( "Restore", this);
+        QAction* restoreAction = new QAction( "Restore", this );
         QObject::connect( restoreAction, &QAction::triggered,
                           this, &QMainWindow::showNormal );
 
-        QAction* quitAction = new QAction( "Quit", this);
+        QAction* quitAction = new QAction( "Quit", this );
         QObject::connect( quitAction, &QAction::triggered, [=]()
         {
             //Allow Rejection of a Global CloseEvent.
@@ -373,10 +374,8 @@ void ReMix::getSynRealData()
             }
         });
 
-        QObject::connect( socket, &QTcpSocket::disconnected, [=]()
-        {
-            socket->deleteLater();
-        });
+        QObject::connect( socket, &QTcpSocket::disconnected,
+                          socket, &QTcpSocket::deleteLater );
     }
     else
     {
@@ -472,7 +471,7 @@ void ReMix::on_openUserComments_clicked()
 
 void ReMix::on_serverPort_textChanged(const QString &arg1)
 {
-    int val = arg1.toInt();
+    qint32 val = arg1.toInt();
     if ( val < 0 || val > 65535 )
         val = 0;
 

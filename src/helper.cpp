@@ -115,25 +115,25 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     if ( sernum.contains( "SOUL " ) )
-        return intToStr( sernum.mid( sernum.indexOf( " " ) + 1 ).toInt(), 16, fillAmt );
+        return intToStr( getStrStr( sernum, "SOUL", " ", "" ).toInt(), 16, fillAmt );
     else
         return intToStr( sernum.toInt( 0, 16 ), 16, fillAmt );
 }
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    int serNum = sernum.toInt( 0, 16 );
-    if ( !( serNum & 0x40000000 ) )
-        return QString( "SOUL %1" ).arg( intToStr( serNum, 10 ) );
+    int sernum_i{ sernum.toInt( 0, 16 ) };
+    if ( !( sernum_i & 0x40000000 ) )
+        return QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
-        return QString( "%1" ).arg( intToStr( serNum, 16 ) );
+        return QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
 }
 
 qint32 Helper::serNumtoInt(QString& sernum)
 {
     int sernum_i{ 0 };
-    if ( sernum.contains( "SOUL " ) )
-        sernum_i = strToInt( sernum.mid( sernum.indexOf( " " ) + 1 ), 10 );
+    if ( sernum.contains( "SOUL" ) )
+        sernum_i = strToInt( getStrStr( sernum, "SOUL", " ", "" ), 10 );
     else
         sernum_i = strToInt( sernum, 16 );
 
