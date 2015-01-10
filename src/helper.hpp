@@ -50,6 +50,8 @@ namespace Helper
     QString getDisconnectReason(QWidget* parent = nullptr);
 
     QString hashPassword(QVariant& password);
+    QString genPwdSalt(RandDev* randGen, qint32 length = SALT_LENGTH);
+
     bool setPassword(QVariant& value, bool isHashed);
     QString getPassword();
 

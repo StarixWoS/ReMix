@@ -114,10 +114,24 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
 
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
-    if ( sernum.contains( "SOUL " ) )
-        return intToStr( getStrStr( sernum, "SOUL", " ", "" ).toInt(), 16, fillAmt );
+    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+
+    QString result{ "" };
+    if ( sernum.contains( "SOUL" ) )
+    {
+        result = intToStr( getStrStr( sernum, "SOUL", "SOUL", "" )
+                                 .toInt(), 16, fillAmt );
+    }
     else
-        return intToStr( sernum.toInt( 0, 16 ), 16, fillAmt );
+    {
+        if ( sernum_i & 0x40000000 )
+            result = intToStr( sernum_i, 16, fillAmt );
+        else
+            result = intToStr( sernum.toInt( 0, 10 ), 16, fillAmt );
+    }
+
+    //Remove Spaces.
+    return result.trimmed();
 }
 
 QString Helper::serNumToIntStr(QString sernum)
@@ -299,6 +313,37 @@ QString Helper::hashPassword(QVariant& password)
 {
     return QString( QCryptographicHash::hash( password.toString().toLatin1(),
                                               QCryptographicHash::Sha3_512 ).toHex() );
+}
+
+QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
+{
+    bool newRNG{ false };
+    if ( randGen == nullptr )
+    {
+        randGen = new RandDev();
+        newRNG = true;
+    }
+
+    QString salt{ "" };
+    QString charList
+    {
+        "0123456789"
+        "`~!@#$%^&*-_=+{([])}|\\;:'\"\\,./?<>"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+    };
+
+    qint32 chrPos{ -1 };
+    while ( salt.length() < length )
+    {
+        chrPos = randGen->genRandNum( 0, charList.length() - 1 );
+        salt.append( charList.at( chrPos ) );
+    }
+
+    if ( newRNG )
+        delete randGen;
+
+    return salt;
 }
 
 void Helper::setServerRules(QVariant& value)

@@ -40,7 +40,8 @@ Admin::Admin(QWidget *parent, ServerInfo* svr) :
     tableModel->setHeaderData( 2, Qt::Horizontal, "Hash" );
     tableModel->setHeaderData( 3, Qt::Horizontal, "Salt" );
 
-    //Proxy model to support sorting without actually altering the underlying model
+    //Proxy model to support sorting without actually
+    //altering the underlying model
     tableProxy = new QSortFilterProxyModel();
     tableProxy->setDynamicSortFilter( true );
     tableProxy->setSourceModel( tableModel );
@@ -106,10 +107,18 @@ void Admin::loadServerAdmins()
             row = tableModel->rowCount();
             tableModel->insertRow( row );
 
-            tableModel->setData( tableModel->index( row, 0 ), group, Qt::DisplayRole );
-            tableModel->setData( tableModel->index( row, 1 ), rank, Qt::DisplayRole );
-            tableModel->setData( tableModel->index( row, 2 ), hash, Qt::DisplayRole );
-            tableModel->setData( tableModel->index( row, 3 ), salt, Qt::DisplayRole );
+            tableModel->setData( tableModel->index( row, 0 ),
+                                 Helper::serNumToIntStr( group ),
+                                 Qt::DisplayRole );
+
+            tableModel->setData( tableModel->index( row, 1 ),
+                                 rank, Qt::DisplayRole );
+
+            tableModel->setData( tableModel->index( row, 2 ),
+                                 hash, Qt::DisplayRole );
+
+            tableModel->setData( tableModel->index( row, 3 ),
+                                 salt, Qt::DisplayRole );
         }
         ui->adminTable->selectRow( 0 );
         ui->adminTable->resizeColumnsToContents();
@@ -128,11 +137,15 @@ void Admin::setAdminRank(int rank, QModelIndex index)
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
     if ( index.isValid() )
     {
-        QString txt = tableModel->data( tableModel->index( index.row(), 0 ) ).toString();
+        QString txt = tableModel->data(
+                          tableModel->index(
+                              index.row(), 0 ) ).toString();
         if ( !txt.isEmpty() )
         {
             adminData.setValue( txt % "/rank", rank );
-            tableModel->setData( tableModel->index( index.row(), 1 ), rank, Qt::DisplayRole );
+            tableModel->setData(
+                        tableModel->index(
+                            index.row(), 1 ), rank, Qt::DisplayRole );
         }
     }
     menuIndex = QModelIndex();
@@ -158,36 +171,22 @@ bool Admin::makeAdmin(QString& sernum, QString& pwd)
 bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
-    Helper::serNumToHexStr( sernum, 8 );
 
-    if ( !sernum.isEmpty()
+    QString hexSerNum{ sernum };
+            hexSerNum = Helper::serNumToHexStr( hexSerNum, 8 );
+
+    if ( !hexSerNum.isEmpty()
       && !pwd.isEmpty() )
     {
-        //We already have an admin using this sernum on record. Return false. (Perhaps inform the would-be admin.)
-        if ( adminData.childGroups().contains( sernum, Qt::CaseInsensitive ) )
-            return false;
-
-        auto genSalt = [this](auto length)
+        //We already have an admin using this sernum on record.
+        //Return false. (Perhaps inform the would-be admin.)
+        if ( adminData.childGroups()
+                      .contains( hexSerNum, Qt::CaseInsensitive ) )
         {
-            QString salt{ "" };
-            QString charList
-            {
-                "0123456789"
-                "!@#$%^&*"
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                "abcdefghijklmnopqrstuvwxyz"
-            };
+            return false;
+        }
 
-            qint32 chrPos{ -1 };
-            while ( salt.length() < length )
-            {
-                chrPos = randDev->genRandNum( 0, charList.length() - 1 );
-                salt.append( charList.at( chrPos ) );
-            }
-            return salt;
-        };
-
-        QString salt = genSalt( SALT_LENGTH );
+        QString salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
 
         QStringList groups = adminData.childGroups();
         QString j{ "" };
@@ -198,7 +197,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
             //Check if the Salt is already used.
             if ( j == salt )
             {   //If so, generate another and restart the loop.
-                salt = genSalt( SALT_LENGTH );
+                salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
                 i = 0;
             }
         }
@@ -206,17 +205,42 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         QVariant hash( salt + pwd );
                  hash = Helper::hashPassword( hash );
 
-        adminData.setValue( sernum % "/rank", ui->comboBox->currentIndex() );
-        adminData.setValue( sernum % "/hash", hash );
-        adminData.setValue( sernum % "/salt", salt );
+        adminData.setValue( hexSerNum % "/rank",
+                            ui->comboBox->currentIndex() );
+
+        adminData.setValue( hexSerNum % "/hash", hash );
+        adminData.setValue( hexSerNum % "/salt", salt );
 
         int row = tableModel->rowCount();
         tableModel->insertRow( row );
 
-        tableModel->setData( tableModel->index( row, 0 ), sernum, Qt::DisplayRole );
-        tableModel->setData( tableModel->index( row, 1 ), ui->comboBox->currentIndex(), Qt::DisplayRole );
-        tableModel->setData( tableModel->index( row, 2 ), hash, Qt::DisplayRole );
-        tableModel->setData( tableModel->index( row, 3 ), salt, Qt::DisplayRole );
+        //Display the SERNUM in the correct format as required.
+        if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
+          && !sernum.contains( " " ) )
+        {
+            sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
+        }
+        else if ( !( sernum.toInt( 0, 16 ) & 0x40000000 )
+               && !sernum.contains( "SOUL " ) )
+        {
+            sernum.prepend( "SOUL " );
+        }
+
+        tableModel->setData(
+                    tableModel->index( row, 0 ),
+                    sernum, Qt::DisplayRole );
+
+        tableModel->setData(
+                    tableModel->index( row, 1 ),
+                    ui->comboBox->currentIndex(), Qt::DisplayRole );
+
+        tableModel->setData(
+                    tableModel->index( row, 2 ),
+                    hash, Qt::DisplayRole );
+
+        tableModel->setData(
+                    tableModel->index( row, 3 ),
+                    salt, Qt::DisplayRole );
 
         ui->adminTable->selectRow( row );
         ui->adminTable->resizeColumnsToContents();
@@ -239,7 +263,9 @@ void Admin::on_actionRevokeAdmin_triggered()
 {
     if ( menuIndex.isValid() )
     {
-        QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
+        QString sernum = tableModel->data(
+                             tableModel->index(
+                                 menuIndex.row(), 0 ) ).toString();
         if ( !sernum.isEmpty() )
         {
             if (  AdminHelper::deleteRemoteAdmin( this, sernum ) )
@@ -253,7 +279,9 @@ void Admin::on_actionChangeRank_triggered()
 {
     if ( menuIndex.isValid() )
     {
-        QString sernum = tableModel->data( tableModel->index( menuIndex.row(), 0 ) ).toString();
+        QString sernum = tableModel->data(
+                             tableModel->index(
+                                 menuIndex.row(), 0 ) ).toString();
 
         qint32 rank{ -1 };
         if ( !sernum.isEmpty() )
@@ -294,15 +322,15 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 case CMDS::BAN:
                     {
                         qDebug() << "Ban command found!";
-                        //Sub-Commands:
-                        //  IP (if known)
-                        //  SERNUM
+                    //Sub-Commands:
+                    //  IP (if known)
+                    //  SERNUM
 
-                        //  ALL *IP or *SERNUM
-                        //  The ALL sub-command will ban both the User's IP and SERNUM.
+                    //  ALL *IP or *SERNUM
+                    //  The ALL sub-command will ban both the User's IP and SERNUM.
 
-                        //  If no SERNUM or IP is appended to the ALL command,
-                        //  all connected Users will be IP and SERNUM banned.
+                    //  If no SERNUM or IP is appended to the ALL command,
+                    //  all connected Users will be IP and SERNUM banned.
 
                         return true;
                     }
@@ -310,15 +338,15 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 case CMDS::KICK:
                     {
                         qDebug() << "Kick command found!";
-                        //Sub-Commands:
-                        //  IP (if known)
-                        //  SERNUM
+                    //Sub-Commands:
+                    //  IP (if known)
+                    //  SERNUM
 
-                        //  ALL *IP or *SERNUM
-                        //  The ALL command will remove all Users with the select IP or SERNUM.
+                    //  ALL *IP or *SERNUM
+                    //  The ALL command will remove all Users with the select IP or SERNUM.
 
-                        //  If no SERNUM or IP is appended to the ALL command,
-                        //  all connected Users will be disconnected.
+                    //  If no SERNUM or IP is appended to the ALL command,
+                    //  all connected Users will be disconnected.
 
                         return true;
                     }
@@ -326,15 +354,15 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 case CMDS::MUTE:
                     {
                         qDebug() << "Mute command found!";
-                        //Sub-Commands:
-                        //  IP (if known)
-                        //  SERNUM
+                    //Sub-Commands:
+                    //  IP (if known)
+                    //  SERNUM
 
-                        //  ALL *IP or *SERNUM
-                        //  The ALL command will mute all Users with the select IP or SERNUM.
+                    //  ALL *IP or *SERNUM
+                    //  The ALL command will mute all Users with the select IP or SERNUM.
 
-                        //  If no SERNUM or IP is appended to the ALL command,
-                        //  all connected Users will be muted.
+                    //  If no SERNUM or IP is appended to the ALL command,
+                    //  all connected Users will be muted.
 
                         return true;
                     }
@@ -342,16 +370,16 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 case CMDS::MSG:
                     {
                         qDebug() << "Message command found!";
-                        //Sub-Commands:
-                        //  IP (if known)
-                        //  SERNUM
+                    //Sub-Commands:
+                    //  IP (if known)
+                    //  SERNUM
 
-                        //  ALL *IP or *SERNUM
-                        //  The ALL command forward the message to all
-                        //  Users with the select IP or SERNUM.
+                    //  ALL *IP or *SERNUM
+                    //  The ALL command forward the message to all
+                    //  Users with the select IP or SERNUM.
 
-                        //  If no SERNUM or IP is appended to the ALL command,
-                        //  the message will be forwarded to all Users.
+                    //  If no SERNUM or IP is appended to the ALL command,
+                    //  the message will be forwarded to all Users.
 
                         return true;
                     }
