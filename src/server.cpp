@@ -545,8 +545,12 @@ void Server::parseMasterServerResponse(QByteArray& mData)
 
         //We've obtained valid Master information.
         //Reset check-in to every 5 minutes.
+
+        server->setMasterUDPResponse( true );
         masterCheckIn.setInterval( 300000 );
     }
+    else
+        server->setMasterUDPResponse( false );
 }
 
 void Server::parsePacket(QString& packet, Player* plr)

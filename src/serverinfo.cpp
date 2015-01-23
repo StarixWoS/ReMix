@@ -141,7 +141,7 @@ void ServerInfo::sendMasterInfo(bool disconnect)
         if ( this->getIsSetUp() )
         {
             response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" };
-            response = response.arg( this->getVersionID_i() )
+            response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
                                .arg( this->getGameId() )
                                .arg( this->getGameName() )
@@ -157,7 +157,10 @@ void ServerInfo::sendMasterInfo(bool disconnect)
       && this->getIsSetUp() )
     {
         this->sendUDPData( addr, port, response );
+        this->setSentUDPCheckIn( true );
     }
+    else
+        this->setSentUDPCheckIn( false );
 }
 
 Player* ServerInfo::createPlayer(int slot)
@@ -383,24 +386,14 @@ void ServerInfo::setHostInfo(const QHostInfo& value)
     hostInfo = value;
 }
 
-int ServerInfo::getVersionID_i() const
+int ServerInfo::getVersionID() const
 {
-    return versionID_i;
+    return versionID;
 }
 
-void ServerInfo::setVersionID_i(int value)
+void ServerInfo::setVersionID(int value)
 {
-    versionID_i = value;
-}
-
-float ServerInfo::getVersionID_f() const
-{
-    return versionID_f;
-}
-
-void ServerInfo::setVersionID_f(float value)
-{
-    versionID_f = value;
+    versionID = value;
 }
 
 quint16 ServerInfo::getMasterPort() const
@@ -644,4 +637,24 @@ bool ServerInfo::getLogUsage() const
 void ServerInfo::setLogUsage(bool value)
 {
     logUsage = value;
+}
+
+bool ServerInfo::getSentUDPCheckin() const
+{
+    return sentUDPCheckin;
+}
+
+void ServerInfo::setSentUDPCheckIn(bool value)
+{
+    sentUDPCheckin = value;
+}
+
+bool ServerInfo::getMasterUDPResponse() const
+{
+    return masterUDPResponse;
+}
+
+void ServerInfo::setMasterUDPResponse(bool value)
+{
+    masterUDPResponse = value;
 }

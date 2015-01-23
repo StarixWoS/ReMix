@@ -232,21 +232,31 @@ void ReMix::initUIUpdate()
         }
 
         //Update other Info as well.
+        QString msg{ "Select Port Number and press \"Accept Calls\" when ready!" };
         if ( server->getIsSetUp() )
         {
-            QString tmp = QString( "Listening for incoming calls to %1:%2" )
-                              .arg( server->getPrivateIP() )
-                              .arg( server->getPrivatePort() );
+            msg = QString( "Listening for incoming calls to %1:%2" )
+                      .arg( server->getPrivateIP() )
+                      .arg( server->getPrivatePort() );
+
             if ( server->getIsPublic() )
             {
-                QString tmp2 = QString( " ( Need port forward from %1:%2 )" )
-                                   .arg( server->getPublicIP() )
-                                   .arg( server->getPublicPort() );
-                tmp.append( tmp2 );
+                if ( server->getSentUDPCheckin() )
+                {
+                    if ( server->getMasterUDPResponse() )
+                    {
+                        QString msg2 = QString( " ( Need port forward from %1:%2 )" )
+                                           .arg( server->getPublicIP() )
+                                           .arg( server->getPublicPort() );
+                        msg.append( msg2 );
+                    }
+                    else
+                        msg = { "Sent UDP check-in to Master. Waiting for response..." };
+                }
             }
-            ui->networkStatus->setText( tmp );
+            ui->playerView->resizeColumnsToContents();
         }
-        ui->playerView->resizeColumnsToContents();
+        ui->networkStatus->setText( msg );
     });
 }
 

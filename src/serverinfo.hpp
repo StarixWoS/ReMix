@@ -30,11 +30,13 @@ class ServerInfo
     bool isMaster{ false };
     bool isPublic{ false };
 
+    bool sentUDPCheckin{ false };
+    bool masterUDPResponse{ false };
+
     QString masterIP{ "" };
     quint16 masterPort{ 23999 };
 
-    float versionID_f{ 1.10f };
-    int versionID_i{ 41252 };
+    int versionID{ 41252 };
 
     QHostInfo hostInfo;
 
@@ -102,11 +104,8 @@ class ServerInfo
         QHostInfo getHostInfo() const;
         void setHostInfo(const QHostInfo& value);
 
-        int getVersionID_i() const;
-        void setVersionID_i(int value);
-
-        float getVersionID_f() const;
-        void setVersionID_f(float value);
+        int getVersionID() const;
+        void setVersionID(int value);
 
         quint16 getMasterPort() const;
         void setMasterPort(int value);
@@ -182,6 +181,12 @@ class ServerInfo
 
         QString getMasterInfoHost() const;
         void setMasterInfoHost(const QString& value);
+
+        bool getSentUDPCheckin() const;
+        void setSentUDPCheckIn(bool value);
+
+        bool getMasterUDPResponse() const;
+        void setMasterUDPResponse(bool value);
 };
 
 #endif // SERVERINFO_HPP

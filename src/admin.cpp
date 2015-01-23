@@ -220,7 +220,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         {
             sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
         }
-        else if ( !( sernum.toInt( 0, 16 ) & 0x40000000 )
+        else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
                && !sernum.contains( "SOUL " ) )
         {
             sernum.prepend( "SOUL " );

@@ -124,7 +124,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     }
     else
     {
-        if ( sernum_i & 0x40000000 )
+        if ( sernum_i & MIN_HEX_SERNUM )
             result = intToStr( sernum_i, 16, fillAmt );
         else
             result = intToStr( sernum.toInt( 0, 10 ), 16, fillAmt );
@@ -137,7 +137,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 QString Helper::serNumToIntStr(QString sernum)
 {
     int sernum_i{ sernum.toInt( 0, 16 ) };
-    if ( !( sernum_i & 0x40000000 ) )
+    if ( !( sernum_i & MIN_HEX_SERNUM ) )
         return QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
         return QString( "%1" ).arg( intToStr( sernum_i, 16 ) );

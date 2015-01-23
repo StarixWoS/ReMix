@@ -84,11 +84,16 @@
 
     #ifndef REMIX_GLOBALS
 
-        //Anything above PACKET_FLOOD_LIMIT (2000MS) will disconnect/ban the User.
+        //Anything above PACKET_FLOOD_LIMIT (2000MS)
+        //will disconnect/ban the User.
         static const int PACKET_FLOOD_TIME{ 2000 };
 
         //Users are able to send 100 packets within PACKET_FLOOD_TIME.
         static const int PACKET_FLOOD_LIMIT{ 100 };
+
+        //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
+        //Via: sernum & MIN_HEX_SERNUM
+        static const int MIN_HEX_SERNUM{ 0x40000000 };
 
         //Amount of times an un-authenticated (admin) can use commands.
         static const int MAX_CMD_ATTEMPTS{ 3 };
