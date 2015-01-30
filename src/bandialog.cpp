@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "bandialog.hpp"
 #include "ui_bandialog.h"
 
 BanDialog::BanDialog(QWidget *parent) :

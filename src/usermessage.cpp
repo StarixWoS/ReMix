@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "usermessage.hpp"
 #include "ui_usermessage.h"
 
 UserMessage::UserMessage(QWidget *parent) :

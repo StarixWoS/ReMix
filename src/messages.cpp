@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "messages.hpp"
 #include "ui_messages.h"
 
 Messages::Messages(QWidget *parent) :

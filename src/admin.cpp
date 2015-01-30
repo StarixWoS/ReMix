@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "admin.hpp"
 #include "ui_admin.h"
 
 //Initialize our accepted Command List.
@@ -266,6 +267,7 @@ void Admin::on_actionRevokeAdmin_triggered()
         QString sernum = tableModel->data(
                              tableModel->index(
                                  menuIndex.row(), 0 ) ).toString();
+
         if ( !sernum.isEmpty() )
         {
             if (  AdminHelper::deleteRemoteAdmin( this, sernum ) )

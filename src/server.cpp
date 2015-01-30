@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "server.hpp"
 
 Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemModel* plrView)
 {
@@ -630,10 +631,12 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                             case Player::SCENE:
                                 {
                                     if ((( plr->getTargetScene() == tmpPlr->getSernum() )
-                                      || ( plr->getTargetScene() == tmpPlr->getSceneHost() ))
-                                      && ( plr != tmpPlr ) )
+                                      || ( plr->getTargetScene() == tmpPlr->getSceneHost() )))
                                     {
-                                        send = true;
+                                        if (( plr != tmpPlr ) )
+                                        {
+                                            send = true;
+                                        }
                                     }
                                 }
                             break;
@@ -754,7 +757,7 @@ void Server::readMIX3(QString& packet, Player* plr)
     qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
     //Check if the User is banned or requires authentication.
-    this->authRemoteAdmin( plr, sernum_i );
+    this->validateSerNum( plr, sernum_i );
     this->checkBannedInfo( plr );
 }
 
@@ -798,12 +801,9 @@ void Server::readMIX5(QString& packet, Player* plr)
                 disconnect = true;
             }
         }
-        else if (( msg.startsWith( "/password ", Qt::CaseInsensitive )
-               || msg.startsWith( "/pwd ", Qt::CaseInsensitive ) ) )
+        else if ( msg.startsWith( "/login ", Qt::CaseInsensitive ))
         {
-            QVariant pwd = Helper::getStrStr( msg, "/password", " ", "" );
-            if ( pwd.toString().isEmpty() )
-                pwd = Helper::getStrStr( msg, "/pwd", " ", "" );
+            QVariant pwd = Helper::getStrStr( msg, "/login ", " ", "" );
 
             //Check if the User is creating a Password.
             if ( plr->getReqNewAuthPwd()
@@ -879,7 +879,7 @@ void Server::readMIX6(QString& packet, Player* plr)
             cmd = cmd.left( cmd.length() - 2 );
 
     QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
-                    "are unable to use these commands. Please reply to this message with (/password *PASS) "
+                    "are unable to use these commands. Please reply to this message with (/login *PASS) "
                     "and the server will authenticate you." };
 
     QString invalid{ "Your SerNum is not registered as a Remote Admin. Please refrain from attempting to use "
@@ -934,7 +934,7 @@ void Server::readMIX7(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    this->authRemoteAdmin( plr, packet.toInt( 0, 16 ) );
+    this->validateSerNum( plr, packet.toInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 
@@ -981,8 +981,11 @@ void Server::readMIX9(QString& packet, Player*)
     if ( Helper::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
-        QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini", QSettings::IniFormat );
-                  ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ), vars.value( 3 ) );
+        QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
+                       QSettings::IniFormat );
+
+        ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ),
+                      vars.value( 3 ) );
     }
 }
 
@@ -991,8 +994,10 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
     if ( plr == nullptr )
         return;
 
-    QString msg{ "The server Admin requires all Remote Administrators to authenticate themselves with their password. "
-                 "Please enter your password with the command (/password *PASS) or be denied access to the server. Thank you!" };
+    QString msg{ "The server Admin requires all Remote Administrators to "
+                 "authenticate themselves with their password. "
+                 "Please enter your password with the command (/login *PASS) "
+                 "or be denied access to the server. Thank you!" };
 
     if ( AdminHelper::getReqAdminAuth()
       && AdminHelper::getIsRemoteAdmin( serNum ) )
@@ -1003,7 +1008,7 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
     }
 }
 
-void Server::authRemoteAdmin(Player* plr, qint32 id)
+void Server::validateSerNum(Player* plr, qint32 id)
 {
     if ( plr == nullptr )
         return;

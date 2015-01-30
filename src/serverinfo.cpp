@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "serverinfo.hpp"
 
 ServerInfo::ServerInfo()
 {

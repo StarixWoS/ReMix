@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "adminhelper.hpp"
 
 //Initialize QStrings.
 const QString AdminHelper::adminKeys[ 3 ] =
@@ -15,16 +16,20 @@ const QStringList AdminHelper::ranks
 void AdminHelper::setAdminData(const QString& key, const QString& subKey, QVariant& value)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
-    adminData.setValue( key % "/" % subKey, value );
+    QString sernum{ Helper::serNumToHexStr( key, 8 ) };
+
+    adminData.setValue( sernum % "/" % subKey, value );
 }
 
 QVariant AdminHelper::getAdminData(const QString& key, const QString& subKey)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
+    QString sernum{ Helper::serNumToHexStr( key, 8 ) };
+
     if ( subKey == QLatin1String( "rank" ) )
-        return adminData.value( key % "/" % subKey, -1 );
+        return adminData.value( sernum % "/" % subKey, -1 );
     else
-        return adminData.value( key % "/" % subKey );
+        return adminData.value( sernum % "/" % subKey );
 }
 
 void AdminHelper::setReqAdminAuth(QVariant& value)
@@ -88,7 +93,7 @@ bool AdminHelper::deleteRemoteAdmin(QWidget* parent, QString& sernum)
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
-        adminData.remove( sernum );
+                  adminData.remove( Helper::serNumToHexStr( sernum, 8 ) );
         return true;
     }
     return false;
@@ -101,7 +106,7 @@ bool AdminHelper::createRemoteAdmin(QWidget* parent, QString& sernum)
                     "Please make sure you trust ( %2 ) as this will allow the them to utilize Admin "
                     "commands that can remove the ability for other users to connect to the Server." };
     prompt = prompt.arg( sernum )
-             .arg( sernum );
+                   .arg( sernum );
 
     if ( Helper::confirmAction( parent, title, prompt ) )
         return true;

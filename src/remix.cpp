@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "remix.hpp"
 #include "ui_remix.h"
 
 //Initialize our accepted Commandline Argument List.
@@ -206,29 +207,42 @@ void ReMix::initUIUpdate()
                              .arg( time % 60, 2, 10, QChar( '0' ) );
 
         ui->onlineTime->setText( time_s );
-        ui->callCount->setText( QString( "#Calls: %1" ).arg( server->getUserCalls() ) );
-        ui->packetDCCount->setText( QString( "#Pkt-DC: %1" ).arg( server->getPktDc() ) );
-        ui->dupDCCount->setText( QString( "#Dup-DC: %1" ).arg( server->getDupDc() ) );
-        ui->ipDCCount->setText( QString( "#IP-DC: %1" ).arg( server->getIpDc() ) );
+        ui->callCount->setText(
+                    QString( "#Calls: %1" )
+                        .arg( server->getUserCalls() ) );
 
-        ui->packetINBD->setText( QString( "#IN: %1 Bd" ).arg( server->getBaudIn() ) );
-        ui->packetOUTBD->setText( QString( "#OUT: %1 Bd" ).arg( server->getBaudOut() ) );
+        ui->packetDCCount->setText(
+                    QString( "#Pkt-DC: %1" )
+                        .arg( server->getPktDc() ) );
+
+        ui->dupDCCount->setText(
+                    QString( "#Dup-DC: %1" )
+                        .arg( server->getDupDc() ) );
+
+        ui->ipDCCount->setText(
+                    QString( "#IP-DC: %1" )
+                        .arg( server->getIpDc() ) );
+
+        ui->packetINBD->setText(
+                    QString( "#IN: %1 Bd" )
+                        .arg( server->getBaudIn() ) );
+
+        ui->packetOUTBD->setText(
+                    QString( "#OUT: %1 Bd" )
+                        .arg( server->getBaudOut() ) );
 
         if ( trayIcon != nullptr )
         {
-            QString tTip = QString( "ReMix Server: %1 (%2)\r\n" "#Calls: %3\r\n"
-                                    "#Pkt-DC: %4\r\n" "#Dup-DC: %5\r\n"
-                                    "#IP-DC: %6\r\n" "#IN: %7\r\n"
-                                    "#OUT: %8\r\n" )
-                               .arg( server->getName() )
-                               .arg( time_s )
-                               .arg( server->getUserCalls() )
-                               .arg( server->getPktDc() )
-                               .arg( server->getDupDc() )
-                               .arg( server->getIpDc() )
-                               .arg( server->getBaudIn() )
-                               .arg( server->getBaudOut() );
-            trayIcon->setToolTip( tTip );
+            trayIcon->setToolTip(
+                        QString( "ReMix Server: %1 (%2)\r\n" "#Calls: %3\r\n"
+                                 "#Pkt-DC: %4\r\n" "#Dup-DC: %5\r\n"
+                                 "#IP-DC: %6\r\n" )
+                            .arg( server->getName() )
+                            .arg( time_s )
+                            .arg( server->getUserCalls() )
+                            .arg( server->getPktDc() )
+                            .arg( server->getDupDc() )
+                            .arg( server->getIpDc() ) );
         }
 
         //Update other Info as well.
@@ -297,7 +311,10 @@ void ReMix::parseCMDLArgs()
                 case CMDLArgs::MASTER:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
+                    {
                         server->setMasterInfoHost( tmp );
+                        this->getSynRealData();
+                    }
                 break;
                 case CMDLArgs::PUBLIC:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
@@ -344,10 +361,15 @@ void ReMix::getSynRealData()
     bool downloadFile = true;
     if ( synRealFile.exists() )
     {
-        qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
-        qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
+        qint64 curTime = static_cast<qint64>(
+                             QDateTime::currentDateTime()
+                                  .toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>(
+                             synRealFile.lastModified()
+                                  .toMSecsSinceEpoch() / 1000 );
 
-        downloadFile = ( curTime - modTime >= 172800 ); //Check if the file is 48 hours old and set our bool.
+        //Check if the file is 48 hours old and set our bool.
+        downloadFile = ( curTime - modTime >= 172800 );
     }
 
     //The file was older than 48 hours or did not exist. Request a fresh copy.

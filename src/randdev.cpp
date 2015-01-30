@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "randdev.hpp"
 
 RandDev::RandDev()
 {

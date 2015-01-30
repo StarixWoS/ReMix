@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "helper.hpp"
 
 //Initialize Settings keys/subKeys lists
 const QString Helper::keys[ 3 ] =
@@ -328,7 +329,7 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
     QString charList
     {
         "0123456789"
-        "`~!@#$%^&*-_=+{([])}|\\;:'\"\\,./?<>"
+        "`~!@#$%^&*-_=+{([])}|;:'\"\\,./?<>"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz"
     };

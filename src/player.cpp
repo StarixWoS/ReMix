@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "player.hpp"
 
 Player::Player()
 {
@@ -48,14 +49,18 @@ Player::Player()
         }
 
         //Authenticate Remote Admins as required.
-        if ( this->getSernum() != 0
-          && this->getReqAuthPwd() )
+        QString sernum{ this->getSernum_s() };
+        if ( AdminHelper::getReqAdminAuth()
+          && AdminHelper::getIsRemoteAdmin( sernum ) )
         {
-            QString sernum{ this->getSernum_s() };
-            if ( this->getEnteredPwd() )
+            if ( this->getSernum() != 0
+              && !this->getReqAuthPwd() )
             {
-                if ( !this->getGotAuthPwd() )
-                    emit sendRemoteAdminPwdReqSignal( this, sernum );
+                if ( !Helper::getRequirePassword() || this->getEnteredPwd() )
+                {
+                    if ( !this->getGotAuthPwd() )
+                        emit sendRemoteAdminPwdReqSignal( this, sernum );
+                }
             }
         }
     });
