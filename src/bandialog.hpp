@@ -56,13 +56,15 @@ class BanDialog : public QDialog
         //IP-Ban Tab Slots
         void on_addIPBan_clicked();
         void on_ipBanTable_clicked(const QModelIndex &index);
-        void ipBanTableChangedRowSlot(const QModelIndex &index, const QModelIndex&);
+        void ipBanTableChangedRowSlot(const QModelIndex &index,
+                                      const QModelIndex&);
         void on_removeIPBan_clicked();
 
         //SerNum-Ban Tab Slots
         void on_addSernumBan_clicked();
         void on_snBanTable_clicked(const QModelIndex &index);
-        void snBanTableChangedRowSlot(const QModelIndex &index, const QModelIndex&);
+        void snBanTableChangedRowSlot(const QModelIndex &index,
+                                      const QModelIndex&);
         void on_forgiveButton_clicked();
 
     private:

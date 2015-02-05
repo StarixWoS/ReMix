@@ -10,12 +10,14 @@ const QString Helper::keys[ 3 ] =
 
 const QString Helper::subKeys[ 14 ] =
 {
-    "extension", "myPassword", "autoBanish", "discIdle", "requireSernum", "dupeOK",
-    "serverSupportsVariables", "banishDupes", "requirePassword", "MOTD", "BANISHED",
-    "RULES", "requireAdminAuth", "logComments"
+    "extension", "myPassword", "autoBanish", "discIdle", "requireSernum",
+    "dupeOK", "serverSupportsVariables", "banishDupes", "requirePassword",
+    "MOTD", "BANISHED", "RULES", "requireAdminAuth", "logComments"
 };
 
-QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, quint32 height)
+QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
+                                        QInputDialog::InputMode mode,
+                                        int width, quint32 height)
 {
     QInputDialog* dialog = new QInputDialog( parent );
                   dialog->setInputMode( mode );
@@ -38,7 +40,8 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
     if ( val_i > 0 )
         return QString( "%1" ).arg( val_i, fill, base, filler ).toUpper();
     else
-        return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler ).toUpper();
+        return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler )
+                   .toUpper();
 }
 
 int Helper::strToInt(QString str, int base)
@@ -56,7 +59,8 @@ int Helper::strToInt(QString str, int base)
     return val;
 }
 
-QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QString left)
+QString Helper::getStrStr(const QString& str, QString indStr,
+                          QString mid, QString left)
 {
     /* Search an input string and return a sub-string based on the input strings.
      * indStr --- Sub-string to search for.
@@ -92,7 +96,8 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
                 index = tmp.indexOf( mid, 0, Qt::CaseInsensitive );
                 if ( index >= 0 )   //-1 if str didn't contain mid.
                 {
-                    if ( mid.length() >= 1 )    //Append the lookup string's length if it's greater than 1
+                    //Append the lookup string's length if it's greater than 1
+                    if ( mid.length() >= 1 )
                         tmp = tmp.mid( index + mid.length() );
                     else
                         tmp = tmp.mid( index );
@@ -108,7 +113,7 @@ QString Helper::getStrStr(const QString& str, QString indStr, QString mid, QStri
         }
 
         if ( !tmp.isEmpty() )
-            return tmp;
+            return tmp.trimmed();
     }
     return QString();
 }
@@ -155,7 +160,8 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLine)
+void Helper::logToFile(QString& file, QString& text, bool timeStamp,
+                       bool newLine)
 {
     QFile log( file );
     QFileInfo logInfo( log );
@@ -167,7 +173,8 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp, bool newLin
         if ( timeStamp )
         {
             quint64 date = QDateTime::currentDateTime().toTime_t();
-            text.prepend( QDateTime::fromTime_t( date ).toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
+            text.prepend( QDateTime::fromTime_t( date )
+                               .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
         }
 
         if ( newLine )
@@ -194,7 +201,8 @@ qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
                                  QMessageBox::Ok );
 }
 
-QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt, bool* ok, int type)
+QString Helper::getTextResponse(QWidget* parent, QString& title,
+                                QString& prompt, bool* ok, int type)
 {
     QString response{ "" };
     if ( type == 0 )    //Single-line message.
@@ -211,7 +219,8 @@ QString Helper::getTextResponse(QWidget* parent, QString& title, QString& prompt
     return response;
 }
 
-void Helper::setSetting(const QString& key, const QString& subKey, QVariant& value)
+void Helper::setSetting(const QString& key, const QString& subKey,
+                        QVariant& value)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );
 
@@ -238,7 +247,8 @@ void Helper::setMOTDMessage(QVariant& value)
 
 QString Helper::getMOTDMessage()
 {
-    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::MOTD ] ).toString();
+    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::MOTD ] )
+              .toString();
 }
 
 void Helper::setBanishMesage(QVariant& value)
@@ -248,13 +258,17 @@ void Helper::setBanishMesage(QVariant& value)
 
 QString Helper::getBanishMesage()
 {
-    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ] ).toString();
+    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ] )
+              .toString();
 }
 
 QString Helper::getBanishReason(QWidget* parent)
 {
     QString label{ "Ban Reason ( Sent to User ):" };
-    QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
+    QInputDialog* dialog{
+        createInputDialog( parent, label,
+                           QInputDialog::TextInput,
+                           355, 170 ) };
 
     dialog->exec();
     dialog->deleteLater();
@@ -265,7 +279,10 @@ QString Helper::getBanishReason(QWidget* parent)
 QString Helper::getDisconnectReason(QWidget* parent)
 {
     QString label{ "Disconnect Reason ( Sent to User ):" };
-    QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
+    QInputDialog* dialog{
+        createInputDialog( parent, label,
+                           QInputDialog::TextInput,
+                           355, 170 ) };
 
     dialog->exec();
     dialog->deleteLater();
@@ -288,7 +305,8 @@ bool Helper::setPassword(QVariant& value, bool isHashed)
 
 QString Helper::getPassword()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ] ).toString();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ] )
+              .toString();
 }
 
 void Helper::setRequirePassword(QVariant& value)
@@ -298,7 +316,8 @@ void Helper::setRequirePassword(QVariant& value)
 
 bool Helper::getRequirePassword()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ] )
+              .toBool();
 }
 
 bool Helper::cmpServerPassword(QVariant& value)
@@ -312,8 +331,10 @@ bool Helper::cmpServerPassword(QVariant& value)
 
 QString Helper::hashPassword(QVariant& password)
 {
-    return QString( QCryptographicHash::hash( password.toString().toLatin1(),
-                                              QCryptographicHash::Sha3_512 ).toHex() );
+    QCryptographicHash hash( QCryptographicHash::Sha3_512 );
+                       hash.addData( password.toString().toLatin1() );
+
+    return QString( hash.result().toHex() );
 }
 
 QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
@@ -354,7 +375,8 @@ void Helper::setServerRules(QVariant& value)
 
 QString Helper::getServerRules()
 {
-    QVariant pending = getSetting( keys[ Keys::General ], subKeys[ SubKeys::Rules ] );
+    QVariant pending = getSetting( keys[ Keys::General ],
+                                   subKeys[ SubKeys::Rules ] );
 
     QString rules;
     if ( pending.type() == QVariant::StringList )
@@ -381,7 +403,8 @@ void Helper::setAllowDupedIP(QVariant& value)
 
 bool Helper::getAllowDupedIP()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowDupe ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowDupe ] )
+              .toBool();
 }
 
 void Helper::setBanDupedIP(QVariant& value)
@@ -391,7 +414,8 @@ void Helper::setBanDupedIP(QVariant& value)
 
 bool Helper::getBanDupedIP()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::BanDupes ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::BanDupes ] )
+              .toBool();
 }
 
 void Helper::setBanHackers(QVariant& value)
@@ -401,7 +425,8 @@ void Helper::setBanHackers(QVariant& value)
 
 bool Helper::getBanHackers()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AutoBan ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AutoBan ] )
+              .toBool();
 }
 
 void Helper::setReqSernums(QVariant& value)
@@ -411,7 +436,8 @@ void Helper::setReqSernums(QVariant& value)
 
 bool Helper::getReqSernums()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqSernum ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqSernum ] )
+              .toBool();
 }
 
 void Helper::setDisconnectIdles(QVariant& value)
@@ -421,7 +447,8 @@ void Helper::setDisconnectIdles(QVariant& value)
 
 bool Helper::getDisconnectIdles()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowIdle ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowIdle ] )
+              .toBool();
 }
 
 void Helper::setAllowSSV(QVariant& value)
@@ -431,7 +458,26 @@ void Helper::setAllowSSV(QVariant& value)
 
 bool Helper::getAllowSSV()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowSSV ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowSSV ] )
+              .toBool();
+}
+
+void Helper::logBIOData(QString& serNum, QHostAddress& ip, quint16 port, QString& bio)
+{
+    QString sernum{ serNum };
+    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+        sernum = Helper::serNumToHexStr( serNum, 8 );
+
+    QString ipAddr{ ip.toString() % ":" % Helper::intToStr( port, 10, 0 ) };
+    qint64 date{ QDateTime::currentDateTime().toTime_t() };
+
+    QSettings bioData( "userInfo.ini", QSettings::IniFormat );
+              bioData.setValue( sernum % "/bioInfo", bio.mid( 1 ) );
+              bioData.setValue( sernum % "/ipInfo", ipAddr );
+              bioData.setValue( sernum % "/date", QDateTime::fromTime_t( date )
+                                                       .toString( "ddd MMM dd"
+                                                                  " HH:mm:ss "
+                                                                  "yyyy" ));
 }
 
 void Helper::setLogComments(QVariant& value)
@@ -441,7 +487,8 @@ void Helper::setLogComments(QVariant& value)
 
 bool Helper::getLogComments()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ] ).toBool();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ] )
+              .toBool();
 }
 
 void Helper::setServerID(QVariant& value)
@@ -451,7 +498,8 @@ void Helper::setServerID(QVariant& value)
 
 int Helper::getServerID()
 {
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Extension ] ).toInt();
+    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Extension ] )
+              .toInt();
 }
 
 bool Helper::isInvalidIPAddress(const QString& value)

@@ -33,7 +33,7 @@ class Admin : public QDialog
 
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
-        enum CMDS{ BAN = 0, KICK = 1, MUTE = 2, MSG = 3 };
+        enum CMDS{ BAN = 0, IPBAN = 1, KICK = 2, MUTE = 3, MSG = 4 };
 
         explicit Admin(QWidget *parent = nullptr, ServerInfo* svr = nullptr);
         ~Admin();

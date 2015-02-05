@@ -6,6 +6,7 @@ Player::Player()
 {
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
+
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
@@ -19,7 +20,8 @@ Player::Player()
                 model->setData( row->model()->index( row->row(), 4 ),
                                 QString( "%1:%2:%3" )
                                     .arg( connTime / 3600, 2, 10, QChar( '0' ) )
-                                    .arg(( connTime / 60 ) % 60, 2, 10, QChar( '0' ) )
+                                    .arg(( connTime / 60 ) % 60, 2,
+                                         10, QChar( '0' ) )
                                     .arg( connTime % 60, 2, 10, QChar( '0' ) ),
                                 Qt::DisplayRole );
 
@@ -41,9 +43,8 @@ Player::Player()
             }
         }
 
-        //Disconnect Idle Users after 10 minutes (600000 MS).
         if ( Helper::getDisconnectIdles()
-          && idleTime.elapsed() >= 600000 )
+          && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
             this->setHardDisconnect( true );
         }

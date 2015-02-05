@@ -32,7 +32,8 @@ class Server : public QTcpServer
 #endif
 
     public:
-        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, Admin* adminDlg = nullptr,
+        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
+               Admin* adminDlg = nullptr,
                QStandardItemModel* plrView = nullptr );
         ~Server();
 
@@ -44,7 +45,8 @@ class Server : public QTcpServer
         void setupPublicServer(bool value);
         quint64 sendServerRules(Player* plr);
 
-        QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert);
+        QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data,
+                                        Player* plr, bool insert);
 
         void showServerComments();
 
@@ -67,7 +69,8 @@ class Server : public QTcpServer
         void validateSerNum(Player* plr, qint32 id );
 
     signals:
-        void newUserCommentSignal(QString& sernum, QString& alias, QString& message);
+        void newUserCommentSignal(QString& sernum, QString& alias,
+                                  QString& message);
 
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum);

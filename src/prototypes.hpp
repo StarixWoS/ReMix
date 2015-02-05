@@ -95,6 +95,10 @@
         //Via: sernum & MIN_HEX_SERNUM
         static const int MIN_HEX_SERNUM{ 0x40000000 };
 
+        //Maximum time a User may remain inactive with "Disconnect Idle Users"
+        //enabled. 10 minutes - 600,000 milliseconds.
+        static const int MAX_IDLE_TIME{ 600000 };
+
         //Amount of times an un-authenticated (admin) can use commands.
         static const int MAX_CMD_ATTEMPTS{ 3 };
 

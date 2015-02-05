@@ -6,7 +6,8 @@
 //Initialize our accepted Commandline Argument List.
 const QStringList ReMix::cmdlArgs =
 {
-    QStringList() << "game" << "master" << "public" << "listen" << "name" << "fudge"
+    QStringList() << "game" << "master" << "public"
+                  << "listen" << "name" << "fudge"
 };
 
 ReMix::ReMix(QWidget *parent) :
@@ -40,7 +41,8 @@ ReMix::ReMix(QWidget *parent) :
     plrModel->setHeaderData( 6, Qt::Horizontal, "OUT" );
     plrModel->setHeaderData( 7, Qt::Horizontal, "BIO" );
 
-    //Proxy model to support sorting without actually altering the underlying model
+    //Proxy model to support sorting without actually
+    //altering the underlying model
     plrProxy = new QSortFilterProxyModel();
     plrProxy->setDynamicSortFilter( true );
     plrProxy->setSourceModel( plrModel );
@@ -120,7 +122,7 @@ int ReMix::genServerID()
 void ReMix::initSysTray()
 {
     //While possible to create a system tray icon, some versions of linux
-    //disallow applications to create their own.. ( I'm looking at you, Ubuntu >.> )
+    //disallow applications to create their own.
     //Also disable the feature on OSX. --Unable to test.
 
     if ( QSystemTrayIcon::isSystemTrayAvailable()
@@ -174,7 +176,8 @@ void ReMix::initSysTray()
                 if ( this->isHidden() )
                 {
                     this->show();
-                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
+                    this->setWindowState( this->windowState()
+                                        & ~Qt::WindowMinimized );
                     this->activateWindow();
                 }
                 else
@@ -246,7 +249,8 @@ void ReMix::initUIUpdate()
         }
 
         //Update other Info as well.
-        QString msg{ "Select Port Number and press \"Accept Calls\" when ready!" };
+        QString msg{ "Select Port Number and press \"Accept Calls\" "
+                     "when ready!" };
         if ( server->getIsSetUp() )
         {
             msg = QString( "Listening for incoming calls to %1:%2" )
@@ -259,13 +263,15 @@ void ReMix::initUIUpdate()
                 {
                     if ( server->getMasterUDPResponse() )
                     {
-                        QString msg2 = QString( " ( Need port forward from %1:%2 )" )
+                        QString msg2 = QString( " ( Need port forward from "
+                                                "%1:%2 )" )
                                            .arg( server->getPublicIP() )
                                            .arg( server->getPublicPort() );
                         msg.append( msg2 );
                     }
                     else
-                        msg = { "Sent UDP check-in to Master. Waiting for response..." };
+                        msg = { "Sent UDP check-in to Master. "
+                                "Waiting for response..." };
                 }
             }
             ui->playerView->resizeColumnsToContents();
@@ -323,7 +329,8 @@ void ReMix::parseCMDLArgs()
                         server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
                         server->setMasterPort(
                                     static_cast<quint16>(
-                                        tmp.mid( tmp.indexOf( ':' ) + 1 ).toInt() ) );
+                                        tmp.mid( tmp.indexOf( ':' ) + 1 )
+                                           .toInt() ) );
                     }
                     ui->isPublicServer->setChecked( true );
                 break;
@@ -349,7 +356,10 @@ void ReMix::parseCMDLArgs()
         }
     }
 
-    ui->serverPort->setText( Helper::intToStr( server->getPrivatePort(), 10 ) );
+    ui->serverPort->setText(
+                Helper::intToStr(
+                    server->getPrivatePort(), 10 ) );
+
     ui->isPublicServer->setChecked( server->getIsPublic() );
     ui->serverName->setText( server->getName() );
 }
@@ -395,7 +405,8 @@ void ReMix::getSynRealData()
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( server->getGameName() % "/master" ).toString();
+            QString str = settings.value( server->getGameName()
+                                        % "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
@@ -412,7 +423,8 @@ void ReMix::getSynRealData()
     else
     {
         QSettings settings( "synReal.ini", QSettings::IniFormat );
-        QString str = settings.value( server->getGameName() % "/master" ).toString();
+        QString str = settings.value( server->getGameName()
+                                    % "/master" ).toString();
         if ( !str.isEmpty() )
         {
             int index = str.indexOf( ":" );
@@ -470,9 +482,10 @@ void ReMix::on_isPublicServer_stateChanged(int)
         tcpServer = new Server( this, server, admin, plrModel );
 
     if ( ui->isPublicServer->isChecked() )
-        tcpServer->setupPublicServer( true );   //Setup a connection with the Master Server.
-    else
-        tcpServer->setupPublicServer( false );   //Disconnect from the Master Server if applicable.
+        //Setup a connection with the Master Server.
+        tcpServer->setupPublicServer( true );
+    else   //Disconnect from the Master Server if applicable.
+        tcpServer->setupPublicServer( false );
 }
 
 void ReMix::on_openSettings_clicked()
@@ -517,12 +530,15 @@ void ReMix::on_serverName_textChanged(const QString &arg1)
 
 void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
 {
-    QModelIndex menuIndex = plrProxy->mapToSource( ui->playerView->indexAt( pos ) );
+    QModelIndex menuIndex = plrProxy->mapToSource(
+                                ui->playerView->indexAt( pos ) );
 
     this->initContextMenu();
     if ( menuIndex.row() >= 0 )
     {
-        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        Player* plr = server->getPlayer(
+                          server->getQItemSlot(
+                              plrModel->item( menuIndex.row(), 0 ) ) );
         if ( plr != nullptr )
             menuTarget = plr;
 
@@ -582,9 +598,10 @@ void ReMix::on_actionRevokeAdmin_triggered()
         return;
 
     QString sernum = menuTarget->getSernum_s();
-    QString msg{ "Your Remote Administrator privileges have been REVOKED by either the "
-                 "Server Host or an 'Owner'-ranked Admin. Please contact the Server Host "
-                 "if you believe this was in error." };
+    QString msg{ "Your Remote Administrator privileges have been REVOKED "
+                 "by either the Server Host or an 'Owner'-ranked Admin. "
+                 "Please contact the Server Host if you believe this was "
+                 "in error." };
 
     if ( menuTarget->getSocket() != nullptr )
     {
@@ -607,9 +624,10 @@ void ReMix::on_actionMakeAdmin_triggered()
         return;
 
     QString sernum = menuTarget->getSernum_s();
-    QString msg{ "The server Admin is attempting to register you as an Admin with the server. "
-                 "Please reply to this message using the (/admin) pop-up dialog with a password of your liking. "
-                 "Note: The server Host and other Admins will not have access to this information as it will be hashed+salted. "
+    QString msg{ "The server Admin is attempting to register you as an "
+                 "Admin with the server. Please reply to this message with "
+                 "(/register *YOURPASS). Note: The server Host and other Admins"
+                 " will not have access to this information. "
                  "///PASSWORD REQUIRED NOW:" };
 
     if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
@@ -625,13 +643,16 @@ void ReMix::on_actionMakeAdmin_triggered()
 
 void ReMix::on_actionMuteNetwork_triggered()
 {
-    //Mute the selected User's Network. --We do not inform the User of this event.
-    //This tells the Server to not re-send incoming packets from this User to other connected Users.
+    //Mute the selected User's Network.
+    //We will not inform the User of this event.
+    //This tells the Server to not re-send incoming
+    //packets from this User to other connected Users.
 
     if ( menuTarget != nullptr )
     {
         QString title{ "Mute User:" };
-        QString prompt{ "Are you certain you want to MUTE ( " % menuTarget->getSernum_s() % " )'s Network?" };
+        QString prompt{ "Are you certain you want to MUTE ( " %
+                        menuTarget->getSernum_s() % " )'s Network?" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
             menuTarget->setNetworkMuted( true );
@@ -641,13 +662,16 @@ void ReMix::on_actionMuteNetwork_triggered()
 
 void ReMix::on_actionUnMuteNetwork_triggered()
 {
-    //Un-Mute the selected User's Network. --We do not inform the User of this event.
-    //This tells the Server to re-send incoming packets from this User to other connected Users.
+    //Un-Mute the selected User's Network.
+    //We do not inform the User of this event.
+    //This tells the Server to re-send incoming
+    //packets from this User to other connected Users.
 
     if ( menuTarget != nullptr )
     {
         QString title{ "Un-Mute User:" };
-        QString prompt{ "Are you certain you want to UN-MUTE ( " % menuTarget->getSernum_s() % " )'s Network?" };
+        QString prompt{ "Are you certain you want to UN-MUTE ( " %
+                        menuTarget->getSernum_s() % " )'s Network?" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
             menuTarget->setNetworkMuted( false );
@@ -664,13 +688,17 @@ void ReMix::on_actionDisconnectUser_triggered()
     if ( sock != nullptr )
     {
         QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT ( " % menuTarget->getSernum_s() % " )?" };
-        QString inform{ "The Server Host or a Remote-Admin has disconnected you from the Server. Reason: %1" };
+        QString prompt{ "Are you certain you want to DISCONNECT ( " %
+                        menuTarget->getSernum_s() % " )?" };
+
+        QString inform{ "The Server Host or a Remote-Admin has disconnected "
+                        "you from the Server. Reason: %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             inform = inform.arg( Helper::getDisconnectReason( this ) );
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
+                                                      false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
             if ( sock->waitForBytesWritten() )
@@ -692,8 +720,11 @@ void ReMix::on_actionBANISHIPAddress_triggered()
     QString ipAddr = menuTarget->getPublicIP();
 
     QString title{ "Ban IP Address:" };
-    QString prompt{ "Are you certain you want to BANISH ( " % sernum % " )'s IP Address ( " % ipAddr % " )?" };
-    QString inform{ "The Server Host or a Remote-Admin has banned your IP Address ( %1 ). Reason: %2" };
+    QString prompt{ "Are you certain you want to BANISH ( " % sernum % " )'s "
+                    "IP Address ( " % ipAddr % " )?" };
+
+    QString inform{ "The Server Host or a Remote-Admin has banned your IP "
+                    "Address ( %1 ). Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -705,7 +736,8 @@ void ReMix::on_actionBANISHIPAddress_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( ip.toString() )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
+                                                      false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
@@ -733,8 +765,11 @@ void ReMix::on_actionBANISHSerNum_triggered()
     QString sernum = menuTarget->getSernum_s();
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "Are you certain you want to BANISH the SerNum ( " % sernum % " )?" };
-    QString inform{ "The Server Host or a Remote-Admin has banned your SerNum ( %1 ). Reason: %2" };
+    QString prompt{ "Are you certain you want to BANISH the SerNum ( "
+                  % sernum % " )?" };
+
+    QString inform{ "The Server Host or a Remote-Admin has banned your "
+                    "SerNum ( %1 ). Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -745,7 +780,8 @@ void ReMix::on_actionBANISHSerNum_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( sernum )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget, false );
+            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
+                                                      false );
             server->setBytesOut( server->getBytesOut() + bOut );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
@@ -808,15 +844,17 @@ bool ReMix::rejectCloseEvent()
     QString title = QString( "Close: [ %1 ]" )
                         .arg( server->getName() );
 
-    QString prompt = QString( "You are about to shut down your ReMix game server!\r\n"
-                              "This will affect ( %1 ) User(s) connected to it.\r\n\r\n"
-                              "Are you certain?" )
+    QString prompt = QString( "You are about to shut down your ReMix game "
+                              "server!\r\nThis will affect ( %1 ) User(s) "
+                              "connected to it.\r\n\r\nAre you certain?" )
                          .arg( server->getPlayerCount() );
 
-    server->sendMasterMessage( "The admin is taking this server down...", nullptr, true );
+    server->sendMasterMessage( "The admin is taking this server down...",
+                               nullptr, true );
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
-        server->sendMasterMessage( "The admin changed his or her mind! (yay!)...", nullptr, true );
+        server->sendMasterMessage( "The admin changed his or her mind! "
+                                   "(yay!)...", nullptr, true );
         return true;
     }
     return false;

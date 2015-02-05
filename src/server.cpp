@@ -462,6 +462,12 @@ void Server::readyReadUDPSlot()
                     break;
                     case 'P':   //Store the Player information into a struct.
                         sernum = Helper::getStrStr( data, "sernum", "=", "," );
+
+                        //Only log BIO data when the Host runs the server with the
+                        //"/fudge" commandline argument.
+                        if ( !sernum.isEmpty() && server->getLogUsage() )
+                            Helper::logBIOData( sernum, senderAddr, senderPort, data );
+
                         if (( Helper::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
                           || !Helper::getReqSernums() )
@@ -504,6 +510,7 @@ void Server::setupPublicServer(bool value)
         {
             masterCheckIn.start();
             server->sendMasterInfo( false );
+            server->setMasterUDPResponse( false );
         }
         else
         {
@@ -712,7 +719,7 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
         case '6':   //Handle Remote Admin Commands.
             this->readMIX6( tmp, plr );
         break;
-        case '7':   //Set the User's HB ID. --Unknown usage outside of disconnecting users.
+        case '7':   //Set the User's HB ID.
             this->readMIX7( tmp, plr );
         break;
         case '8':   //Set/Read SSV Variable.
@@ -801,10 +808,9 @@ void Server::readMIX5(QString& packet, Player* plr)
                 disconnect = true;
             }
         }
-        else if ( msg.startsWith( "/login ", Qt::CaseInsensitive ))
+        else if ( msg.startsWith( "/register ", Qt::CaseInsensitive ) )
         {
-            QVariant pwd = Helper::getStrStr( msg, "/login ", " ", "" );
-
+            QVariant pwd = Helper::getStrStr( msg, "/register ", " ", "" );
             //Check if the User is creating a Password.
             if ( plr->getReqNewAuthPwd()
               && !plr->getGotNewAuthPwd() )
@@ -812,26 +818,35 @@ void Server::readMIX5(QString& packet, Player* plr)
                 QString pass( pwd.toString() );
                 if ( admin->makeAdmin( sernum, pass ) )
                 {
-                    response = "You are now registered as an Admin with the Server. "
-                               "You are currently Rank-0 (Game Master) with limited commands.";
+                    response = "You are now registered as an Admin with the "
+                               "Server. You are currently Rank-0 (Game Master) "
+                               "with limited commands.";
 
                     plr->setReqNewAuthPwd( false );
                     plr->setGotNewAuthPwd( true );
 
-                    //Prevent the server from attempting to authenticate the new Admin.
+                    //Prevent the server from attempting to authenticate
+                    //the new Admin.
                     plr->setReqAuthPwd( false );
                     plr->setGotAuthPwd( true );
                 }
                 else
                 {
-                    response = "You are not registered as an Admin with the Server. "
-                               "It seems something has gone wrong or you were already registered as an Admin.";
+                    response = "You were not registered as an Admin with the "
+                               "Server. It seems something has gone wrong or "
+                               "you were already registered as an Admin.";
                     plr->setReqNewAuthPwd( false );
                     plr->setGotNewAuthPwd( false );
                 }
-            }   //Check if the User needs to have their password confirmed.
-            else if ( !plr->getGotAuthPwd()
-                   || plr->getReqAuthPwd() )
+            }
+        }
+        else if ( msg.startsWith( "/login ", Qt::CaseInsensitive ))
+        {
+            QVariant pwd = Helper::getStrStr( msg, "/login ", " ", "" );
+
+            //Check if the User needs to have their password confirmed.
+            if ( !plr->getGotAuthPwd()
+              || plr->getReqAuthPwd() )
             {
                 //The User is attempting to Manually Authenticate.
                 if ( !pwd.toString().isEmpty()
@@ -878,12 +893,14 @@ void Server::readMIX6(QString& packet, Player* plr)
     QString cmd = Helper::getStrStr( packet, ": ", ": ", "" );
             cmd = cmd.left( cmd.length() - 2 );
 
-    QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and "
-                    "are unable to use these commands. Please reply to this message with (/login *PASS) "
-                    "and the server will authenticate you." };
+    QString unauth{ "While your SerNum is registered as a Remote Admin, you "
+                    "are not Authenticated and are unable to use these "
+                    "commands. Please reply to this message with "
+                    "(/login *PASS) and the server will authenticate you." };
 
-    QString invalid{ "Your SerNum is not registered as a Remote Admin. Please refrain from attempting to use "
-                     "Remote Admin commands as you will be banned after ( %1 ) more tries." };
+    QString invalid{ "Your SerNum is not registered as a Remote Admin. Please "
+                     "refrain from attempting to use Remote Admin commands as "
+                     "you will be banned after ( %1 ) more tries." };
     QString valid{ "It has been done. I hope you entered the right command!" };
 
     QString sernum = plr->getSernum_s();
@@ -904,7 +921,8 @@ void Server::readMIX6(QString& packet, Player* plr)
 
         if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
         {
-            QString reason = QString( "Auto-Banish; <Unregistered Remote Admin: ( %1 ) command attempts>" )
+            QString reason = QString( "Auto-Banish; <Unregistered Remote "
+                                      "Admin: ( %1 ) command attempts>" )
                                  .arg( plr->getCmdAttempts() );
 
             server->sendMasterMessage( reason, plr, false );
@@ -954,13 +972,16 @@ void Server::readMIX8(QString& packet, Player* plr)
         if ( Helper::getAllowSSV()
           && !vars.contains( "Admin", Qt::CaseInsensitive ))
         {
-            QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini", QSettings::IniFormat );
+            QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
+                           QSettings::IniFormat );
             val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
                       .arg( sernum )
                       .arg( vars.value( 0 ) )
                       .arg( vars.value( 1 ) )
                       .arg( vars.value( 2 ) )
-                      .arg( ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString() );
+                      .arg( ssv.value( vars.value( 1 ) % "/" %
+                                       vars.value( 2 ), "" )
+                               .toString() );
         }
 
         if ( !val.isEmpty() )
@@ -1017,14 +1038,16 @@ void Server::validateSerNum(Player* plr, qint32 id)
        && id != 0 )
       || plr->getSernum() == 0 )
     {
-        QString serNum_s = Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) );
+        QString serNum_s = Helper::serNumToIntStr(
+                               Helper::intToStr( id, 16, 8 ) );
         if ( plr->getSernum() == 0 )
         {
             if ( plr->getTableRow() != nullptr )
             {
-                plrViewModel->setData( plrViewModel->index( plr->getTableRow()->row(), 1 ),
-                                       serNum_s,
-                                       Qt::DisplayRole );
+                plrViewModel->setData(
+                            plrViewModel->index( plr->getTableRow()->row(), 1 ),
+                            serNum_s,
+                            Qt::DisplayRole );
             }
 
             //Disconnect the User if they have no SerNum, as we require SerNums.
@@ -1040,7 +1063,9 @@ void Server::validateSerNum(Player* plr, qint32 id)
         else if (( id != 0 && plr->getSernum() != id )
                && plr->getSernum() != 0 )
         {
-            plr->setHardDisconnect( true );   //User's sernum has somehow changed. Disconnect them. --This is a possible Ban event.
+            //User's sernum has somehow changed. Disconnect them.
+            //This is a possible Ban event.
+            plr->setHardDisconnect( true );
             server->setIpDc( server->getIpDc() + 1 );
         }
     }

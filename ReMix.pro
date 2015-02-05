@@ -15,6 +15,7 @@ TEMPLATE = app
 INCLUDEPATH += "./plugin/src"
 UI_DIR = "./src"
 
+CONFIG += C++14
 Release:QMAKE_CXXFLAGS = -std=c++14 -Os -s
 Release:TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
 Release:DESTDIR = "./build-$$QT_VERSION/release"

@@ -10,7 +10,8 @@ namespace AdminHelper
     extern const QString adminKeys[ 3 ];
     extern const QStringList ranks;
 
-    void setAdminData(const QString& key, const QString& subKey, QVariant& value);
+    void setAdminData(const QString& key, const QString& subKey,
+                      QVariant& value);
     QVariant getAdminData(const QString& key, const QString& subKey);
 
     void setReqAdminAuth(QVariant& value);

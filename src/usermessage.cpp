@@ -25,7 +25,8 @@ UserMessage::~UserMessage()
     delete ui;
 }
 
-void UserMessage::newUserCommentSlot(QString& sernum, QString& alias, QString& message)
+void UserMessage::newUserCommentSlot(QString& sernum, QString& alias,
+                                     QString& message)
 {
     QTextEdit* obj = ui->msgView;
     if ( obj == nullptr )
@@ -37,7 +38,8 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias, QString& m
                                "SerNum: %2 \r\n"
                                "%3: %4"
                                "\r\n --- \r\n" )
-                          .arg( QDateTime::fromTime_t( date ).toString( "ddd MMM dd HH:mm:ss yyyy" ) )
+                          .arg( QDateTime::fromTime_t( date )
+                                     .toString( "ddd MMM dd HH:mm:ss yyyy" ) )
                           .arg( sernum )
                           .arg( alias )
                           .arg( message );
@@ -64,11 +66,13 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias, QString& m
 
     //Detect when the user is scrolling upwards.
     if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
-        obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
+        obj->verticalScrollBar()->setSliderPosition(
+                    obj->verticalScrollBar()->maximum() );
 
     if ( Helper::getLogComments() )
     {
-        QString log = QDate::currentDate().toString( "mixComments/yyyy-MM-dd.txt" );
+        QString log = QDate::currentDate()
+                       .toString( "mixComments/yyyy-MM-dd.txt" );
         Helper::logToFile( log, comment, false, false );
     }
 

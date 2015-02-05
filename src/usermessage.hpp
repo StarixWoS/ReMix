@@ -20,7 +20,8 @@ class UserMessage : public QDialog
         ~UserMessage();
 
     public slots:
-        void newUserCommentSlot(QString& sernum, QString& alias, QString& message);
+        void newUserCommentSlot(QString& sernum, QString& alias,
+                                QString& message);
 
     private:
         Ui::UserMessage *ui;

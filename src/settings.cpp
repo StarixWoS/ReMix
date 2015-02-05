@@ -22,15 +22,32 @@ Settings::Settings(QWidget *parent) :
     }
 
     //Load Settings from file.
-    this->setCheckedState( Options::ReqPwd,         Helper::getRequirePassword() );
-    this->setCheckedState( Options::ReqAdminPwd,    AdminHelper::getReqAdminAuth() );
-    this->setCheckedState( Options::AllowDupIP,     Helper::getAllowDupedIP() );
-    this->setCheckedState( Options::BanDupIP,       Helper::getBanDupedIP() );
-    this->setCheckedState( Options::BanHack,        Helper::getBanHackers() );
-    this->setCheckedState( Options::ReqSernum,      Helper::getReqSernums() );
-    this->setCheckedState( Options::DisconnectIdle, Helper::getDisconnectIdles() );
-    this->setCheckedState( Options::AllowSSV,       Helper::getAllowSSV() );
-    this->setCheckedState( Options::LogComments,    Helper::getLogComments() );
+    this->setCheckedState( Options::ReqPwd,
+                           Helper::getRequirePassword() );
+
+    this->setCheckedState( Options::ReqAdminPwd,
+                           AdminHelper::getReqAdminAuth() );
+
+    this->setCheckedState( Options::AllowDupIP,
+                           Helper::getAllowDupedIP() );
+
+    this->setCheckedState( Options::BanDupIP,
+                           Helper::getBanDupedIP() );
+
+    this->setCheckedState( Options::BanHack,
+                           Helper::getBanHackers() );
+
+    this->setCheckedState( Options::ReqSernum,
+                           Helper::getReqSernums() );
+
+    this->setCheckedState( Options::DisconnectIdle,
+                           Helper::getDisconnectIdles() );
+
+    this->setCheckedState( Options::AllowSSV,
+                           Helper::getAllowSSV() );
+
+    this->setCheckedState( Options::LogComments,
+                           Helper::getLogComments() );
 }
 
 Settings::~Settings()
@@ -56,7 +73,9 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
         return;
 
     Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
-    ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
+    ui->settingsView->item( row, 0 )->setCheckState(
+                val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
+
     val = ui->settingsView->item( row, 0 )->checkState();
 
     QVariant state = val == Qt::Checked;
@@ -78,14 +97,17 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
                     title = "Server Password:";
                     prompt = "Password:";
 
-                    txt = Helper::getTextResponse( this, title, prompt, &ok, 0 );
+                    txt = Helper::getTextResponse( this, title,
+                                                   prompt, &ok, 0 );
                     if ( ok && !txt.toString().isEmpty() )
                     {
                         Helper::setPassword( txt, false );
                     }
-                    else    //Invalid dialog state or no input Password. Reset the Object's state.
-                    {
-                        ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
+                    else
+                    {   //Invalid dialog state or no input Password.
+                        //Reset the Object's state.
+                        ui->settingsView->item( row, 0 )->setCheckState(
+                                    Qt::Unchecked );
 
                         state = false;
                         Helper::setRequirePassword( state );

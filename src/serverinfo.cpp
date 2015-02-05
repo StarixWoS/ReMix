@@ -45,30 +45,14 @@ QString ServerInfo::getMasterInfoHost() const
 
 void ServerInfo::setMasterInfoHost(const QString& value)
 {
-//    QString title{ "Invalid Master URL:" };
-//    QString prompt{ "The selected Master Information Host URL [ %1 ] is invalid. "
-//                    "The server will be defaulting to the Syn-Real Host-URL." };
-//            prompt = prompt.arg( value );
+    //Hope the User used a valid web address/IP.
 
-//    //Note: This does not check for syntatically correct URL addresses.
-//    //      We may want to change this later on to check for syntax.
-//    //      This will also only match URL addresses which are lowercase.
-//    QRegExp urlRegex( "((?:https?|ftp)://\\S+)" );
     QString url{ value };
+    QFile synRealIni( "synreal.ini" );
+    if ( masterInfoHost != url )
+        synRealIni.remove();
 
-//    if ( !url.contains( urlRegex ) )
-//    {
-//        masterInfoHost = "http://synthetic-reality.com/synreal.ini";
-//        Helper::warningMessage( nullptr, title, prompt );
-//    }
-//    else
-//    {
-        QFile synRealIni( "synreal.ini" );
-        if ( masterInfoHost != url )
-            synRealIni.remove();
-
-        masterInfoHost = url;
- //   }
+    masterInfoHost = url;
 }
 
 QUdpSocket* ServerInfo::getMasterSocket() const
@@ -84,7 +68,8 @@ bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
 void ServerInfo::sendUDPData(QHostAddress& addr, quint16 port, QString& data)
 {
     if ( masterSocket != nullptr )
-        masterSocket->writeDatagram( data.toLatin1(), data.size() + 1, addr, port );
+        masterSocket->writeDatagram( data.toLatin1(), data.size() + 1,
+                                     addr, port );
 }
 
 void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
@@ -102,7 +87,8 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
 
     response = response.arg( this->getServerRules() )
                        .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
-                       .arg( Helper::intToStr( QDateTime::currentDateTime().toTime_t(), 16, 8 ) )
+                       .arg( Helper::intToStr( QDateTime::currentDateTime()
+                                                    .toTime_t(), 16, 8 ) )
                        .arg( "999.999.999" );
 
     if ( !response.isEmpty() )
@@ -141,7 +127,8 @@ void ServerInfo::sendMasterInfo(bool disconnect)
     {
         if ( this->getIsSetUp() )
         {
-            response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9" };
+            response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
+                         "port=%7,info=%8,name=%9" };
             response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
                                .arg( this->getGameId() )
@@ -187,8 +174,10 @@ void ServerInfo::deletePlayer(int slot)
     {
         if ( this->getLogUsage() )
         {
-            QString log{ QDate::currentDate().toString( "mixUsage/yyyy-MM-dd.txt" ) };
-            QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud ( %6 )" };
+            QString log{ QDate::currentDate()
+                          .toString( "mixUsage/yyyy-MM-dd.txt" ) };
+            QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
+                            "bytes in %4 packets, averaging %5 baud ( %6 )" };
             if ( plr != nullptr )
             {
                 logMsg = logMsg.arg( plr->getPublicIP() )
@@ -321,7 +310,8 @@ quint64 ServerInfo::sendToAllConnected(QString packet)
         if ( tmpPlr != nullptr
           && tmpPlr->getSocket() != nullptr )
         {
-            bOut = tmpPlr->getSocket()->write( packet.toLatin1(), packet.length() );
+            bOut = tmpPlr->getSocket()->write( packet.toLatin1(),
+                                               packet.length() );
         }
     }
     return bOut;

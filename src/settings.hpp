@@ -19,8 +19,9 @@ class Settings : public QDialog
         explicit Settings(QWidget *parent = 0);
         ~Settings();
 
-        enum Options{ ReqPwd = 0, ReqAdminPwd = 1, AllowDupIP = 2, BanDupIP = 3, BanHack = 4, ReqSernum = 5,
-                      DisconnectIdle = 6, AllowSSV = 7, LogComments = 8 };
+        enum Options{ ReqPwd = 0, ReqAdminPwd = 1, AllowDupIP = 2, BanDupIP = 3,
+                      BanHack = 4, ReqSernum = 5, DisconnectIdle = 6,
+                      AllowSSV = 7, LogComments = 8 };
 
         void setCheckedState(Options option, bool val);
 

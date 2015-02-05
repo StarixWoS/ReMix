@@ -6,7 +6,7 @@
 //Initialize our accepted Command List.
 const QStringList Admin::commands =
 {
-    QStringList() << "ban" << "kick" << "mute" << "msg"
+    QStringList() << "ban" << "ipban" << "kick" << "mute" << "msg"
 };
 
 Admin::Admin(QWidget *parent, ServerInfo* svr) :
@@ -300,9 +300,15 @@ void Admin::on_actionChangeRank_triggered()
 //Handle Admin commands.
 bool Admin::parseCommand(QString& packet, Player* plr)
 {
+    bool retn{ false };
+
     if ( !packet.isEmpty()
       || plr != nullptr )
     {
+        QString cmdReason{ "" };
+        QString cmdArg{ "" };
+        QString cmd{ "" };
+
         qint32 argIndex{ -1 };
 
         for ( int i = 0; i < commands.count(); ++i )
@@ -310,7 +316,7 @@ bool Admin::parseCommand(QString& packet, Player* plr)
             argIndex = -1;
             for ( int j = 0; j < commands.count(); ++j )
             {
-                if ( packet.contains( commands.at( j ),
+                if ( packet.startsWith( "/cmd " % commands.at( j ),
                                       Qt::CaseInsensitive ) )
                 {
                     argIndex = j;
@@ -318,81 +324,131 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 }
             }
 
-            //TODO: Check for sub-commands.
-            switch ( argIndex )
+            if ( plr->getAdminRank() >= 0 )
             {
-                case CMDS::BAN:
-                    {
-                        qDebug() << "Ban command found!";
-                    //Sub-Commands:
-                    //  IP (if known)
-                    //  SERNUM
+                //TODO: Check for sub-commands.
+                cmd = commands.at( argIndex );
 
-                    //  ALL *IP or *SERNUM
-                    //  The ALL sub-command will ban both the User's IP and SERNUM.
+                cmdArg = Helper::getStrStr( packet, cmd, " ", "" );
+                cmdReason = Helper::getStrStr( cmdArg, "", " ", "" );
+                cmdArg = Helper::getStrStr( cmdArg, "", "", " " );
 
-                    //  If no SERNUM or IP is appended to the ALL command,
-                    //  all connected Users will be IP and SERNUM banned.
+                switch ( argIndex )
+                {
+                    case CMDS::BAN:
+                        {
+//                            if ( !cmdArg.isEmpty() )
+//                            {
+//                                if ( !cmdArg.contains( "SOUL" ) )
+//                                    cmdArg = Helper::serNumToIntStr( cmdArg );
 
-                        return true;
-                    }
-                break;
-                case CMDS::KICK:
-                    {
-                        qDebug() << "Kick command found!";
-                    //Sub-Commands:
-                    //  IP (if known)
-                    //  SERNUM
+//                                Player* plr{ nullptr };
+//                                for ( int i = 0; i < MAX_PLAYERS; ++i )
+//                                {
+//                                    plr = server->getPlayer( i );
+//                                    if ( plr != nullptr
+//                                         && plr->getSernum_s() == cmdArg )
+//                                    {
+//                                        //TODO: More detailed Message to send to Banned Users.
+//                                        server->sendMasterMessage(
+//                                                    QString( "You have been banished by a remote administrator with the reason: "
+//                                                             % cmdReason ),
+//                                                    plr, false );
+//                                        plr->setSoftDisconnect( true );
+//                                    }
+//                                }
+//                                banDialog->addSerNumBan( cmdArg, cmdReason );
+                                retn = true;
+//                            }
+                        }
+                    break;
+                    case CMDS::IPBAN:   //Disconnect all Users as required before banning the IP-Address.
+                        {
+//                            if ( !cmdArg.isEmpty() )
+//                            {
+//                                Player* plr{ nullptr };
+//                                for ( int i = 0; i < MAX_PLAYERS; ++i )
+//                                {
+//                                    plr = server->getPlayer( i );
+//                                    if ( plr != nullptr
+//                                         && plr->getPublicIP() == cmdArg )
+//                                    {
+//                                        //TODO: More detailed Message to send to Banned Users.
+//                                        server->sendMasterMessage(
+//                                                    QString( "You have been banished by a remote administrator with the reason: "
+//                                                             % cmdReason ),
+//                                                    plr, false );
+//                                        plr->setSoftDisconnect( true );
+//                                    }
+//                                }
+//                                banDialog->addIPBan( cmdArg, cmdReason );
+//                                retn = true;
+//                            }
+                        }
+                    break;
+                    case CMDS::KICK:
+                        {
+                            //Sub-Commands:
+                            //  IP (if known)
+                            //  SERNUM
 
-                    //  ALL *IP or *SERNUM
-                    //  The ALL command will remove all Users with the select IP or SERNUM.
+                            //  ALL *IP or *SERNUM
+                            //  The ALL command will remove all Users with the select IP or SERNUM.
 
-                    //  If no SERNUM or IP is appended to the ALL command,
-                    //  all connected Users will be disconnected.
+                            //  If no SERNUM or IP is appended to the ALL command,
+                            //  all connected Users will be disconnected.
 
-                        return true;
-                    }
-                break;
-                case CMDS::MUTE:
-                    {
-                        qDebug() << "Mute command found!";
-                    //Sub-Commands:
-                    //  IP (if known)
-                    //  SERNUM
+                            retn = true;
+                        }
+                    break;
+                    case CMDS::MUTE:
+                        {
+                            //Sub-Commands:
+                            //  IP (if known)
+                            //  SERNUM
 
-                    //  ALL *IP or *SERNUM
-                    //  The ALL command will mute all Users with the select IP or SERNUM.
+                            //  ALL *IP or *SERNUM
+                            //  The ALL command will mute all Users with the select IP or SERNUM.
 
-                    //  If no SERNUM or IP is appended to the ALL command,
-                    //  all connected Users will be muted.
+                            //  If no SERNUM or IP is appended to the ALL command,
+                            //  all connected Users will be muted.
 
-                        return true;
-                    }
-                break;
-                case CMDS::MSG:
-                    {
-                        qDebug() << "Message command found!";
-                    //Sub-Commands:
-                    //  IP (if known)
-                    //  SERNUM
+                            retn = true;
+                        }
+                    break;
+                    case CMDS::MSG:
+                        {
+                            //Sub-Commands:
+                            //  IP (if known)
+                            //  SERNUM
 
-                    //  ALL *IP or *SERNUM
-                    //  The ALL command forward the message to all
-                    //  Users with the select IP or SERNUM.
+                            //  ALL *IP or *SERNUM
+                            //  The ALL command forward the message to all
+                            //  Users with the select IP or SERNUM.
 
-                    //  If no SERNUM or IP is appended to the ALL command,
-                    //  the message will be forwarded to all Users.
+                            //  If no SERNUM or IP is appended to the ALL command,
+                            //  the message will be forwarded to all Users.
 
-                        return true;
-                    }
-                break;
-                default:
-                    {
-                        qDebug() << "NO command found!";
-                        return false;
-                    }
+                            retn = true;
+                        }
+                    break;
+                    default:
+                    break;
+                }
             }
+            if ( argIndex >= 0 )
+                break;
         }
+
+        QString log{ "adminUsage.txt" };
+        QString logMsg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
+                        "argument [ %3 ] and reason [ %4 ]." };
+
+        logMsg = logMsg.arg( plr->getSernum_s() )
+                       .arg( cmd )
+                       .arg( cmdArg )
+                       .arg( cmdReason.trimmed() );
+        Helper::logToFile( log, logMsg, true, true );
     }
-    return false;
+    return retn;
 }

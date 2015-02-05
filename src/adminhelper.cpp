@@ -13,7 +13,8 @@ const QStringList AdminHelper::ranks
     QStringList() << "Game Master" << "Co-Admin" << "Admin" << "Owner"
 };
 
-void AdminHelper::setAdminData(const QString& key, const QString& subKey, QVariant& value)
+void AdminHelper::setAdminData(const QString& key, const QString& subKey,
+                               QVariant& value)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
     QString sernum{ Helper::serNumToHexStr( key, 8 ) };
@@ -51,8 +52,10 @@ bool AdminHelper::getIsRemoteAdmin(QString& serNum)
 
 bool AdminHelper::cmpRemoteAdminPwd(QString& serNum, QVariant& value)
 {
-    QString recSalt = getAdminData( serNum, adminKeys[ AdminHelper::SALT ] ).toString();
-    QString recHash = getAdminData( serNum, adminKeys[ AdminHelper::HASH ] ).toString();
+    QString recSalt = getAdminData( serNum, adminKeys[ AdminHelper::SALT ] )
+                              .toString();
+    QString recHash = getAdminData( serNum, adminKeys[ AdminHelper::HASH ] )
+                              .toString();
 
     QVariant hash( recSalt + value.toString() );
     hash = Helper::hashPassword( hash );
@@ -88,7 +91,8 @@ qint32 AdminHelper::changeRemoteAdminRank(QWidget* parent, QString& sernum)
 bool AdminHelper::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 {
     QString title{ "Revoke Admin:" };
-    QString prompt{ "Are you certain you want to REVOKE ( " % sernum % " )'s powers?" };
+    QString prompt{ "Are you certain you want to REVOKE ( " % sernum
+                   % " )'s powers?" };
 
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
@@ -102,9 +106,10 @@ bool AdminHelper::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 bool AdminHelper::createRemoteAdmin(QWidget* parent, QString& sernum)
 {
     QString title{ "Create Admin:" };
-    QString prompt{ "Are you certain you want to MAKE ( %1 ) a Remote Admin?\r\n\r\n"
-                    "Please make sure you trust ( %2 ) as this will allow the them to utilize Admin "
-                    "commands that can remove the ability for other users to connect to the Server." };
+    QString prompt{ "Are you certain you want to MAKE ( %1 ) a Remote Admin?"
+                    "\r\n\r\nPlease make sure you trust ( %2 ) as this will "
+                    "allow the them to utilize Admin commands that can remove "
+                    "the ability for other users to connect to the Server." };
     prompt = prompt.arg( sernum )
                    .arg( sernum );
 
