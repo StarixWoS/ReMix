@@ -68,16 +68,20 @@ Player::Player()
 
     QObject::connect( &killTimer, &QTimer::timeout, [this]()
     {
-        if ( this->getSoftDisconnect() )
+        QTcpSocket* soc{ this->getSocket() };
+        if ( soc != nullptr )
         {
-            //Gracefully Disconnect the User.
-            this->getSocket()->flush();
-            this->getSocket()->close();
-        }
-        else if ( this->getHardDisconnect() )
-        {
-            //Forcefully disconnect the User..
-            this->getSocket()->abort();
+            if ( this->getSoftDisconnect() )
+            {
+                //Gracefully Disconnect the User.
+                soc->flush();
+                soc->close();
+            }
+            else if ( this->getHardDisconnect() )
+            {
+                //Forcefully disconnect the User..
+                soc->abort();
+            }
         }
     });
     floodTimer.start();
@@ -92,6 +96,7 @@ Player::~Player()
     killTimer.disconnect();
 
     this->disconnect();
+    this->setSocket( nullptr );
 }
 
 qint64 Player::getConnTime() const
@@ -128,7 +133,7 @@ void Player::setSernum(qint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
-    if ( Helper::getReqSernums() && value <= 0 )
+    if ( Helper::getReqSernums() && value == 0 )
     {
         this->setHardDisconnect( true );
         return;

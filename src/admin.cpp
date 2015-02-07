@@ -303,141 +303,144 @@ bool Admin::parseCommand(QString& packet, Player* plr)
     bool retn{ false };
 
     if ( !packet.isEmpty()
-      || plr != nullptr )
+         || plr != nullptr )
     {
-        QString cmdReason{ "" };
-        QString cmdArg{ "" };
-        QString cmd{ "" };
+        QTextStream stream( &packet );
+        QString cmd, argType, arg1, arg2;
+
+        stream >> cmd >> argType >> arg1 >> arg2;
 
         qint32 argIndex{ -1 };
-
         for ( int i = 0; i < commands.count(); ++i )
         {
-            argIndex = -1;
-            for ( int j = 0; j < commands.count(); ++j )
+            if ( commands.at( i ).compare( cmd, Qt::CaseInsensitive ) == 0 )
+                argIndex = i;
+        }
+
+        bool all{ false };
+        if ( !argType.isEmpty() )
+        {
+            if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
             {
-                if ( packet.startsWith( "/cmd " % commands.at( j ),
-                                      Qt::CaseInsensitive ) )
-                {
-                    argIndex = j;
-                    break;
-                }
+                if ( plr->getAdminRank() >= Ranks::ADMIN )
+                    all = true;
+                else    //Invalid Rank. Give generic response.
+                    return false;
             }
-
-            if ( plr->getAdminRank() >= 0 )
+            else if ( argType.compare( "SOUL", Qt::CaseInsensitive ) == 0 )
             {
-                //TODO: Check for sub-commands.
-                cmd = commands.at( argIndex );
-
-                cmdArg = Helper::getStrStr( packet, cmd, " ", "" );
-                cmdReason = Helper::getStrStr( cmdArg, "", " ", "" );
-                cmdArg = Helper::getStrStr( cmdArg, "", "", " " );
-
-                switch ( argIndex )
-                {
-                    case CMDS::BAN:
-                        {
-//                            if ( !cmdArg.isEmpty() )
-//                            {
-//                                if ( !cmdArg.contains( "SOUL" ) )
-//                                    cmdArg = Helper::serNumToIntStr( cmdArg );
-
-//                                Player* plr{ nullptr };
-//                                for ( int i = 0; i < MAX_PLAYERS; ++i )
-//                                {
-//                                    plr = server->getPlayer( i );
-//                                    if ( plr != nullptr
-//                                         && plr->getSernum_s() == cmdArg )
-//                                    {
-//                                        //TODO: More detailed Message to send to Banned Users.
-//                                        server->sendMasterMessage(
-//                                                    QString( "You have been banished by a remote administrator with the reason: "
-//                                                             % cmdReason ),
-//                                                    plr, false );
-//                                        plr->setSoftDisconnect( true );
-//                                    }
-//                                }
-//                                banDialog->addSerNumBan( cmdArg, cmdReason );
-                                retn = true;
-//                            }
-                        }
-                    break;
-                    case CMDS::IPBAN:   //Disconnect all Users as required before banning the IP-Address.
-                        {
-//                            if ( !cmdArg.isEmpty() )
-//                            {
-//                                Player* plr{ nullptr };
-//                                for ( int i = 0; i < MAX_PLAYERS; ++i )
-//                                {
-//                                    plr = server->getPlayer( i );
-//                                    if ( plr != nullptr
-//                                         && plr->getPublicIP() == cmdArg )
-//                                    {
-//                                        //TODO: More detailed Message to send to Banned Users.
-//                                        server->sendMasterMessage(
-//                                                    QString( "You have been banished by a remote administrator with the reason: "
-//                                                             % cmdReason ),
-//                                                    plr, false );
-//                                        plr->setSoftDisconnect( true );
-//                                    }
-//                                }
-//                                banDialog->addIPBan( cmdArg, cmdReason );
-//                                retn = true;
-//                            }
-                        }
-                    break;
-                    case CMDS::KICK:
-                        {
-                            //Sub-Commands:
-                            //  IP (if known)
-                            //  SERNUM
-
-                            //  ALL *IP or *SERNUM
-                            //  The ALL command will remove all Users with the select IP or SERNUM.
-
-                            //  If no SERNUM or IP is appended to the ALL command,
-                            //  all connected Users will be disconnected.
-
-                            retn = true;
-                        }
-                    break;
-                    case CMDS::MUTE:
-                        {
-                            //Sub-Commands:
-                            //  IP (if known)
-                            //  SERNUM
-
-                            //  ALL *IP or *SERNUM
-                            //  The ALL command will mute all Users with the select IP or SERNUM.
-
-                            //  If no SERNUM or IP is appended to the ALL command,
-                            //  all connected Users will be muted.
-
-                            retn = true;
-                        }
-                    break;
-                    case CMDS::MSG:
-                        {
-                            //Sub-Commands:
-                            //  IP (if known)
-                            //  SERNUM
-
-                            //  ALL *IP or *SERNUM
-                            //  The ALL command forward the message to all
-                            //  Users with the select IP or SERNUM.
-
-                            //  If no SERNUM or IP is appended to the ALL command,
-                            //  the message will be forwarded to all Users.
-
-                            retn = true;
-                        }
-                    break;
-                    default:
-                    break;
-                }
+                if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
+                    arg1.prepend( "SOUL " );
             }
-            if ( argIndex >= 0 )
-                break;
+        }
+
+        QString message{ packet.mid( packet.indexOf( arg2 ) ) };
+        switch ( argIndex )
+        {
+            case CMDS::BAN:
+                {
+                    if ( !arg1.isEmpty() )
+                    {
+                        Player* plr{ nullptr };
+                        for ( int i = 0; i < MAX_PLAYERS; ++i )
+                        {
+                            plr = server->getPlayer( i );
+                            if ( plr != nullptr
+                              && plr->getSernum_s() == arg1 )
+                            {
+                                plr->setSoftDisconnect( true );
+                            }
+                        }
+                        banDialog->addSerNumBan( arg1, message );
+                        retn = true;
+                    }
+                }
+            break;
+            case CMDS::IPBAN:   //Disconnect all Users as required before banning the IP-Address.
+                {
+                    if ( !arg1.isEmpty() )
+                    {
+                        Player* plr{ nullptr };
+                        for ( int i = 0; i < MAX_PLAYERS; ++i )
+                        {
+                            plr = server->getPlayer( i );
+                            if ( plr != nullptr
+                              && plr->getPublicIP() == arg1 )
+                            {
+                                plr->setSoftDisconnect( true );
+                            }
+                        }
+                        banDialog->addIPBan( arg1, message );
+                        retn = true;
+                    }
+                }
+            break;
+            case CMDS::KICK:
+                {
+                    Player* tmpPlr{ nullptr };
+                    for ( int i = 0; i < MAX_PLAYERS; ++i )
+                    {
+                        tmpPlr = server->getPlayer( i );
+                        if ( tmpPlr != nullptr )
+                        {
+                            if ( tmpPlr->getSernum_s() == arg1
+                              || all )
+                            {
+                                tmpPlr->setSoftDisconnect( true );
+                            }
+                        }
+                    }
+                    retn = true;
+                }
+            break;
+            case CMDS::MUTE:
+                {
+                    Player* tmpPlr{ nullptr };
+                    for ( int i = 0; i < MAX_PLAYERS; ++i )
+                    {
+                        tmpPlr = server->getPlayer( i );
+                        if ( tmpPlr != nullptr )
+                        {
+                            if ( tmpPlr->getSernum_s() == arg1
+                                 || all )
+                            {
+                                tmpPlr->setNetworkMuted( true );
+                            }
+                        }
+                    }
+                    retn = true;
+                }
+            break;
+            case CMDS::MSG:
+                {
+                    if ( all )
+                    {
+                        server->sendMasterMessage( message,
+                                                   nullptr,
+                                                   all );
+                    }
+                    else
+                    {
+                        Player* tmpPlr{ nullptr };
+                        for ( int i = 0; i < MAX_PLAYERS; ++i )
+                        {
+                            tmpPlr = server->getPlayer( i );
+                            if ( tmpPlr != nullptr )
+                            {
+                                if ( tmpPlr->getSernum_s() == arg1 )
+                                {
+                                    server->sendMasterMessage( message,
+                                                               tmpPlr,
+                                                               false );
+                                }
+                            }
+                        }
+                    }
+                    retn = true;
+                }
+            break;
+            default:
+            break;
         }
 
         QString log{ "adminUsage.txt" };
@@ -445,10 +448,11 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                         "argument [ %3 ] and reason [ %4 ]." };
 
         logMsg = logMsg.arg( plr->getSernum_s() )
-                       .arg( cmd )
-                       .arg( cmdArg )
-                       .arg( cmdReason.trimmed() );
+                        .arg( cmd )
+                        .arg( arg1 )
+                        .arg( message );
         Helper::logToFile( log, logMsg, true, true );
+
     }
     return retn;
 }

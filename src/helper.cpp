@@ -214,7 +214,7 @@ QString Helper::getTextResponse(QWidget* parent, QString& title,
     else if ( type == 1 )   //Multi-line message.
     {
         response = QInputDialog::getMultiLineText( parent, title, prompt,
-                                        "", ok );
+                                                   "", ok );
     }
     return response;
 }
@@ -242,7 +242,8 @@ QVariant Helper::getSetting(const QString& key, const QString& subKey)
 
 void Helper::setMOTDMessage(QVariant& value)
 {
-    setSetting( keys[ Keys::General ], subKeys[ SubKeys::MOTD ], value );
+    setSetting( keys[ Keys::General ],
+                subKeys[ SubKeys::MOTD ], value );
 }
 
 QString Helper::getMOTDMessage()
@@ -253,7 +254,8 @@ QString Helper::getMOTDMessage()
 
 void Helper::setBanishMesage(QVariant& value)
 {
-    setSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ], value );
+    setSetting( keys[ Keys::General ],
+                subKeys[ SubKeys::BanishMsg ], value );
 }
 
 QString Helper::getBanishMesage()
@@ -298,7 +300,8 @@ bool Helper::setPassword(QVariant& value, bool isHashed)
         value = hashPassword( value );
         isHashed = true;
     }
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::Password ], value );
 
     return isHashed;
 }
@@ -311,7 +314,8 @@ QString Helper::getPassword()
 
 void Helper::setRequirePassword(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::ReqPassword ], value );
 }
 
 bool Helper::getRequirePassword()
@@ -370,7 +374,8 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
 
 void Helper::setServerRules(QVariant& value)
 {
-    setSetting( keys[ Keys::General ], subKeys[ SubKeys::Rules ], value );
+    setSetting( keys[ Keys::General ],
+                subKeys[ SubKeys::Rules ], value );
 }
 
 QString Helper::getServerRules()
@@ -398,7 +403,8 @@ QString Helper::getServerRules()
 
 void Helper::setAllowDupedIP(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowDupe ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::AllowDupe ], value );
 }
 
 bool Helper::getAllowDupedIP()
@@ -409,7 +415,8 @@ bool Helper::getAllowDupedIP()
 
 void Helper::setBanDupedIP(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::BanDupes ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::BanDupes ], value );
 }
 
 bool Helper::getBanDupedIP()
@@ -420,7 +427,8 @@ bool Helper::getBanDupedIP()
 
 void Helper::setBanHackers(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::AutoBan ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::AutoBan ], value );
 }
 
 bool Helper::getBanHackers()
@@ -431,7 +439,8 @@ bool Helper::getBanHackers()
 
 void Helper::setReqSernums(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqSernum ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::ReqSernum ], value );
 }
 
 bool Helper::getReqSernums()
@@ -442,7 +451,8 @@ bool Helper::getReqSernums()
 
 void Helper::setDisconnectIdles(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowIdle ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::AllowIdle ], value );
 }
 
 bool Helper::getDisconnectIdles()
@@ -453,7 +463,8 @@ bool Helper::getDisconnectIdles()
 
 void Helper::setAllowSSV(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowSSV ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::AllowSSV ], value );
 }
 
 bool Helper::getAllowSSV()
@@ -462,7 +473,8 @@ bool Helper::getAllowSSV()
               .toBool();
 }
 
-void Helper::logBIOData(QString& serNum, QHostAddress& ip, quint16 port, QString& bio)
+void Helper::logBIOData(QString& serNum, QHostAddress& ip,
+                        quint16 port, QString& bio)
 {
     QString sernum{ serNum };
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
@@ -482,7 +494,8 @@ void Helper::logBIOData(QString& serNum, QHostAddress& ip, quint16 port, QString
 
 void Helper::setLogComments(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::LogComments ], value );
 }
 
 bool Helper::getLogComments()
@@ -493,7 +506,8 @@ bool Helper::getLogComments()
 
 void Helper::setServerID(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ], subKeys[ SubKeys::Extension ], value );
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::Extension ], value );
 }
 
 int Helper::getServerID()

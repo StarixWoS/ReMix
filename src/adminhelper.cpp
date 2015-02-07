@@ -47,7 +47,8 @@ bool AdminHelper::getReqAdminAuth()
 
 bool AdminHelper::getIsRemoteAdmin(QString& serNum)
 {
-    return getAdminData( serNum, adminKeys[ AdminHelper::RANK ] ).toInt() >= 0;
+    return getAdminData( serNum, adminKeys[ AdminHelper::RANK ] )
+              .toInt() >= 0;
 }
 
 bool AdminHelper::cmpRemoteAdminPwd(QString& serNum, QVariant& value)
@@ -65,7 +66,8 @@ bool AdminHelper::cmpRemoteAdminPwd(QString& serNum, QVariant& value)
 
 qint32 AdminHelper::getRemoteAdminRank(QString& sernum)
 {
-    return getAdminData( sernum, adminKeys[ AdminHelper::RANK ] ).toUInt();
+    return getAdminData( sernum, adminKeys[ AdminHelper::RANK ] )
+              .toUInt();
 }
 
 void AdminHelper::setRemoteAdminRank(QString& sernum, qint32 rank)

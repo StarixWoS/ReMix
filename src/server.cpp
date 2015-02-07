@@ -2,7 +2,8 @@
 #include "includes.hpp"
 #include "server.hpp"
 
-Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg, QStandardItemModel* plrView)
+Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
+               QStandardItemModel* plrView)
 {
     //Setup Objects.
     mother = parent;
@@ -115,8 +116,10 @@ void Server::checkBannedInfo(Player* plr)
         }
     }
 
-    //Disconnect new Players using the same SerNum. This is an un-optional disconnect
-    //due to how Private chat is handled. --Perhaps once a better fix is found we can remove this.
+    //Disconnect new Players using the same SerNum.
+    //This is an un-optional disconnect
+    //due to how Private chat is handled.
+    //Perhaps once a better fix is found we can remove this.
     if ( plr != nullptr )
     {
         for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -149,8 +152,11 @@ void Server::detectPacketFlood(Player* plr)
             if ( floodCount >= PACKET_FLOOD_LIMIT
               && !plr->getHardDisconnect() )
             {
-                QString log{ QDate::currentDate().toString( "banLog/yyyy-MM-dd.txt" ) };
-                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] sent %3 packets in %4 MS, he is disconnected!" };
+                QString log{ QDate::currentDate()
+                              .toString( "banLog/yyyy-MM-dd.txt" ) };
+                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] "
+                                "sent %3 packets in %4 MS, they are "
+                                "disconnected!" };
                         logMsg = logMsg.arg( plr->getPublicIP() )
                                        .arg( plr->getPublicPort() )
                                        .arg( floodCount )
@@ -162,7 +168,8 @@ void Server::detectPacketFlood(Player* plr)
                     BanDialog* banDlg = admin->getBanDialog();
                     if ( banDlg != nullptr )
                     {
-                        logMsg = QString( "Auto-Banish; Suspicious data from: [ %1:%2 ]: %3" );
+                        logMsg = QString( "Auto-Banish; Suspicious data from: "
+                                          "[ %1:%2 ]: %3" );
                         logMsg = logMsg.arg( plr->getPublicIP() )
                                        .arg( plr->getPublicPort() )
                                        .arg( QString( plr->getBioData() ) );
@@ -183,7 +190,8 @@ void Server::detectPacketFlood(Player* plr)
     }
 }
 
-QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Player* plr, bool insert)
+QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data,
+                                        Player* plr, bool insert)
 {
     QString bio = QString( data );
     int row{ -1 };
@@ -200,13 +208,16 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
         plrViewModel->insertRow( row );
     }
 
-    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
+    plrViewModel->setData( plrViewModel->index( row, 0 ),
+                           peerIP,
+                           Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         if ( !sernum.isEmpty() )
         {
-            plr->setSernum( Helper::serNumToHexStr( sernum ).toUInt( 0, 16 ) );
+            plr->setSernum( Helper::serNumToHexStr( sernum )
+                                       .toInt( 0, 16 ) );
             plr->setSernum_s( sernum );
         }
         plrViewModel->setData( plrViewModel->index( row, 1 ),
@@ -221,7 +232,9 @@ QStandardItem* Server::updatePlrListRow(QString& peerIP, QByteArray& data, Playe
                                Helper::getStrStr( bio, "alias", "=", "," ),
                                Qt::DisplayRole );
 
-        plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 7 ),
+                               bio,
+                               Qt::DisplayRole );
     }
     return plrViewModel->item( row, 0 );
 }
@@ -238,7 +251,8 @@ void Server::setupServerInfo()
 {
     if ( !server->getIsSetUp() )
     {
-        server->setPrivateIP( QHostAddress( QHostAddress::LocalHost ).toString() );
+        server->setPrivateIP( QHostAddress( QHostAddress::LocalHost )
+                                   .toString() );
 
         QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
         for ( int i = 0; i < ipList.size(); ++i )
@@ -248,13 +262,15 @@ void Server::setupServerInfo()
               && ipList.at( i ).toIPv4Address()
               && !Helper::isInvalidIPAddress( tmp ) )
             {
-                server->setPrivateIP( ipList.at(i).toString() );   //Use first non-local IP address.
+                //Use first non-local IP address.
+                server->setPrivateIP( ipList.at(i).toString() );
                 break;
             }
         }
 
         QHostAddress addr{ server->getPrivateIP() };
-        bool validUDP = server->initMasterSocket( addr, server->getPrivatePort() );
+        bool validUDP = server->initMasterSocket( addr,
+                                                  server->getPrivatePort() );
         bool validTCP = this->listen( addr, server->getPrivatePort() );
 
         if ( !validUDP
@@ -309,20 +325,11 @@ void Server::newConnectionSlot()
         plr->setPwdRequested( true );
     }
 
-    quint64 bOut{ 0 };
     if ( !greeting.isEmpty() )
-    {
-        bOut += server->sendMasterMessage( greeting, plr, false );
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-    }
+        server->sendMasterMessage( greeting, plr, false );
 
     if ( !server->getServerRules().isEmpty() )
-    {
-        bOut += this->sendServerRules( plr );
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-    }
-    plr->setBytesOut( plr->getBytesIn() + bOut );
-    server->setBytesOut( server->getBytesOut() + bOut );
+        this->sendServerRules( plr );
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, [=]()
@@ -389,7 +396,8 @@ void Server::newConnectionSlot()
     QByteArray data = udpDatas.value( peerAddr );
     if ( data.isEmpty() )
     {
-        udpDatas.insert( peerAddr, QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
+        udpDatas.insert( peerAddr, QByteArray( "No BIO Data Detected. "
+                                               "Be wary of this User!" ) );
         data = udpDatas.value( peerAddr );
     }
 
@@ -419,12 +427,14 @@ void Server::readyReadUDPSlot()
         quint16 senderPort{ 0 };
 
         udpData.resize( sender->pendingDatagramSize() );
-        sender->readDatagram( udpData.data(), udpData.size(), &senderAddr, &senderPort );
+        sender->readDatagram( udpData.data(), udpData.size(),
+                              &senderAddr, &senderPort );
 
         //Check for a banned IP-Address. --Log the rejection to file.
         if ( bandlg->getIsIPBanned( senderAddr ) )
         {
-            QString logTxt{ "Ignoring UDP from banned IP Address: [ %2:%3 ] sent command: %4" };
+            QString logTxt{ "Ignoring UDP from banned IP Address: "
+                            "[ %2:%3 ] sent command: %4" };
             QString log{ "ignored.txt" };
             logTxt = logTxt.arg( senderAddr.toString() )
                            .arg( senderPort )
@@ -457,16 +467,19 @@ void Server::readyReadUDPSlot()
                             server->setGameInfo( data.mid( 1 ) );
                         #endif
                     break;
-                    case 'M':   //Read the response to the Master Server checkin.
+                    case 'M':   //Parse the Master Server's response.
                         this->parseMasterServerResponse( udpData );
                     break;
                     case 'P':   //Store the Player information into a struct.
                         sernum = Helper::getStrStr( data, "sernum", "=", "," );
 
-                        //Only log BIO data when the Host runs the server with the
-                        //"/fudge" commandline argument.
+                        //Only log BIO data when the Host runs the server with
+                        //the "/fudge" commandline argument.
                         if ( !sernum.isEmpty() && server->getLogUsage() )
-                            Helper::logBIOData( sernum, senderAddr, senderPort, data );
+                        {
+                            Helper::logBIOData( sernum, senderAddr,
+                                                senderPort, data );
+                        }
 
                         if (( Helper::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
@@ -474,13 +487,16 @@ void Server::readyReadUDPSlot()
                         {
                             if ( !bandlg->getIsSernumBanned( sernum ) )
                             {
-                                udpDatas.insert( senderAddr, udpData.mid( 1 ) );
-                                server->sendServerInfo( senderAddr, senderPort );
+                                udpDatas.insert( senderAddr,
+                                                 udpData.mid( 1 ) );
+
+                                server->sendServerInfo( senderAddr,
+                                                        senderPort );
                             }
                         }
-                        //TODO: Check for banned D and V variables. --Low priority.
+                        //TODO: Check for banned D and V variables.
                     break;
-                    case 'Q':   //Send our online User information to the requestor.
+                    case 'Q':   //Send Online User Information.
                         sernum = Helper::getStrStr( data, "sernum", "=", "," );
                         if (( Helper::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
@@ -489,7 +505,7 @@ void Server::readyReadUDPSlot()
                             if ( !bandlg->getIsSernumBanned( sernum ) )
                                 server->sendUserList( senderAddr, senderPort );
                         }
-                        //TODO: Check for banned D and V variables. --Low priority.
+                        //TODO: Check for banned D and V variables.
                     break;
                     case 'R':   //TODO: Command "R" with unknown use.
                     break;
@@ -529,10 +545,19 @@ quint64 Server::sendServerRules(Player* plr)
         return 0;
     }
 
+    quint64 bOut{ 0 };
     QString rules{ ":SR$%1\r\n" };
             rules = rules.arg( server->getServerRules() );
 
-    return plr->getSocket()->write( rules.toLatin1(), rules.length() );
+    bOut = plr->getSocket()->write( rules.toLatin1(), rules.length() );
+    if ( bOut >= 1 )
+    {
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
+        plr->setBytesOut( plr->getBytesOut() + bOut );
+
+        server->setBytesOut( server->getBytesOut() + bOut );
+    }
+    return bOut;
 }
 
 void Server::parseMasterServerResponse(QByteArray& mData)
@@ -548,8 +573,11 @@ void Server::parseMasterServerResponse(QByteArray& mData)
                     mDataStream >> pubIP;
                     mDataStream >> pubPort;
 
-        server->setPublicIP( QHostAddress( pubIP ).toString() );
-        server->setPublicPort( static_cast<quint16>( qFromBigEndian( pubPort ) ) );
+        server->setPublicIP( QHostAddress( pubIP )
+                                  .toString() );
+        server->setPublicPort(
+                    static_cast<quint16>(
+                        qFromBigEndian( pubPort ) ) );
 
         //We've obtained valid Master information.
         //Reset check-in to every 5 minutes.
@@ -572,7 +600,7 @@ void Server::parsePacket(QString& packet, Player* plr)
         if ( packet.startsWith( ":SR@", Qt::CaseInsensitive ) )
             return;
 
-        //Prevent Users from changing the Server's rules. ( However temporary the effect may be. )
+        //Prevent Users from changing the Server's rules.
         if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
             return;
 
@@ -641,9 +669,7 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                                       || ( plr->getTargetScene() == tmpPlr->getSceneHost() )))
                                     {
                                         if (( plr != tmpPlr ) )
-                                        {
                                             send = true;
-                                        }
                                     }
                                 }
                             break;
@@ -669,7 +695,8 @@ void Server::parseSRPacket(QString& packet, Player* plr)
                             bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
                         }
                     #else
-                        bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+                        bOut = tmpSoc->write( packet.toLatin1(),
+                                              packet.length() );
                     #endif
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
@@ -788,7 +815,6 @@ void Server::readMIX5(QString& packet, Player* plr)
       && !msg.isEmpty() )
     {
         QString response{ "" };
-        quint64 bOut{ 0 };
 
         bool disconnect{ false };
         if ( plr->getPwdRequested()
@@ -869,17 +895,11 @@ void Server::readMIX5(QString& packet, Player* plr)
 
         if ( !response.isEmpty() )
         {
-            bOut = server->sendMasterMessage( response, plr, false );
+            server->sendMasterMessage( response, plr, false );
             if ( disconnect )
             {
                 plr->setSoftDisconnect( true );
                 server->setIpDc( server->getIpDc() + 1 );
-            }
-            else if ( bOut >= 1 )
-            {
-                plr->setPacketsOut( plr->getPacketsOut() + 1 );
-                plr->setBytesOut( plr->getBytesOut() + bOut );
-                server->setBytesOut( server->getBytesOut() + bOut );
             }
         }
     }
@@ -890,8 +910,13 @@ void Server::readMIX6(QString& packet, Player* plr)
     if ( plr == nullptr )
         return;
 
-    QString cmd = Helper::getStrStr( packet, ": ", ": ", "" );
-            cmd = cmd.left( cmd.length() - 2 );
+    QString cmd{ packet };
+    if ( cmd.contains( ": " ) )
+        cmd = Helper::getStrStr( packet, ": /cmd ", ": ", "" );
+    else    //0100000FA0kickCE
+        cmd = cmd.mid( 10 );
+
+    cmd = cmd.left( cmd.length() - 2 );
 
     QString unauth{ "While your SerNum is registered as a Remote Admin, you "
                     "are not Authenticated and are unable to use these "
@@ -1024,8 +1049,7 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
       && AdminHelper::getIsRemoteAdmin( serNum ) )
     {
         plr->setReqAuthPwd( true );
-        server->setBytesOut( server->getBytesOut()
-                           + server->sendMasterMessage( msg, plr, false ) );
+        server->sendMasterMessage( msg, plr, false );
     }
 }
 

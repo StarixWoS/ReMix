@@ -607,7 +607,8 @@ void ReMix::on_actionRevokeAdmin_triggered()
     {
         if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
         {
-            //The User is no longer a registered Admin. --Revoke their current permissions.
+            //The User is no longer a registered Admin.
+            //Revoke their current permissions.
             menuTarget->resetAdminAuth();
 
             quint64 bOut = server->sendMasterMessage( msg, menuTarget, false );
@@ -627,8 +628,7 @@ void ReMix::on_actionMakeAdmin_triggered()
     QString msg{ "The server Admin is attempting to register you as an "
                  "Admin with the server. Please reply to this message with "
                  "(/register *YOURPASS). Note: The server Host and other Admins"
-                 " will not have access to this information. "
-                 "///PASSWORD REQUIRED NOW:" };
+                 " will not have access to this information." };
 
     if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
     {

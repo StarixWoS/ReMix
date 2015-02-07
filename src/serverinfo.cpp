@@ -294,14 +294,36 @@ quint64 ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
             && plr->getSocket() != nullptr )
            && !toAll )
     {
-        bOut = plr->getSocket()->write( msg.toLatin1(), msg.length() );
+        //Iterate over all Player objects.
+        //And check if our Player object exists.
+        //This is to prevent a Crash related to sending messages
+        //to a disconnected User.
+
+        Player* tmpPlr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = this->getPlayer( i );
+            if ( plr == tmpPlr )
+            {
+                bOut = plr->getSocket()->write( msg.toLatin1(),
+                                                msg.length() );
+                plr->setPacketsOut( plr->getPacketsOut() + 1 );
+                plr->setBytesOut( plr->getBytesOut() + bOut );
+                break;
+            }
+        }
     }
+
+    if ( bOut >= 1 )
+        this->setBytesOut( this->getBytesOut() + bOut );
+
     return bOut;
 }
 
 quint64 ServerInfo::sendToAllConnected(QString packet)
 {
     Player* tmpPlr{ nullptr };
+    quint64 tmpBOut{ 0 };
     quint64 bOut{ 0 };
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -310,8 +332,12 @@ quint64 ServerInfo::sendToAllConnected(QString packet)
         if ( tmpPlr != nullptr
           && tmpPlr->getSocket() != nullptr )
         {
-            bOut = tmpPlr->getSocket()->write( packet.toLatin1(),
-                                               packet.length() );
+            tmpBOut = tmpPlr->getSocket()->write( packet.toLatin1(),
+                                                  packet.length() );
+            tmpPlr->setBytesOut( tmpPlr->getBytesOut() + tmpBOut );
+            tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+
+            bOut += tmpBOut;
         }
     }
     return bOut;
