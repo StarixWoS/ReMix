@@ -305,10 +305,12 @@ bool Admin::parseCommand(QString& packet, Player* plr)
     if ( !packet.isEmpty()
          || plr != nullptr )
     {
-        QTextStream stream( &packet );
-        QString cmd, argType, arg1, arg2;
+        QString reason{ "A Remote-Administrator has [ %1 ] you. Reason: [ %2 ]." };
 
-        stream >> cmd >> argType >> arg1 >> arg2;
+        QTextStream stream( &packet );
+        QString cmd, argType, arg1, arg2, arg3;
+
+        stream >> cmd >> argType >> arg1 >> arg2 >> arg3;
 
         qint32 argIndex{ -1 };
         for ( int i = 0; i < commands.count(); ++i )
@@ -318,6 +320,8 @@ bool Admin::parseCommand(QString& packet, Player* plr)
         }
 
         bool all{ false };
+        qint32 banType{ CMDS::BAN };
+
         if ( !argType.isEmpty() )
         {
             if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
@@ -332,47 +336,82 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                 if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
                     arg1.prepend( "SOUL " );
             }
+            else if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
+                banType = CMDS::IPBAN;
         }
 
-        QString message{ packet.mid( packet.indexOf( arg2 ) ) };
+        //Correctly handle "all" command reason/message.
+        QString message{ "" };
+        if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
+        {
+            if ( !arg1.isEmpty() )
+                message = packet.mid( packet.indexOf( arg1 ) );
+        }
+        else
+        {
+            if ( !arg2.isEmpty() )
+                message = packet.mid( packet.indexOf( arg2 ) );
+        }
+
+        qDebug() << cmd << argType << arg1 << arg2 << arg3 << message;
         switch ( argIndex )
         {
             case CMDS::BAN:
                 {
                     if ( !arg1.isEmpty() )
                     {
-                        Player* plr{ nullptr };
+                        Player* tmpPlr{ nullptr };
+
+                        bool ban{ false };
                         for ( int i = 0; i < MAX_PLAYERS; ++i )
                         {
-                            plr = server->getPlayer( i );
-                            if ( plr != nullptr
-                              && plr->getSernum_s() == arg1 )
+                            tmpPlr = server->getPlayer( i );
+                            if ( tmpPlr != nullptr )
                             {
-                                plr->setSoftDisconnect( true );
+                                if ( tmpPlr->getPublicIP() == arg1
+                                  || tmpPlr->getSernum_s() == arg1
+                                  || all )
+                                {
+                                    ban = true;
+                                }
+                                else
+                                    ban = false;
+
+                                if ( ban )
+                                {
+                                    reason = reason.arg( "Banned" )
+                                                   .arg( message.isEmpty()
+                                                       ? "No Reason!"
+                                                       : message );
+                                    if ( !reason.isEmpty() )
+                                    {
+                                        server->sendMasterMessage( reason,
+                                                                   tmpPlr,
+                                                                   false );
+                                    }
+
+                                    banDialog->remoteAddSerNumBan( plr,
+                                                                   tmpPlr,
+                                                                   message );
+
+                                    banDialog->remoteAddIPBan( plr,
+                                                               tmpPlr,
+                                                               message );
+
+                                    tmpPlr->setSoftDisconnect( true );
+                                }
                             }
+                            ban = false;
                         }
-                        banDialog->addSerNumBan( arg1, message );
-                        retn = true;
+
+                        //User May not be Connected.
+                        //Only ban the target type/Arg.
+                        if ( banType == CMDS::BAN )
+                            banDialog->addSerNumBan( arg1, message );
+                        else
+                            banDialog->addIPBan( arg1, message );
                     }
-                }
-            break;
-            case CMDS::IPBAN:   //Disconnect all Users as required before banning the IP-Address.
-                {
-                    if ( !arg1.isEmpty() )
-                    {
-                        Player* plr{ nullptr };
-                        for ( int i = 0; i < MAX_PLAYERS; ++i )
-                        {
-                            plr = server->getPlayer( i );
-                            if ( plr != nullptr
-                              && plr->getPublicIP() == arg1 )
-                            {
-                                plr->setSoftDisconnect( true );
-                            }
-                        }
-                        banDialog->addIPBan( arg1, message );
-                        retn = true;
-                    }
+                    retn = true;
                 }
             break;
             case CMDS::KICK:
@@ -386,6 +425,15 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                             if ( tmpPlr->getSernum_s() == arg1
                               || all )
                             {
+                                reason = reason.arg( "Kicked" )
+                                               .arg( message.isEmpty()
+                                                   ? "No Reason!"
+                                                   : message );
+                                if ( !reason.isEmpty() )
+                                {
+                                    server->sendMasterMessage( reason, tmpPlr,
+                                                               false );
+                                }
                                 tmpPlr->setSoftDisconnect( true );
                             }
                         }
@@ -402,8 +450,9 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                         if ( tmpPlr != nullptr )
                         {
                             if ( tmpPlr->getSernum_s() == arg1
-                                 || all )
+                              || all )
                             {
+                                //Eventually Inform the User.
                                 tmpPlr->setNetworkMuted( true );
                             }
                         }
@@ -429,8 +478,7 @@ bool Admin::parseCommand(QString& packet, Player* plr)
                             {
                                 if ( tmpPlr->getSernum_s() == arg1 )
                                 {
-                                    server->sendMasterMessage( message,
-                                                               tmpPlr,
+                                    server->sendMasterMessage( message, tmpPlr,
                                                                false );
                                 }
                             }

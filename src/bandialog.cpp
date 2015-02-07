@@ -150,8 +150,8 @@ void BanDialog::remoteAddIPBan(Player* admin, Player* target, QString& reason)
     if ( reason.isEmpty() )
     {
         reason = "Remote-Banish by [ %1 ]; Unknown Reason: [ %2 ]";
-        reason.arg( admin->getSernum_s() )
-              .arg( ip );
+        reason = reason.arg( admin->getSernum_s() )
+                       .arg( ip );
     }
     this->addIPBanImpl( ip, reason );
 }
@@ -337,8 +337,8 @@ void BanDialog::remoteAddSerNumBan(Player* admin, Player* target,
     if ( reason.isEmpty() )
     {
         reason = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
-        reason.arg( admin->getSernum_s() )
-              .arg( target->getSernum_s() );
+        reason = reason.arg( admin->getSernum_s() )
+                       .arg( target->getSernum_s() );
     }
     this->addSerNumBanImpl( sernum, reason );
 }
