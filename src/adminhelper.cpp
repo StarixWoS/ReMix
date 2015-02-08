@@ -93,8 +93,8 @@ qint32 AdminHelper::changeRemoteAdminRank(QWidget* parent, QString& sernum)
 bool AdminHelper::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 {
     QString title{ "Revoke Admin:" };
-    QString prompt{ "Are you certain you want to REVOKE ( " % sernum
-                   % " )'s powers?" };
+    QString prompt{ "Are you certain you want to REVOKE [ " % sernum
+                   % " ]'s powers?" };
 
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
@@ -108,8 +108,8 @@ bool AdminHelper::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 bool AdminHelper::createRemoteAdmin(QWidget* parent, QString& sernum)
 {
     QString title{ "Create Admin:" };
-    QString prompt{ "Are you certain you want to MAKE ( %1 ) a Remote Admin?"
-                    "\r\n\r\nPlease make sure you trust ( %2 ) as this will "
+    QString prompt{ "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
+                    "\r\n\r\nPlease make sure you trust [ %2 ] as this will "
                     "allow the them to utilize Admin commands that can remove "
                     "the ability for other users to connect to the Server." };
     prompt = prompt.arg( sernum )

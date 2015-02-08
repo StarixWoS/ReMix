@@ -720,11 +720,11 @@ void ReMix::on_actionBANISHIPAddress_triggered()
     QString ipAddr = menuTarget->getPublicIP();
 
     QString title{ "Ban IP Address:" };
-    QString prompt{ "Are you certain you want to BANISH ( " % sernum % " )'s "
-                    "IP Address ( " % ipAddr % " )?" };
+    QString prompt{ "Are you certain you want to BANISH [ " % sernum % " ]'s "
+                    "IP Address [ " % ipAddr % " ]?" };
 
     QString inform{ "The Server Host or a Remote-Admin has banned your IP "
-                    "Address ( %1 ). Reason: %2" };
+                    "Address [ %1 ]. Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -765,11 +765,11 @@ void ReMix::on_actionBANISHSerNum_triggered()
     QString sernum = menuTarget->getSernum_s();
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "Are you certain you want to BANISH the SerNum ( "
-                  % sernum % " )?" };
+    QString prompt{ "Are you certain you want to BANISH the SerNum [ "
+                  % sernum % " ]?" };
 
     QString inform{ "The Server Host or a Remote-Admin has banned your "
-                    "SerNum ( %1 ). Reason: %2" };
+                    "SerNum [ %1 ]. Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -845,7 +845,7 @@ bool ReMix::rejectCloseEvent()
                         .arg( server->getName() );
 
     QString prompt = QString( "You are about to shut down your ReMix game "
-                              "server!\r\nThis will affect ( %1 ) User(s) "
+                              "server!\r\nThis will affect [ %1 ] User(s) "
                               "connected to it.\r\n\r\nAre you certain?" )
                          .arg( server->getPlayerCount() );
 

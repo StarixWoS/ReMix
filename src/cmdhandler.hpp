@@ -26,6 +26,7 @@ class CmdHandler : public QObject
                             Admin* aDlg = nullptr);
         ~CmdHandler();
 
+        bool canUseAdminCommands(Player* plr);
         void parseMix5Command(Player* plr, QString& packet);
         void parseMix6Command(Player* plr, QString& packet);
         bool parseCommandImpl(Player* plr, QString& packet);

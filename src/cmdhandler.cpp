@@ -28,6 +28,60 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
 
 CmdHandler::~CmdHandler(){}
 
+bool CmdHandler::canUseAdminCommands(Player* plr)
+{
+    bool retn{ false };
+    QString unauth{ "While your SerNum is registered as a Remote Admin, "
+                    "you are not Authenticated and are unable to use these "
+                    "commands. Please reply to this message with "
+                    "(/login *PASS) and the server will "
+                    "authenticate you." };
+
+    QString invalid{ "Your SerNum is not registered as a Remote Admin. "
+                     "Please refrain from attempting to use Remote Admin "
+                     "commands as you will be banned after [ %1 ] "
+                     "more tries." };
+
+    QString sernum = plr->getSernum_s();
+    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
+    {
+        retn = false;
+        if ( plr->getGotAuthPwd() )
+            retn = true;
+        else
+            server->sendMasterMessage( unauth, plr, false );
+    }
+    else
+    {
+        plr->setCmdAttempts( plr->getCmdAttempts() + 1 );
+        invalid = invalid.arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
+
+        if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
+        {
+            QString reason = QString( "Auto-Banish; <Unregistered Remote "
+                                      "Admin: [ %1 ] command attempts>" )
+                                 .arg( plr->getCmdAttempts() );
+
+            server->sendMasterMessage( reason, plr, false );
+
+            //Append BIO data to the reason for the Ban log.
+            reason.append( " [ %1:%2 ]: %3" );
+            reason = reason.arg( plr->getPublicIP() )
+                           .arg( plr->getPublicPort() )
+                           .arg( QString( plr->getBioData() ) );
+            banDialog->addIPBan( plr->getPublicIP(), reason );
+
+            plr->setSoftDisconnect( true );
+            server->setIpDc( server->getIpDc() + 1 );
+        }
+        else
+            server->sendMasterMessage( invalid, plr, false );
+
+        retn = false;
+    }
+    return retn;
+}
+
 void CmdHandler::parseMix5Command(Player* plr, QString& packet)
 {
     QString sernum = plr->getSernum_s();
@@ -65,58 +119,8 @@ void CmdHandler::parseMix6Command(Player *plr, QString &packet)
             cmd = cmd.mid( 10 );
 
         cmd = cmd.left( cmd.length() - 2 );
-
-        QString unauth{ "While your SerNum is registered as a Remote Admin, "
-                        "you are not Authenticated and are unable to use these "
-                        "commands. Please reply to this message with "
-                        "(/login *PASS) and the server will "
-                        "authenticate you." };
-
-        QString invalid{ "Your SerNum is not registered as a Remote Admin. "
-                         "Please refrain from attempting to use Remote Admin "
-                         "commands as you will be banned after ( %1 ) "
-                         "more tries." };
-
-        QString valid{ "It has been done. I hope you entered the right "
-                       "command!" };
-
-        QString sernum = plr->getSernum_s();
-        if ( AdminHelper::getIsRemoteAdmin( sernum ) )
-        {
-            if ( plr->getGotAuthPwd() )
-            {
-                this->parseCommandImpl( plr, cmd );
-                server->sendMasterMessage( valid, plr, false);
-            }
-            else
-                server->sendMasterMessage( unauth, plr, false);
-        }
-        else
-        {
-            plr->setCmdAttempts( plr->getCmdAttempts() + 1 );
-            invalid = invalid.arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
-
-            if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
-            {
-                QString reason = QString( "Auto-Banish; <Unregistered Remote "
-                                          "Admin: ( %1 ) command attempts>" )
-                                     .arg( plr->getCmdAttempts() );
-
-                server->sendMasterMessage( reason, plr, false );
-
-                //Append BIO data to the reason for the Ban log.
-                reason.append( " [ %1:%2 ]: %3" );
-                reason = reason.arg( plr->getPublicIP() )
-                               .arg( plr->getPublicPort() )
-                               .arg( QString( plr->getBioData() ) );
-                banDialog->addIPBan( plr->getPublicIP(), reason );
-
-                plr->setSoftDisconnect( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
-            else
-                server->sendMasterMessage( invalid, plr, false );
-        }
+        if ( !cmd.isEmpty() )
+            this->parseCommandImpl( plr, cmd );
     }
 }
 
@@ -170,38 +174,47 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             message = packet.mid( packet.indexOf( arg2 ) );
     }
 
+    bool canUseCommand{ this->canUseAdminCommands( plr ) };
     switch ( argIndex )
     {
         case CMDS::BAN: //0
             {
-                if ( !arg1.isEmpty() )
+                if ( !arg1.isEmpty()
+                  && canUseCommand )
+                {
                     this->banhandler( plr, argType, arg1, message, all );
-
+                }
                 retn = true;
             }
         break;
         case CMDS::UNBAN: //1
             {
-                if ( !arg1.isEmpty() )
+                if ( !arg1.isEmpty()
+                  && canUseCommand )
+                {
                     this->unBanhandler( argType, arg1 );
-
+                }
                 retn = true;
             }
         break;
         case CMDS::KICK: //2
             {
-                if ( !arg1.isEmpty() )
+                if ( !arg1.isEmpty()
+                  && canUseCommand )
+                {
                     this->kickHandler( arg1, message, all );
-
+                }
                 retn = true;
             }
         break;
         case CMDS::MUTE: //3
         case CMDS::UNMUTE: //4
             {
-                if ( !arg1.isEmpty() )
+                if ( !arg1.isEmpty()
+                  && canUseCommand )
+                {
                     this->muteHandler( arg1, argIndex, all );
-
+                }
                 retn = true;
             }
         break;
@@ -213,9 +226,11 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                                    % " ]: " );
                 }
 
-                if ( !arg1.isEmpty() )
+                if ( !arg1.isEmpty()
+                  && canUseCommand )
+                {
                     this->msgHandler( arg1, message, all );
-
+                }
                 retn = true;
             }
         break;
@@ -224,7 +239,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( !argType.isEmpty() )
                     this->loginHandler( plr, argType );
 
-                retn = true;
+                retn = false;
                 logMsg = false;
             }
         break;
@@ -233,7 +248,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( !argType.isEmpty() )
                     this->registerHandler( plr, argType );
 
-                retn = true;
+                retn = false;
                 logMsg = false;
             }
         break;
@@ -252,6 +267,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                        .arg( arg1 )
                        .arg( message );
         Helper::logToFile( log, logMsg, true, true );
+    }
+
+    if ( retn && canUseCommand )
+    {
+        QString valid{ "It has been done. I hope you entered the right "
+                       "command!" };
+        server->sendMasterMessage( valid, plr, false);
     }
     return retn;
 }
