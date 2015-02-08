@@ -22,9 +22,9 @@ class Admin : public QDialog
     QSortFilterProxyModel* tableProxy{ nullptr };
     QStandardItemModel* tableModel{ nullptr };
 
+    BanDialog* banDialog{ nullptr };
     ServerInfo* server{ nullptr };
     RandDev* randDev{ nullptr };
-    BanDialog* banDialog{ nullptr };
 
     QMenu* contextMenu{ nullptr };
     QModelIndex menuIndex;
@@ -32,9 +32,6 @@ class Admin : public QDialog
     static const QStringList commands;
 
     public:
-        enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
-        enum CMDS{ BAN = 0, IPBAN = 1, KICK = 2, MUTE = 3, MSG = 4 };
-
         explicit Admin(QWidget *parent = nullptr, ServerInfo* svr = nullptr);
         ~Admin();
 
@@ -44,7 +41,6 @@ class Admin : public QDialog
         void showBanDialog();
 
         bool makeAdmin(QString& sernum, QString& pwd);
-        bool parseCommand(QString& packet, Player* plr);
 
     private:
         void initContextMenu();

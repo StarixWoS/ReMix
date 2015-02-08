@@ -36,6 +36,9 @@ class BanDialog : public QDialog
         void addIPBan(QHostAddress& ipInfo, QString& reason);
         void addIPBan(QString ip, QString& reason);
 
+        void removeIPBan(QString& ip);
+        void removeIPBan(QHostAddress& ipInfo);
+
         //SerNum-Ban Tab
         void loadBannedSernums();
         bool getIsSernumBanned(QString sernum);
@@ -43,13 +46,13 @@ class BanDialog : public QDialog
         void remoteAddSerNumBan(Player* admin, Player* target, QString& reason);
         void addSerNumBan(QString& sernum, QString& reason);
 
+        void removeSerNumBan(QString& sernum);
+
     private:
         void addIPBanImpl(QString& ip, QString& reason);
-        void removeIPBanImpl(QString& ip);
         void removeIPBanImpl(QModelIndex& index);
 
         void addSerNumBanImpl(QString& sernum, QString& reason);
-        void removeSerNumBanImpl(QString& sernum);
         void removeSerNumBanImpl(QModelIndex& index);
 
     private slots:

@@ -11,6 +11,8 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
     plrViewModel = plrView;
     admin = adminDlg;
 
+    cmdHandle = new CmdHandler( this, server, admin );
+
     //Every 2 Seconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
     masterCheckIn.setInterval( 2000 );
@@ -22,7 +24,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
     QObject::connect( this, &QTcpServer::newConnection,
                       this, &Server::newConnectionSlot );
 
-    QObject::connect( this, &Server::newUserCommentSignal,
+    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       serverComments, &UserMessage::newUserCommentSlot );
 
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
@@ -80,7 +82,7 @@ void Server::checkBannedInfo(Player* plr)
     //Disconnect and ban all duplicate IP's if required.
     if ( !Helper::getAllowDupedIP() )
     {
-        QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 }: %3" };
+        QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
         QString peerAddr{ plr->getPublicIP() };
 
         for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -321,7 +323,8 @@ void Server::newConnectionSlot()
     QString greeting = Helper::getMOTDMessage();
     if ( Helper::getRequirePassword() )
     {
-        greeting.append( "///PASSWORD REQUIRED NOW: " );
+        greeting.append( "Password required: Please reply with (/login *PASS) "
+                         "or be disconnected." );
         plr->setPwdRequested( true );
     }
 
@@ -806,166 +809,12 @@ void Server::readMIX4(QString& packet, Player* plr)
 
 void Server::readMIX5(QString& packet, Player* plr)
 {
-    QString sernum = plr->getSernum_s();
-    QString alias = Helper::getStrStr( packet, "", "", ": " ).mid( 10 );
-    QString msg = Helper::getStrStr( packet, ": ", ": ", "" );
-            msg = msg.left( msg.length() - 2 );
-
-    if ( !alias.isEmpty()
-      && !msg.isEmpty() )
-    {
-        QString response{ "" };
-
-        bool disconnect{ false };
-        if ( plr->getPwdRequested()
-          && !plr->getEnteredPwd() )
-        {
-            QVariant pwd( msg );
-            if ( Helper::cmpServerPassword( pwd ) )
-            {
-                response = "Correct password, welcome.";
-
-                plr->setPwdRequested( false );
-                plr->setEnteredPwd( true );
-            }
-            else
-            {
-                response = "Incorrect password, please go away.";
-                disconnect = true;
-            }
-        }
-        else if ( msg.startsWith( "/register ", Qt::CaseInsensitive ) )
-        {
-            QVariant pwd = Helper::getStrStr( msg, "/register ", " ", "" );
-            //Check if the User is creating a Password.
-            if ( plr->getReqNewAuthPwd()
-              && !plr->getGotNewAuthPwd() )
-            {
-                QString pass( pwd.toString() );
-                if ( admin->makeAdmin( sernum, pass ) )
-                {
-                    response = "You are now registered as an Admin with the "
-                               "Server. You are currently Rank-0 (Game Master) "
-                               "with limited commands.";
-
-                    plr->setReqNewAuthPwd( false );
-                    plr->setGotNewAuthPwd( true );
-
-                    //Prevent the server from attempting to authenticate
-                    //the new Admin.
-                    plr->setReqAuthPwd( false );
-                    plr->setGotAuthPwd( true );
-                }
-                else
-                {
-                    response = "You were not registered as an Admin with the "
-                               "Server. It seems something has gone wrong or "
-                               "you were already registered as an Admin.";
-                    plr->setReqNewAuthPwd( false );
-                    plr->setGotNewAuthPwd( false );
-                }
-            }
-        }
-        else if ( msg.startsWith( "/login ", Qt::CaseInsensitive ))
-        {
-            QVariant pwd = Helper::getStrStr( msg, "/login ", " ", "" );
-
-            //Check if the User needs to have their password confirmed.
-            if ( !plr->getGotAuthPwd()
-              || plr->getReqAuthPwd() )
-            {
-                //The User is attempting to Manually Authenticate.
-                if ( !pwd.toString().isEmpty()
-                  && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
-                {
-                    response = "Correct password, welcome.";
-
-                    plr->setReqAuthPwd( false );
-                    plr->setGotAuthPwd( true );
-                }
-                else
-                {
-                    response = "Incorrect password, please go away.";
-                    disconnect = true;
-                }
-            }
-        }
-        else
-            emit newUserCommentSignal( sernum, alias, msg );
-
-        if ( !response.isEmpty() )
-        {
-            server->sendMasterMessage( response, plr, false );
-            if ( disconnect )
-            {
-                plr->setSoftDisconnect( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
-        }
-    }
+    cmdHandle->parseMix5Command( plr, packet );
 }
 
 void Server::readMIX6(QString& packet, Player* plr)
 {
-    if ( plr == nullptr )
-        return;
-
-    QString cmd{ packet };
-    if ( cmd.contains( ": " ) )
-        cmd = Helper::getStrStr( packet, ": /cmd ", ": ", "" );
-    else    //0100000FA0kickCE
-        cmd = cmd.mid( 10 );
-
-    cmd = cmd.left( cmd.length() - 2 );
-
-    QString unauth{ "While your SerNum is registered as a Remote Admin, you "
-                    "are not Authenticated and are unable to use these "
-                    "commands. Please reply to this message with "
-                    "(/login *PASS) and the server will authenticate you." };
-
-    QString invalid{ "Your SerNum is not registered as a Remote Admin. Please "
-                     "refrain from attempting to use Remote Admin commands as "
-                     "you will be banned after ( %1 ) more tries." };
-    QString valid{ "It has been done. I hope you entered the right command!" };
-
-    QString sernum = plr->getSernum_s();
-    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
-    {
-        if ( plr->getGotAuthPwd() )
-        {
-            admin->parseCommand( cmd, plr );
-            server->sendMasterMessage( valid, plr, false);
-        }
-        else
-            server->sendMasterMessage( unauth, plr, false);
-    }
-    else
-    {
-        plr->setCmdAttempts( plr->getCmdAttempts() + 1 );
-        invalid = invalid.arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
-
-        if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
-        {
-            QString reason = QString( "Auto-Banish; <Unregistered Remote "
-                                      "Admin: ( %1 ) command attempts>" )
-                                 .arg( plr->getCmdAttempts() );
-
-            server->sendMasterMessage( reason, plr, false );
-
-            //Append BIO data to the reason for the Ban log.
-            reason.append( " [ %1:%2 ]: %3" );
-            reason = reason.arg( plr->getPublicIP() )
-                           .arg( plr->getPublicPort() )
-                           .arg( QString( plr->getBioData() ) );
-            admin->getBanDialog()->addIPBan( plr->getPublicIP(), reason );
-
-            plr->setSoftDisconnect( true );
-            server->setIpDc( server->getIpDc() + 1 );
-        }
-        else
-            server->sendMasterMessage( invalid, plr, false );
-    }
-
+    cmdHandle->parseMix6Command( plr, packet );
 }
 
 void Server::readMIX7(QString& packet, Player* plr)

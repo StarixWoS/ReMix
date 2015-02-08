@@ -69,6 +69,7 @@
 
     class UserMessage;
     class ServerInfo;
+    class CmdHandler;
     class BanDialog;
     class Messages;
     class Settings;

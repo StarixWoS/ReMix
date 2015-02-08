@@ -21,8 +21,9 @@ class Server : public QTcpServer
     QByteArray udpData;
     QTimer masterCheckIn;
 
-    ServerInfo* server{ nullptr };
     UserMessage* serverComments{ nullptr };
+    CmdHandler* cmdHandle{ nullptr };
+    ServerInfo* server{ nullptr };
     Admin* admin{ nullptr };
 
 #ifdef DECRYPT_PACKET_PLUGIN
@@ -69,9 +70,6 @@ class Server : public QTcpServer
         void validateSerNum(Player* plr, qint32 id );
 
     signals:
-        void newUserCommentSignal(QString& sernum, QString& alias,
-                                  QString& message);
-
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum);
 

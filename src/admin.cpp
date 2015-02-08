@@ -3,12 +3,6 @@
 #include "admin.hpp"
 #include "ui_admin.h"
 
-//Initialize our accepted Command List.
-const QStringList Admin::commands =
-{
-    QStringList() << "ban" << "ipban" << "kick" << "mute" << "msg"
-};
-
 Admin::Admin(QWidget *parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::Admin)
@@ -158,7 +152,13 @@ void Admin::on_makeAdmin_clicked()
     QString pwd = ui->adminPwd->text();
 
     if ( !sernum.isEmpty() && !pwd.isEmpty() )
-        this->makeAdmin( sernum, pwd );
+    {
+        if ( this->makeAdmin( sernum, pwd ) )
+        {
+            ui->adminSerNum->clear();
+            ui->adminPwd->clear();
+        }
+    }
 }
 
 bool Admin::makeAdmin(QString& sernum, QString& pwd)
@@ -295,212 +295,4 @@ void Admin::on_actionChangeRank_triggered()
                                  rank, Qt::DisplayRole );
         }
     }
-}
-
-//Handle Admin commands.
-bool Admin::parseCommand(QString& packet, Player* plr)
-{
-    bool retn{ false };
-
-    if ( !packet.isEmpty()
-         || plr != nullptr )
-    {
-        QString reason{ "A Remote-Administrator has [ %1 ] you. Reason: [ %2 ]." };
-
-        QTextStream stream( &packet );
-        QString cmd, argType, arg1, arg2, arg3;
-
-        stream >> cmd >> argType >> arg1 >> arg2 >> arg3;
-
-        qint32 argIndex{ -1 };
-        for ( int i = 0; i < commands.count(); ++i )
-        {
-            if ( commands.at( i ).compare( cmd, Qt::CaseInsensitive ) == 0 )
-                argIndex = i;
-        }
-
-        bool all{ false };
-        qint32 banType{ CMDS::BAN };
-
-        if ( !argType.isEmpty() )
-        {
-            if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
-            {
-                if ( plr->getAdminRank() >= Ranks::ADMIN )
-                    all = true;
-                else    //Invalid Rank. Give generic response.
-                    return false;
-            }
-            else if ( argType.compare( "SOUL", Qt::CaseInsensitive ) == 0 )
-            {
-                if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
-                    arg1.prepend( "SOUL " );
-            }
-            else if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-                banType = CMDS::IPBAN;
-        }
-
-        //Correctly handle "all" command reason/message.
-        QString message{ "" };
-        if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
-        {
-            if ( !arg1.isEmpty() )
-                message = packet.mid( packet.indexOf( arg1 ) );
-        }
-        else
-        {
-            if ( !arg2.isEmpty() )
-                message = packet.mid( packet.indexOf( arg2 ) );
-        }
-
-        qDebug() << cmd << argType << arg1 << arg2 << arg3 << message;
-        switch ( argIndex )
-        {
-            case CMDS::BAN:
-                {
-                    if ( !arg1.isEmpty() )
-                    {
-                        Player* tmpPlr{ nullptr };
-
-                        bool ban{ false };
-                        for ( int i = 0; i < MAX_PLAYERS; ++i )
-                        {
-                            tmpPlr = server->getPlayer( i );
-                            if ( tmpPlr != nullptr )
-                            {
-                                if ( tmpPlr->getPublicIP() == arg1
-                                  || tmpPlr->getSernum_s() == arg1
-                                  || all )
-                                {
-                                    ban = true;
-                                }
-                                else
-                                    ban = false;
-
-                                if ( ban )
-                                {
-                                    reason = reason.arg( "Banned" )
-                                                   .arg( message.isEmpty()
-                                                       ? "No Reason!"
-                                                       : message );
-                                    if ( !reason.isEmpty() )
-                                    {
-                                        server->sendMasterMessage( reason,
-                                                                   tmpPlr,
-                                                                   false );
-                                    }
-
-                                    banDialog->remoteAddSerNumBan( plr,
-                                                                   tmpPlr,
-                                                                   message );
-
-                                    banDialog->remoteAddIPBan( plr,
-                                                               tmpPlr,
-                                                               message );
-
-                                    tmpPlr->setSoftDisconnect( true );
-                                }
-                            }
-                            ban = false;
-                        }
-
-                        //User May not be Connected.
-                        //Only ban the target type/Arg.
-                        if ( banType == CMDS::BAN )
-                            banDialog->addSerNumBan( arg1, message );
-                        else
-                            banDialog->addIPBan( arg1, message );
-                    }
-                    retn = true;
-                }
-            break;
-            case CMDS::KICK:
-                {
-                    Player* tmpPlr{ nullptr };
-                    for ( int i = 0; i < MAX_PLAYERS; ++i )
-                    {
-                        tmpPlr = server->getPlayer( i );
-                        if ( tmpPlr != nullptr )
-                        {
-                            if ( tmpPlr->getSernum_s() == arg1
-                              || all )
-                            {
-                                reason = reason.arg( "Kicked" )
-                                               .arg( message.isEmpty()
-                                                   ? "No Reason!"
-                                                   : message );
-                                if ( !reason.isEmpty() )
-                                {
-                                    server->sendMasterMessage( reason, tmpPlr,
-                                                               false );
-                                }
-                                tmpPlr->setSoftDisconnect( true );
-                            }
-                        }
-                    }
-                    retn = true;
-                }
-            break;
-            case CMDS::MUTE:
-                {
-                    Player* tmpPlr{ nullptr };
-                    for ( int i = 0; i < MAX_PLAYERS; ++i )
-                    {
-                        tmpPlr = server->getPlayer( i );
-                        if ( tmpPlr != nullptr )
-                        {
-                            if ( tmpPlr->getSernum_s() == arg1
-                              || all )
-                            {
-                                //Eventually Inform the User.
-                                tmpPlr->setNetworkMuted( true );
-                            }
-                        }
-                    }
-                    retn = true;
-                }
-            break;
-            case CMDS::MSG:
-                {
-                    if ( all )
-                    {
-                        server->sendMasterMessage( message,
-                                                   nullptr,
-                                                   all );
-                    }
-                    else
-                    {
-                        Player* tmpPlr{ nullptr };
-                        for ( int i = 0; i < MAX_PLAYERS; ++i )
-                        {
-                            tmpPlr = server->getPlayer( i );
-                            if ( tmpPlr != nullptr )
-                            {
-                                if ( tmpPlr->getSernum_s() == arg1 )
-                                {
-                                    server->sendMasterMessage( message, tmpPlr,
-                                                               false );
-                                }
-                            }
-                        }
-                    }
-                    retn = true;
-                }
-            break;
-            default:
-            break;
-        }
-
-        QString log{ "adminUsage.txt" };
-        QString logMsg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
-                        "argument [ %3 ] and reason [ %4 ]." };
-
-        logMsg = logMsg.arg( plr->getSernum_s() )
-                        .arg( cmd )
-                        .arg( arg1 )
-                        .arg( message );
-        Helper::logToFile( log, logMsg, true, true );
-
-    }
-    return retn;
 }

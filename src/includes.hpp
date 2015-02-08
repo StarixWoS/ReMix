@@ -55,6 +55,7 @@
     #include "usermessage.hpp"
     #include "adminhelper.hpp"
     #include "serverinfo.hpp"
+    #include "cmdhandler.hpp"
     #include "bandialog.hpp"
     #include "messages.hpp"
     #include "settings.hpp"
