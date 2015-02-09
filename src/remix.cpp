@@ -49,15 +49,11 @@ ReMix::ReMix(QWidget *parent) :
     plrProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     ui->playerView->setModel( plrProxy );
 
-    //Setup Dialog Objects.
+    //Setup Objects.
     sysMessages = new Messages( this );
-    settings = new Settings( this );
-
-    //Setup Server/Player Info objects.
-    server = new ServerInfo();
-
-    //Setup Other Objects.
     admin = new Admin( this, server );
+    settings = new Settings( this, admin );
+    server = new ServerInfo( admin );
 
     server->setServerID( Helper::getServerID() );
     if ( server->getServerID() <= 0 )
@@ -543,7 +539,7 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
             menuTarget = plr;
 
         QString sernum = menuTarget->getSernum_s();
-        if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
+        if ( !admin->getIsRemoteAdmin( sernum ) )
             contextMenu->removeAction( ui->actionRevokeAdmin );
         else
             contextMenu->removeAction( ui->actionMakeAdmin );
@@ -605,7 +601,7 @@ void ReMix::on_actionRevokeAdmin_triggered()
 
     if ( menuTarget->getSocket() != nullptr )
     {
-        if ( AdminHelper::deleteRemoteAdmin( this, sernum ) )
+        if ( admin->deleteRemoteAdmin( this, sernum ) )
         {
             //The User is no longer a registered Admin.
             //Revoke their current permissions.
@@ -630,9 +626,9 @@ void ReMix::on_actionMakeAdmin_triggered()
                  "(/register *YOURPASS). Note: The server Host and other Admins"
                  " will not have access to this information." };
 
-    if ( !AdminHelper::getIsRemoteAdmin( sernum ) )
+    if ( !admin->getIsRemoteAdmin( sernum ) )
     {
-        if ( AdminHelper::createRemoteAdmin( this, sernum ) )
+        if ( admin->createRemoteAdmin( this, sernum ) )
         {
             server->sendMasterMessage( msg, menuTarget, false );
             menuTarget->setReqNewAuthPwd( true );

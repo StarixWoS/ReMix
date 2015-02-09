@@ -43,7 +43,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
                      "more tries." };
 
     QString sernum = plr->getSernum_s();
-    if ( AdminHelper::getIsRemoteAdmin( sernum ) )
+    if ( adminDialog->getIsRemoteAdmin( sernum ) )
     {
         retn = false;
         if ( plr->getGotAuthPwd() )
@@ -260,11 +260,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     {
         QString log{ "adminUsage.txt" };
         QString logMsg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
-                        "argument [ %3 ] and reason [ %4 ]." };
+                        "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and reason "
+                        "[ %6 ]." };
 
         logMsg = logMsg.arg( plr->getSernum_s() )
                        .arg( cmd )
+                       .arg( argType )
                        .arg( arg1 )
+                       .arg( arg2 )
                        .arg( message );
         Helper::logToFile( log, logMsg, true, true );
     }
@@ -448,7 +451,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
            || plr->getReqAuthPwd() )
     {
         if ( !pwd.toString().isEmpty()
-             && AdminHelper::cmpRemoteAdminPwd( sernum, pwd ) )
+          && adminDialog->cmpRemoteAdminPwd( sernum, pwd ) )
         {
             response = "Correct Admin Password. Welcome!";
 
@@ -463,11 +466,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     }
 
     if ( !response.isEmpty() )
-    {
-
-        server->sendMasterMessage( response, plr,
-                                   false );
-    }
+        server->sendMasterMessage( response, plr, false );
 
     if ( disconnect )
         plr->setSoftDisconnect( true );
@@ -509,9 +508,5 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
     }
 
     if ( !response.isEmpty() )
-    {
-
-        server->sendMasterMessage( response, plr,
-                                   false );
-    }
+        server->sendMasterMessage( response, plr, false );
 }

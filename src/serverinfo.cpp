@@ -2,9 +2,10 @@
 #include "includes.hpp"
 #include "serverinfo.hpp"
 
-ServerInfo::ServerInfo()
+ServerInfo::ServerInfo(Admin* aDlg)
 {
     masterSocket = new QUdpSocket();
+    adminDialog = aDlg;
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -155,7 +156,7 @@ Player* ServerInfo::createPlayer(int slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
-        players[ slot ] = new Player();
+        players[ slot ] = new Player( adminDialog );
         players[ slot ]->setSlotPos( slot );    //The player will be Slot-Aware.
         return players[ slot ];
     }

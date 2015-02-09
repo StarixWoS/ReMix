@@ -14,9 +14,10 @@ namespace Ui {
 class Settings : public QDialog
 {
     Q_OBJECT
+    Admin* adminDialog{ nullptr };
 
     public:
-        explicit Settings(QWidget *parent = 0);
+        explicit Settings(QWidget *parent = 0, Admin* aDlg = nullptr);
         ~Settings();
 
         enum Options{ ReqPwd = 0, ReqAdminPwd = 1, AllowDupIP = 2, BanDupIP = 3,

@@ -894,8 +894,8 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
                  "Please enter your password with the command (/login *PASS) "
                  "or be denied access to the server. Thank you!" };
 
-    if ( AdminHelper::getReqAdminAuth()
-      && AdminHelper::getIsRemoteAdmin( serNum ) )
+    if ( admin->getReqAdminAuth()
+      && admin->getIsRemoteAdmin( serNum ) )
     {
         plr->setReqAuthPwd( true );
         server->sendMasterMessage( msg, plr, false );

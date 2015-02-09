@@ -53,7 +53,6 @@
     #define REMIX_INCLUDES_HPP
 
     #include "usermessage.hpp"
-    #include "adminhelper.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
     #include "bandialog.hpp"

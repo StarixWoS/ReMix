@@ -3,11 +3,13 @@
 #include "settings.hpp"
 #include "ui_settings.h"
 
-Settings::Settings(QWidget *parent) :
+Settings::Settings(QWidget *parent, Admin* aDlg) :
     QDialog(parent),
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
+
+    adminDialog = aDlg;
 
     //Remove the "Help" button from the window title bars.
     {
@@ -26,7 +28,7 @@ Settings::Settings(QWidget *parent) :
                            Helper::getRequirePassword() );
 
     this->setCheckedState( Options::ReqAdminPwd,
-                           AdminHelper::getReqAdminAuth() );
+                           adminDialog->getReqAdminAuth() );
 
     this->setCheckedState( Options::AllowDupIP,
                            Helper::getAllowDupedIP() );
@@ -87,7 +89,7 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
     {
         case Options::ReqPwd:
             {
-                QVariant txt = QString{ "" };
+                QString txt{ "" };
                 bool ok;
 
                 Helper::setRequirePassword( state );
@@ -99,9 +101,9 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
 
                     txt = Helper::getTextResponse( this, title,
                                                    prompt, &ok, 0 );
-                    if ( ok && !txt.toString().isEmpty() )
+                    if ( ok && !txt.isEmpty() )
                     {
-                        Helper::setPassword( txt, false );
+                        Helper::setPassword( txt );
                     }
                     else
                     {   //Invalid dialog state or no input Password.
@@ -119,12 +121,12 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
                     prompt = "Do you wish to erase the stored Password hash?";
 
                     if ( Helper::confirmAction( this, title, prompt ) )
-                        Helper::setPassword( txt, false );
+                        Helper::setPassword( txt );
                 }
             }
         break;
         case Options::ReqAdminPwd:
-            AdminHelper::setReqAdminAuth( state );
+            adminDialog->setReqAdminAuth( state );
         break;
         case Options::AllowDupIP:
             Helper::setAllowDupedIP( state );

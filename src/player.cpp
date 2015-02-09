@@ -2,11 +2,12 @@
 #include "includes.hpp"
 #include "player.hpp"
 
-Player::Player()
+Player::Player(Admin* aDlg)
 {
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
+    adminDialog = aDlg;
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
@@ -51,8 +52,8 @@ Player::Player()
 
         //Authenticate Remote Admins as required.
         QString sernum{ this->getSernum_s() };
-        if ( AdminHelper::getReqAdminAuth()
-          && AdminHelper::getIsRemoteAdmin( sernum ) )
+        if ( adminDialog->getReqAdminAuth()
+          && adminDialog->getIsRemoteAdmin( sernum ) )
         {
             if ( this->getSernum() != 0
               && !this->getReqAuthPwd() )
@@ -415,7 +416,7 @@ void Player::setGotAuthPwd(bool value)
 
     QString sernum = this->getSernum_s();
     if ( gotAuthPwd )
-        this->setAdminRank( AdminHelper::getRemoteAdminRank( sernum ) );
+        this->setAdminRank( adminDialog->getRemoteAdminRank( sernum ) );
 }
 
 qint32 Player::getAdminRank() const

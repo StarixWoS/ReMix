@@ -61,9 +61,6 @@
 #ifndef REMIX_PROTOTYPES_HPP
     #define REMIX_PROTOTYPES_HPP
 
-    namespace AdminHelper
-    {}
-
     namespace Helper
     {}
 

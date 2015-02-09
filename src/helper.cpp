@@ -292,18 +292,17 @@ QString Helper::getDisconnectReason(QWidget* parent)
     return dialog->textValue();
 }
 
-bool Helper::setPassword(QVariant& value, bool isHashed)
+void Helper::setPassword(QString& value)
 {
+    QVariant pwd{ value };
+
     //Convert the password to a SHA3_512 hash.
-    if ( !value.toString().isEmpty() && !isHashed )
+    if ( !value.isEmpty() )
     {
-        value = hashPassword( value );
-        isHashed = true;
+        pwd = hashPassword( pwd );
     }
     setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::Password ], value );
-
-    return isHashed;
+                subKeys[ SubKeys::Password ], pwd );
 }
 
 QString Helper::getPassword()
