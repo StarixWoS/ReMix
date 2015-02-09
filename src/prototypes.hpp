@@ -39,6 +39,7 @@
     class QTextEdit;
     class QVariant;
     class QtEndian;
+    class QProcess;
     class QDialog;  //Requires Include within Class Headers.
     class QString;
     class QObject;  //Requires Include within Class Headers.

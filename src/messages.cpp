@@ -18,7 +18,7 @@ Messages::Messages(QWidget *parent) :
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
 
-        this->setWindowModality( Qt::WindowModal );
+        //this->setWindowModality( Qt::WindowModal );
     }
 
     //Load settings from: Preferences.ini

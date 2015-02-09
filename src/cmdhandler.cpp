@@ -9,7 +9,8 @@ const QStringList CmdHandler::commands =
     //enum CMDS{ BAN = 0, UNBAN = 1, KICK = 2, MUTE = 3, UNMUTE = 4, MSG = 5 };
     QStringList() << "ban" << "unban" << "kick"
                   << "mute" << "unmute" << "msg"
-                  << "login" << "register"
+                  << "login" << "register" << "shutdown"
+                  << "restart"
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
@@ -174,13 +175,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             message = packet.mid( packet.indexOf( arg2 ) );
     }
 
-    bool canUseCommand{ this->canUseAdminCommands( plr ) };
+    bool canUseCommands{ false };
     switch ( argIndex )
     {
         case CMDS::BAN: //0
             {
-                if ( !arg1.isEmpty()
-                  && canUseCommand )
+                canUseCommands = this->canUseAdminCommands( plr );
+                if (( !arg1.isEmpty() && !argType.isEmpty() )
+                  && canUseCommands )
                 {
                     this->banhandler( plr, argType, arg1, message, all );
                 }
@@ -189,8 +191,9 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case CMDS::UNBAN: //1
             {
-                if ( !arg1.isEmpty()
-                  && canUseCommand )
+                canUseCommands = this->canUseAdminCommands( plr );
+                if (( !arg1.isEmpty() && !argType.isEmpty() )
+                  && canUseCommands )
                 {
                     this->unBanhandler( argType, arg1 );
                 }
@@ -199,8 +202,9 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case CMDS::KICK: //2
             {
+                canUseCommands = this->canUseAdminCommands( plr );
                 if ( !arg1.isEmpty()
-                  && canUseCommand )
+                  && canUseCommands )
                 {
                     this->kickHandler( arg1, message, all );
                 }
@@ -210,8 +214,9 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case CMDS::MUTE: //3
         case CMDS::UNMUTE: //4
             {
+                canUseCommands = this->canUseAdminCommands( plr );
                 if ( !arg1.isEmpty()
-                  && canUseCommand )
+                  && canUseCommands )
                 {
                     this->muteHandler( arg1, argIndex, all );
                 }
@@ -226,8 +231,9 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                                    % " ]: " );
                 }
 
+                canUseCommands = this->canUseAdminCommands( plr );
                 if ( !arg1.isEmpty()
-                  && canUseCommand )
+                  && canUseCommands )
                 {
                     this->msgHandler( arg1, message, all );
                 }
@@ -252,6 +258,28 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 logMsg = false;
             }
         break;
+        case CMDS::SHUTDOWN: //8
+            {
+                canUseCommands = this->canUseAdminCommands( plr );
+                if ( plr->getAdminRank() >= Ranks::OWNER
+                  && canUseCommands )
+                {
+                    this->shutDownHandler( plr, false );
+                    retn = true;
+                }
+            }
+        break;
+        case CMDS::RESTART: //9
+            {
+                canUseCommands = this->canUseAdminCommands( plr );
+                if ( plr->getAdminRank() >= Ranks::OWNER
+                  && canUseCommands )
+                {
+                    this->shutDownHandler( plr, true );
+                    retn = true;
+                }
+            }
+        break;
         default:
         break;
     }
@@ -272,7 +300,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         Helper::logToFile( log, logMsg, true, true );
     }
 
-    if ( retn && canUseCommand )
+    if ( retn && canUseCommands )
     {
         QString valid{ "It has been done. I hope you entered the right "
                        "command!" };
@@ -509,4 +537,36 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 
     if ( !response.isEmpty() )
         server->sendMasterMessage( response, plr, false );
+}
+
+void CmdHandler::shutDownHandler(Player* plr, bool restart)
+{
+    QString message{ "Admin [ %1 ]: The Server will be %2 in 30 seconds..." };
+            message = message.arg( plr->getSernum_s() );
+
+    QTimer* timer = new QTimer();
+    QObject::connect( timer, &QTimer::timeout, [=]()
+    {
+        if ( restart )
+        {
+            QProcess proc;
+            proc.startDetached( qApp->applicationFilePath(),
+                                qApp->arguments() );
+        }
+        qApp->quit();
+    });
+
+    if ( restart )
+    {
+        message = message.arg( "restarting" );
+        timer->start( 30000 );
+    }
+    else
+    {
+        message = message.arg( "shutting down" );
+        timer->start( 30000 );
+    }
+
+    if ( !message.isEmpty() )
+        server->sendMasterMessage( message, nullptr, true );
 }

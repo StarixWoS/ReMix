@@ -48,9 +48,9 @@ SOURCES += src/main.cpp \
            src/helper.cpp \
            src/randdev.cpp \
            src/admin.cpp \
-           src/adminhelper.cpp \
            src/bandialog.cpp \
-           src/settings.cpp
+           src/settings.cpp \
+           src/cmdhandler.cpp
 
 HEADERS += src/player.hpp \
            src/remix.hpp \
@@ -61,11 +61,11 @@ HEADERS += src/player.hpp \
            src/helper.hpp \
            src/randdev.hpp \
            src/admin.hpp \
-           src/adminhelper.hpp \
            src/bandialog.hpp \
            src/settings.hpp \
            src/includes.hpp \
-           src/prototypes.hpp
+           src/prototypes.hpp \
+           src/cmdhandler.hpp
 
 FORMS += ui/remix.ui \
          ui/messages.ui \

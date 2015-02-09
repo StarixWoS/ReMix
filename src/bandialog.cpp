@@ -17,7 +17,7 @@ BanDialog::BanDialog(QWidget *parent) :
 
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
-        this->setWindowModality( Qt::WindowModal );
+        //this->setWindowModality( Qt::WindowModal );
     }
 
     //Setup the IP-Ban TableView.
@@ -390,6 +390,18 @@ void BanDialog::addSerNumBanImpl(QString& sernum, QString& reason)
         {
             row = snModel->rowCount();
             snModel->insertRow( row );
+
+            //Display the SERNUM in the correct format as required.
+            if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
+              && !sernum.contains( " " ) )
+            {
+                sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
+            }
+            else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
+                   && !sernum.contains( "SOUL " ) )
+            {
+                sernum.prepend( "SOUL " );
+            }
 
             snModel->setData( snModel->index( row, 0 ),
                               sernum,

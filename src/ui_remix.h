@@ -301,8 +301,8 @@ public:
         playerView->horizontalHeader()->setDefaultSectionSize(100);
         playerView->horizontalHeader()->setStretchLastSection(false);
         playerView->verticalHeader()->setVisible(false);
-        playerView->verticalHeader()->setDefaultSectionSize(25);
-        playerView->verticalHeader()->setMinimumSectionSize(25);
+        playerView->verticalHeader()->setDefaultSectionSize(20);
+        playerView->verticalHeader()->setMinimumSectionSize(20);
 
         gridLayout_2->addWidget(playerView, 2, 1, 1, 3);
 

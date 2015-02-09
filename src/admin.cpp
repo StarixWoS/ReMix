@@ -187,6 +187,8 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
 
     QString hexSerNum{ sernum };
             hexSerNum = Helper::serNumToHexStr( hexSerNum, 8 );
+    if ( hexSerNum.length() > 8 )
+        hexSerNum = hexSerNum.mid( hexSerNum.length() - 8 );
 
     if ( !hexSerNum.isEmpty()
       && !pwd.isEmpty() )
@@ -241,25 +243,21 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
             sernum.prepend( "SOUL " );
         }
 
-        tableModel->setData(
-                    tableModel->index( row, 0 ),
-                    sernum,
-                    Qt::DisplayRole );
+        tableModel->setData( tableModel->index( row, 0 ),
+                             sernum,
+                             Qt::DisplayRole );
 
-        tableModel->setData(
-                    tableModel->index( row, 1 ),
-                    ui->comboBox->currentIndex(),
-                    Qt::DisplayRole );
+        tableModel->setData( tableModel->index( row, 1 ),
+                             ui->comboBox->currentIndex(),
+                             Qt::DisplayRole );
 
-        tableModel->setData(
-                    tableModel->index( row, 2 ),
-                    hash,
-                    Qt::DisplayRole );
+        tableModel->setData( tableModel->index( row, 2 ),
+                             hash,
+                             Qt::DisplayRole );
 
-        tableModel->setData(
-                    tableModel->index( row, 3 ),
-                    salt,
-                    Qt::DisplayRole );
+        tableModel->setData( tableModel->index( row, 3 ),
+                             salt,
+                             Qt::DisplayRole );
 
         ui->adminTable->selectRow( row );
         ui->adminTable->resizeColumnsToContents();
@@ -363,7 +361,7 @@ bool Admin::cmpRemoteAdminPwd(QString& serNum, QVariant& value)
                               .toString();
 
     QVariant hash{ recSalt + value.toString() };
-    hash = Helper::hashPassword( hash );
+             hash = Helper::hashPassword( hash );
 
     return hash == recHash;
 }

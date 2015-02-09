@@ -28,6 +28,7 @@
     #include <QSettings>
     #include <QDateTime>
     #include <QFileInfo>
+    #include <QProcess>
     #include <QtEndian>
     #include <QVariant>
     #include <QObject>

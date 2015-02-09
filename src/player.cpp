@@ -413,20 +413,12 @@ bool Player::getGotAuthPwd() const
 void Player::setGotAuthPwd(bool value)
 {
     gotAuthPwd = value;
+}
 
+qint32 Player::getAdminRank()
+{
     QString sernum = this->getSernum_s();
-    if ( gotAuthPwd )
-        this->setAdminRank( adminDialog->getRemoteAdminRank( sernum ) );
-}
-
-qint32 Player::getAdminRank() const
-{
-    return adminRank;
-}
-
-void Player::setAdminRank(const qint32& value)
-{
-    adminRank = value;
+    return adminDialog->getRemoteAdminRank( sernum );
 }
 
 qint32 Player::getCmdAttempts() const

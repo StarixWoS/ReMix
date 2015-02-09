@@ -74,7 +74,8 @@ public:
         adminTable->horizontalHeader()->setMinimumSectionSize(50);
         adminTable->horizontalHeader()->setStretchLastSection(true);
         adminTable->verticalHeader()->setVisible(false);
-        adminTable->verticalHeader()->setMinimumSectionSize(30);
+        adminTable->verticalHeader()->setDefaultSectionSize(20);
+        adminTable->verticalHeader()->setMinimumSectionSize(20);
 
         gridLayout_2->addWidget(adminTable, 0, 0, 1, 8);
 

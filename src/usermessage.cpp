@@ -32,7 +32,8 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias,
     if ( obj == nullptr )
         return;
 
-    quint64 date = QDateTime::currentDateTime().toTime_t();
+    quint64 date = QDateTime::currentDateTime()
+                        .toTime_t();
     QString comment = QString( "\r\n --- \r\n"
                                "%1 \r\n"
                                "SerNum: %2 \r\n"
@@ -72,7 +73,8 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias,
     if ( Helper::getLogComments() )
     {
         QString log = QDate::currentDate()
-                       .toString( "mixComments/yyyy-MM-dd.txt" );
+                       .toString( "mixComments/" % sernum
+                                % "_yyyy-MM-dd.txt" );
         Helper::logToFile( log, comment, false, false );
     }
 

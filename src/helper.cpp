@@ -142,11 +142,22 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    int sernum_i{ sernum.toInt( 0, 16 ) };
+    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+    if ( sernum_i <= 0 )
+        sernum_i = sernum.toUInt( 0, 16 );
+
+    QString retn{ "" };
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
-        return QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
+        retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
-        return QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
+        retn = QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
+
+    if ( !retn.startsWith( "SOUL", Qt::CaseInsensitive )
+      && retn.length() > 8 )
+    {
+        retn = retn.mid( retn.length() - 8 );
+    }
+    return retn;
 }
 
 qint32 Helper::serNumtoInt(QString& sernum)

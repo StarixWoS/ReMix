@@ -168,8 +168,7 @@ class Player : public QObject
         bool getGotAuthPwd() const;
         void setGotAuthPwd(bool value);
 
-        qint32 getAdminRank() const;
-        void setAdminRank(const qint32& value);
+        qint32 getAdminRank();
 
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);

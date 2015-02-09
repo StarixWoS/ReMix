@@ -20,7 +20,7 @@ Settings::Settings(QWidget *parent, Admin* aDlg) :
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
 
-        this->setWindowModality( Qt::WindowModal );
+        //this->setWindowModality( Qt::WindowModal );
     }
 
     //Load Settings from file.
