@@ -105,11 +105,14 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         }
         else
         {
-            //Send the Comment to all connected Remote-Administrators
-            //Then forward the message to the Comments dialog if enabled.
-            if ( Helper::getFwdComments() )
+            if ( !msg.isEmpty() )
             {
-                if ( !msg.isEmpty() )
+                //Echo the chat back to the User.
+                server->sendMasterMessage( "Echo: " % msg, plr, false );
+
+                //Send the Comment to all connected Remote-Administrators
+                //Then forward the message to the Comments dialog if enabled.
+                if ( Helper::getFwdComments() )
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from [ %1 ]: %2" };
