@@ -145,7 +145,7 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
         }
 
         //Prevent adding new rows for previously-banned users.
-        if ( !this->getIsSernumBanned( sernum ) )
+        if ( !SNBanWidget::getIsSernumBanned( sernum ) )
         {
             row = snModel->rowCount();
             snModel->insertRow( row );

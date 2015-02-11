@@ -34,12 +34,7 @@ class BanDialog : public QDialog
         void removeIPBan(QString& ip);
         void removeIPBan(QHostAddress& ipInfo);
 
-        bool getIsIPBanned(QHostAddress& ipAddr);
-        bool getIsIPBanned(QString ipAddr);
-
         //SerNum-Ban Tab
-        bool getIsSernumBanned(QString sernum);
-
         void remoteAddSerNumBan(Player* admin, Player* target,
                                            QString& reason);
 

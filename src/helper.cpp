@@ -2,20 +2,6 @@
 #include "includes.hpp"
 #include "helper.hpp"
 
-//Initialize Settings keys/subKeys lists
-const QString Helper::keys[ SETTINGS_KEY_COUNT ] =
-{
-    "options", "wrongIPs", "General"
-};
-
-const QString Helper::subKeys[ SETTINGS_SUBKEY_COUNT ] =
-{
-    "extension", "myPassword", "autoBanish", "discIdle", "requireSernum",
-    "dupeOK", "serverSupportsVariables", "banishDupes", "requirePassword",
-    "MOTD", "BANISHED", "RULES", "requireAdminAuth", "logComments",
-    "FwdComments", "InformAdminLogin"
-};
-
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
                                         int width, quint32 height)
@@ -231,51 +217,6 @@ QString Helper::getTextResponse(QWidget* parent, QString& title,
     return response;
 }
 
-void Helper::setSetting(const QString& key, const QString& subKey,
-                        QVariant& value)
-{
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-
-    if ( key == QLatin1String( "General" ) )
-        setting.setValue( subKey, value );
-    else
-        setting.setValue( key % "/" % subKey, value );
-}
-
-QVariant Helper::getSetting(const QString& key, const QString& subKey)
-{
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-
-    if ( key == QLatin1String( "General" ) )
-        return setting.value( subKey );
-
-    return setting.value( key % "/" % subKey );
-}
-
-void Helper::setMOTDMessage(QVariant& value)
-{
-    setSetting( keys[ Keys::General ],
-                subKeys[ SubKeys::MOTD ], value );
-}
-
-QString Helper::getMOTDMessage()
-{
-    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::MOTD ] )
-              .toString();
-}
-
-void Helper::setBanishMesage(QVariant& value)
-{
-    setSetting( keys[ Keys::General ],
-                subKeys[ SubKeys::BanishMsg ], value );
-}
-
-QString Helper::getBanishMesage()
-{
-    return getSetting( keys[ Keys::General ], subKeys[ SubKeys::BanishMsg ] )
-              .toString();
-}
-
 QString Helper::getBanishReason(QWidget* parent)
 {
     QString label{ "Ban Reason ( Sent to User ):" };
@@ -302,46 +243,6 @@ QString Helper::getDisconnectReason(QWidget* parent)
     dialog->deleteLater();
 
     return dialog->textValue();
-}
-
-void Helper::setPassword(QString& value)
-{
-    QVariant pwd{ value };
-
-    //Convert the password to a SHA3_512 hash.
-    if ( !value.isEmpty() )
-    {
-        pwd = hashPassword( pwd );
-    }
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::Password ], pwd );
-}
-
-QString Helper::getPassword()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Password ] )
-              .toString();
-}
-
-void Helper::setRequirePassword(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::ReqPassword ], value );
-}
-
-bool Helper::getRequirePassword()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqPassword ] )
-              .toBool();
-}
-
-bool Helper::cmpServerPassword(QVariant& value)
-{
-    //Convert the password to a SHA3_512 hash.
-    if ( !value.toString().isEmpty() )
-        value = hashPassword( value );
-
-    return ( getPassword() == value.toString() );
 }
 
 QString Helper::hashPassword(QVariant& password)
@@ -383,107 +284,6 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
     return salt;
 }
 
-void Helper::setServerRules(QVariant& value)
-{
-    setSetting( keys[ Keys::General ],
-                subKeys[ SubKeys::Rules ], value );
-}
-
-QString Helper::getServerRules()
-{
-    QVariant pending = getSetting( keys[ Keys::General ],
-                                   subKeys[ SubKeys::Rules ] );
-
-    QString rules;
-    if ( pending.type() == QVariant::StringList )
-    {
-        QStringList ruleList = pending.toStringList();
-        for ( int i = 0; i < ruleList.count(); ++i )
-        {
-            if ( i > 0 )
-                rules.append( ", " );
-
-            rules.append( ruleList.at( i ) );
-        }
-    }
-    else if ( pending.type() == QVariant::String )
-        rules = pending.toString();
-
-    return rules;
-}
-
-void Helper::setAllowDupedIP(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::AllowDupe ], value );
-}
-
-bool Helper::getAllowDupedIP()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowDupe ] )
-              .toBool();
-}
-
-void Helper::setBanDupedIP(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::BanDupes ], value );
-}
-
-bool Helper::getBanDupedIP()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::BanDupes ] )
-              .toBool();
-}
-
-void Helper::setBanHackers(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::AutoBan ], value );
-}
-
-bool Helper::getBanHackers()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AutoBan ] )
-              .toBool();
-}
-
-void Helper::setReqSernums(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::ReqSernum ], value );
-}
-
-bool Helper::getReqSernums()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::ReqSernum ] )
-              .toBool();
-}
-
-void Helper::setDisconnectIdles(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::AllowIdle ], value );
-}
-
-bool Helper::getDisconnectIdles()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowIdle ] )
-              .toBool();
-}
-
-void Helper::setAllowSSV(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::AllowSSV ], value );
-}
-
-bool Helper::getAllowSSV()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::AllowSSV ] )
-              .toBool();
-}
-
 void Helper::logBIOData(QString& serNum, QHostAddress& ip,
                         quint16 port, QString& bio)
 {
@@ -501,62 +301,6 @@ void Helper::logBIOData(QString& serNum, QHostAddress& ip,
                                                        .toString( "ddd MMM dd"
                                                                   " HH:mm:ss "
                                                                   "yyyy" ));
-}
-
-void Helper::setLogComments(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::LogComments ], value );
-}
-
-bool Helper::getLogComments()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ] )
-              .toBool();
-}
-
-void Helper::setFwdComments(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::FwdComments ], value );
-}
-
-bool Helper::getFwdComments()
-{
-    return getSetting( keys[ Keys::Options ],
-                       subKeys[ SubKeys::FwdComments ] )
-              .toBool();
-}
-
-void Helper::setInformAdminLogin(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::InformAdminLogin ], value );
-}
-
-bool Helper::getInformAdminLogin()
-{
-    return getSetting( keys[ Keys::Options ],
-                       subKeys[ SubKeys::InformAdminLogin ] )
-              .toBool();
-}
-
-
-void Helper::setServerID(QVariant& value)
-{
-    setSetting( keys[ Keys::Options ],
-                subKeys[ SubKeys::Extension ], value );
-}
-
-int Helper::getServerID()
-{
-    return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::Extension ] )
-              .toInt();
-}
-
-bool Helper::isInvalidIPAddress(const QString& value)
-{
-    return getSetting( keys[ Keys::WrongIP ], value ).toBool();
 }
 
 bool Helper::naturalSort(QString left, QString right, bool& result)

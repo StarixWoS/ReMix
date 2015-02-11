@@ -51,20 +51,20 @@ ReMix::ReMix(QWidget *parent) :
 
     //Setup Objects.
     sysMessages = new Messages( this );
-    admin = new Admin( this, server );
-    settings = new Settings( this, admin );
-    server = new ServerInfo( admin );
+    settings = new Settings( this );
+    server = new ServerInfo();
+    admin = new Admin( this );
 
-    server->setServerID( Helper::getServerID() );
+    server->setServerID( Settings::getServerID() );
     if ( server->getServerID() <= 0 )
     {
         QVariant value = this->genServerID();
         server->setServerID( value.toInt() );
 
-        Helper::setServerID( value );
+        Settings::setServerID( value );
     }
     server->setHostInfo( QHostInfo() );
-    server->setServerRules( Helper::getServerRules() );
+    server->setServerRules( Settings::getServerRules() );
 
     this->parseCMDLArgs();
     this->getSynRealData();
@@ -548,7 +548,7 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
             menuTarget = plr;
 
         QString sernum = menuTarget->getSernum_s();
-        if ( !admin->getIsRemoteAdmin( sernum ) )
+        if ( !Admin::getIsRemoteAdmin( sernum ) )
             contextMenu->removeAction( ui->actionRevokeAdmin );
         else
             contextMenu->removeAction( ui->actionMakeAdmin );
@@ -607,7 +607,7 @@ void ReMix::on_actionRevokeAdmin_triggered()
 
     if ( menuTarget->getSocket() != nullptr )
     {
-        if ( admin->deleteRemoteAdmin( this, sernum ) )
+        if ( Admin::deleteRemoteAdmin( this, sernum ) )
         {
             //The User is no longer a registered Admin.
             //Revoke their current permissions.
@@ -631,9 +631,9 @@ void ReMix::on_actionMakeAdmin_triggered()
                  "(/register *YOURPASS). Note: The server Host and other Admins"
                  " will not have access to this information." };
 
-    if ( !admin->getIsRemoteAdmin( sernum ) )
+    if ( !Admin::getIsRemoteAdmin( sernum ) )
     {
-        if ( admin->createRemoteAdmin( this, sernum ) )
+        if ( Admin::createRemoteAdmin( this, sernum ) )
         {
             server->sendMasterMessage( msg, menuTarget, false );
             menuTarget->setReqNewAuthPwd( true );

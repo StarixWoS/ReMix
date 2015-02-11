@@ -81,22 +81,8 @@ void BanDialog::removeIPBan(QHostAddress& ipInfo)
     ipBanWidget->removeIPBan( ipInfo );
 }
 
-bool BanDialog::getIsIPBanned(QHostAddress& ipAddr)
-{
-    return ipBanWidget->getIsIPBanned( ipAddr );
-}
 
-bool BanDialog::getIsIPBanned(QString ipAddr)
-{
-    return ipBanWidget->getIsIPBanned( ipAddr );
-}
-
-//Sernum-Ban Tab
-bool BanDialog::getIsSernumBanned(QString sernum)
-{
-    return snBanWidget->getIsSernumBanned( sernum );
-}
-
+//Sernum-Ban Tab.
 void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reason)
 {
     if ( admin == nullptr || target == nullptr )
@@ -105,8 +91,8 @@ void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reaso
     }
 
     QString sernum{ target->getSernum_s() };
-
     QString msg{ reason };
+
     if ( msg.isEmpty() )
     {
         msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";

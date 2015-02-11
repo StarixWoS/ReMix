@@ -15,12 +15,11 @@ const QStringList Admin::ranks
                   << "Admin" << "Owner"
 };
 
-Admin::Admin(QWidget *parent, ServerInfo* svr) :
+Admin::Admin(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Admin)
 {
     ui->setupUi(this);
-    server = svr;
 
     //Remove the "Help" button from the window title bars.
     {
@@ -338,18 +337,6 @@ QVariant Admin::getAdminData(const QString& key, const QString& subKey)
         return adminData.value( sernum % "/" % subKey, -1 );
     else
         return adminData.value( sernum % "/" % subKey );
-}
-
-void Admin::setReqAdminAuth(QVariant& value)
-{
-    Helper::setSetting( Helper::keys[ Helper::Options ],
-            Helper::subKeys[ Helper::ReqAdminAuth ], value );
-}
-
-bool Admin::getReqAdminAuth()
-{
-    return Helper::getSetting( Helper::keys[ Helper::Options ],
-            Helper::subKeys[ Helper::ReqAdminAuth ] ).toBool();
 }
 
 bool Admin::getIsRemoteAdmin(QString& serNum)

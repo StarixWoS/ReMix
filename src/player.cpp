@@ -2,12 +2,11 @@
 #include "includes.hpp"
 #include "player.hpp"
 
-Player::Player(Admin* aDlg)
+Player::Player()
 {
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
-    adminDialog = aDlg;
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
@@ -45,7 +44,7 @@ Player::Player(Admin* aDlg)
 
                 //Color the User's IP address Green if the Admin is authed
                 //Otherwise, color as Red.
-                if ( adminDialog->getIsRemoteAdmin( sernum ) )
+                if ( Admin::getIsRemoteAdmin( sernum ) )
                 {
                     if ( this->getGotAuthPwd() )
                     {
@@ -76,20 +75,20 @@ Player::Player(Admin* aDlg)
             }
         }
 
-        if ( Helper::getDisconnectIdles()
+        if ( Settings::getDisconnectIdles()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
             this->setHardDisconnect( true );
         }
 
         //Authenticate Remote Admins as required.
-        if ( adminDialog->getReqAdminAuth()
-          && adminDialog->getIsRemoteAdmin( sernum ) )
+        if ( Settings::getReqAdminAuth()
+          && Admin::getIsRemoteAdmin( sernum ) )
         {
             if ( this->getSernum() != 0
               && !this->getReqAuthPwd() )
             {
-                if ( !Helper::getRequirePassword() || this->getEnteredPwd() )
+                if ( !Settings::getRequirePassword() || this->getEnteredPwd() )
                 {
                     if ( !this->getGotAuthPwd() )
                         emit sendRemoteAdminPwdReqSignal( this, sernum );
@@ -164,7 +163,7 @@ void Player::setSernum(qint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
-    if ( Helper::getReqSernums() && value == 0 )
+    if ( Settings::getReqSernums() && value == 0 )
     {
         this->setHardDisconnect( true );
         return;
@@ -448,7 +447,7 @@ void Player::setGotAuthPwd(bool value)
 qint32 Player::getAdminRank()
 {
     QString sernum = this->getSernum_s();
-    return adminDialog->getRemoteAdminRank( sernum );
+    return Admin::getRemoteAdminRank( sernum );
 }
 
 qint32 Player::getCmdAttempts() const

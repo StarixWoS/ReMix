@@ -70,7 +70,7 @@ void UserMessage::newUserCommentSlot(QString& sernum, QString& alias,
         obj->verticalScrollBar()->setSliderPosition(
                     obj->verticalScrollBar()->maximum() );
 
-    if ( Helper::getLogComments() )
+    if ( Settings::getLogComments() )
     {
         QString log = QDate::currentDate()
                        .toString( "mixComments/" % sernum

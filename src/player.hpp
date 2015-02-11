@@ -74,10 +74,8 @@ class Player : public QObject
         bool hasWorldInfo{ false };
     #endif
 
-    Admin* adminDialog{ nullptr };
-
     public:
-        explicit Player(Admin* aDlg = nullptr);
+        explicit Player();
         ~Player();
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };

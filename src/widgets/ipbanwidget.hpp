@@ -27,8 +27,8 @@ class IPBanWidget : public QWidget
         void removeIPBan(QHostAddress& ipInfo);
         void removeIPBan(QString& ip);
 
-        bool getIsIPBanned(QHostAddress& ipAddr);
-        bool getIsIPBanned(QString ipAddr);
+        static bool getIsIPBanned(QHostAddress& ipAddr);
+        static bool getIsIPBanned(QString ipAddr);
 
     private:
         void loadBannedIPs();

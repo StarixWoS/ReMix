@@ -126,7 +126,7 @@
         static const int SETTINGS_KEY_COUNT{ 3 };
 
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
-        static const int SETTINGS_SUBKEY_COUNT{ 16 };
+        static const int SETTINGS_SUBKEY_COUNT{ 17 };
 
     #endif  // REMIX_GLOBALS
 

@@ -6,16 +6,6 @@
 
 namespace Helper
 {
-    extern const QString keys[ SETTINGS_KEY_COUNT ];
-    extern const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
-
-    enum Keys{ Options = 0, WrongIP = 1, General = 2 };
-    enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
-                  ReqSernum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
-                  ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,
-                  ReqAdminAuth = 12, LogComments = 13, FwdComments = 14,
-                  InformAdminLogin = 15 };
-
     QInputDialog* createInputDialog(QWidget* parent, QString& label,
                                     QInputDialog::InputMode mode, int width,
                                     quint32 height);
@@ -46,65 +36,14 @@ namespace Helper
     QString getTextResponse(QWidget* parent, QString& title, QString& prompt,
                             bool* ok, int type = 0);
 
-    void setSetting(const QString& key, const QString& subKey, QVariant& value);
-    QVariant getSetting(const QString& key, const QString& subKey);
-
-    void setMOTDMessage(QVariant& value);
-    QString getMOTDMessage();
-
-    void setBanishMesage(QVariant& value);
-    QString getBanishMesage();
-
     QString getBanishReason(QWidget* parent = nullptr);
     QString getDisconnectReason(QWidget* parent = nullptr);
 
     QString hashPassword(QVariant& password);
     QString genPwdSalt(RandDev* randGen, qint32 length = SALT_LENGTH);
 
-    void setPassword(QString& value);
-    QString getPassword();
-
-    void setRequirePassword(QVariant& value);
-    bool getRequirePassword();
-    bool cmpServerPassword(QVariant& value);
-
-    void setServerRules(QVariant& value);
-    QString getServerRules();
-
-    void setAllowDupedIP(QVariant& value);
-    bool getAllowDupedIP();
-
-    void setBanDupedIP(QVariant& value);
-    bool getBanDupedIP();
-
-    void setBanHackers(QVariant& value);
-    bool getBanHackers();
-
-    void setReqSernums(QVariant& value);
-    bool getReqSernums();
-
-    void setDisconnectIdles(QVariant& value);
-    bool getDisconnectIdles();
-
-    void setAllowSSV(QVariant& value);
-    bool getAllowSSV();
-
     void logBIOData(QString& serNum, QHostAddress& ip, quint16 port,
                     QString& bio);
-
-    void setLogComments(QVariant& value);
-    bool getLogComments();
-
-    void setFwdComments(QVariant& value);
-    bool getFwdComments();
-
-    void setInformAdminLogin(QVariant& value);
-    bool getInformAdminLogin();
-
-    void setServerID(QVariant& value);
-    int getServerID();
-
-    bool isInvalidIPAddress(const QString& value);
 
     bool naturalSort(QString left, QString right, bool &result);
 }

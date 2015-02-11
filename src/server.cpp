@@ -70,17 +70,17 @@ void Server::checkBannedInfo(Player* plr)
     Player* tmpPlr{ nullptr };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( bandlg->getIsIPBanned( plr->getPublicIP() )
-      || bandlg->getIsSernumBanned( plr->getSernum_s() ) )
+    if ( IPBanWidget::getIsIPBanned( plr->getPublicIP() )
+      || SNBanWidget::getIsSernumBanned( plr->getSernum_s() ) )
     {
         plr->setSoftDisconnect( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        server->sendMasterMessage( Helper::getBanishMesage(), plr, false );
+        server->sendMasterMessage( Settings::getBanishMesage(), plr, false );
     }
 
     //Disconnect and ban all duplicate IP's if required.
-    if ( !Helper::getAllowDupedIP() )
+    if ( !Settings::getAllowDupedIP() )
     {
         QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
         QString peerAddr{ plr->getPublicIP() };
@@ -97,7 +97,7 @@ void Server::checkBannedInfo(Player* plr)
                                    .arg( plr->getPublicPort() )
                                    .arg( QString( plr->getBioData() ) );
 
-                    if ( Helper::getBanDupedIP() )
+                    if ( Settings::getBanDupedIP() )
                         bandlg->addIPBan( peerAddr, reason );
 
                     if ( plr != nullptr )
@@ -165,7 +165,7 @@ void Server::detectPacketFlood(Player* plr)
                                        .arg( time );
 
                 Helper::logToFile( log, logMsg, true, true );
-                if ( Helper::getBanHackers() )
+                if ( Settings::getBanHackers() )
                 {
                     BanDialog* banDlg = admin->getBanDialog();
                     if ( banDlg != nullptr )
@@ -262,7 +262,7 @@ void Server::setupServerInfo()
             QString tmp = ipList.at( i ).toString();
             if ( ipList.at( i ) != QHostAddress::LocalHost
               && ipList.at( i ).toIPv4Address()
-              && !Helper::isInvalidIPAddress( tmp ) )
+              && !Settings::getIsInvalidIPAddress( tmp ) )
             {
                 //Use first non-local IP address.
                 server->setPrivateIP( ipList.at(i).toString() );
@@ -320,8 +320,8 @@ void Server::newConnectionSlot()
     plr->setPublicPort( peer->peerPort() );
     ip = ip.append( ":%1" ).arg( peer->peerPort() );
 
-    QString greeting = Helper::getMOTDMessage();
-    if ( Helper::getRequirePassword() )
+    QString greeting = Settings::getMOTDMessage();
+    if ( Settings::getRequirePassword() )
     {
         greeting.append( "Password required: Please reply with (/login *PASS) "
                          "or be disconnected." );
@@ -425,7 +425,6 @@ void Server::readyReadUDPSlot()
     QUdpSocket* sender = static_cast<QUdpSocket*>( QObject::sender() );
     if ( sender != nullptr )
     {
-        BanDialog* bandlg = admin->getBanDialog();
         QHostAddress senderAddr{};
         quint16 senderPort{ 0 };
 
@@ -434,7 +433,7 @@ void Server::readyReadUDPSlot()
                               &senderAddr, &senderPort );
 
         //Check for a banned IP-Address. --Log the rejection to file.
-        if ( bandlg->getIsIPBanned( senderAddr ) )
+        if ( IPBanWidget::getIsIPBanned( senderAddr ) )
         {
             QString logTxt{ "Ignoring UDP from banned IP Address: "
                             "[ %2:%3 ] sent command: %4" };
@@ -484,11 +483,11 @@ void Server::readyReadUDPSlot()
                                                 senderPort, data );
                         }
 
-                        if (( Helper::getReqSernums()
+                        if (( Settings::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
-                          || !Helper::getReqSernums() )
+                          || !Settings::getReqSernums() )
                         {
-                            if ( !bandlg->getIsSernumBanned( sernum ) )
+                            if ( !SNBanWidget::getIsSernumBanned( sernum ) )
                             {
                                 udpDatas.insert( senderAddr,
                                                  udpData.mid( 1 ) );
@@ -501,11 +500,11 @@ void Server::readyReadUDPSlot()
                     break;
                     case 'Q':   //Send Online User Information.
                         sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                        if (( Helper::getReqSernums()
+                        if (( Settings::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
-                          || !Helper::getReqSernums() )
+                          || !Settings::getReqSernums() )
                         {
-                            if ( !bandlg->getIsSernumBanned( sernum ) )
+                            if ( !SNBanWidget::getIsSernumBanned( sernum ) )
                                 server->sendUserList( senderAddr, senderPort );
                         }
                         //TODO: Check for banned D and V variables.
@@ -843,7 +842,7 @@ void Server::readMIX8(QString& packet, Player* plr)
         QStringList vars = packet.split( ',' );
         QString val{ "" };
 
-        if ( Helper::getAllowSSV()
+        if ( Settings::getAllowSSV()
           && !vars.contains( "Admin", Qt::CaseInsensitive ))
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
@@ -873,7 +872,7 @@ void Server::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    if ( Helper::getAllowSSV()
+    if ( Settings::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
@@ -894,8 +893,8 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
                  "Please enter your password with the command (/login *PASS) "
                  "or be denied access to the server. Thank you!" };
 
-    if ( admin->getReqAdminAuth()
-      && admin->getIsRemoteAdmin( serNum ) )
+    if ( Settings::getReqAdminAuth()
+      && Admin::getIsRemoteAdmin( serNum ) )
     {
         plr->setReqAuthPwd( true );
         server->sendMasterMessage( msg, plr, false );
@@ -924,7 +923,7 @@ void Server::validateSerNum(Player* plr, qint32 id)
             }
 
             //Disconnect the User if they have no SerNum, as we require SerNums.
-            if ( Helper::getReqSernums()
+            if ( Settings::getReqSernums()
               && id == 0 )
             {
                 plr->setHardDisconnect( true );

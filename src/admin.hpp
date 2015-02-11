@@ -23,7 +23,6 @@ class Admin : public QDialog
     QStandardItemModel* tableModel{ nullptr };
 
     BanDialog* banDialog{ nullptr };
-    ServerInfo* server{ nullptr };
     RandDev* randDev{ nullptr };
 
     QMenu* contextMenu{ nullptr };
@@ -34,8 +33,7 @@ class Admin : public QDialog
     static const QStringList ranks;
 
     public:
-        explicit Admin(QWidget *parent = nullptr,
-                       ServerInfo* svr = nullptr);
+        explicit Admin(QWidget *parent = nullptr);
         ~Admin();
 
         void loadServerAdmins();
@@ -45,22 +43,19 @@ class Admin : public QDialog
 
         bool makeAdmin(QString& sernum, QString& pwd);
 
-        void setAdminData(const QString& key, const QString& subKey,
-                          QVariant& value);
-        QVariant getAdminData(const QString& key, const QString& subKey);
+        static void setAdminData(const QString& key, const QString& subKey,
+                                 QVariant& value);
+        static QVariant getAdminData(const QString& key, const QString& subKey);
 
-        void setReqAdminAuth(QVariant& value);
-        bool getReqAdminAuth();
+        static bool getIsRemoteAdmin(QString& serNum);
+        static bool cmpRemoteAdminPwd(QString& serNum, QVariant& value);
 
-        bool getIsRemoteAdmin(QString& serNum);
-        bool cmpRemoteAdminPwd(QString& serNum, QVariant& value);
+        static qint32 getRemoteAdminRank(QString& sernum);
+        static void setRemoteAdminRank(QString& sernum, qint32 rank);
 
-        qint32 getRemoteAdminRank(QString& sernum);
-        void setRemoteAdminRank(QString& sernum, qint32 rank);
-
-        qint32 changeRemoteAdminRank(QWidget* parent, QString& sernum);
-        bool deleteRemoteAdmin(QWidget* parent, QString& sernum);
-        bool createRemoteAdmin(QWidget* parent, QString& sernum);
+        static qint32 changeRemoteAdminRank(QWidget* parent, QString& sernum);
+        static bool deleteRemoteAdmin(QWidget* parent, QString& sernum);
+        static bool createRemoteAdmin(QWidget* parent, QString& sernum);
 
     private:
         void initContextMenu();

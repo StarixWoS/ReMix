@@ -45,13 +45,13 @@ QString Messages::getBanishMsg()
 void Messages::on_saveSettings_clicked()
 {
     QVariant motd = ui->motdEdit->toPlainText();
-    Helper::setMOTDMessage( motd );
+    Settings::setMOTDMessage( motd );
 
     QVariant banMsg = ui->banishedEdit->toPlainText();
-    Helper::setBanishMesage( banMsg );
+    Settings::setBanishMesage( banMsg );
 
     QVariant rules = ui->rulesEdit->toPlainText();
-    Helper::setServerRules( rules );
+    Settings::setServerRules( rules );
 
     if ( this->isVisible() )
         this->hide();
@@ -59,15 +59,15 @@ void Messages::on_saveSettings_clicked()
 
 void Messages::on_reloadSettings_clicked()
 {
-    QString var = Helper::getMOTDMessage();
+    QString var = Settings::getMOTDMessage();
     if ( !var.isEmpty() )
         ui->motdEdit->setText( var );
 
-    var = Helper::getBanishMesage();
+    var = Settings::getBanishMesage();
     if ( !var.isEmpty() )
         ui->banishedEdit->setText( var );
 
-    var = Helper::getServerRules();
+    var = Settings::getServerRules();
     if ( !var.isEmpty() )
         ui->rulesEdit->setText( var );
 

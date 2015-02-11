@@ -21,7 +21,7 @@ class SNBanWidget : public QWidget
         explicit SNBanWidget(QWidget *parent = 0);
         ~SNBanWidget();
 
-        bool getIsSernumBanned(QString sernum);
+        static bool getIsSernumBanned(QString sernum);
 
         void addSerNumBan(QString& sernum, QString& reason);
 

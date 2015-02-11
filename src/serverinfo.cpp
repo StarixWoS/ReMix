@@ -2,10 +2,9 @@
 #include "includes.hpp"
 #include "serverinfo.hpp"
 
-ServerInfo::ServerInfo(Admin* aDlg)
+ServerInfo::ServerInfo()
 {
     masterSocket = new QUdpSocket();
-    adminDialog = aDlg;
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -164,7 +163,7 @@ Player* ServerInfo::createPlayer(int slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
-        players[ slot ] = new Player( adminDialog );
+        players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );    //The player will be Slot-Aware.
         return players[ slot ];
     }
@@ -522,13 +521,13 @@ void ServerInfo::setPrivateIP(const QString& value)
 
 QString ServerInfo::getServerRules() const
 {
-    return Helper::getServerRules();
+    return Settings::getServerRules();
 }
 
 void ServerInfo::setServerRules(const QString& value)
 {
     QVariant val = QVariant( value );
-    Helper::setServerRules( val );
+    Settings::setServerRules( val );
 }
 
 QString ServerInfo::getName() const

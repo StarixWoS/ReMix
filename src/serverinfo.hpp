@@ -63,10 +63,8 @@ class ServerInfo
 
     bool logUsage{ false };
 
-    Admin* adminDialog{ nullptr };
-
     public:
-        ServerInfo(Admin* aDlg);
+        ServerInfo();
         ~ServerInfo();
 
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);

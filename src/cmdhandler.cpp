@@ -44,7 +44,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
                      "more tries." };
 
     QString sernum = plr->getSernum_s();
-    if ( adminDialog->getIsRemoteAdmin( sernum ) )
+    if ( Admin::getIsRemoteAdmin( sernum ) )
     {
         retn = false;
         if ( plr->getGotAuthPwd() )
@@ -108,16 +108,20 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
             if ( !msg.isEmpty() )
             {
                 //Echo the chat back to the User.
-                server->sendMasterMessage( "Echo: " % msg, plr, false );
+                if ( Settings::getEchoComments() )
+                    server->sendMasterMessage( "Echo: " % msg, plr, false );
 
                 //Send the Comment to all connected Remote-Administrators
                 //Then forward the message to the Comments dialog if enabled.
-                if ( Helper::getFwdComments() )
+                if ( Settings::getFwdComments() )
                 {
                     Player* tmpPlr{ nullptr };
-                    QString message{ "Server comment from [ %1 ]: %2" };
-                    message = message.arg( sernum )
-                              .arg( msg );
+                    QString message{ "Server comment from %1 [ %2 ]: %3" };
+                    message = message.arg( plr->getAdminRank() >= 0
+                                         ? "Admin"
+                                         : "User" )
+                                     .arg( sernum )
+                                     .arg( msg );
                     for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
                         tmpPlr = server->getPlayer( i );
@@ -493,7 +497,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     if ( plr->getPwdRequested()
       && !plr->getEnteredPwd() )
     {
-        if ( Helper::cmpServerPassword( pwd ) )
+        if ( Settings::cmpServerPassword( pwd ) )
         {
             response = response.arg( valid );
 
@@ -511,7 +515,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
            || plr->getReqAuthPwd() )
     {
         if ( !pwd.toString().isEmpty()
-          && adminDialog->cmpRemoteAdminPwd( sernum, pwd ) )
+          && Admin::cmpRemoteAdminPwd( sernum, pwd ) )
         {
             response = response.arg( valid );
 
@@ -526,7 +530,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         response = response.arg( "Admin" );
 
         //Inform Other Users of this Remote-Admin's login if enabled.
-        if ( Helper::getInformAdminLogin() )
+        if ( Settings::getInformAdminLogin() )
         {
             QString message{ "Remote Admin [ "
                              % sernum
@@ -582,7 +586,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
             plr->setGotAuthPwd( true );
 
             //Inform Other Users of this Remote-Admin's login if enabled.
-            if ( Helper::getInformAdminLogin() )
+            if ( Settings::getInformAdminLogin() )
             {
                 QString message{ "User [ "
                                  % sernum
