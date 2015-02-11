@@ -196,15 +196,15 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
                               ip,
                               Qt::DisplayRole );
 
-            ipModel->setData( ipModel->index( row, 1 ),
-                              reason,
-                              Qt::DisplayRole );
-
             ipModel->setData( ipModel->index( row, 2 ),
                               QDateTime::fromTime_t( date )
                                    .toString( "ddd MMM dd HH:mm:ss yyyy" ),
                               Qt::DisplayRole );
         }
+
+        ipModel->setData( ipModel->index( row, 1 ),
+                          reason,
+                          Qt::DisplayRole );
 
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
@@ -214,7 +214,6 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
                       .toString( "banLog/yyyy-MM-dd.txt" ) };
         Helper::logToFile( log, reason, true, true );
     }
-    ui->ipBanTable->resizeColumnsToContents();
 }
 
 void BanDialog::removeIPBan(QString& ip)
@@ -257,6 +256,7 @@ void BanDialog::removeIPBanImpl(QModelIndex& index)
                                   .toString() );
         ipModel->removeRow( index.row() );
     }
+    ui->ipBanTable->resizeColumnsToContents();
 }
 
 void BanDialog::on_ipBanTable_clicked(const QModelIndex &index)
@@ -315,7 +315,6 @@ void BanDialog::loadBannedSernums()
                               Qt::DisplayRole );
         }
         ui->snBanTable->selectRow( 0 );
-        ui->snBanTable->resizeColumnsToContents();
     }
 }
 
@@ -385,30 +384,26 @@ void BanDialog::addSerNumBanImpl(QString& sernum, QString& reason)
     int row{ -1 };
     if ( !sernum.isEmpty() )
     {
+        //Display the SERNUM in the correct format as required.
+        if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
+          && !sernum.contains( " " ) )
+        {
+            sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
+        }
+        else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
+               && !sernum.contains( "SOUL " ) )
+        {
+            sernum.prepend( "SOUL " );
+        }
+
         //Prevent adding new rows for previously-banned users.
         if ( !this->getIsSernumBanned( sernum ) )
         {
             row = snModel->rowCount();
             snModel->insertRow( row );
 
-            //Display the SERNUM in the correct format as required.
-            if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
-              && !sernum.contains( " " ) )
-            {
-                sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
-            }
-            else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
-                   && !sernum.contains( "SOUL " ) )
-            {
-                sernum.prepend( "SOUL " );
-            }
-
             snModel->setData( snModel->index( row, 0 ),
                               sernum,
-                              Qt::DisplayRole );
-
-            snModel->setData( snModel->index( row, 1 ),
-                              reason,
                               Qt::DisplayRole );
 
             snModel->setData( snModel->index( row, 2 ),
@@ -416,6 +411,10 @@ void BanDialog::addSerNumBanImpl(QString& sernum, QString& reason)
                                    .toString( "ddd MMM dd HH:mm:ss yyyy" ),
                               Qt::DisplayRole );
         }
+
+        snModel->setData( snModel->index( row, 1 ),
+                          reason,
+                          Qt::DisplayRole );
 
         banData.setValue( sernum % "/banDate", date );
         banData.setValue( sernum % "/banReason", reason );
@@ -452,6 +451,7 @@ void BanDialog::removeSerNumBanImpl(QModelIndex& index)
                                   .toString() );
         snModel->removeRow( index.row() );
     }
+    ui->snBanTable->resizeColumnsToContents();
 }
 
 void BanDialog::on_snBanTable_clicked(const QModelIndex &index)

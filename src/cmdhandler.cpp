@@ -437,24 +437,21 @@ void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
                 if ( tmpPlr->getPublicIP() == arg1
                   || tmpPlr->getSernum_s() == arg1 )
                 {
-                    server->sendMasterMessage( message, tmpPlr,
-                                               false );
+                    server->sendMasterMessage( message, tmpPlr, false );
                 }
             }
         }
     }
     else
-    {
-        server->sendMasterMessage( message,
-                                   nullptr,
-                                   all );
-    }
+        server->sendMasterMessage( message, nullptr, all );
 }
 
 void CmdHandler::loginHandler(Player* plr, QString& argType)
 {
     QString sernum{ plr->getSernum_s() };
-    QString response{ "" };
+    QString response{ "%1 %2 Password. Welcome!" };
+    QString invalid{ "Incorrect" };
+    QString valid{ "Correct" };
 
     bool disconnect{ false };
 
@@ -464,16 +461,17 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     {
         if ( Helper::cmpServerPassword( pwd ) )
         {
-            response = "Correct Server Password. Welcome!";
+            response = response.arg( valid );
 
             plr->setPwdRequested( false );
             plr->setEnteredPwd( true );
         }
         else
         {
-            response = "Incorrect Server Password. Please go away.";
+            response = response.arg( invalid );
             disconnect = true;
         }
+        response = response.arg( "Server" );
     }
     else if ( !plr->getGotAuthPwd()
            || plr->getReqAuthPwd() )
@@ -481,16 +479,17 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         if ( !pwd.toString().isEmpty()
           && adminDialog->cmpRemoteAdminPwd( sernum, pwd ) )
         {
-            response = "Correct Admin Password. Welcome!";
+            response = response.arg( valid );
 
             plr->setReqAuthPwd( false );
             plr->setGotAuthPwd( true );
         }
         else
         {
-            response = "Incorrect Admin Password. Please go away.";
+            response = response.arg( invalid );
             disconnect = true;
         }
+        response = response.arg( "Admin" );
     }
 
     if ( !response.isEmpty() )
@@ -557,15 +556,11 @@ void CmdHandler::shutDownHandler(Player* plr, bool restart)
     });
 
     if ( restart )
-    {
         message = message.arg( "restarting" );
-        timer->start( 30000 );
-    }
     else
-    {
         message = message.arg( "shutting down" );
-        timer->start( 30000 );
-    }
+
+    timer->start( 30000 );
 
     if ( !message.isEmpty() )
         server->sendMasterMessage( message, nullptr, true );

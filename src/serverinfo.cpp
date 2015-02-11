@@ -277,7 +277,7 @@ int ServerInfo::getIPAddrSlot(QString ip)
     return slot;
 }
 
-quint64 ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
+void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
@@ -317,8 +317,6 @@ quint64 ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 
     if ( bOut >= 1 )
         this->setBytesOut( this->getBytesOut() + bOut );
-
-    return bOut;
 }
 
 quint64 ServerInfo::sendToAllConnected(QString packet)

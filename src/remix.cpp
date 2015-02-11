@@ -571,7 +571,6 @@ void ReMix::on_actionSendMessage_triggered()
 {
     QString title{ "Admin Message:" };
     QString prompt{ "Message to User(s): " };
-    quint64 bOut{ 0 };
 
     bool ok{ false };
     QString txt = Helper::getTextResponse( this, title, prompt, &ok, 1 );
@@ -579,11 +578,9 @@ void ReMix::on_actionSendMessage_triggered()
       && ok )
     {
         if ( menuTarget != nullptr )
-            bOut = server->sendMasterMessage( txt, menuTarget, false );
+            server->sendMasterMessage( txt, menuTarget, false );
         else
-            bOut = server->sendMasterMessage( txt, nullptr, true );
-
-        server->setBytesOut( server->getBytesOut() + bOut );
+            server->sendMasterMessage( txt, nullptr, true );
     }
     menuTarget = nullptr;
 }
@@ -607,8 +604,7 @@ void ReMix::on_actionRevokeAdmin_triggered()
             //Revoke their current permissions.
             menuTarget->resetAdminAuth();
 
-            quint64 bOut = server->sendMasterMessage( msg, menuTarget, false );
-            server->setBytesOut( server->getBytesOut() + bOut );
+            server->sendMasterMessage( msg, menuTarget, false );
             admin->loadServerAdmins();
         }
     }
@@ -693,9 +689,7 @@ void ReMix::on_actionDisconnectUser_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             inform = inform.arg( Helper::getDisconnectReason( this ) );
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
-                                                      false );
-            server->setBytesOut( server->getBytesOut() + bOut );
+            server->sendMasterMessage( inform, menuTarget, false );
 
             if ( sock->waitForBytesWritten() )
             {
@@ -732,9 +726,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( ip.toString() )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
-                                                      false );
-            server->setBytesOut( server->getBytesOut() + bOut );
+            server->sendMasterMessage( inform, menuTarget, false );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
                          .arg( reason )
@@ -776,9 +768,7 @@ void ReMix::on_actionBANISHSerNum_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( sernum )
                            .arg( reason ).toLatin1();
-            quint64 bOut = server->sendMasterMessage( inform, menuTarget,
-                                                      false );
-            server->setBytesOut( server->getBytesOut() + bOut );
+            server->sendMasterMessage( inform, menuTarget, false );
 
             reason = QString( "%1 [ %2:%3 ]: %4" )
                          .arg( reason )

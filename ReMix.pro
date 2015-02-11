@@ -23,7 +23,7 @@ Release:RCC_DIR = "./build-$$QT_VERSION/release/rcc"
 Release:MOC_DIR = "./build-$$QT_VERSION/release/moc"
 Release:OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
 
-Debug:QMAKE_CXXFLAGS = -std=c++14
+Debug:QMAKE_CXXFLAGS = -std=c++14 -Wall
 Debug:TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
 Debug:DESTDIR = "./build-$$QT_VERSION/debug"
 Debug:RCC_DIR = "./build-$$QT_VERSION/debug/rcc"

@@ -119,7 +119,7 @@ void Admin::loadServerAdmins()
                                  Qt::DisplayRole );
 
             tableModel->setData( tableModel->index( row, 1 ),
-                                 rank, Qt::DisplayRole );
+                                 ranks.at( rank ), Qt::DisplayRole );
 
             tableModel->setData( tableModel->index( row, 2 ),
                                  hash, Qt::DisplayRole );
@@ -222,9 +222,8 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         QVariant hash( salt + pwd );
                  hash = Helper::hashPassword( hash );
 
-        adminData.setValue( hexSerNum % "/rank",
-                            ui->comboBox->currentIndex() );
-
+        qint32 rank{ ui->comboBox->currentIndex() };
+        adminData.setValue( hexSerNum % "/rank", rank );
         adminData.setValue( hexSerNum % "/hash", hash );
         adminData.setValue( hexSerNum % "/salt", salt );
 
@@ -248,7 +247,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
                              Qt::DisplayRole );
 
         tableModel->setData( tableModel->index( row, 1 ),
-                             ui->comboBox->currentIndex(),
+                             ranks.at( rank ),
                              Qt::DisplayRole );
 
         tableModel->setData( tableModel->index( row, 2 ),
@@ -310,7 +309,7 @@ void Admin::on_actionChangeRank_triggered()
         if ( rank >= 0 )
         {
             tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
-                                 rank, Qt::DisplayRole );
+                                 ranks.at( rank ), Qt::DisplayRole );
         }
     }
 }

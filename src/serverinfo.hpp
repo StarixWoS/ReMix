@@ -85,8 +85,8 @@ class ServerInfo
         int getQItemSlot(QStandardItem* index);
         int getIPAddrSlot(QString ip);
 
-        quint64 sendMasterMessage(QString packet, Player* plr = nullptr,
-                                  bool toAll = false);
+        void sendMasterMessage(QString packet, Player* plr = nullptr,
+                               bool toAll = false);
         quint64 sendToAllConnected(QString packet);
 
         quint64 getUpTime() const;

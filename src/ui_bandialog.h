@@ -147,6 +147,7 @@ public:
         snBanTable = new QTableView(tab_2);
         snBanTable->setObjectName(QStringLiteral("snBanTable"));
         snBanTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        snBanTable->setAlternatingRowColors(true);
         snBanTable->setSelectionMode(QAbstractItemView::SingleSelection);
         snBanTable->setSelectionBehavior(QAbstractItemView::SelectRows);
         snBanTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);

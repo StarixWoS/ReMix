@@ -97,7 +97,6 @@ Player::~Player()
     killTimer.disconnect();
 
     this->disconnect();
-    this->setSocket( nullptr );
 }
 
 qint64 Player::getConnTime() const

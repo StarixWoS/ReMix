@@ -65,6 +65,7 @@ public:
         adminTable->setObjectName(QStringLiteral("adminTable"));
         adminTable->setContextMenuPolicy(Qt::CustomContextMenu);
         adminTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        adminTable->setAlternatingRowColors(true);
         adminTable->setSelectionMode(QAbstractItemView::SingleSelection);
         adminTable->setSelectionBehavior(QAbstractItemView::SelectRows);
         adminTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
