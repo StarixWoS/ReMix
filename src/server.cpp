@@ -270,16 +270,6 @@ void Server::setupServerInfo()
             }
         }
 
-        //Generate a Valid Port Number.
-        if ( server->getPrivatePort() <= 0 )
-        {
-            RandDev* randDev{ new RandDev() };
-            if ( randDev != nullptr )
-                server->setPrivatePort( randDev->genRandNum( 10000, 65535 ) );
-
-            delete randDev;
-        }
-
         QHostAddress addr{ server->getPrivateIP() };
         bool validUDP = server->initMasterSocket( addr,
                                                   server->getPrivatePort() );

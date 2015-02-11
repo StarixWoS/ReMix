@@ -11,6 +11,7 @@ Player::Player(Admin* aDlg)
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
+        QString sernum{ this->getSernum_s() };
 
         QStandardItem* row = this->getTableRow();
         if ( row != nullptr )
@@ -44,7 +45,7 @@ Player::Player(Admin* aDlg)
 
                 //Color the User's IP address Green if the Admin is authed
                 //Otherwise, color as Red.
-                if ( this->getAdminRank() >= 0 )
+                if ( adminDialog->getIsRemoteAdmin( sernum ) )
                 {
                     if ( this->getGotAuthPwd() )
                     {
@@ -82,7 +83,6 @@ Player::Player(Admin* aDlg)
         }
 
         //Authenticate Remote Admins as required.
-        QString sernum{ this->getSernum_s() };
         if ( adminDialog->getReqAdminAuth()
           && adminDialog->getIsRemoteAdmin( sernum ) )
         {

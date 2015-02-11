@@ -558,3 +558,50 @@ bool Helper::isInvalidIPAddress(const QString& value)
 {
     return getSetting( keys[ Keys::WrongIP ], value ).toBool();
 }
+
+bool Helper::naturalSort(QString left, QString right, bool& result)
+{
+    do
+    {
+        int posL = left.indexOf( QRegExp( "[0-9]" ) );
+        int posR = right.indexOf( QRegExp( "[0-9]" ) );
+        if ( posL == -1 || posR == -1 )
+            break;
+        else if ( posL != posR )
+            break;
+        else  if ( left.left( posL ) != right.left( posR ) )
+            break;
+
+        QString temp;
+        while ( posL < left.size( ) )
+        {
+            if ( left.at( posL ).isDigit( ) )
+                temp += left.at( posL );
+            else
+                break;
+            posL++;
+        }
+        int numL = temp.toInt( );
+        temp.clear( );
+
+        while ( posR < right.size( ) )
+        {
+            if ( right.at( posR ).isDigit( ) )
+                temp += right.at( posR );
+            else
+                break;
+            posR++;
+        }
+        int numR = temp.toInt( );
+
+        if ( numL != numR )
+        {
+            result = ( numL < numR );
+            return true;
+        }
+        left.remove( 0, posL );
+        right.remove( 0, posR );
+
+    } while ( true );
+    return false;
+}

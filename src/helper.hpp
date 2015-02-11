@@ -105,6 +105,8 @@ namespace Helper
     int getServerID();
 
     bool isInvalidIPAddress(const QString& value);
+
+    bool naturalSort(QString left, QString right, bool &result);
 }
 
 #endif // PREFERENCES_HPP

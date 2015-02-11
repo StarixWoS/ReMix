@@ -28,7 +28,7 @@ BanDialog::BanDialog(QWidget *parent) :
 
     //Proxy model to support sorting without actually
     //altering the underlying model
-    ipProxy = new QSortFilterProxyModel();
+    ipProxy = new IPSortProxyModel();
     ipProxy->setDynamicSortFilter( true );
     ipProxy->setSourceModel( ipModel );
     ipProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
@@ -42,7 +42,7 @@ BanDialog::BanDialog(QWidget *parent) :
 
     //Proxy model to support sorting without actually
     //altering the underlying model
-    snProxy = new QSortFilterProxyModel();
+    snProxy = new SNSortProxyModel();
     snProxy->setDynamicSortFilter( true );
     snProxy->setSourceModel( snModel );
     snProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
@@ -61,6 +61,15 @@ BanDialog::BanDialog(QWidget *parent) :
 
     //Load Banned SerNum Data.
     this->loadBannedSernums();
+
+    //Install Event Filter to enable Row-Deslection.
+    ui->ipBanTable->viewport()->installEventFilter(
+                new TblEventFilter( ui->ipBanTable,
+                                    ipProxy ) );
+
+    ui->snBanTable->viewport()->installEventFilter(
+                new TblEventFilter( ui->snBanTable,
+                                    snProxy ) );
 }
 
 BanDialog::~BanDialog()
@@ -128,9 +137,16 @@ bool BanDialog::getIsIPBanned(QString ipAddr)
 
 void BanDialog::on_addIPBan_clicked()
 {
+    QString tmp{ ui->ipBanReason->text() };
     QString ip = ui->trgIPAddr->text();
-    QString reason{ "Manual Banish; %1" };
-            reason = reason.arg( ui->ipBanReason->text() );
+
+    QString reason{ "Manual Banish; [ %1 ]. %2" };
+            reason = reason.arg( ui->trgIPAddr->text() );
+
+    if ( !tmp.isEmpty() )
+        reason = reason.arg( "Reason: [ " % tmp % " ]." );
+    else
+        reason = reason.arg( "Unknown Reason." );
 
     this->addIPBan( ip, reason );
 
@@ -208,7 +224,6 @@ void BanDialog::addIPBanImpl(QString& ip, QString& reason)
 
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
-
 
         QString log{ QDate::currentDate()
                       .toString( "banLog/yyyy-MM-dd.txt" ) };
@@ -333,8 +348,15 @@ bool BanDialog::getIsSernumBanned(QString sernum)
 void BanDialog::on_addSernumBan_clicked()
 {
     QString sernum = ui->trgSerNum->text();
-    QString reason{ "Manual Banish; %1" };
-            reason = reason.arg( ui->snBanReason->text() );
+    QString tmp{ ui->ipBanReason->text() };
+
+    QString reason{ "Manual Banish; [ %1 ]. %2" };
+            reason = reason.arg( sernum );
+
+    if ( !tmp.isEmpty() )
+        reason = reason.arg( "Reason: [ " % tmp % " ]." );
+    else
+        reason = reason.arg( "Unknown Reason." );
 
     this->addSerNumBan( sernum, reason );
 

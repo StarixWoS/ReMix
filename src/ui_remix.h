@@ -289,6 +289,7 @@ public:
 
         playerView = new QTableView(frame);
         playerView->setObjectName(QStringLiteral("playerView"));
+        playerView->setMouseTracking(false);
         playerView->setContextMenuPolicy(Qt::CustomContextMenu);
         playerView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         playerView->setAlternatingRowColors(true);

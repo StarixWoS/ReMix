@@ -22,6 +22,7 @@
     #include <QTcpServer>
     #include <QUdpSocket>
     #include <QTcpSocket>
+    #include <QTableView>
     #include <QByteArray>
     #include <QTextEdit>
     #include <QHostInfo>
@@ -53,6 +54,14 @@
 #ifndef REMIX_INCLUDES_HPP
     #define REMIX_INCLUDES_HPP
 
+    //Table-View Classes.
+    #include "tblview/adminsortproxymodel.hpp"
+    #include "tblview/plrsortproxymodel.hpp"
+    #include "tblview/snsortproxymodel.hpp"
+    #include "tblview/ipsortproxymodel.hpp"
+    #include "tblview/tbleventfilter.hpp"
+
+    //GUI and Data Storage Clases.
     #include "usermessage.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"

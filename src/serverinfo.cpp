@@ -46,12 +46,20 @@ QString ServerInfo::getMasterInfoHost() const
 
 void ServerInfo::setMasterInfoHost(const QString& value)
 {
-    //Hope the User used a valid web address/IP.
+    //Try to validate a URL.
+    QRegExp isUrl( "http[s]?|ftp", Qt::CaseInsensitive );
 
     QString url{ value };
+    QString scheme = QUrl( url ).scheme();
+
     QFile synRealIni( "synreal.ini" );
-    if ( masterInfoHost != url )
-        synRealIni.remove();
+    if ( isUrl.exactMatch( scheme ) )
+    {
+        if ( masterInfoHost != value )
+            synRealIni.remove();
+    }
+    else
+        url = "http://synthetic-reality.com/synreal.ini";
 
     masterInfoHost = url;
 }

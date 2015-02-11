@@ -6,6 +6,7 @@
 
 //Required Qt Includes..
 #include <QMainWindow>
+#include <QModelIndex>
 
 namespace Ui {
     class ReMix;
@@ -29,6 +30,7 @@ class ReMix : public QMainWindow
     QMenu* contextMenu{ nullptr };
     QMenu* trayMenu{ nullptr };
 
+    QModelIndex prevIndex;
     Player* menuTarget{ nullptr };
 
     QSystemTrayIcon* trayIcon{ nullptr };
@@ -67,6 +69,7 @@ class ReMix : public QMainWindow
         void on_serverName_textChanged(const QString &arg1);
 
         void on_playerView_customContextMenuRequested(const QPoint &pos);
+
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
         void on_actionMuteNetwork_triggered();

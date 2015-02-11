@@ -13,8 +13,8 @@
 
     class QSortFilterProxyModel;
     class QCryptographicHash;
-    class QNetworkInterface;
     class QStandardItemModel;
+    class QNetworkInterface;
     class QSystemTrayIcon;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
@@ -32,6 +32,7 @@
     class QTcpServer;  //Requires Include within Class Headers.
     class QTcpSocket;
     class QUdpSocket;
+    class QTableView;
     class QHostInfo;
     class QDateTime;
     class QFileInfo;
@@ -65,6 +66,14 @@
     namespace Helper
     {}
 
+    //Table-View Classes.
+    class TblEventFilter;
+    class AdminSortProxyModel;
+    class PlrSortProxyModel;
+    class SNSortProxyModel;
+    class IPSortProxyModel;
+
+    //GUI and Data Storage Classes.
     class UserMessage;
     class ServerInfo;
     class CmdHandler;

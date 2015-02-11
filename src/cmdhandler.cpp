@@ -533,7 +533,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             for ( int i = 0; i < MAX_PLAYERS; ++i )
             {
                 tmpPlr = server->getPlayer( i );
-                if (tmpPlr != nullptr)
+                if ( tmpPlr != nullptr )
                 {
                     if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
                       && tmpPlr->getGotAuthPwd() )
@@ -577,6 +577,31 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 
             plr->setReqAuthPwd( false );
             plr->setGotAuthPwd( true );
+
+            //Inform Other Users of this Remote-Admin's login if enabled.
+            if ( Helper::getInformAdminLogin() )
+            {
+                QString message{ "User [ "
+                                 % sernum
+                                 % " ] has Registered as a Remote Administrator with the server." };
+
+                Player* tmpPlr{ nullptr };
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr )
+                    {
+                        if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                          && tmpPlr->getGotAuthPwd() )
+                        {
+                            //Do not Inform our own Admin.. --Redundant..
+                            if ( tmpPlr != plr )
+                                server->sendMasterMessage( message, tmpPlr,
+                                                           false );
+                        }
+                    }
+                }
+            }
         }
         else
         {

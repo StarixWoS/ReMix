@@ -43,7 +43,7 @@ ReMix::ReMix(QWidget *parent) :
 
     //Proxy model to support sorting without actually
     //altering the underlying model
-    plrProxy = new QSortFilterProxyModel();
+    plrProxy = new PlrSortProxyModel();
     plrProxy->setDynamicSortFilter( true );
     plrProxy->setSourceModel( plrModel );
     plrProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
@@ -75,6 +75,11 @@ ReMix::ReMix(QWidget *parent) :
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
         tcpServer = new Server( this, server, admin, plrModel );
+
+    //Install Event Filter to enable Row-Deslection.
+    ui->playerView->viewport()->installEventFilter(
+                new TblEventFilter( ui->playerView,
+                                    plrProxy ) );
 }
 
 ReMix::~ReMix()
@@ -515,6 +520,10 @@ void ReMix::on_serverPort_textChanged(const QString &arg1)
     qint32 val = arg1.toInt();
     if ( val < 0 || val > 65535 )
         val = 0;
+
+    //Generate a Valid Port Number.
+    if ( val == 0 )
+        val = randDev->genRandNum( 10000, 65535 );
 
     server->setPrivatePort( val );
 }

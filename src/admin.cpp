@@ -49,7 +49,7 @@ Admin::Admin(QWidget *parent, ServerInfo* svr) :
 
     //Proxy model to support sorting without actually
     //altering the underlying model
-    tableProxy = new QSortFilterProxyModel();
+    tableProxy = new AdminSortProxyModel();
     tableProxy->setDynamicSortFilter( true );
     tableProxy->setSourceModel( tableModel );
     tableProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
@@ -60,6 +60,11 @@ Admin::Admin(QWidget *parent, ServerInfo* svr) :
 
     this->loadServerAdmins();
     this->initContextMenu();
+
+    //Install Event Filter to enable Row-Deslection.
+    ui->adminTable->viewport()->installEventFilter(
+                new TblEventFilter( ui->adminTable,
+                                    tableProxy ) );
 }
 
 Admin::~Admin()

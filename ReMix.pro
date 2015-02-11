@@ -50,7 +50,13 @@ SOURCES += src/main.cpp \
            src/admin.cpp \
            src/bandialog.cpp \
            src/settings.cpp \
-           src/cmdhandler.cpp
+           src/cmdhandler.cpp \
+
+SOURCES += src/tblview/adminsortproxymodel.cpp \
+           src/tblview/plrsortproxymodel.cpp \
+           src/tblview/ipsortproxymodel.cpp \
+           src/tblview/snsortproxymodel.cpp \
+           src/tblview/tbleventfilter.cpp
 
 HEADERS += src/player.hpp \
            src/remix.hpp \
@@ -65,7 +71,13 @@ HEADERS += src/player.hpp \
            src/settings.hpp \
            src/includes.hpp \
            src/prototypes.hpp \
-           src/cmdhandler.hpp
+           src/cmdhandler.hpp \
+
+HEADERS += src/tblview/adminsortproxymodel.hpp \
+           src/tblview/plrsortproxymodel.hpp \
+           src/tblview/ipsortproxymodel.hpp \
+           src/tblview/snsortproxymodel.hpp \
+           src/tblview/tbleventfilter.hpp
 
 FORMS += ui/remix.ui \
          ui/messages.ui \
