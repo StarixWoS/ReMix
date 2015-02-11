@@ -51,12 +51,15 @@ SOURCES += src/main.cpp \
            src/bandialog.cpp \
            src/settings.cpp \
            src/cmdhandler.cpp \
-
-SOURCES += src/tblview/adminsortproxymodel.cpp \
+           src/tblview/adminsortproxymodel.cpp \
            src/tblview/plrsortproxymodel.cpp \
            src/tblview/ipsortproxymodel.cpp \
            src/tblview/snsortproxymodel.cpp \
-           src/tblview/tbleventfilter.cpp
+           src/tblview/tbleventfilter.cpp \
+           src/widgets/dabanwidget.cpp \
+           src/widgets/dvbanwidget.cpp \
+           src/widgets/ipbanwidget.cpp \
+           src/widgets/snbanwidget.cpp
 
 HEADERS += src/player.hpp \
            src/remix.hpp \
@@ -72,18 +75,25 @@ HEADERS += src/player.hpp \
            src/includes.hpp \
            src/prototypes.hpp \
            src/cmdhandler.hpp \
-
-HEADERS += src/tblview/adminsortproxymodel.hpp \
+           src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
            src/tblview/ipsortproxymodel.hpp \
            src/tblview/snsortproxymodel.hpp \
-           src/tblview/tbleventfilter.hpp
+           src/tblview/tbleventfilter.hpp \
+           src/widgets/dabanwidget.hpp \
+           src/widgets/dvbanwidget.hpp \
+           src/widgets/ipbanwidget.hpp \
+           src/widgets/snbanwidget.hpp
 
 FORMS += ui/remix.ui \
          ui/messages.ui \
          ui/usermessage.ui \
          ui/admin.ui \
          ui/bandialog.ui \
-         ui/settings.ui
+         ui/settings.ui \
+         ui/widgets/dabanwidget.ui \
+         ui/widgets/dvbanwidget.ui \
+         ui/widgets/ipbanwidget.ui \
+         ui/widgets/snbanwidget.ui
 
 RESOURCES += resources/icons.qrc

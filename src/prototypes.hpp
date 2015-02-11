@@ -67,11 +67,17 @@
     {}
 
     //Table-View Classes.
-    class TblEventFilter;
     class AdminSortProxyModel;
     class PlrSortProxyModel;
     class SNSortProxyModel;
     class IPSortProxyModel;
+    class TblEventFilter;
+
+    //Widget GUI Classes.
+    class DABanWidget;
+    class DVBanWidget;
+    class IPBanWidget;
+    class SNBanWidget;
 
     //GUI and Data Storage Classes.
     class UserMessage;

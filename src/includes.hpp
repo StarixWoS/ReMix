@@ -61,6 +61,12 @@
     #include "tblview/ipsortproxymodel.hpp"
     #include "tblview/tbleventfilter.hpp"
 
+    //Widget GUI Classes.
+    #include "widgets/dabanwidget.hpp"
+    #include "widgets/dvbanwidget.hpp"
+    #include "widgets/ipbanwidget.hpp"
+    #include "widgets/snbanwidget.hpp"
+
     //GUI and Data Storage Clases.
     #include "usermessage.hpp"
     #include "serverinfo.hpp"
