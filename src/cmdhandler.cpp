@@ -104,7 +104,31 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                 this->parseCommandImpl( plr, msg );
         }
         else
-            emit newUserCommentSignal( sernum, alias, msg );
+        {
+            //Send the Comment to all connected Remote-Administrators
+            //Then forward the message to the Comments dialog.
+            if ( !msg.isEmpty() )
+            {
+                Player* tmpPlr{ nullptr };
+                QString message{ "Server comment from [ %1 ]: %2" };
+                message = message.arg( sernum )
+                                 .arg( msg );
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if (tmpPlr != nullptr)
+                    {
+                        if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                          && tmpPlr->getGotAuthPwd() )
+                        {
+                            server->sendMasterMessage( message, tmpPlr,
+                                                       false );
+                        }
+                    }
+                }
+                emit newUserCommentSignal( sernum, alias, msg );
+            }
+        }
     }
 }
 
@@ -227,8 +251,11 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 if ( !message.isEmpty() )
                 {
-                    message.prepend( "Admin [ " % plr->getSernum_s()
-                                   % " ]: " );
+                    message.prepend( "Admin [ %1 ] to [ %2 ]: " );
+                    message = message.arg( plr->getSernum_s() )
+                                     .arg( all
+                                           ? "Everyone"
+                                           : arg1 );
                 }
 
                 canUseCommands = this->canUseAdminCommands( plr );
@@ -393,10 +420,8 @@ void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
-                {
-                    server->sendMasterMessage( reason, tmpPlr,
-                                               false );
-                }
+                    server->sendMasterMessage( reason, tmpPlr, false );
+
                 tmpPlr->setSoftDisconnect( true );
             }
         }
@@ -426,24 +451,27 @@ void CmdHandler::muteHandler(QString& arg1, qint32 argIndex, bool all)
 
 void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
 {
-    if ( !all )
+    if ( !message.isEmpty() )
     {
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        if ( !all )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr )
+            Player* tmpPlr{ nullptr };
+            for ( int i = 0; i < MAX_PLAYERS; ++i )
             {
-                if ( tmpPlr->getPublicIP() == arg1
-                  || tmpPlr->getSernum_s() == arg1 )
+                tmpPlr = server->getPlayer( i );
+                if ( tmpPlr != nullptr )
                 {
-                    server->sendMasterMessage( message, tmpPlr, false );
+                    if ( tmpPlr->getPublicIP() == arg1
+                      || tmpPlr->getSernum_s() == arg1 )
+                    {
+                        server->sendMasterMessage( message, tmpPlr, false );
+                    }
                 }
             }
         }
+        else
+            server->sendMasterMessage( message, nullptr, all );
     }
-    else
-        server->sendMasterMessage( message, nullptr, all );
 }
 
 void CmdHandler::loginHandler(Player* plr, QString& argType)
@@ -490,6 +518,27 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             disconnect = true;
         }
         response = response.arg( "Admin" );
+
+        //Inform Other Users of this Remote-Admin's login.
+
+        QString message{ "Remote Admin [ "
+                       % sernum
+                       % " ] has Authenticated with the server." };
+
+        Player* tmpPlr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = server->getPlayer( i );
+            if (tmpPlr != nullptr)
+            {
+                if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                  && tmpPlr->getGotAuthPwd() )
+                {
+                    if ( tmpPlr != plr )
+                        server->sendMasterMessage( message, tmpPlr, false );
+                }
+            }
+        }
     }
 
     if ( !response.isEmpty() )

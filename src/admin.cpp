@@ -309,7 +309,8 @@ void Admin::on_actionChangeRank_triggered()
         if ( rank >= 0 )
         {
             tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
-                                 ranks.at( rank ), Qt::DisplayRole );
+                                 ranks.at( rank ),
+                                 Qt::DisplayRole );
         }
     }
 }

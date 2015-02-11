@@ -41,6 +41,37 @@ Player::Player(Admin* aDlg)
                                     .arg( this->getBytesOut() )
                                     .arg( this->getPacketsOut() ),
                                 Qt::DisplayRole );
+
+                //Color the User's IP address Green if the Admin is authed
+                //Otherwise, color as Red.
+                if ( this->getAdminRank() >= 0 )
+                {
+                    if ( this->getGotAuthPwd() )
+                    {
+                        model->setData( row->model()->index( row->row(), 1 ),
+                                        QBrush( QColor( "limegreen" ) ),
+                                        Qt::ForegroundRole );
+                    }
+                    else
+                        model->setData( row->model()->index( row->row(), 1 ),
+                                        QBrush( QColor( "red" ) ),
+                                        Qt::ForegroundRole );
+                }
+
+                //Color the User's IP address Red if the User's is muted.
+                //Otherwise, color as Green.
+                if ( this->getNetworkMuted() )
+                {
+                    model->setData( row->model()->index( row->row(), 0 ),
+                                    QBrush( QColor( "red" ) ),
+                                    Qt::ForegroundRole );
+                }
+                else
+                {
+                    model->setData( row->model()->index( row->row(), 0 ),
+                                    QBrush( QColor( "limegreen" ) ),
+                                    Qt::ForegroundRole );
+                }
             }
         }
 
