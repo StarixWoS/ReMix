@@ -3,16 +3,17 @@
 #include "helper.hpp"
 
 //Initialize Settings keys/subKeys lists
-const QString Helper::keys[ 3 ] =
+const QString Helper::keys[ SETTINGS_KEY_COUNT ] =
 {
     "options", "wrongIPs", "General"
 };
 
-const QString Helper::subKeys[ 14 ] =
+const QString Helper::subKeys[ SETTINGS_SUBKEY_COUNT ] =
 {
     "extension", "myPassword", "autoBanish", "discIdle", "requireSernum",
     "dupeOK", "serverSupportsVariables", "banishDupes", "requirePassword",
-    "MOTD", "BANISHED", "RULES", "requireAdminAuth", "logComments"
+    "MOTD", "BANISHED", "RULES", "requireAdminAuth", "logComments",
+    "FwdComments", "InformAdminLogin"
 };
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
@@ -513,6 +514,33 @@ bool Helper::getLogComments()
     return getSetting( keys[ Keys::Options ], subKeys[ SubKeys::LogComments ] )
               .toBool();
 }
+
+void Helper::setFwdComments(QVariant& value)
+{
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::FwdComments ], value );
+}
+
+bool Helper::getFwdComments()
+{
+    return getSetting( keys[ Keys::Options ],
+                       subKeys[ SubKeys::FwdComments ] )
+              .toBool();
+}
+
+void Helper::setInformAdminLogin(QVariant& value)
+{
+    setSetting( keys[ Keys::Options ],
+                subKeys[ SubKeys::InformAdminLogin ], value );
+}
+
+bool Helper::getInformAdminLogin()
+{
+    return getSetting( keys[ Keys::Options ],
+                       subKeys[ SubKeys::InformAdminLogin ] )
+              .toBool();
+}
+
 
 void Helper::setServerID(QVariant& value)
 {

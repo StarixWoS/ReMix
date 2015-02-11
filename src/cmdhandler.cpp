@@ -106,27 +106,30 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         else
         {
             //Send the Comment to all connected Remote-Administrators
-            //Then forward the message to the Comments dialog.
-            if ( !msg.isEmpty() )
+            //Then forward the message to the Comments dialog if enabled.
+            if ( Helper::getFwdComments() )
             {
-                Player* tmpPlr{ nullptr };
-                QString message{ "Server comment from [ %1 ]: %2" };
-                message = message.arg( sernum )
-                                 .arg( msg );
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                if ( !msg.isEmpty() )
                 {
-                    tmpPlr = server->getPlayer( i );
-                    if (tmpPlr != nullptr)
+                    Player* tmpPlr{ nullptr };
+                    QString message{ "Server comment from [ %1 ]: %2" };
+                    message = message.arg( sernum )
+                              .arg( msg );
+                    for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
-                        if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                          && tmpPlr->getGotAuthPwd() )
+                        tmpPlr = server->getPlayer( i );
+                        if (tmpPlr != nullptr)
                         {
-                            server->sendMasterMessage( message, tmpPlr,
-                                                       false );
+                            if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                              && tmpPlr->getGotAuthPwd() )
+                            {
+                                server->sendMasterMessage( message, tmpPlr,
+                                                           false );
+                            }
                         }
                     }
+                    emit newUserCommentSignal( sernum, alias, msg );
                 }
-                emit newUserCommentSignal( sernum, alias, msg );
             }
         }
     }
@@ -519,23 +522,26 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         }
         response = response.arg( "Admin" );
 
-        //Inform Other Users of this Remote-Admin's login.
-
-        QString message{ "Remote Admin [ "
-                       % sernum
-                       % " ] has Authenticated with the server." };
-
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        //Inform Other Users of this Remote-Admin's login if enabled.
+        if ( Helper::getInformAdminLogin() )
         {
-            tmpPlr = server->getPlayer( i );
-            if (tmpPlr != nullptr)
+            QString message{ "Remote Admin [ "
+                             % sernum
+                        % " ] has Authenticated with the server." };
+
+            Player* tmpPlr{ nullptr };
+            for ( int i = 0; i < MAX_PLAYERS; ++i )
             {
-                if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                  && tmpPlr->getGotAuthPwd() )
+                tmpPlr = server->getPlayer( i );
+                if (tmpPlr != nullptr)
                 {
-                    if ( tmpPlr != plr )
-                        server->sendMasterMessage( message, tmpPlr, false );
+                    if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                      && tmpPlr->getGotAuthPwd() )
+                    {
+                        //Do not Inform our own Admin.. --Redundant..
+                        if ( tmpPlr != plr )
+                            server->sendMasterMessage( message, tmpPlr, false );
+                    }
                 }
             }
         }

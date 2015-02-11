@@ -22,7 +22,8 @@ class Settings : public QDialog
 
         enum Options{ ReqPwd = 0, ReqAdminPwd = 1, AllowDupIP = 2, BanDupIP = 3,
                       BanHack = 4, ReqSernum = 5, DisconnectIdle = 6,
-                      AllowSSV = 7, LogComments = 8 };
+                      AllowSSV = 7, LogComments = 8, FwdComments = 9,
+                      InformAdminLogin = 10 };
 
         void setCheckedState(Options option, bool val);
 

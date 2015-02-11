@@ -50,6 +50,12 @@ Settings::Settings(QWidget *parent, Admin* aDlg) :
 
     this->setCheckedState( Options::LogComments,
                            Helper::getLogComments() );
+
+    this->setCheckedState( Options::FwdComments,
+                           Helper::getFwdComments() );
+
+    this->setCheckedState( Options::InformAdminLogin,
+                           Helper::getInformAdminLogin() );
 }
 
 Settings::~Settings()
@@ -148,6 +154,12 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
         break;
         case Options::LogComments:
             Helper::setLogComments( state );
+        break;
+        case Options::FwdComments:
+            Helper::setFwdComments( state );
+        break;
+        case Options::InformAdminLogin:
+            Helper::setInformAdminLogin( state );
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";

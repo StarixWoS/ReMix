@@ -107,6 +107,12 @@
         //Length of a Remote Admin's password salt.
         static const int SALT_LENGTH{ 12 };
 
+        //Count of Settings Keys Accessed via the Helper namespace.
+        static const int SETTINGS_KEY_COUNT{ 3 };
+
+        //Count of Settings Sub-Kets Accessed via the Helper namespace.
+        static const int SETTINGS_SUBKEY_COUNT{ 16 };
+
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

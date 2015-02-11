@@ -6,14 +6,15 @@
 
 namespace Helper
 {
-    extern const QString keys[ 3 ];
-    extern const QString subKeys[ 14 ];
+    extern const QString keys[ SETTINGS_KEY_COUNT ];
+    extern const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
 
     enum Keys{ Options = 0, WrongIP = 1, General = 2 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
                   ReqSernum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
                   ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,
-                  ReqAdminAuth = 12, LogComments = 13 };
+                  ReqAdminAuth = 12, LogComments = 13, FwdComments = 14,
+                  InformAdminLogin = 15 };
 
     QInputDialog* createInputDialog(QWidget* parent, QString& label,
                                     QInputDialog::InputMode mode, int width,
@@ -93,6 +94,12 @@ namespace Helper
 
     void setLogComments(QVariant& value);
     bool getLogComments();
+
+    void setFwdComments(QVariant& value);
+    bool getFwdComments();
+
+    void setInformAdminLogin(QVariant& value);
+    bool getInformAdminLogin();
 
     void setServerID(QVariant& value);
     int getServerID();
