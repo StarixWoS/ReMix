@@ -84,6 +84,7 @@ class ServerInfo
         int getIPAddrSlot(QString ip);
 
         void sendServerRules(Player* plr);
+        void sendServerGreeting(Player* plr);
         void sendMasterMessage(QString packet, Player* plr = nullptr,
                                bool toAll = false);
         quint64 sendToAllConnected(QString packet);

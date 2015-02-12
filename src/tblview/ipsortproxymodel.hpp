@@ -1,3 +1,4 @@
+
 #ifndef IPBANMODEL_HPP
 #define IPBANMODEL_HPP
 

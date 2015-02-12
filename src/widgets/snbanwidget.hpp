@@ -1,3 +1,4 @@
+
 #ifndef SNBANWIDGET_HPP
 #define SNBANWIDGET_HPP
 

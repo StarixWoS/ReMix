@@ -69,6 +69,7 @@
     #include "widgets/snbanwidget.hpp"
 
     //GUI and Data Storage Clases.
+    #include "packethandler.hpp"
     #include "usermessage.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"

@@ -81,6 +81,7 @@
     class SNBanWidget;
 
     //GUI and Data Storage Classes.
+    class PacketHandler;
     class UserMessage;
     class ServerInfo;
     class CmdHandler;

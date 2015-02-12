@@ -1,3 +1,4 @@
+
 #ifndef SNSORTMODEL_HPP
 #define SNSORTMODEL_HPP
 

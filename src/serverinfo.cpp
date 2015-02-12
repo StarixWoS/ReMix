@@ -308,6 +308,23 @@ void ServerInfo::sendServerRules(Player* plr)
     }
 }
 
+void ServerInfo::sendServerGreeting(Player* plr)
+{
+    QString greeting = Settings::getMOTDMessage();
+    if ( Settings::getRequirePassword() )
+    {
+        greeting.append( "Password required: Please reply with (/login *PASS) "
+                         "or be disconnected." );
+        plr->setPwdRequested( true );
+    }
+
+    if ( !greeting.isEmpty() )
+        this->sendMasterMessage( greeting, plr, false );
+
+    if ( !this->getServerRules().isEmpty() )
+        this->sendServerRules( plr );
+}
+
 void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )

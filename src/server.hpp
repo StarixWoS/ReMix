@@ -14,15 +14,13 @@ class Server : public QTcpServer
 
     QStandardItemModel* plrViewModel{ nullptr };
     QHash<QString, QStandardItem*> plrTableItems;
-    QHash<QHostAddress, QByteArray> udpDatas;
+    QHash<QHostAddress, QByteArray> bioHash;
 
     QWidget* mother{ nullptr };
     QUdpSocket* masterSocket{ nullptr };
-    QByteArray udpData;
-    QTimer masterCheckIn;
 
     UserMessage* serverComments{ nullptr };
-    CmdHandler* cmdHandle{ nullptr };
+    PacketHandler* pktHandle{ nullptr };
     ServerInfo* server{ nullptr };
     Admin* admin{ nullptr };
 
@@ -39,41 +37,24 @@ class Server : public QTcpServer
         ~Server();
 
         void checkBannedInfo(Player* plr = nullptr);
-        void detectPacketFlood(Player* plr);
 
-        void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo();
         void setupPublicServer(bool value);
 
-        QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data,
-                                        Player* plr, bool insert);
+        void updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port);
+        QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,
+                                            Player* plr, bool insert);
 
         void showServerComments();
 
-    private:
-        void parsePacket(QString& packet, Player* plr = nullptr);
-        void parseSRPacket(QString& packet, Player* plr = nullptr);
-        void parseMIXPacket(QString& packet, Player* plr = nullptr);
-
-        void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, qint16 port);
-
-        void readMIX0(QString& packet, Player* plr);
-        void readMIX1(QString& packet, Player* plr);
-        void readMIX2(QString& packet, Player* plr);
-        void readMIX3(QString& packet, Player* plr);
-        void readMIX4(QString& packet, Player* plr);
-        void readMIX5(QString& packet, Player* plr);
-        void readMIX6(QString& packet, Player* plr);
-        void readMIX7(QString& packet, Player* plr);
-        void readMIX8(QString& packet, Player* plr);
-        void readMIX9(QString& packet, Player* plr);
-
-    signals:
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();
+        void userReadyReadSlot();
+        void userDisconnectedSlot();
+
         void readyReadUDPSlot();
 };
 
