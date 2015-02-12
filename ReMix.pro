@@ -16,19 +16,22 @@ INCLUDEPATH += "./plugin/src"
 UI_DIR = "./src"
 
 CONFIG += C++14
-Release:QMAKE_CXXFLAGS = -std=c++14 -Os -s
-Release:TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
-Release:DESTDIR = "./build-$$QT_VERSION/release"
-Release:RCC_DIR = "./build-$$QT_VERSION/release/rcc"
-Release:MOC_DIR = "./build-$$QT_VERSION/release/moc"
-Release:OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
 
-Debug:QMAKE_CXXFLAGS = -std=c++14 -Wall
-Debug:TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
-Debug:DESTDIR = "./build-$$QT_VERSION/debug"
-Debug:RCC_DIR = "./build-$$QT_VERSION/debug/rcc"
-Debug:MOC_DIR = "./build-$$QT_VERSION/debug/moc"
-Debug:OBJECTS_DIR = "./build-$$QT_VERSION/debug/obj"
+CONFIG(release, debug|release) {
+    QMAKE_CXXFLAGS = -std=c++14 -Os -s
+    TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
+    DESTDIR = "./build-$$QT_VERSION/release"
+    RCC_DIR = "./build-$$QT_VERSION/release/rcc"
+    MOC_DIR = "./build-$$QT_VERSION/release/moc"
+    OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
+} else {
+    QMAKE_CXXFLAGS = -std=c++14 -Wall
+    TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
+    DESTDIR = "./build-$$QT_VERSION/debug"
+    RCC_DIR = "./build-$$QT_VERSION/debug/rcc"
+    MOC_DIR = "./build-$$QT_VERSION/debug/moc"
+    OBJECTS_DIR = "./build-$$QT_VERSION/debug/obj"
+}
 
 ICON = "./resources/ReMix.ico"
 win32:RC_FILE += "./resources/ReMix.rc"
@@ -51,6 +54,7 @@ SOURCES += src/main.cpp \
            src/bandialog.cpp \
            src/settings.cpp \
            src/cmdhandler.cpp \
+           src/packethandler.cpp \
            src/tblview/adminsortproxymodel.cpp \
            src/tblview/plrsortproxymodel.cpp \
            src/tblview/dvsortproxymodel.cpp \
@@ -76,6 +80,7 @@ HEADERS += src/player.hpp \
            src/includes.hpp \
            src/prototypes.hpp \
            src/cmdhandler.hpp \
+           src/packethandler.hpp \
            src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
            src/tblview/dvsortproxymodel.hpp \
