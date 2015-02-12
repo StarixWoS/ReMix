@@ -43,8 +43,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
                      "commands as you will be banned after [ %1 ] "
                      "more tries." };
 
-    QString sernum = plr->getSernum_s();
-    if ( Admin::getIsRemoteAdmin( sernum ) )
+    if ( plr->getIsAdmin() )
     {
         retn = false;
         if ( plr->getGotAuthPwd() )
@@ -349,7 +348,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
                             QString& message, bool all)
 {
-    QString reason{ "A Remote-Administrator has [ %1 ] you. "
+    QString reason{ "A Remote-Administrator has [ Banned ] you. "
                     "Reason: [ %2 ]." };
 
     bool ban{ false };
@@ -371,24 +370,14 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
 
             if ( ban )
             {
-                reason = reason.arg( "Banned" )
-                               .arg( message.isEmpty()
+                reason = reason.arg( message.isEmpty()
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
-                {
-                    server->sendMasterMessage( reason,
-                                               tmpPlr,
-                                               false );
-                }
+                    server->sendMasterMessage( reason, tmpPlr, false );
 
-                banDialog->remoteAddSerNumBan( plr,
-                                               tmpPlr,
-                                               message );
-
-                banDialog->remoteAddIPBan( plr,
-                                           tmpPlr,
-                                           message );
+                banDialog->remoteAddSerNumBan( plr, tmpPlr, message );
+                banDialog->remoteAddIPBan( plr, tmpPlr, message );
 
                 tmpPlr->setSoftDisconnect( true );
             }
@@ -412,7 +401,7 @@ void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
 {
-    QString reason{ "A Remote-Administrator has [ %1 ] you. "
+    QString reason{ "A Remote-Administrator has [ Kicked ] you. "
                     "Reason: [ %2 ]." };
 
     Player* tmpPlr{ nullptr };
@@ -425,8 +414,7 @@ void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
               || tmpPlr->getSernum_s() == arg1
               || all )
             {
-                reason = reason.arg( "Kicked" )
-                               .arg( message.isEmpty()
+                reason = reason.arg( message.isEmpty()
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
@@ -521,6 +509,34 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
 
             plr->setReqAuthPwd( false );
             plr->setGotAuthPwd( true );
+
+
+            //Inform Other Users of this Remote-Admin's login if enabled.
+            if ( Settings::getInformAdminLogin() )
+            {
+                QString message{ "Remote Admin [ "
+                                 % sernum
+                                 % " ] has Authenticated with the server." };
+
+                Player* tmpPlr{ nullptr };
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr )
+                    {
+                        if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                          && tmpPlr->getGotAuthPwd() )
+                        {
+                            //Do not Inform our own Admin.. --Redundant..
+                            if ( tmpPlr != plr )
+                            {
+                                server->sendMasterMessage( message, tmpPlr,
+                                                           false );
+                            }
+                        }
+                    }
+                }
+            }
         }
         else
         {
@@ -528,30 +544,6 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             disconnect = true;
         }
         response = response.arg( "Admin" );
-
-        //Inform Other Users of this Remote-Admin's login if enabled.
-        if ( Settings::getInformAdminLogin() )
-        {
-            QString message{ "Remote Admin [ "
-                             % sernum
-                        % " ] has Authenticated with the server." };
-
-            Player* tmpPlr{ nullptr };
-            for ( int i = 0; i < MAX_PLAYERS; ++i )
-            {
-                tmpPlr = server->getPlayer( i );
-                if ( tmpPlr != nullptr )
-                {
-                    if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                      && tmpPlr->getGotAuthPwd() )
-                    {
-                        //Do not Inform our own Admin.. --Redundant..
-                        if ( tmpPlr != plr )
-                            server->sendMasterMessage( message, tmpPlr, false );
-                    }
-                }
-            }
-        }
     }
 
     if ( !response.isEmpty() )

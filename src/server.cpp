@@ -102,14 +102,14 @@ void Server::checkBannedInfo(Player* plr)
 
                     if ( plr != nullptr )
                     {
-                        plr->setHardDisconnect( true );
+                        plr->setSoftDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
                     }
 
                     if ( tmpPlr != nullptr )
                     {
-                        tmpPlr->setHardDisconnect( true );
+                        tmpPlr->setSoftDisconnect( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
                     }
@@ -132,7 +132,7 @@ void Server::checkBannedInfo(Player* plr)
             {
                 if ( tmpPlr != plr )
                 {
-                    plr->setHardDisconnect( true );
+                    plr->setSoftDisconnect( true );
                     server->setDupDc( server->getDupDc() + 1 );
                 }
             }
@@ -152,7 +152,7 @@ void Server::detectPacketFlood(Player* plr)
         if ( time <= PACKET_FLOOD_TIME )
         {
             if ( floodCount >= PACKET_FLOOD_LIMIT
-              && !plr->getHardDisconnect() )
+              && !plr->getSoftDisconnect() )
             {
                 QString log{ QDate::currentDate()
                               .toString( "banLog/yyyy-MM-dd.txt" ) };
@@ -180,7 +180,7 @@ void Server::detectPacketFlood(Player* plr)
                         banDlg->addIPBan( ip, logMsg );
                     }
                 }
-                plr->setHardDisconnect( true );
+                plr->setSoftDisconnect( true );
                 server->setPktDc( server->getPktDc() + 1 );
             }
         }
@@ -332,7 +332,7 @@ void Server::newConnectionSlot()
         server->sendMasterMessage( greeting, plr, false );
 
     if ( !server->getServerRules().isEmpty() )
-        this->sendServerRules( plr );
+        server->sendServerRules( plr );
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, [=]()
@@ -423,13 +423,15 @@ void Server::newConnectionSlot()
 void Server::readyReadUDPSlot()
 {
     QUdpSocket* sender = static_cast<QUdpSocket*>( QObject::sender() );
+
+    QByteArray data;
     if ( sender != nullptr )
     {
         QHostAddress senderAddr{};
         quint16 senderPort{ 0 };
 
-        udpData.resize( sender->pendingDatagramSize() );
-        sender->readDatagram( udpData.data(), udpData.size(),
+        data.resize( sender->pendingDatagramSize() );
+        sender->readDatagram( data.data(), data.size(),
                               &senderAddr, &senderPort );
 
         //Check for a banned IP-Address. --Log the rejection to file.
@@ -445,78 +447,7 @@ void Server::readyReadUDPSlot()
             Helper::logToFile( log, logTxt, true, true );
         }
         else    //Read the incoming command.
-        {
-            QString data( udpData );
-            if ( !data.isEmpty() )
-            {
-                QString sernum{ "" };
-                switch ( data.at( 0 ).toLatin1() )
-                {
-                    case 'G':   //Set the Server's gameInfoString.
-                        #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
-                            //This will not work. The incoming port from UDP isn't usable due to TCP using a random port.
-                            //What we may be able to do is unconditionally allow Users with the same IP to communicate
-                            //in an unbiased manner. (e.g. assume both IP addresses are on the same world.)
-
-                            //The above is our last option available if we would like a multi-world implementation.
-                            {
-                            qDebug() << senderPort;
-                                Player* tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
-                                if ( tmpPlr != nullptr )
-                                    tmpPlr->setGameInfo( data.mid( 1 ) );
-                            }
-                        #else
-                            server->setGameInfo( data.mid( 1 ) );
-                        #endif
-                    break;
-                    case 'M':   //Parse the Master Server's response.
-                        this->parseMasterServerResponse( udpData );
-                    break;
-                    case 'P':   //Store the Player information into a struct.
-                        sernum = Helper::getStrStr( data, "sernum", "=", "," );
-
-                        //Only log BIO data when the Host runs the server with
-                        //the "/fudge" commandline argument.
-                        if ( !sernum.isEmpty() && server->getLogUsage() )
-                        {
-                            Helper::logBIOData( sernum, senderAddr,
-                                                senderPort, data );
-                        }
-
-                        if (( Settings::getReqSernums()
-                           && Helper::serNumtoInt( sernum ) )
-                          || !Settings::getReqSernums() )
-                        {
-                            if ( !SNBanWidget::getIsSernumBanned( sernum ) )
-                            {
-                                udpDatas.insert( senderAddr,
-                                                 udpData.mid( 1 ) );
-
-                                server->sendServerInfo( senderAddr,
-                                                        senderPort );
-                            }
-                        }
-                        //TODO: Check for banned D and V variables.
-                    break;
-                    case 'Q':   //Send Online User Information.
-                        sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                        if (( Settings::getReqSernums()
-                           && Helper::serNumtoInt( sernum ) )
-                          || !Settings::getReqSernums() )
-                        {
-                            if ( !SNBanWidget::getIsSernumBanned( sernum ) )
-                                server->sendUserList( senderAddr, senderPort );
-                        }
-                        //TODO: Check for banned D and V variables.
-                    break;
-                    case 'R':   //TODO: Command "R" with unknown use.
-                    break;
-                    default:    //Do nothing; Unknown command.
-                    return;
-                    break;
-                }
-            }
-        }
+            this->parseUDPPacket( data, senderAddr, senderPort );
     }
 }
 
@@ -537,29 +468,6 @@ void Server::setupPublicServer(bool value)
         }
         server->setIsPublic( value );
     }
-}
-
-quint64 Server::sendServerRules(Player* plr)
-{
-    if ( plr == nullptr
-      || plr->getSocket() == nullptr )
-    {
-        return 0;
-    }
-
-    quint64 bOut{ 0 };
-    QString rules{ ":SR$%1\r\n" };
-            rules = rules.arg( server->getServerRules() );
-
-    bOut = plr->getSocket()->write( rules.toLatin1(), rules.length() );
-    if ( bOut >= 1 )
-    {
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + bOut );
-
-        server->setBytesOut( server->getBytesOut() + bOut );
-    }
-    return bOut;
 }
 
 void Server::parseMasterServerResponse(QByteArray& mData)
@@ -763,6 +671,79 @@ void Server::parseMIXPacket(QString& packet, Player* plr)
     }
 }
 
+void Server::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, qint16 port)
+{
+    QString mixUsage{ QDate::currentDate()
+                       .toString( "mixUsage/yyyy-MM-dd.txt" ) };
+    QString logMsg{ "" };
+
+    QString data{ udp };
+
+    if ( !data.isEmpty() )
+    {
+        QString sernum{ "" };
+        switch ( data.at( 0 ).toLatin1() )
+        {
+            case 'G':   //Set the Server's gameInfoString.
+                #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
+                    //This will not work. The incoming port from UDP isn't usable due to TCP using a random port.
+                    //What we may be able to do is unconditionally allow Users with the same IP to communicate
+                    //in an unbiased manner. (e.g. assume both IP addresses are on the same world.)
+
+                    //The above is our last option available if we would like a multi-world implementation.
+                    {
+                    qDebug() << senderPort;
+                        Player* tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
+                        if ( tmpPlr != nullptr )
+                            tmpPlr->setGameInfo( data.mid( 1 ) );
+                    }
+                #else
+                    server->setGameInfo( data.mid( 1 ) );
+                #endif
+            break;
+            case 'M':   //Parse the Master Server's response.
+                this->parseMasterServerResponse( udp );
+            break;
+            case 'P':   //Store the Player information into a struct.
+                sernum = Helper::getStrStr( data, "sernum", "=", "," );
+
+                //Only log BIO data when the Host runs the server with
+                //the "/fudge" commandline argument.
+                if ( !sernum.isEmpty() && server->getLogUsage() )
+                    Helper::logBIOData( sernum, ipAddr, port, data );
+
+                if (( Settings::getReqSernums()
+                   && Helper::serNumtoInt( sernum ) )
+                  || !Settings::getReqSernums() )
+                {
+                    if ( !SNBanWidget::getIsSernumBanned( sernum ) )
+                    {
+                        udpDatas.insert( ipAddr, udp.mid( 1 ) );
+                        server->sendServerInfo( ipAddr, port );
+                    }
+                }
+                //TODO: Check for banned D and V variables.
+            break;
+            case 'Q':   //Send Online User Information.
+                sernum = Helper::getStrStr( data, "sernum", "=", "," );
+                if (( Settings::getReqSernums()
+                   && Helper::serNumtoInt( sernum ) )
+                  || !Settings::getReqSernums() )
+                {
+                    if ( !SNBanWidget::getIsSernumBanned( sernum ) )
+                        server->sendUserList( ipAddr, port );
+                }
+                //TODO: Check for banned D and V variables.
+            break;
+            case 'R':   //TODO: Command "R" with unknown use.
+            break;
+            default:    //Do nothing; Unknown command.
+                qDebug() << "Unknown Command!";
+            break;
+        }
+    }
+}
+
 void Server::readMIX0(QString& packet, Player* plr)
 {
     QString sernum_s = packet.mid( 2 ).left( 8 );
@@ -793,7 +774,7 @@ void Server::readMIX3(QString& packet, Player* plr)
     qint32 sernum_i = Helper::serNumtoInt( sernum_s );
 
     //Check if the User is banned or requires authentication.
-    this->validateSerNum( plr, sernum_i );
+    plr->validateSerNum( server, sernum_i );
     this->checkBannedInfo( plr );
 }
 
@@ -825,7 +806,7 @@ void Server::readMIX7(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    this->validateSerNum( plr, packet.toInt( 0, 16 ) );
+    plr->validateSerNum( server, packet.toInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 
@@ -857,8 +838,12 @@ void Server::readMIX8(QString& packet, Player* plr)
                                .toString() );
         }
 
-        if ( !val.isEmpty() )
-            plr->getSocket()->write( val.toLatin1(), val.length() );
+        QTcpSocket* soc{ plr->getSocket() };
+        if ( !val.isEmpty()
+          && soc != nullptr )
+        {
+            soc->write( val.toLatin1(), val.length() );
+        }
     }
 }
 
@@ -883,7 +868,7 @@ void Server::readMIX9(QString& packet, Player*)
     }
 }
 
-void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
+void Server::sendRemoteAdminPwdReqSlot(Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -894,52 +879,10 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum)
                  "or be denied access to the server. Thank you!" };
 
     if ( Settings::getReqAdminAuth()
-      && Admin::getIsRemoteAdmin( serNum ) )
+      && plr->getIsAdmin() )
     {
         plr->setReqAuthPwd( true );
         server->sendMasterMessage( msg, plr, false );
-    }
-}
-
-void Server::validateSerNum(Player* plr, qint32 id)
-{
-    if ( plr == nullptr )
-        return;
-
-    if (( plr->getSernum() != id
-       && id != 0 )
-      || plr->getSernum() == 0 )
-    {
-        QString serNum_s = Helper::serNumToIntStr(
-                               Helper::intToStr( id, 16, 8 ) );
-        if ( plr->getSernum() == 0 )
-        {
-            if ( plr->getTableRow() != nullptr )
-            {
-                plrViewModel->setData(
-                            plrViewModel->index( plr->getTableRow()->row(), 1 ),
-                            serNum_s,
-                            Qt::DisplayRole );
-            }
-
-            //Disconnect the User if they have no SerNum, as we require SerNums.
-            if ( Settings::getReqSernums()
-              && id == 0 )
-            {
-                plr->setHardDisconnect( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
-            plr->setSernum( id );
-            plr->setSernum_s( serNum_s );
-        }
-        else if (( id != 0 && plr->getSernum() != id )
-               && plr->getSernum() != 0 )
-        {
-            //User's sernum has somehow changed. Disconnect them.
-            //This is a possible Ban event.
-            plr->setHardDisconnect( true );
-            server->setIpDc( server->getIpDc() + 1 );
-        }
     }
 }
 

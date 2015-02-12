@@ -284,10 +284,39 @@ int ServerInfo::getIPAddrSlot(QString ip)
     return slot;
 }
 
+void ServerInfo::sendServerRules(Player* plr)
+{
+    QTcpSocket* soc{ nullptr };
+    if ( plr == nullptr )
+        return;
+
+    soc = plr->getSocket();
+    if ( soc == nullptr )
+        return;
+
+    quint64 bOut{ 0 };
+    QString rules{ ":SR$%1\r\n" };
+            rules = rules.arg( this->getServerRules() );
+
+    bOut = soc->write( rules.toLatin1(), rules.length() );
+    if ( bOut >= 1 )
+    {
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
+        plr->setBytesOut( plr->getBytesOut() + bOut );
+
+        this->setBytesOut( this->getBytesOut() + bOut );
+    }
+}
+
 void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
+
+    QTcpSocket* soc{nullptr };
+    if ( plr != nullptr )
+        soc = plr->getSocket();
+
     quint64 bOut{ 0 };
     if ( toAll )
     {
@@ -299,7 +328,7 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         bOut = this->sendToAllConnected( msg );
     }
     else if (( plr != nullptr
-            && plr->getSocket() != nullptr )
+            && soc != nullptr )
            && !toAll )
     {
         //Iterate over all Player objects.
@@ -313,8 +342,8 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
             tmpPlr = this->getPlayer( i );
             if ( plr == tmpPlr )
             {
-                bOut = plr->getSocket()->write( msg.toLatin1(),
-                                                msg.length() );
+                bOut = soc->write( msg.toLatin1(),
+                                   msg.length() );
                 plr->setPacketsOut( plr->getPacketsOut() + 1 );
                 plr->setBytesOut( plr->getBytesOut() + bOut );
                 break;
@@ -332,18 +361,22 @@ quint64 ServerInfo::sendToAllConnected(QString packet)
     quint64 tmpBOut{ 0 };
     quint64 bOut{ 0 };
 
+    QTcpSocket* tmpSoc{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr
-          && tmpPlr->getSocket() != nullptr )
+        if ( tmpPlr != nullptr )
         {
-            tmpBOut = tmpPlr->getSocket()->write( packet.toLatin1(),
-                                                  packet.length() );
-            tmpPlr->setBytesOut( tmpPlr->getBytesOut() + tmpBOut );
-            tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+            tmpSoc = tmpPlr->getSocket();
+            if ( tmpSoc != nullptr )
+            {
+                tmpBOut = tmpSoc->write( packet.toLatin1(),
+                                         packet.length() );
+                tmpPlr->setBytesOut( tmpPlr->getBytesOut() + tmpBOut );
+                tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
 
-            bOut += tmpBOut;
+                bOut += tmpBOut;
+            }
         }
     }
     return bOut;

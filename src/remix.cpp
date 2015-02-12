@@ -547,8 +547,7 @@ void ReMix::on_playerView_customContextMenuRequested(const QPoint &pos)
         if ( plr != nullptr )
             menuTarget = plr;
 
-        QString sernum = menuTarget->getSernum_s();
-        if ( !Admin::getIsRemoteAdmin( sernum ) )
+        if ( !menuTarget->getIsAdmin() )
             contextMenu->removeAction( ui->actionRevokeAdmin );
         else
             contextMenu->removeAction( ui->actionMakeAdmin );
@@ -605,17 +604,14 @@ void ReMix::on_actionRevokeAdmin_triggered()
                  "Please contact the Server Host if you believe this was "
                  "in error." };
 
-    if ( menuTarget->getSocket() != nullptr )
+    if ( Admin::deleteRemoteAdmin( this, sernum ) )
     {
-        if ( Admin::deleteRemoteAdmin( this, sernum ) )
-        {
-            //The User is no longer a registered Admin.
-            //Revoke their current permissions.
-            menuTarget->resetAdminAuth();
+        //The User is no longer a registered Admin.
+        //Revoke their current permissions.
+        menuTarget->resetAdminAuth();
 
-            server->sendMasterMessage( msg, menuTarget, false );
-            admin->loadServerAdmins();
-        }
+        server->sendMasterMessage( msg, menuTarget, false );
+        admin->loadServerAdmins();
     }
     menuTarget = nullptr;
 }

@@ -48,6 +48,7 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
             }
             prevIndex = QModelIndex();
             tableView->clearSelection();
+            tableView->setCurrentIndex( prevIndex );
 
             return true;
         }

@@ -53,6 +53,7 @@ SOURCES += src/main.cpp \
            src/cmdhandler.cpp \
            src/tblview/adminsortproxymodel.cpp \
            src/tblview/plrsortproxymodel.cpp \
+           src/tblview/dvsortproxymodel.cpp \
            src/tblview/ipsortproxymodel.cpp \
            src/tblview/snsortproxymodel.cpp \
            src/tblview/tbleventfilter.cpp \
@@ -77,6 +78,7 @@ HEADERS += src/player.hpp \
            src/cmdhandler.hpp \
            src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
+           src/tblview/dvsortproxymodel.hpp \
            src/tblview/ipsortproxymodel.hpp \
            src/tblview/snsortproxymodel.hpp \
            src/tblview/tbleventfilter.hpp \

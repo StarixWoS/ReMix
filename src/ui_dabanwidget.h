@@ -47,8 +47,11 @@ public:
         daBanTable->setAlternatingRowColors(true);
         daBanTable->setSelectionMode(QAbstractItemView::SingleSelection);
         daBanTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-        daBanTable->horizontalHeader()->setVisible(false);
+        daBanTable->setSortingEnabled(true);
+        daBanTable->setCornerButtonEnabled(false);
+        daBanTable->horizontalHeader()->setVisible(true);
         daBanTable->horizontalHeader()->setStretchLastSection(true);
+        daBanTable->verticalHeader()->setVisible(false);
         daBanTable->verticalHeader()->setDefaultSectionSize(20);
         daBanTable->verticalHeader()->setMinimumSectionSize(20);
 

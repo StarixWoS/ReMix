@@ -103,7 +103,7 @@ bool IPBanWidget::getIsIPBanned(QHostAddress& ipAddr)
 
 bool IPBanWidget::getIsIPBanned(QString ipAddr)
 {
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    QSettings banData( "banData.ini", QSettings::IniFormat );
     QStringList bans = banData.childGroups();
 
     return bans.contains( ipAddr );
@@ -112,12 +112,13 @@ bool IPBanWidget::getIsIPBanned(QString ipAddr)
 //Private Members.
 void IPBanWidget::loadBannedIPs()
 {
-    if ( QFile( "ipBanData.ini" ).exists() )
+    if ( QFile( "banData.ini" ).exists() )
     {
-        QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+        QSettings banData( "banData.ini", QSettings::IniFormat );
         QStringList groups = banData.childGroups();
 
-        QString group;
+        QString banType{ "" };
+        QString group{ "" };
 
         int banDate{ 0 };
         int row{ -1 };
@@ -125,23 +126,27 @@ void IPBanWidget::loadBannedIPs()
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            banDate = banData.value( group % "/banDate", 0 ).toInt();
+            banType = banData.value( group % "/banType", "" ).toString();
+            if ( banType.compare( "ip", Qt::CaseInsensitive ) == 0 )
+            {
+                banDate = banData.value( group % "/banDate", 0 ).toInt();
 
-            row = ipModel->rowCount();
-            ipModel->insertRow( row );
+                row = ipModel->rowCount();
+                ipModel->insertRow( row );
 
-            ipModel->setData( ipModel->index( row, 0 ),
-                              group,
-                              Qt::DisplayRole );
+                ipModel->setData( ipModel->index( row, 0 ),
+                                  group,
+                                  Qt::DisplayRole );
 
-            ipModel->setData( ipModel->index( row, 1 ),
-                              banData.value( group % "/banReason", 0 ),
-                              Qt::DisplayRole );
+                ipModel->setData( ipModel->index( row, 1 ),
+                                  banData.value( group % "/banReason", 0 ),
+                                  Qt::DisplayRole );
 
-            ipModel->setData( ipModel->index( row, 2 ),
-                              QDateTime::fromTime_t( banDate )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
+                ipModel->setData( ipModel->index( row, 2 ),
+                                  QDateTime::fromTime_t( banDate )
+                                  .toString( "ddd MMM dd HH:mm:ss yyyy" ),
+                                  Qt::DisplayRole );
+            }
         }
         ui->ipBanTable->selectRow( 0 );
         ui->ipBanTable->resizeColumnsToContents();
@@ -150,7 +155,7 @@ void IPBanWidget::loadBannedIPs()
 
 void IPBanWidget::addIPBanImpl(QString& ip, QString& reason)
 {
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    QSettings banData( "banData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
     int row{ -1 };
@@ -177,6 +182,7 @@ void IPBanWidget::addIPBanImpl(QString& ip, QString& reason)
                           reason,
                           Qt::DisplayRole );
 
+        banData.setValue( ip % "/banType", "ip" );
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
 
@@ -188,7 +194,7 @@ void IPBanWidget::addIPBanImpl(QString& ip, QString& reason)
 
 void IPBanWidget::removeIPBanImpl(QModelIndex& index)
 {
-    QSettings banData( "ipBanData.ini", QSettings::IniFormat );
+    QSettings banData( "banData.ini", QSettings::IniFormat );
     if ( index.isValid() )
     {
         banData.remove( ipModel->data( ipModel->index( index.row(), 0 ) )
@@ -199,15 +205,24 @@ void IPBanWidget::removeIPBanImpl(QModelIndex& index)
 }
 
 //Public Slots.
-
 void IPBanWidget::ipBanTableChangedRowSlot(const QModelIndex &index,
-                                         const QModelIndex&)
+                                           const QModelIndex&)
 {
-    if ( index.row() >= 0 )
+    if ( index.isValid() )
         ui->removeIPBan->setEnabled( true );
+    else
+        ui->removeIPBan->setEnabled( false );
 }
 
 //Private Slots.
+void IPBanWidget::on_ipBanTable_clicked(const QModelIndex &index)
+{
+    if ( index.isValid() )
+        ui->removeIPBan->setEnabled( true );
+    else
+        ui->removeIPBan->setEnabled( false );
+}
+
 void IPBanWidget::on_addIPBan_clicked()
 {
     QString tmp{ ui->ipBanReason->text() };
@@ -233,10 +248,4 @@ void IPBanWidget::on_removeIPBan_clicked()
     this->removeIPBanImpl( index );
 
     ui->removeIPBan->setEnabled( false );
-}
-
-void IPBanWidget::on_ipBanTable_clicked(const QModelIndex &index)
-{
-    if ( index.row() >= 0 )
-        ui->removeIPBan->setEnabled( true );
 }

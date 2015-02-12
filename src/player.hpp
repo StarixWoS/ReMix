@@ -64,8 +64,7 @@ class Player : public QObject
     QElapsedTimer idleTime;
 
     QTimer killTimer;
-    bool pendingHardDisconnect{ false };
-    bool pendingSoftDisconnect{ false };
+    bool pendingDisconnect{ false };
 
     bool networkMuted{ false };
 
@@ -166,6 +165,7 @@ class Player : public QObject
         bool getGotAuthPwd() const;
         void setGotAuthPwd(bool value);
 
+        bool getIsAdmin();
         qint32 getAdminRank();
 
         qint32 getCmdAttempts() const;
@@ -179,14 +179,13 @@ class Player : public QObject
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
-        bool getHardDisconnect() const;
-        void setHardDisconnect(bool value);
-
         bool getSoftDisconnect() const;
         void setSoftDisconnect(bool value);
 
         bool getNetworkMuted() const;
         void setNetworkMuted(bool value);
+
+        void validateSerNum(ServerInfo* server, qint32 id);
 
         #ifdef DECRYPT_PACKET_PLUGIN
             QString getGameInfo() const;
@@ -197,7 +196,7 @@ class Player : public QObject
         #endif
 
     signals:
-        void sendRemoteAdminPwdReqSignal(Player* plr, QString& serNum);
+        void sendRemoteAdminPwdReqSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

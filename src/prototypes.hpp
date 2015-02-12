@@ -69,8 +69,9 @@
     //Table-View Classes.
     class AdminSortProxyModel;
     class PlrSortProxyModel;
-    class SNSortProxyModel;
+    class DVSortProxyModel;
     class IPSortProxyModel;
+    class SNSortProxyModel;
     class TblEventFilter;
 
     //Widget GUI Classes.

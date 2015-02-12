@@ -41,10 +41,9 @@ class IPBanWidget : public QWidget
                                       const QModelIndex&);
 
     private slots:
+        void on_ipBanTable_clicked(const QModelIndex& index);
         void on_addIPBan_clicked();
         void on_removeIPBan_clicked();
-
-        void on_ipBanTable_clicked(const QModelIndex& index);
 
     private:
         Ui::IPBanWidget *ui;

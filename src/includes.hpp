@@ -57,8 +57,9 @@
     //Table-View Classes.
     #include "tblview/adminsortproxymodel.hpp"
     #include "tblview/plrsortproxymodel.hpp"
-    #include "tblview/snsortproxymodel.hpp"
+    #include "tblview/dvsortproxymodel.hpp"
     #include "tblview/ipsortproxymodel.hpp"
+    #include "tblview/snsortproxymodel.hpp"
     #include "tblview/tbleventfilter.hpp"
 
     //Widget GUI Classes.

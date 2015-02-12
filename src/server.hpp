@@ -44,7 +44,6 @@ class Server : public QTcpServer
         void parseMasterServerResponse(QByteArray& mData);
         void setupServerInfo();
         void setupPublicServer(bool value);
-        quint64 sendServerRules(Player* plr);
 
         QStandardItem* updatePlrListRow(QString& peerIP, QByteArray& data,
                                         Player* plr, bool insert);
@@ -55,6 +54,8 @@ class Server : public QTcpServer
         void parsePacket(QString& packet, Player* plr = nullptr);
         void parseSRPacket(QString& packet, Player* plr = nullptr);
         void parseMIXPacket(QString& packet, Player* plr = nullptr);
+
+        void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, qint16 port);
 
         void readMIX0(QString& packet, Player* plr);
         void readMIX1(QString& packet, Player* plr);
@@ -67,11 +68,9 @@ class Server : public QTcpServer
         void readMIX8(QString& packet, Player* plr);
         void readMIX9(QString& packet, Player* plr);
 
-        void validateSerNum(Player* plr, qint32 id );
-
     signals:
     public slots:
-        void sendRemoteAdminPwdReqSlot(Player* plr, QString& serNum);
+        void sendRemoteAdminPwdReqSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();

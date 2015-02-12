@@ -47,9 +47,11 @@ public:
         dvBanTable->setAlternatingRowColors(true);
         dvBanTable->setSelectionMode(QAbstractItemView::SingleSelection);
         dvBanTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        dvBanTable->setSortingEnabled(true);
         dvBanTable->setCornerButtonEnabled(false);
-        dvBanTable->horizontalHeader()->setVisible(false);
+        dvBanTable->horizontalHeader()->setVisible(true);
         dvBanTable->horizontalHeader()->setStretchLastSection(true);
+        dvBanTable->verticalHeader()->setVisible(false);
         dvBanTable->verticalHeader()->setDefaultSectionSize(20);
         dvBanTable->verticalHeader()->setMinimumSectionSize(20);
 

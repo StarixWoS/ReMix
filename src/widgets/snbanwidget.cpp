@@ -49,7 +49,7 @@ bool SNBanWidget::getIsSernumBanned(QString sernum)
 {
     if ( !sernum.isEmpty() )
     {
-        QSettings banData( "snBanData.ini", QSettings::IniFormat );
+        QSettings banData( "banData.ini", QSettings::IniFormat );
         QStringList keys = banData.childGroups();
 
         return keys.contains( sernum, Qt::CaseInsensitive );
@@ -89,12 +89,13 @@ void SNBanWidget::removeSerNumBan(QString& sernum)
 //Private Members.
 void SNBanWidget::loadBannedSernums()
 {
-    if ( QFile( "snBanData.ini" ).exists() )
+    if ( QFile( "banData.ini" ).exists() )
     {
-        QSettings banData( "snBanData.ini", QSettings::IniFormat );
+        QSettings banData( "banData.ini", QSettings::IniFormat );
         QStringList groups = banData.childGroups();
 
-        QString group;
+        QString banType{ "" };
+        QString group{ "" };
 
         int banDate{ 0 };
         int row{ -1 };
@@ -102,23 +103,27 @@ void SNBanWidget::loadBannedSernums()
         for ( int i = 0; i < groups.count(); ++i )
         {
             group = groups.at( i );
-            banDate = banData.value( group % "/banDate", 0 ).toInt();
+            banType = banData.value( group % "/banType", "" ).toString();
+            if ( banType.compare( "sn", Qt::CaseInsensitive ) == 0 )
+            {
+                banDate = banData.value( group % "/banDate", 0 ).toInt();
 
-            row = snModel->rowCount();
-            snModel->insertRow( row );
+                row = snModel->rowCount();
+                snModel->insertRow( row );
 
-            snModel->setData( snModel->index( row, 0 ),
-                              group,
-                              Qt::DisplayRole );
+                snModel->setData( snModel->index( row, 0 ),
+                                  group,
+                                  Qt::DisplayRole );
 
-            snModel->setData( snModel->index( row, 1 ),
-                              banData.value( group % "/banReason", 0 ),
-                              Qt::DisplayRole );
+                snModel->setData( snModel->index( row, 1 ),
+                                  banData.value( group % "/banReason", 0 ),
+                                  Qt::DisplayRole );
 
-            snModel->setData( snModel->index( row, 2 ),
-                              QDateTime::fromTime_t( banDate )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
+                snModel->setData( snModel->index( row, 2 ),
+                                  QDateTime::fromTime_t( banDate )
+                                       .toString( "ddd MMM dd HH:mm:ss yyyy" ),
+                                  Qt::DisplayRole );
+            }
         }
         ui->snBanTable->selectRow( 0 );
     }
@@ -126,7 +131,7 @@ void SNBanWidget::loadBannedSernums()
 
 void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
 {
-    QSettings banData( "snBanData.ini", QSettings::IniFormat );
+    QSettings banData( "banData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
     int row{ -1 };
@@ -164,6 +169,7 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
                           reason,
                           Qt::DisplayRole );
 
+        banData.setValue( sernum % "/banType", "sn" );
         banData.setValue( sernum % "/banDate", date );
         banData.setValue( sernum % "/banReason", reason );
 
@@ -176,7 +182,7 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
 
 void SNBanWidget::removeSerNumBanImpl(QModelIndex& index)
 {
-    QSettings banData( "snBanData.ini", QSettings::IniFormat );
+    QSettings banData( "banData.ini", QSettings::IniFormat );
     if ( index.isValid() )
     {
         banData.remove( snModel->data( snModel->index( index.row(), 0 ) )
@@ -190,23 +196,19 @@ void SNBanWidget::removeSerNumBanImpl(QModelIndex& index)
 void SNBanWidget::snBanTableChangedRowSlot(const QModelIndex &index,
                                            const QModelIndex&)
 {
-    if ( index.row() >= 0 )
+    if ( index.isValid() )
         ui->forgiveButton->setEnabled( true );
+    else
+        ui->forgiveButton->setEnabled( false );
 }
 
 //Private Slot Members..
 void SNBanWidget::on_snBanTable_clicked(const QModelIndex &index)
 {
-    if ( index.row() >= 0 )
+    if ( index.isValid() )
         ui->forgiveButton->setEnabled( true );
-}
-
-void SNBanWidget::on_forgiveButton_clicked()
-{
-    QModelIndex index = snProxy->mapToSource( ui->snBanTable->currentIndex() );
-    this->removeSerNumBanImpl( index );
-
-    ui->forgiveButton->setEnabled( false );
+    else
+        ui->forgiveButton->setEnabled( false );
 }
 
 void SNBanWidget::on_addSernumBan_clicked()
@@ -226,4 +228,12 @@ void SNBanWidget::on_addSernumBan_clicked()
 
     ui->trgSerNum->clear();
     ui->snBanReason->clear();
+}
+
+void SNBanWidget::on_forgiveButton_clicked()
+{
+    QModelIndex index = snProxy->mapToSource( ui->snBanTable->currentIndex() );
+    this->removeSerNumBanImpl( index );
+
+    ui->forgiveButton->setEnabled( false );
 }

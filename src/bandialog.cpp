@@ -35,6 +35,8 @@ BanDialog::BanDialog(QWidget *parent) :
 
 BanDialog::~BanDialog()
 {
+    daBanWidget->deleteLater();
+    dvBanWidget->deleteLater();
     ipBanWidget->deleteLater();
     snBanWidget->deleteLater();
 

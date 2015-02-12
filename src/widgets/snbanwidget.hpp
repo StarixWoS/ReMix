@@ -40,8 +40,8 @@ class SNBanWidget : public QWidget
 
     private slots:
         void on_snBanTable_clicked(const QModelIndex& index);
-        void on_forgiveButton_clicked();
         void on_addSernumBan_clicked();
+        void on_forgiveButton_clicked();
 
     private:
         Ui::SNBanWidget *ui;

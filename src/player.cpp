@@ -10,7 +10,6 @@ Player::Player()
     QObject::connect( &connTimer, &QTimer::timeout, [=]()
     {
         ++connTime;
-        QString sernum{ this->getSernum_s() };
 
         QStandardItem* row = this->getTableRow();
         if ( row != nullptr )
@@ -44,7 +43,7 @@ Player::Player()
 
                 //Color the User's IP address Green if the Admin is authed
                 //Otherwise, color as Red.
-                if ( Admin::getIsRemoteAdmin( sernum ) )
+                if ( this->getIsAdmin() )
                 {
                     if ( this->getGotAuthPwd() )
                     {
@@ -78,12 +77,12 @@ Player::Player()
         if ( Settings::getDisconnectIdles()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
-            this->setHardDisconnect( true );
+            this->setSoftDisconnect( true );
         }
 
         //Authenticate Remote Admins as required.
         if ( Settings::getReqAdminAuth()
-          && Admin::getIsRemoteAdmin( sernum ) )
+          && this->getIsAdmin() )
         {
             if ( this->getSernum() != 0
               && !this->getReqAuthPwd() )
@@ -91,7 +90,7 @@ Player::Player()
                 if ( !Settings::getRequirePassword() || this->getEnteredPwd() )
                 {
                     if ( !this->getGotAuthPwd() )
-                        emit sendRemoteAdminPwdReqSignal( this, sernum );
+                        emit sendRemoteAdminPwdReqSignal( this );
                 }
             }
         }
@@ -107,11 +106,6 @@ Player::Player()
                 //Gracefully Disconnect the User.
                 soc->flush();
                 soc->close();
-            }
-            else if ( this->getHardDisconnect() )
-            {
-                //Forcefully disconnect the User..
-                soc->abort();
             }
         }
     });
@@ -165,7 +159,7 @@ void Player::setSernum(qint32 value)
     //forcibly remove the User from the server.
     if ( Settings::getReqSernums() && value == 0 )
     {
-        this->setHardDisconnect( true );
+        this->setSoftDisconnect( true );
         return;
     }
     hasSernum = true;
@@ -444,6 +438,12 @@ void Player::setGotAuthPwd(bool value)
     gotAuthPwd = value;
 }
 
+bool Player::getIsAdmin()
+{
+    QString sernum = this->getSernum_s();
+    return Admin::getIsRemoteAdmin( sernum );
+}
+
 qint32 Player::getAdminRank()
 {
     QString sernum = this->getSernum_s();
@@ -480,29 +480,15 @@ void Player::setGotNewAuthPwd(bool value)
     gotNewAuthPwd = value;
 }
 
-bool Player::getHardDisconnect() const
-{
-    return pendingHardDisconnect;
-}
-
-void Player::setHardDisconnect(bool value)
-{
-    pendingHardDisconnect = value;
-    if ( pendingHardDisconnect )
-    {
-        killTimer.start( 5 );
-    }
-}
-
 bool Player::getSoftDisconnect() const
 {
-    return pendingSoftDisconnect;
+    return pendingDisconnect;
 }
 
 void Player::setSoftDisconnect(bool value)
 {
-    pendingSoftDisconnect = value;
-    if ( pendingSoftDisconnect )
+    pendingDisconnect = value;
+    if ( pendingDisconnect )
     {
         killTimer.start( 250 );
     }
@@ -516,6 +502,53 @@ bool Player::getNetworkMuted() const
 void Player::setNetworkMuted(bool value)
 {
     networkMuted = value;
+}
+
+void Player::validateSerNum(ServerInfo* server, qint32 id)
+{
+    if (( this->getSernum() != id
+       && id != 0 )
+      || this->getSernum() == 0 )
+    {
+        QString serNum_s = Helper::serNumToIntStr(
+                               Helper::intToStr( id, 16, 8 ) );
+        if ( this->getSernum() == 0 )
+        {
+            QStandardItem* row = this->getTableRow();
+            if ( row != nullptr )
+            {
+                QStandardItemModel* model = row->model();
+                if ( model != nullptr )
+                {
+                    model->setData( model->index( row->row(), 1 ),
+                                    serNum_s,
+                                    Qt::DisplayRole );
+                }
+            }
+
+            //Disconnect the User if they have no SerNum, as we require SerNums.
+            if ( Settings::getReqSernums()
+              && id == 0 )
+            {
+                this->setSoftDisconnect( true );
+            }
+            this->setSernum( id );
+            this->setSernum_s( serNum_s );
+        }
+        else if (( id != 0 && this->getSernum() != id )
+               && this->getSernum() != 0 )
+        {
+            //User's sernum has somehow changed. Disconnect them.
+            //This is a possible Ban event.
+            this->setSoftDisconnect( true );
+        }
+    }
+
+    if ( this->getSoftDisconnect()
+      && server != nullptr )
+    {
+        server->setIpDc( server->getIpDc() + 1 );
+    }
 }
 
 #ifdef DECRYPT_PACKET_PLUGIN
