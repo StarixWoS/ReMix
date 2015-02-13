@@ -45,12 +45,6 @@ IPBanWidget::~IPBanWidget()
 }
 
 //Public Members.
-void IPBanWidget::addIPBan(QHostAddress& ipInfo, QString& reason)
-{
-    QString ip{ ipInfo.toString() };
-    this->addIPBan( ip, reason );
-}
-
 void IPBanWidget::addIPBan(QString ip, QString& reason)
 {
     QString msg{ reason };
@@ -64,7 +58,7 @@ void IPBanWidget::addIPBan(QString ip, QString& reason)
         this->addIPBanImpl( ip, msg );
 }
 
-void IPBanWidget::removeIPBan(QString& ip)
+void IPBanWidget::removeIPBan(QString ip)
 {
     QList<QStandardItem *> list = ipModel->findItems( ip, Qt::MatchExactly, 0 );
     if ( list.count() > 1 && list.count() > 0 )
@@ -77,28 +71,6 @@ void IPBanWidget::removeIPBan(QString& ip)
         if ( index.isValid() )
             this->removeIPBanImpl( index );
     }
-}
-
-void IPBanWidget::removeIPBan(QHostAddress& ipInfo)
-{
-    QString ip = ipInfo.toString();
-    QList<QStandardItem *> list = ipModel->findItems( ip, Qt::MatchExactly, 0 );
-    if ( list.count() > 1 && list.count() > 0 )
-    {
-        return; //Too many listed Bans, do nothing. --Inform the User later?
-    }
-    else if ( list.count() )
-    {
-        QModelIndex index = list.value( 0 )->index();
-        if ( index.isValid() )
-            this->removeIPBanImpl( index );
-    }
-}
-
-bool IPBanWidget::getIsIPBanned(QHostAddress& ipAddr)
-{
-    QString ip{ ipAddr.toString() };
-    return getIsIPBanned( ip );
 }
 
 bool IPBanWidget::getIsIPBanned(QString ipAddr)
@@ -148,7 +120,6 @@ void IPBanWidget::loadBannedIPs()
                                   Qt::DisplayRole );
             }
         }
-        ui->ipBanTable->selectRow( 0 );
         ui->ipBanTable->resizeColumnsToContents();
     }
 }

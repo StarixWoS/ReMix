@@ -84,9 +84,16 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
 
 void CmdHandler::parseMix5Command(Player* plr, QString& packet)
 {
-    QString sernum = plr->getSernum_s();
-    QString alias = Helper::getStrStr( packet, "", "", ": " ).mid( 10 );
-    QString msg = Helper::getStrStr( packet, ": ", ": ", "" );
+    if ( packet.isEmpty()
+      || plr == nullptr )
+    {
+        return;
+    }
+
+    qint32 colIndex{ packet.indexOf( ": " ) };
+    QString alias = packet.left( colIndex + 2 ).mid( 10 );
+
+    QString msg{ packet.mid( colIndex + 2 ) };
             msg = msg.left( msg.length() - 2 );
 
     if ( !alias.isEmpty()
@@ -95,7 +102,8 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         if ( msg.startsWith( "/" ) )
         {
             if ( msg.startsWith( "/cmd " ) )
-                msg = msg.mid( msg.indexOf( "/cmd ", 0 ) + 4 );
+                msg = msg.mid( msg.indexOf( "/cmd ", 0,
+                                            Qt::CaseInsensitive ) + 4 );
             else
                 msg = msg.mid( msg.indexOf( "/", 0 ) + 1 );
 
@@ -104,6 +112,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         }
         else
         {
+            QString sernum{ plr->getSernum_s() };
             if ( !msg.isEmpty() )
             {
                 //Echo the chat back to the User.
@@ -143,13 +152,14 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
 
 void CmdHandler::parseMix6Command(Player *plr, QString &packet)
 {
+    QString cmd{ packet };
     if ( plr != nullptr
       && !packet.isEmpty() )
     {
-        QString cmd{ packet };
-        if ( cmd.contains( ": " ) )
-            cmd = Helper::getStrStr( packet, ": /cmd ", ": ", "" );
-        else    //0100000FA0kickCE
+        qint32 colIndex{ packet.indexOf( ": " ) };
+        if ( colIndex >= 0 )
+            cmd = cmd.mid( colIndex + 2 );
+        else
             cmd = cmd.mid( 10 );
 
         cmd = cmd.left( cmd.length() - 2 );

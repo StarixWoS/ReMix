@@ -120,7 +120,6 @@ void DVBanWidget::loadBannedDVs()
                                   Qt::DisplayRole );
             }
         }
-        ui->dvBanTable->selectRow( 0 );
         ui->dvBanTable->resizeColumnsToContents();
     }
 }

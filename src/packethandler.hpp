@@ -18,6 +18,13 @@ class PacketHandler : public QObject
 
     QTimer masterCheckIn;
 
+
+#ifdef DECRYPT_PACKET_PLUGIN
+    PacketDecryptInterface* packetInterface{ nullptr };
+    QPluginLoader* pluginManager{ nullptr };
+    bool loadPlugin();
+#endif
+
     public:
         PacketHandler(Admin* adm, ServerInfo* svr);
         ~PacketHandler();

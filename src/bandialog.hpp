@@ -28,18 +28,14 @@ class BanDialog : public QDialog
         void remoteAddIPBan(Player* admin, Player* target,
                             QString& reason);
 
-        void addIPBan(QHostAddress& ipInfo, QString& reason);
         void addIPBan(QString ip, QString& reason);
-
-        void removeIPBan(QString& ip);
-        void removeIPBan(QHostAddress& ipInfo);
+        void removeIPBan(QString ip);
 
         //SerNum-Ban Tab
         void remoteAddSerNumBan(Player* admin, Player* target,
                                            QString& reason);
 
         void addSerNumBan(QString& sernum, QString& reason);
-
         void removeSerNumBan(QString& sernum);
 
     private:

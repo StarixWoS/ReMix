@@ -25,14 +25,12 @@ class SNBanWidget : public QWidget
         static bool getIsSernumBanned(QString sernum);
 
         void addSerNumBan(QString& sernum, QString& reason);
-
         void removeSerNumBan(QString& sernum);
 
     private:
         void loadBannedSernums();
 
         void addSerNumBanImpl(QString& sernum, QString& reason);
-
         void removeSerNumBanImpl(QModelIndex& index);
 
     public slots:

@@ -63,26 +63,15 @@ void BanDialog::remoteAddIPBan(Player* admin, Player* target, QString& reason)
     ipBanWidget->addIPBan( ip, msg );
 }
 
-void BanDialog::addIPBan(QHostAddress& ipInfo, QString& reason)
-{
-    ipBanWidget->addIPBan( ipInfo, reason );
-}
-
 void BanDialog::addIPBan(QString ip, QString& reason)
 {
     ipBanWidget->addIPBan( ip, reason );
 }
 
-void BanDialog::removeIPBan(QString& ip)
+void BanDialog::removeIPBan(QString ip)
 {
     ipBanWidget->removeIPBan( ip );
 }
-
-void BanDialog::removeIPBan(QHostAddress& ipInfo)
-{
-    ipBanWidget->removeIPBan( ipInfo );
-}
-
 
 //Sernum-Ban Tab.
 void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reason)

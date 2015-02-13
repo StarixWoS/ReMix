@@ -12,12 +12,12 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
     admin = adminDlg;
 
     //Setup Objects.
-    serverComments = new UserMessage( parent );
+    serverComments = new Comments( parent );
     pktHandle = new PacketHandler( admin, server );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
-                      serverComments, &UserMessage::newUserCommentSlot );
+                      serverComments, &Comments::newUserCommentSlot );
 
     QObject::connect( this, &QTcpServer::newConnection,
                       this, &Server::newConnectionSlot );
@@ -27,25 +27,16 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
 
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    this->loadPlugin();
-#endif
 }
 
 Server::~Server()
 {
     serverComments->close();
-    serverComments->deleteLater();
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    if ( pluginManager != nullptr )
-        pluginManager->unload();
-#endif
+//    serverComments->deleteLater();
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
-        server->deletePlayer( i );
+        //server->deletePlayer( i );
     }
     bioHash.clear();
 }
@@ -318,7 +309,7 @@ void Server::readyReadUDPSlot()
                               &senderAddr, &senderPort );
 
         //Check for a banned IP-Address. --Log the rejection to file.
-        if ( IPBanWidget::getIsIPBanned( senderAddr ) )
+        if ( IPBanWidget::getIsIPBanned( senderAddr.toString() ) )
         {
             QString logTxt{ "Ignoring UDP from banned IP Address: "
                             "[ %2:%3 ] sent command: %4" };
@@ -370,40 +361,3 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
         server->sendMasterMessage( msg, plr, false );
     }
 }
-
-#ifdef DECRYPT_PACKET_PLUGIN
-bool Server::loadPlugin()
-{
-    QDir pluginsDir( qApp->applicationDirPath() );
-
-    #if defined( Q_OS_WIN )
-        if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
-          || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
-        {
-            pluginsDir.cdUp();
-        }
-
-    #elif defined(Q_OS_MAC)
-        if ( pluginsDir.dirName() == QLatin1String( "MacOS" ) )
-        {
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-        }
-    #endif
-
-    pluginsDir.cd( "plugins" );
-    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ) )
-    {
-        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ) );
-        QObject *plugin = pluginLoader.instance();
-        if ( plugin )
-        {
-            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
-            if ( packetInterface )
-                return true;
-        }
-    }
-    return false;
-}
-#endif

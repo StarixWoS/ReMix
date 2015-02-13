@@ -70,12 +70,12 @@
 
     //GUI and Data Storage Clases.
     #include "packethandler.hpp"
-    #include "usermessage.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
     #include "bandialog.hpp"
     #include "messages.hpp"
     #include "settings.hpp"
+    #include "comments.hpp"
     #include "randdev.hpp"
     #include "helper.hpp"
     #include "player.hpp"

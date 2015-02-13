@@ -120,7 +120,6 @@ void DABanWidget::loadBannedDAs()
                                   Qt::DisplayRole );
             }
         }
-        ui->daBanTable->selectRow( 0 );
         ui->daBanTable->resizeColumnsToContents();
     }
 }

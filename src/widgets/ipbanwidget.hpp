@@ -22,13 +22,9 @@ class IPBanWidget : public QWidget
         explicit IPBanWidget(QWidget *parent = 0);
         ~IPBanWidget();
 
-        void addIPBan(QHostAddress& ipInfo, QString& reason);
         void addIPBan(QString ip, QString& reason);
+        void removeIPBan(QString ip);
 
-        void removeIPBan(QHostAddress& ipInfo);
-        void removeIPBan(QString& ip);
-
-        static bool getIsIPBanned(QHostAddress& ipAddr);
         static bool getIsIPBanned(QString ipAddr);
 
     private:

@@ -82,12 +82,12 @@
 
     //GUI and Data Storage Classes.
     class PacketHandler;
-    class UserMessage;
     class ServerInfo;
     class CmdHandler;
     class BanDialog;
     class Messages;
     class Settings;
+    class Comments;
     class RandDev;
     class Player;
     class Server;

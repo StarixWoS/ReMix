@@ -6,15 +6,30 @@
 //Initialize Settings keys/        subKeys lists
 const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
 {
-    "options", "wrongIPs", "General"
+    "options",
+    "wrongIPs",
+    "General"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
 {
-    "extension", "myPassword", "autoBanish", "discIdle", "requireSernum",
-    "dupeOK", "serverSupportsVariables", "banishDupes", "requirePassword",
-    "MOTD", "BANISHED", "RULES", "requireAdminAuth", "logComments",
-    "FwdComments", "InformAdminLogin", "EchoComments"
+    "extension",
+    "myPassword",
+    "autoBanish",
+    "discIdle",
+    "requireSernum",
+    "dupeOK",
+    "serverSupportsVariables",
+    "banishDupes",
+    "requirePassword",
+    "MOTD",
+    "BANISHED",
+    "RULES",
+    "requireAdminAuth",
+    "logComments",
+    "FwdComments",
+    "InformAdminLogin",
+    "EchoComments"
 };
 
 Settings::Settings(QWidget *parent) :
@@ -454,9 +469,21 @@ void Settings::setServerID(QVariant& value)
 
 int Settings::getServerID()
 {
-    return getSetting( keys[ Keys::Options ],
-                       subKeys[ SubKeys::Extension ] )
-              .toInt();
+    qint32 id = getSetting( keys[ Keys::Options ],
+                            subKeys[ SubKeys::Extension ] )
+                   .toInt();
+    if ( id <= 0 )
+    {
+        RandDev* randDev = new RandDev();
+        if ( randDev != nullptr )
+            id = randDev->genRandNum( 1, 0x7FFFFFFE );
+
+        QVariant var{ id };
+        setServerID( var );
+
+        delete randDev;
+    }
+    return id;
 }
 
 bool Settings::getIsInvalidIPAddress(const QString& value)

@@ -21,10 +21,20 @@ PacketHandler::PacketHandler(Admin* adm, ServerInfo* svr)
         server->sendMasterInfo();
     });
 
+
+#ifdef DECRYPT_PACKET_PLUGIN
+    this->loadPlugin();
+#endif
 }
 
 PacketHandler::~PacketHandler()
 {
+
+#ifdef DECRYPT_PACKET_PLUGIN
+    if ( pluginManager != nullptr )
+        pluginManager->unload();
+#endif
+
     cmdHandle->deleteLater();
 }
 
@@ -435,8 +445,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getPublicPort() )
                                        .arg( QString( plr->getBioData() ) );
 
-                        QString ip{ plr->getPublicIP() };
-                        banDlg->addIPBan( ip, logMsg );
+                        banDlg->addIPBan( plr->getPublicIP(), logMsg );
                     }
                 }
                 plr->setSoftDisconnect( true );
@@ -574,3 +583,41 @@ void PacketHandler::readMIX9(QString& packet, Player*)
                       vars.value( 3 ) );
     }
 }
+
+
+#ifdef DECRYPT_PACKET_PLUGIN
+bool Server::loadPlugin()
+{
+    QDir pluginsDir( qApp->applicationDirPath() );
+
+    #if defined( Q_OS_WIN )
+        if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
+          || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
+        {
+            pluginsDir.cdUp();
+        }
+
+    #elif defined(Q_OS_MAC)
+        if ( pluginsDir.dirName() == QLatin1String( "MacOS" ) )
+        {
+            pluginsDir.cdUp();
+            pluginsDir.cdUp();
+            pluginsDir.cdUp();
+        }
+    #endif
+
+    pluginsDir.cd( "plugins" );
+    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ) )
+    {
+        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ) );
+        QObject *plugin = pluginLoader.instance();
+        if ( plugin )
+        {
+            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
+            if ( packetInterface )
+                return true;
+        }
+    }
+    return false;
+}
+#endif

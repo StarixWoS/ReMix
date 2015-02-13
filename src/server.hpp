@@ -19,16 +19,10 @@ class Server : public QTcpServer
     QWidget* mother{ nullptr };
     QUdpSocket* masterSocket{ nullptr };
 
-    UserMessage* serverComments{ nullptr };
+    Comments* serverComments{ nullptr };
     PacketHandler* pktHandle{ nullptr };
     ServerInfo* server{ nullptr };
     Admin* admin{ nullptr };
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    PacketDecryptInterface* packetInterface{ nullptr };
-    QPluginLoader* pluginManager{ nullptr };
-    bool loadPlugin();
-#endif
 
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,

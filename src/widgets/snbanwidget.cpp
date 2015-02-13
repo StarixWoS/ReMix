@@ -125,7 +125,7 @@ void SNBanWidget::loadBannedSernums()
                                   Qt::DisplayRole );
             }
         }
-        ui->snBanTable->selectRow( 0 );
+        ui->snBanTable->resizeColumnsToContents();
     }
 }
 
