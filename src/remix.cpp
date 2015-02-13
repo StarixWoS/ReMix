@@ -738,7 +738,7 @@ void ReMix::on_actionBANISHIPAddress_triggered()
                          .arg( menuTarget->getPublicIP() )
                          .arg( menuTarget->getPublicPort() )
                          .arg( QString( menuTarget->getBioData() ) );
-            admin->getBanDialog()->addIPBan( ip, reason );
+            admin->getBanDialog()->addIPBan( ip.toString(), reason );
 
             if ( sock->waitForBytesWritten() )
             {

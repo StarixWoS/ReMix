@@ -41,21 +41,7 @@ DEFINES += USE_DARK_FUSION_UI=1 #Tell Qt to use a Non-Native UI color scheme.
 #DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
 #USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
-SOURCES += src/main.cpp \
-           src/remix.cpp \
-           src/player.cpp \
-           src/messages.cpp \
-           src/usermessage.cpp \
-           src/server.cpp \
-           src/serverinfo.cpp \
-           src/helper.cpp \
-           src/randdev.cpp \
-           src/admin.cpp \
-           src/bandialog.cpp \
-           src/settings.cpp \
-           src/cmdhandler.cpp \
-           src/packethandler.cpp \
-           src/tblview/adminsortproxymodel.cpp \
+SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/tblview/plrsortproxymodel.cpp \
            src/tblview/dvsortproxymodel.cpp \
            src/tblview/ipsortproxymodel.cpp \
@@ -64,24 +50,23 @@ SOURCES += src/main.cpp \
            src/widgets/dabanwidget.cpp \
            src/widgets/dvbanwidget.cpp \
            src/widgets/ipbanwidget.cpp \
-           src/widgets/snbanwidget.cpp
+           src/widgets/snbanwidget.cpp \
+           src/packethandler.cpp \
+           src/cmdhandler.cpp \
+           src/serverinfo.cpp \
+           src/bandialog.cpp \
+           src/messages.cpp \
+           src/comments.cpp \
+           src/settings.cpp \
+           src/randdev.cpp \
+           src/server.cpp \
+           src/player.cpp \
+           src/helper.cpp \
+           src/admin.cpp \
+           src/remix.cpp \
+           src/main.cpp
 
-HEADERS += src/player.hpp \
-           src/remix.hpp \
-           src/messages.hpp \
-           src/usermessage.hpp \
-           src/server.hpp \
-           src/serverinfo.hpp \
-           src/helper.hpp \
-           src/randdev.hpp \
-           src/admin.hpp \
-           src/bandialog.hpp \
-           src/settings.hpp \
-           src/includes.hpp \
-           src/prototypes.hpp \
-           src/cmdhandler.hpp \
-           src/packethandler.hpp \
-           src/tblview/adminsortproxymodel.hpp \
+HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
            src/tblview/dvsortproxymodel.hpp \
            src/tblview/ipsortproxymodel.hpp \
@@ -90,17 +75,32 @@ HEADERS += src/player.hpp \
            src/widgets/dabanwidget.hpp \
            src/widgets/dvbanwidget.hpp \
            src/widgets/ipbanwidget.hpp \
-           src/widgets/snbanwidget.hpp
+           src/widgets/snbanwidget.hpp \
+           src/packethandler.hpp \
+           src/cmdhandler.hpp \
+           src/serverinfo.hpp \
+           src/prototypes.hpp \
+           src/bandialog.hpp \
+           src/includes.hpp \
+           src/messages.hpp \
+           src/comments.hpp \
+           src/settings.hpp \
+           src/randdev.hpp \
+           src/server.hpp \
+           src/player.hpp \
+           src/helper.hpp \
+           src/admin.hpp \
+           src/remix.hpp
 
-FORMS += ui/remix.ui \
-         ui/messages.ui \
-         ui/usermessage.ui \
-         ui/admin.ui \
-         ui/bandialog.ui \
-         ui/settings.ui \
-         ui/widgets/dabanwidget.ui \
+FORMS += ui/widgets/dabanwidget.ui \
          ui/widgets/dvbanwidget.ui \
          ui/widgets/ipbanwidget.ui \
-         ui/widgets/snbanwidget.ui
+         ui/widgets/snbanwidget.ui \
+         ui/bandialog.ui \
+         ui/messages.ui \
+         ui/comments.ui \
+         ui/settings.ui \
+         ui/admin.ui \
+         ui/remix.ui
 
 RESOURCES += resources/icons.qrc
