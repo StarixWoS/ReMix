@@ -133,6 +133,9 @@
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
         static const int SETTINGS_SUBKEY_COUNT{ 17 };
 
+        //Count of currently supported Remote-Admin commands.
+        static const int ADMIN_COMMAND_COUNT{ 17 };
+
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

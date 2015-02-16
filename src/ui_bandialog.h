@@ -34,7 +34,7 @@ public:
         gridLayout = new QGridLayout(BanDialog);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(10, 10, 10, 10);
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         tabWidget = new QTabWidget(BanDialog);
         tabWidget->setObjectName(QStringLiteral("tabWidget"));
 

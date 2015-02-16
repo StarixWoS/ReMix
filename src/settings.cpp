@@ -6,30 +6,30 @@
 //Initialize Settings keys/        subKeys lists
 const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
 {
-    "options",
-    "wrongIPs",
-    "General"
+    "Settings",
+    "WrongIPs",
+    "Messages"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
 {
-    "extension",
-    "myPassword",
+    "serverID",
+    "serverPwd",
     "autoBanish",
     "discIdle",
-    "requireSernum",
+    "reqSerNums",
     "dupeOK",
-    "serverSupportsVariables",
-    "banishDupes",
-    "requirePassword",
+    "supportsSSV",
+    "banishDupeIP",
+    "reqServerPwd",
     "MOTD",
     "BANISHED",
     "RULES",
-    "requireAdminAuth",
+    "reqAdminAuth",
     "logComments",
-    "FwdComments",
-    "InformAdminLogin",
-    "EchoComments"
+    "fwdComments",
+    "informAdminLogin",
+    "echoComments"
 };
 
 Settings::Settings(QWidget *parent) :
@@ -202,61 +202,53 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
 
 //Static-Free Functions.
 void Settings::setSetting(const QString& key, const QString& subKey,
-                        QVariant& value)
+                          QVariant& value)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );
-
-    if ( key == QLatin1String( "General" ) )
-        setting.setValue( subKey, value );
-    else
-        setting.setValue( key % "/" % subKey, value );
+    setting.setValue( key % "/" % subKey, value );
 }
 
 QVariant Settings::getSetting(const QString& key, const QString& subKey)
 {
     QSettings setting( "preferences.ini", QSettings::IniFormat );
-
-    if ( key == QLatin1String( "General" ) )
-        return setting.value( subKey );
-
     return setting.value( key % "/" % subKey );
 }
 
 void Settings::setReqAdminAuth(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::ReqAdminAuth ], value );
 }
 
 bool Settings::getReqAdminAuth()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::ReqAdminAuth ] )
               .toBool();
 }
 
 void Settings::setMOTDMessage(QVariant& value)
 {
-    setSetting( keys[ Keys::General ],
+    setSetting( keys[ Keys::Messages ],
                 subKeys[ SubKeys::MOTD ], value );
 }
 
 QString Settings::getMOTDMessage()
 {
-    return getSetting( keys[ Keys::General ],
+    return getSetting( keys[ Keys::Messages ],
                        subKeys[ SubKeys::MOTD ] )
               .toString();
 }
 
 void Settings::setBanishMesage(QVariant& value)
 {
-    setSetting( keys[ Keys::General ],
+    setSetting( keys[ Keys::Messages ],
                 subKeys[ SubKeys::BanishMsg ], value );
 }
 
 QString Settings::getBanishMesage()
 {
-    return getSetting( keys[ Keys::General ],
+    return getSetting( keys[ Keys::Messages ],
                        subKeys[ SubKeys::BanishMsg ] )
               .toString();
 }
@@ -270,26 +262,26 @@ void Settings::setPassword(QString& value)
     {
         pwd = Helper::hashPassword( pwd );
     }
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::Password ], pwd );
 }
 
 QString Settings::getPassword()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::Password ] )
               .toString();
 }
 
 void Settings::setRequirePassword(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::ReqPassword ], value );
 }
 
 bool Settings::getRequirePassword()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::ReqPassword ] )
               .toBool();
 }
@@ -304,13 +296,13 @@ bool Settings::cmpServerPassword(QVariant& value)
 
 void Settings::setServerRules(QVariant& value)
 {
-    setSetting( keys[ Keys::General ],
+    setSetting( keys[ Keys::Messages ],
                 subKeys[ SubKeys::Rules ], value );
 }
 
 QString Settings::getServerRules()
 {
-    QVariant pending = getSetting( keys[ Keys::General ],
+    QVariant pending = getSetting( keys[ Keys::Messages ],
                                    subKeys[ SubKeys::Rules ] );
 
     QString rules;
@@ -333,143 +325,143 @@ QString Settings::getServerRules()
 
 void Settings::setAllowDupedIP(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::AllowDupe ], value );
 }
 
 bool Settings::getAllowDupedIP()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AllowDupe ] )
               .toBool();
 }
 
 void Settings::setBanDupedIP(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::BanDupes ], value );
 }
 
 bool Settings::getBanDupedIP()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::BanDupes ] )
               .toBool();
 }
 
 void Settings::setBanHackers(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::AutoBan ], value );
 }
 
 bool Settings::getBanHackers()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AutoBan ] )
               .toBool();
 }
 
 void Settings::setReqSernums(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::ReqSerNum ], value );
 }
 
 bool Settings::getReqSernums()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::ReqSerNum ] )
               .toBool();
 }
 
 void Settings::setDisconnectIdles(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::AllowIdle ], value );
 }
 
 bool Settings::getDisconnectIdles()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AllowIdle ] )
               .toBool();
 }
 
 void Settings::setAllowSSV(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::AllowSSV ], value );
 }
 
 bool Settings::getAllowSSV()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AllowSSV ] )
               .toBool();
 }
 
 void Settings::setLogComments(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::LogComments ], value );
 }
 
 bool Settings::getLogComments()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::LogComments ] )
               .toBool();
 }
 
 void Settings::setFwdComments(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::FwdComments ], value );
 }
 
 bool Settings::getFwdComments()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::FwdComments ] )
               .toBool();
 }
 
 void Settings::setInformAdminLogin(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::InformAdminLogin ], value );
 }
 
 bool Settings::getInformAdminLogin()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::InformAdminLogin ] )
               .toBool();
 }
 
 void Settings::setEchoComments(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::EchoComments ], value );
 }
 
 bool Settings::getEchoComments()
 {
-    return getSetting( keys[ Keys::Options ],
+    return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::EchoComments ] )
               .toBool();
 }
 
 void Settings::setServerID(QVariant& value)
 {
-    setSetting( keys[ Keys::Options ],
+    setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::Extension ], value );
 }
 
 int Settings::getServerID()
 {
-    qint32 id = getSetting( keys[ Keys::Options ],
+    qint32 id = getSetting( keys[ Keys::Setting ],
                             subKeys[ SubKeys::Extension ] )
                    .toInt();
     if ( id <= 0 )

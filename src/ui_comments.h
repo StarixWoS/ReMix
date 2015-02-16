@@ -35,13 +35,17 @@ public:
             Comments->setObjectName(QStringLiteral("Comments"));
         Comments->resize(279, 150);
         gridLayout = new QGridLayout(Comments);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(Comments);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(5, 5, 5, 5);
         msgView = new QTextEdit(frame);
         msgView->setObjectName(QStringLiteral("msgView"));
         msgView->setUndoRedoEnabled(true);

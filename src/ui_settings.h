@@ -33,22 +33,24 @@ public:
     {
         if (Settings->objectName().isEmpty())
             Settings->setObjectName(QStringLiteral("Settings"));
-        Settings->resize(294, 344);
+        Settings->resize(309, 301);
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(Settings->sizePolicy().hasHeightForWidth());
         Settings->setSizePolicy(sizePolicy);
-        Settings->setMinimumSize(QSize(294, 344));
-        Settings->setMaximumSize(QSize(294, 344));
         gridLayout = new QGridLayout(Settings);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(Settings);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(5, 5, 5, 5);
         settingsView = new QTableWidget(frame);
         if (settingsView->columnCount() < 1)
             settingsView->setColumnCount(1);

@@ -39,9 +39,11 @@ public:
     {
         if (IPBanWidget->objectName().isEmpty())
             IPBanWidget->setObjectName(QStringLiteral("IPBanWidget"));
-        IPBanWidget->resize(460, 242);
+        IPBanWidget->resize(196, 133);
         gridLayout = new QGridLayout(IPBanWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         ipBanTable = new QTableView(IPBanWidget);
         ipBanTable->setObjectName(QStringLiteral("ipBanTable"));
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

@@ -47,19 +47,25 @@ public:
     {
         if (Messages->objectName().isEmpty())
             Messages->setObjectName(QStringLiteral("Messages"));
-        Messages->resize(378, 328);
+        Messages->resize(378, 350);
         gridLayout = new QGridLayout(Messages);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(Messages);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(5, 5, 5, 5);
         groupBox_4 = new QGroupBox(frame);
         groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
         gridLayout_6 = new QGridLayout(groupBox_4);
+        gridLayout_6->setSpacing(5);
         gridLayout_6->setObjectName(QStringLiteral("gridLayout_6"));
+        gridLayout_6->setContentsMargins(5, 5, 5, 5);
         rulesEdit = new QTextEdit(groupBox_4);
         rulesEdit->setObjectName(QStringLiteral("rulesEdit"));
         rulesEdit->setMinimumSize(QSize(0, 50));
@@ -73,7 +79,9 @@ public:
         groupBox_2 = new QGroupBox(frame);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
         gridLayout_4 = new QGridLayout(groupBox_2);
+        gridLayout_4->setSpacing(5);
         gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
+        gridLayout_4->setContentsMargins(5, 5, 5, 5);
         banishedEdit = new QTextEdit(groupBox_2);
         banishedEdit->setObjectName(QStringLiteral("banishedEdit"));
         banishedEdit->setMinimumSize(QSize(0, 50));
@@ -87,7 +95,9 @@ public:
         groupBox = new QGroupBox(frame);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         gridLayout_3 = new QGridLayout(groupBox);
+        gridLayout_3->setSpacing(5);
         gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
+        gridLayout_3->setContentsMargins(5, 5, 5, 5);
         motdEdit = new QTextEdit(groupBox);
         motdEdit->setObjectName(QStringLiteral("motdEdit"));
         motdEdit->setMinimumSize(QSize(0, 50));

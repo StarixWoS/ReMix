@@ -15,7 +15,7 @@ class CmdHandler : public QObject
     Admin* adminDialog{ nullptr };
     RandDev* randDev{ nullptr };
 
-    static const QStringList commands;
+    static const QString commands[ ADMIN_COMMAND_COUNT ];
 
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };

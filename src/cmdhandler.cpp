@@ -4,15 +4,25 @@
 #include "includes.hpp"
 
 //Initialize our accepted Command List.
-const QStringList CmdHandler::commands =
+const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
 {
-    //enum CMDS{ BAN = 0, UNBAN = 1, KICK = 2, MUTE = 3, UNMUTE = 4, MSG = 5 };
-    QStringList() << "ban" << "unban" << "kick"
-                  << "mute" << "unmute" << "msg"
-                  << "login" << "register" << "shutdown"
-                  << "restart" << "mkadmin" << "rmadmin" << "dmadmin"
-                  << "chrules" << "getcomments" << "chsettings"
-                  << "vanish"
+    "ban",
+    "unban",
+    "kick",
+    "mute",
+    "unmute",
+    "msg",
+    "login",
+    "register",
+    "shutdown",
+    "restart",
+    "mkadmin",
+    "rmadmin",
+    "dmadmin",
+    "chrules",
+    "getcomments",
+    "chsettings",
+    "vanish"
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
@@ -183,9 +193,9 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     stream >> cmd >> argType >> arg1 >> arg2 >> arg3;
 
     qint32 argIndex{ -1 };
-    for ( int i = 0; i < commands.count(); ++i )
+    for ( int i = 0; i < ADMIN_COMMAND_COUNT; ++i )
     {
-        if ( commands.at( i ).compare( cmd, Qt::CaseInsensitive ) == 0 )
+        if ( commands[ i ].compare( cmd, Qt::CaseInsensitive ) == 0 )
             argIndex = i;
     }
 

@@ -56,9 +56,11 @@ public:
     {
         if (ReMixWidget->objectName().isEmpty())
             ReMixWidget->setObjectName(QStringLiteral("ReMixWidget"));
-        ReMixWidget->resize(692, 250);
+        ReMixWidget->resize(241, 245);
         gridLayout = new QGridLayout(ReMixWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         groupBox_2 = new QGroupBox(ReMixWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
@@ -70,10 +72,9 @@ public:
         groupBox_2->setMaximumSize(QSize(130, 350));
         groupBox_2->setAlignment(Qt::AlignCenter);
         gridLayout_4 = new QGridLayout(groupBox_2);
+        gridLayout_4->setSpacing(5);
         gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
-        gridLayout_4->setHorizontalSpacing(5);
-        gridLayout_4->setVerticalSpacing(3);
-        gridLayout_4->setContentsMargins(10, 10, 10, 10);
+        gridLayout_4->setContentsMargins(5, 5, 5, 5);
         groupBox = new QGroupBox(groupBox_2);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Ignored);

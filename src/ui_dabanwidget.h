@@ -39,9 +39,11 @@ public:
     {
         if (DABanWidget->objectName().isEmpty())
             DABanWidget->setObjectName(QStringLiteral("DABanWidget"));
-        DABanWidget->resize(507, 251);
+        DABanWidget->resize(214, 133);
         gridLayout = new QGridLayout(DABanWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         daBanTable = new QTableView(DABanWidget);
         daBanTable->setObjectName(QStringLiteral("daBanTable"));
         daBanTable->setAlternatingRowColors(true);

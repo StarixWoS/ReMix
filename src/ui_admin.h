@@ -54,13 +54,15 @@ public:
         gridLayout = new QGridLayout(Admin);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(10, 10, 10, 10);
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(Admin);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(5, 5, 5, 5);
         adminTable = new QTableView(frame);
         adminTable->setObjectName(QStringLiteral("adminTable"));
         adminTable->setContextMenuPolicy(Qt::CustomContextMenu);

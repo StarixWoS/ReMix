@@ -39,9 +39,11 @@ public:
     {
         if (SNBanWidget->objectName().isEmpty())
             SNBanWidget->setObjectName(QStringLiteral("SNBanWidget"));
-        SNBanWidget->resize(457, 241);
+        SNBanWidget->resize(240, 133);
         gridLayout = new QGridLayout(SNBanWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         snBanTable = new QTableView(SNBanWidget);
         snBanTable->setObjectName(QStringLiteral("snBanTable"));
         snBanTable->setEditTriggers(QAbstractItemView::NoEditTriggers);

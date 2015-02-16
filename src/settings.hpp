@@ -18,7 +18,7 @@ class Settings : public QDialog
     static const QString keys[ SETTINGS_KEY_COUNT ];
     static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
 
-    enum Keys{ Options = 0, WrongIP = 1, General = 2 };
+    enum Keys{ Setting = 0, WrongIP = 1, Messages = 2 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
                   ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
                   ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,

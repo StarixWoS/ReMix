@@ -33,16 +33,17 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(666, 273);
-        ReMix->setMinimumSize(QSize(0, 273));
-        ReMix->setMaximumSize(QSize(16777215, 414));
+        ReMix->resize(650, 256);
+        ReMix->setMinimumSize(QSize(0, 256));
+        ReMix->setMaximumSize(QSize(16777215, 395));
         ReMix->setDockNestingEnabled(false);
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
-        gridLayout->setSpacing(6);
+        gridLayout->setSpacing(5);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(centralWidget);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);

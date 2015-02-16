@@ -39,9 +39,11 @@ public:
     {
         if (DVBanWidget->objectName().isEmpty())
             DVBanWidget->setObjectName(QStringLiteral("DVBanWidget"));
-        DVBanWidget->resize(454, 235);
+        DVBanWidget->resize(232, 133);
         gridLayout = new QGridLayout(DVBanWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         dvBanTable = new QTableView(DVBanWidget);
         dvBanTable->setObjectName(QStringLiteral("dvBanTable"));
         dvBanTable->setAlternatingRowColors(true);
@@ -49,7 +51,7 @@ public:
         dvBanTable->setSelectionBehavior(QAbstractItemView::SelectRows);
         dvBanTable->setSortingEnabled(true);
         dvBanTable->setCornerButtonEnabled(false);
-        dvBanTable->horizontalHeader()->setVisible(true);
+        dvBanTable->horizontalHeader()->setVisible(false);
         dvBanTable->horizontalHeader()->setStretchLastSection(true);
         dvBanTable->verticalHeader()->setVisible(false);
         dvBanTable->verticalHeader()->setDefaultSectionSize(20);

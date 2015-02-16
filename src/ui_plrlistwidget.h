@@ -38,7 +38,7 @@ public:
     {
         if (PlrListWidget->objectName().isEmpty())
             PlrListWidget->setObjectName(QStringLiteral("PlrListWidget"));
-        PlrListWidget->resize(517, 280);
+        PlrListWidget->resize(70, 70);
         actionSendMessage = new QAction(PlrListWidget);
         actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));
         actionMakeAdmin = new QAction(PlrListWidget);
@@ -56,7 +56,9 @@ public:
         actionUnMuteNetwork = new QAction(PlrListWidget);
         actionUnMuteNetwork->setObjectName(QStringLiteral("actionUnMuteNetwork"));
         gridLayout = new QGridLayout(PlrListWidget);
+        gridLayout->setSpacing(0);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(0, 0, 0, 0);
         playerView = new QTableView(PlrListWidget);
         playerView->setObjectName(QStringLiteral("playerView"));
         playerView->setMouseTracking(false);
