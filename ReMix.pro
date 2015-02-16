@@ -47,10 +47,12 @@ SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/tblview/ipsortproxymodel.cpp \
            src/tblview/snsortproxymodel.cpp \
            src/tblview/tbleventfilter.cpp \
+           src/widgets/plrlistwidget.cpp \
            src/widgets/dabanwidget.cpp \
            src/widgets/dvbanwidget.cpp \
            src/widgets/ipbanwidget.cpp \
            src/widgets/snbanwidget.cpp \
+           src/widgets/remixwidget.cpp \
            src/packethandler.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
@@ -64,7 +66,7 @@ SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/helper.cpp \
            src/admin.cpp \
            src/remix.cpp \
-           src/main.cpp
+           src/main.cpp \
 
 HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
@@ -72,10 +74,12 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/tblview/ipsortproxymodel.hpp \
            src/tblview/snsortproxymodel.hpp \
            src/tblview/tbleventfilter.hpp \
+           src/widgets/plrlistwidget.hpp \
            src/widgets/dabanwidget.hpp \
            src/widgets/dvbanwidget.hpp \
            src/widgets/ipbanwidget.hpp \
            src/widgets/snbanwidget.hpp \
+           src/widgets/remixwidget.hpp \
            src/packethandler.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
@@ -92,10 +96,12 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/admin.hpp \
            src/remix.hpp
 
-FORMS += ui/widgets/dabanwidget.ui \
+FORMS += ui/widgets/plrlistwidget.ui \
+         ui/widgets/dabanwidget.ui \
          ui/widgets/dvbanwidget.ui \
          ui/widgets/ipbanwidget.ui \
          ui/widgets/snbanwidget.ui \
+         ui/widgets/remixwidget.ui \
          ui/bandialog.ui \
          ui/messages.ui \
          ui/comments.ui \

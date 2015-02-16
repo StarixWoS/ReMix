@@ -34,6 +34,7 @@
     #include <QVariant>
     #include <QObject>
     #include <QString>
+    #include <QLayout>
     #include <QDialog>
     #include <QDebug>
     #include <QTimer>
@@ -63,10 +64,12 @@
     #include "tblview/tbleventfilter.hpp"
 
     //Widget GUI Classes.
+    #include "widgets/plrlistwidget.hpp"
     #include "widgets/dabanwidget.hpp"
     #include "widgets/dvbanwidget.hpp"
     #include "widgets/ipbanwidget.hpp"
     #include "widgets/snbanwidget.hpp"
+    #include "widgets/remixwidget.hpp"
 
     //GUI and Data Storage Clases.
     #include "packethandler.hpp"

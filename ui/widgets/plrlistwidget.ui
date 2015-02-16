@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlrListWidget</class>
+ <widget class="QWidget" name="PlrListWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>517</width>
+    <height>280</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTableView" name="playerView">
+     <property name="mouseTracking">
+      <bool>false</bool>
+     </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="horizontalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <property name="cornerButtonEnabled">
+      <bool>false</bool>
+     </property>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>100</number>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>20</number>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>20</number>
+     </attribute>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionSendMessage">
+   <property name="text">
+    <string>Send Message</string>
+   </property>
+  </action>
+  <action name="actionMakeAdmin">
+   <property name="text">
+    <string>Make Admin</string>
+   </property>
+  </action>
+  <action name="actionBANISHIPAddress">
+   <property name="text">
+    <string>BANISH IP Address</string>
+   </property>
+  </action>
+  <action name="actionBANISHSerNum">
+   <property name="text">
+    <string>BANISH SerNum</string>
+   </property>
+  </action>
+  <action name="actionRevokeAdmin">
+   <property name="text">
+    <string>Revoke Admin</string>
+   </property>
+  </action>
+  <action name="actionDisconnectUser">
+   <property name="text">
+    <string>Disconnect User</string>
+   </property>
+  </action>
+  <action name="actionMuteNetwork">
+   <property name="text">
+    <string>Mute Network</string>
+   </property>
+  </action>
+  <action name="actionUnMuteNetwork">
+   <property name="text">
+    <string>Un-Mute Network</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

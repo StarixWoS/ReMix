@@ -41,6 +41,7 @@
     class QVariant;
     class QtEndian;
     class QProcess;
+    class QLayout;
     class QDialog;  //Requires Include within Class Headers.
     class QString;
     class QObject;  //Requires Include within Class Headers.
@@ -75,6 +76,8 @@
     class TblEventFilter;
 
     //Widget GUI Classes.
+    class PlrListWidget;
+    class ReMixWidget;
     class DABanWidget;
     class DVBanWidget;
     class IPBanWidget;
