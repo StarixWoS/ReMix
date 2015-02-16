@@ -20,7 +20,9 @@ class CmdHandler : public QObject
     public:
         enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
         enum CMDS{ BAN = 0, UNBAN = 1, KICK = 2, MUTE = 3, UNMUTE = 4, MSG = 5,
-                   LOGIN = 6, REGISTER = 7, SHUTDOWN = 8, RESTART = 9 };
+                   LOGIN = 6, REGISTER = 7, SHUTDOWN = 8, RESTART = 9,
+                   MKADMIN = 10, RMADMIN = 11, CHADMIN = 12, CHRULES = 13,
+                   GETCOMMENTS = 14, CHSETTINGS = 15, VANISH = 16 };
 
         explicit CmdHandler(QObject* parent = nullptr, ServerInfo* svr = nullptr,
                             Admin* aDlg = nullptr);
@@ -44,6 +46,15 @@ class CmdHandler : public QObject
         void registerHandler(Player* plr, QString& argType);
 
         void shutDownHandler(Player* plr, bool restart = false);
+
+//        void mkAdminHandler(Player* plr, QString& sernum, QString& arg);
+//        void rmAdminHandler(Player* plr, QString& sernum);
+//        void chAdminHandler(Player* plr, QString& sernum, QString& arg);
+
+//        void chRulesHandler(Player* plr, QString& rules);
+//        void getCommentsHandler(Player* plr, QString& arg);
+//        void chSettingsHandler(Player* plr, QString& setting, QString& value);
+//        void vanishHandler(Player* plr);
 
     signals:
         void newUserCommentSignal(QString& sernum, QString& alias,

@@ -414,3 +414,25 @@ bool Admin::createRemoteAdmin(QWidget* parent, QString& sernum)
 
     return false;
 }
+
+//bool Admin::remoteChangeRank(QString& sernum, qint32 rank)
+//{
+//    if ( !getIsRemoteAdmin( sernum ) )
+//    {
+//        QSettings adminData( "adminData.ini", QSettings::IniFormat );
+//                  adminData.setValue( sernum % "/rank", rank );
+//        return true;
+//    }
+//    return false;
+//}
+
+//bool Admin::remoteRemoveAdmin(QString& sernum)
+//{
+//    if ( getIsRemoteAdmin( sernum ) )
+//    {
+//        QSettings adminData( "adminData.ini", QSettings::IniFormat );
+//                  adminData.remove( Helper::serNumToHexStr( sernum, 8 ) );
+//        return true;
+//    }
+//    return false;
+//}

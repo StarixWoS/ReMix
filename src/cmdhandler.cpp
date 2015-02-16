@@ -10,7 +10,9 @@ const QStringList CmdHandler::commands =
     QStringList() << "ban" << "unban" << "kick"
                   << "mute" << "unmute" << "msg"
                   << "login" << "register" << "shutdown"
-                  << "restart"
+                  << "restart" << "mkadmin" << "rmadmin" << "dmadmin"
+                  << "chrules" << "getcomments" << "chsettings"
+                  << "vanish"
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
@@ -153,12 +155,13 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
 void CmdHandler::parseMix6Command(Player *plr, QString &packet)
 {
     QString cmd{ packet };
+
     if ( plr != nullptr
       && !packet.isEmpty() )
     {
-        qint32 colIndex{ packet.indexOf( ": " ) };
+        qint32 colIndex{ packet.indexOf( ": /cmd ", Qt::CaseInsensitive ) };
         if ( colIndex >= 0 )
-            cmd = cmd.mid( colIndex + 2 );
+            cmd = cmd.mid( colIndex + 7 );
         else
             cmd = cmd.mid( 10 );
 
@@ -326,6 +329,43 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 }
             }
         break;
+//        case CMDS::MKADMIN: //10
+//            {
+//                this->mkAdminHandler( plr, arg1, arg2 );
+//            }
+//        break;
+//        case CMDS::RMADMIN: //11
+//            {
+//                this->rmAdminHandler( plr, arg1 );
+//            }
+//        break;
+//        case CMDS::CHADMIN: //12
+//            {
+//                this->chAdminHandler( plr, arg1, arg2 );
+//            }
+//        break;
+//        case CMDS::CHRULES: //13
+//            {
+//                this->chRulesHandler( plr, arg1 );
+//            }
+//        break;
+//        case CMDS::GETCOMMENTS: //14
+//            {
+//                this->getCommentsHandler( plr, arg1 );
+//            }
+//        break;
+//        case CMDS::CHSETTINGS: //15
+//            {
+//                this->chSettingsHandler( plr, arg1, arg2 );
+//            }
+//        break;
+//        case CMDS::VANISH: //16
+//            {
+//                this->vanishHandler( plr );
+//            }
+//        break;
+//        case : //16+
+//        break;
         default:
         break;
     }
@@ -592,7 +632,8 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
             {
                 QString message{ "User [ "
                                  % sernum
-                                 % " ] has Registered as a Remote Administrator with the server." };
+                                 % " ] has Registered as a Remote "
+                                   "Administrator with the server." };
 
                 Player* tmpPlr{ nullptr };
                 for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -654,3 +695,109 @@ void CmdHandler::shutDownHandler(Player* plr, bool restart)
     if ( !message.isEmpty() )
         server->sendMasterMessage( message, nullptr, true );
 }
+
+//void CmdHandler::mkAdminHandler(Player* plr, QString& sernum, QString& arg)
+//{
+//    QString msg{ "The Remote Admin [ %1 ] is attempting to register you as an "
+//                 "Admin with the server. Please reply to this message with "
+//                 "(/register *YOURPASS). Note: Neither the Server Host or "
+//                 "other Admins will have access to this information." };
+
+//    qint32 rank{ arg.toInt( 0, 10 ) };
+
+//    Player* tmpPlr{ nullptr };
+//    if ( plr != nullptr )
+//    {
+//        if ( !sernum.isEmpty() )
+//        {
+//            tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
+//            if ( tmpPlr != nullptr )
+//            {
+//                msg = msg.arg( plr->getSernum_s() );
+
+//                if ( !msg.isEmpty() )
+//                    server->sendMasterMessage( msg, tmpPlr, false );
+//            }
+//        }
+//    }
+//}
+
+//void CmdHandler::rmAdminHandler(Player* plr, QString& sernum)
+//{
+//    QString msg{ "Your Remote Administrator privileges have been REVOKED "
+//                 "by the Remote Admin [ %1 ]. Please contact the Server Host "
+//                 "if you believe this was in error." };
+
+//    Player* tmpPlr{ nullptr };
+//    if ( plr != nullptr )
+//    {
+//        if ( !sernum.isEmpty() )
+//        {
+//            if ( Admin::remoteRemoveAdmin( sernum ) )
+//            {
+//                tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
+//                if ( tmpPlr != nullptr )
+//                {
+//                    msg = msg.arg( plr->getSernum_s() );
+//                    if ( !msg.isEmpty() )
+//                        server->sendMasterMessage( msg, tmpPlr, false );
+//                }
+//            }
+//        }
+//    }
+//}
+
+//void CmdHandler::chAdminHandler(Player* plr, QString& sernum, QString& arg)
+//{
+//    QString msg{ "The Remote Admin [ %1 ] has changed your rank from [ %1 ] "
+//                 "to [ %2 ]. If you feel this was in error, please contact the "
+//                 "Server Host." };
+
+//    qint32 rank{ arg.toInt( 0, 10 ) };
+
+//    Player* tmpPlr{ nullptr };
+//    if ( plr != nullptr )
+//    {
+//        if ( !sernum.isEmpty() )
+//        {
+//            if ( Admin::remoteChangeRank( sernum, rank ) )
+//            {
+//                tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
+//                if ( tmpPlr != nullptr )
+//                {
+//                    qint32 prevRank{ tmpPlr->getAdminRank() };
+//                    if ( Admin::remoteChangeRank( sernum, rank ) )
+//                    {
+//                        msg = msg.arg( plr->getSernum_s() )
+//                              .arg( prevRank )
+//                              .arg( rank );
+
+//                        if ( !msg.isEmpty() )
+//                            server->sendMasterMessage( msg, tmpPlr, false );
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+//void CmdHandler::chRulesHandler(Player* plr, QString& rules)
+//{
+
+//}
+
+//void CmdHandler::getCommentsHandler(Player* plr, QString& arg)
+//{
+
+//}
+
+//void CmdHandler::chSettingsHandler(Player* plr, QString& setting,
+//                                   QString& value)
+//{
+
+//}
+
+//void CmdHandler::vanishHandler(Player* plr)
+//{
+
+//}

@@ -57,6 +57,9 @@ class Admin : public QDialog
         static bool deleteRemoteAdmin(QWidget* parent, QString& sernum);
         static bool createRemoteAdmin(QWidget* parent, QString& sernum);
 
+//        static bool remoteChangeRank(QString& sernum, qint32 rank);
+//        static bool remoteRemoveAdmin(QString& sernum);
+
     private:
         void initContextMenu();
         void setAdminRank(int rank, QModelIndex index);

@@ -254,6 +254,21 @@ int ServerInfo::getSernumSlot(qint32 sernum)
     return slot;
 }
 
+int ServerInfo::getSernumSlot(QString& sernum)
+{
+    int slot{ -1 };
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        if ( players[ i ] != nullptr
+          && players[ i ]->getSernum_s() == sernum )
+        {
+            slot = i;
+            break;
+        }
+    }
+    return slot;
+}
+
 int ServerInfo::getQItemSlot(QStandardItem* index)
 {
     int slot{ -1 };
