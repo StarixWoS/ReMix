@@ -12,7 +12,9 @@ QT += core \
 
 TEMPLATE = app
 
-INCLUDEPATH += "./plugin/src"
+INCLUDEPATH += "./src" \
+               "./plugin/src"
+
 UI_DIR = "./src"
 
 CONFIG += C++14

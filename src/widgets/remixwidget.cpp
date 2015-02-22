@@ -120,10 +120,7 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 case CMDLArgs::MASTER:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
-                    {
                         server->setMasterInfoHost( tmp );
-                        ReMix::getSynRealData( server );
-                    }
                 break;
                 case CMDLArgs::PUBLIC:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );

@@ -11,7 +11,6 @@ PacketHandler::PacketHandler(Admin* adm, ServerInfo* svr)
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
 
-
     //Every 2 Seconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
     masterCheckIn.setInterval( 2000 );
@@ -113,54 +112,34 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                     {
                         isAuth = true;
                         send = false;
-                        switch ( plr->getTargetType() )
+
+                        qint32 trgScene{ plr->getTargetScene() };
+                        if ( plr->getTargetType() == Player::ALL )
                         {
-                            case Player::ALL:
-                                {
-                                    send = true;
-                                }
-                            break;
-                            case Player::PLAYER:
-                                {
-                                    if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
-                                        send = true;
-                                }
-                            break;
-                            case Player::SCENE:
-                                {
-                                    if ((( plr->getTargetScene() == tmpPlr->getSernum() )
-                                      || ( plr->getTargetScene() == tmpPlr->getSceneHost() )))
-                                    {
-                                        if (( plr != tmpPlr ) )
-                                            send = true;
-                                    }
-                                }
-                            break;
-                            default:
-                                send = false;
-                            break;
+                            send = true;
                         }
+                        else if ( plr->getTargetType() == Player::PLAYER )
+                        {
+                            if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
+                                send = true;
+                        }
+                        else if ( plr->getTargetType() == Player::SCENE )
+                        {
+                            if ((( trgScene == tmpPlr->getSernum() )
+                              || ( trgScene == tmpPlr->getSceneHost() )))
+                            {
+                                if (( plr != tmpPlr ) )
+                                    send = true;
+                            }
+                        }
+                        else
+                            send = false;
                     }
 
                     if ( send && isAuth )
                     {
-                    #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
-                        qDebug() << tmpPlr << tmpPlr->getHasGameInfo() << tmpPlr->getGameInfo()
-                                 << plr << plr->getHasGameInfo() << plr->getGameInfo();
-                        if ( tmpPlr->getHasGameInfo()
-                          && tmpPlr->getGameInfo().compare( plr->getGameInfo(), Qt::CaseInsensitive ) )
-                        {
-                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-                        }
-                        else if ( packetInterface != nullptr
-                               && packetInterface->canSendPacket( packet, server->getGameName() ) )
-                        {
-                            bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-                        }
-                    #else
                         bOut = tmpSoc->write( packet.toLatin1(),
                                               packet.length() );
-                    #endif
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
@@ -236,21 +215,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
         switch ( data.at( 0 ).toLatin1() )
         {
             case 'G':   //Set the Server's gameInfoString.
-                #if defined( DECRYPT_PACKET_PLUGIN ) && defined( USE_MULTIWORLD_FEATURE )
-                    //This will not work. The incoming port from UDP isn't usable due to TCP using a random port.
-                    //What we may be able to do is unconditionally allow Users with the same IP to communicate
-                    //in an unbiased manner. (e.g. assume both IP addresses are on the same world.)
-
-                    //The above is our last option available if we would like a multi-world implementation.
-                    {
-                    qDebug() << senderPort;
-                        Player* tmpPlr = server->getPlayer( server->getIPAddrSlot( senderAddr.toString() ) );
-                        if ( tmpPlr != nullptr )
-                            tmpPlr->setGameInfo( data.mid( 1 ) );
-                    }
-                #else
+                {
                     server->setGameInfo( data.mid( 1 ) );
-                #endif
+                }
             break;
             case 'M':   //Parse the Master Server's response.
                 {

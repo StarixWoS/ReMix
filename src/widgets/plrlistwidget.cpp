@@ -129,6 +129,7 @@ void PlrListWidget::on_actionSendMessage_triggered()
     if ( !txt.isEmpty()
       && ok )
     {
+        txt.prepend( "Owner: " );
         if ( menuTarget != nullptr )
             server->sendMasterMessage( txt, menuTarget, false );
         else
@@ -144,9 +145,8 @@ void PlrListWidget::on_actionRevokeAdmin_triggered()
 
     QString sernum = menuTarget->getSernum_s();
     QString msg{ "Your Remote Administrator privileges have been REVOKED "
-                 "by either the Server Host or an 'Owner'-ranked Admin. "
-                 "Please contact the Server Host if you believe this was "
-                 "in error." };
+                 "by either the Server Host. Please contact the Server Host if "
+                 "you believe this was in error." };
 
     if ( Admin::deleteRemoteAdmin( this, sernum ) )
     {
@@ -166,7 +166,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         return;
 
     QString sernum = menuTarget->getSernum_s();
-    QString msg{ "The server Admin is attempting to register you as an "
+    QString msg{ "The Server Host is attempting to register you as an "
                  "Admin with the server. Please reply to this message with "
                  "(/register *YOURPASS). Note: The server Host and other Admins"
                  " will not have access to this information." };
@@ -232,8 +232,8 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
         QString prompt{ "Are you certain you want to DISCONNECT ( " %
                         menuTarget->getSernum_s() % " )?" };
 
-        QString inform{ "The Server Host or a Remote-Admin has disconnected "
-                        "you from the Server. Reason: %1" };
+        QString inform{ "The Server Host has disconnected you from the Server. "
+                        "Reason: %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
@@ -262,8 +262,8 @@ void PlrListWidget::on_actionBANISHIPAddress_triggered()
     QString prompt{ "Are you certain you want to BANISH [ " % sernum % " ]'s "
                     "IP Address [ " % ipAddr % " ]?" };
 
-    QString inform{ "The Server Host or a Remote-Admin has banned your IP "
-                    "Address [ %1 ]. Reason: %2" };
+    QString inform{ "The Server Host has banned your IP Address [ %1 ]. "
+                    "Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -305,8 +305,8 @@ void PlrListWidget::on_actionBANISHSerNum_triggered()
     QString prompt{ "Are you certain you want to BANISH the SerNum [ "
                   % sernum % " ]?" };
 
-    QString inform{ "The Server Host or a Remote-Admin has banned your "
-                    "SerNum [ %1 ]. Reason: %2" };
+    QString inform{ "The Server Host has banned your SerNum [ %1 ]. "
+                    "Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
