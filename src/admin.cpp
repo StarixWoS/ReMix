@@ -11,7 +11,7 @@ const QString Admin::adminKeys[ 3 ] =
 
 const QStringList Admin::ranks
 {
-    QStringList() << "Game Master" << "Co-Admin"
+    QStringList() << "Removed" << "Game Master" << "Co-Admin"
                   << "Admin" << "Owner"
 };
 
@@ -189,63 +189,30 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
 
-    QString hexSerNum{ sernum };
-            hexSerNum = Helper::serNumToHexStr( hexSerNum, 8 );
-    if ( hexSerNum.length() > 8 )
-        hexSerNum = hexSerNum.mid( hexSerNum.length() - 8 );
+    QString serNum{ sernum };
+            serNum = Helper::sanitizeSerNum( serNum );
 
-    if ( !hexSerNum.isEmpty()
+    if ( !serNum.isEmpty()
       && !pwd.isEmpty() )
     {
-        //We already have an admin using this sernum on record.
-        //Return false. (Perhaps inform the would-be admin.)
-        if ( adminData.childGroups()
-                      .contains( hexSerNum,
-                                 Qt::CaseInsensitive ) )
-        {
+        //Remote Admins are based on Rank, not whether they're recorded.
+        if ( this->getIsRemoteAdmin( serNum ) )
             return false;
-        }
 
         QString salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
+        QString hash( salt + pwd );
+                hash = Helper::hashPassword( hash );
 
-        QStringList groups = adminData.childGroups();
-        QString j{ "" };
-        for ( int i = 0; i < groups.count(); ++i )
-        {
-            j = adminData.value( groups.at( i ) % "/salt" )
-                         .toString();
-
-            //Check if the Salt is already used.
-            if ( j == salt )
-            {   //If so, generate another and restart the loop.
-                salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
-                i = 0;
-            }
-        }
-
-        QVariant hash( salt + pwd );
-                 hash = Helper::hashPassword( hash );
-
-        qint32 rank{ ui->comboBox->currentIndex() };
-        adminData.setValue( hexSerNum % "/rank", rank );
-        adminData.setValue( hexSerNum % "/hash", hash );
-        adminData.setValue( hexSerNum % "/salt", salt );
+        qint32 rank{ ui->comboBox->currentIndex() + 1 };
+        adminData.setValue( serNum % "/rank", rank );
+        adminData.setValue( serNum % "/hash", hash );
+        adminData.setValue( serNum % "/salt", salt );
 
         int row = tableModel->rowCount();
         tableModel->insertRow( row );
 
         //Display the SERNUM in the correct format as required.
-        if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
-          && !sernum.contains( " " ) )
-        {
-            sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
-        }
-        else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
-               && !sernum.contains( "SOUL " ) )
-        {
-            sernum.prepend( "SOUL " );
-        }
-
+        sernum = Helper::serNumToIntStr( serNum );
         tableModel->setData( tableModel->index( row, 0 ),
                              sernum,
                              Qt::DisplayRole );
@@ -291,7 +258,7 @@ void Admin::on_actionRevokeAdmin_triggered()
 
         if ( !sernum.isEmpty() )
         {
-            if (  this->deleteRemoteAdmin( this, sernum ) )
+            if ( this->deleteRemoteAdmin( this, sernum ) )
                 tableModel->removeRow( menuIndex.row() );
         }
     }
@@ -310,7 +277,7 @@ void Admin::on_actionChangeRank_triggered()
         if ( !sernum.isEmpty() )
             rank = this->changeRemoteAdminRank( this, sernum );
 
-        if ( rank >= 0 )
+        if ( rank >= 1 )
         {
             tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
                                  ranks.at( rank ),
@@ -320,40 +287,38 @@ void Admin::on_actionChangeRank_triggered()
 }
 
 void Admin::setAdminData(const QString& key, const QString& subKey,
-                               QVariant& value)
+                         QVariant& value)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
-    QString sernum{ Helper::serNumToHexStr( key, 8 ) };
 
-    adminData.setValue( sernum % "/" % subKey, value );
+    adminData.setValue( key % "/" % subKey, value );
 }
 
 QVariant Admin::getAdminData(const QString& key, const QString& subKey)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
-    QString sernum{ Helper::serNumToHexStr( key, 8 ) };
 
-    if ( subKey == QLatin1String( "rank" ) )
-        return adminData.value( sernum % "/" % subKey, -1 );
-    else
-        return adminData.value( sernum % "/" % subKey );
+    if ( subKey == adminKeys[ Admin::RANK ] )
+        return adminData.value( key % "/" % subKey, 0 );
+
+    return adminData.value( key % "/" % subKey );
 }
 
 bool Admin::getIsRemoteAdmin(QString& serNum)
 {
     return getAdminData( serNum, adminKeys[ Admin::RANK ] )
-              .toInt() >= 0;
+              .toInt() >= 1;
 }
 
-bool Admin::cmpRemoteAdminPwd(QString& serNum, QVariant& value)
+bool Admin::cmpRemoteAdminPwd(QString& serNum, QString& value)
 {
     QString recSalt = getAdminData( serNum, adminKeys[ Admin::SALT ] )
                               .toString();
     QString recHash = getAdminData( serNum, adminKeys[ Admin::HASH ] )
                               .toString();
 
-    QVariant hash{ recSalt + value.toString() };
-             hash = Helper::hashPassword( hash );
+    QString hash{ recSalt + value };
+            hash = Helper::hashPassword( hash );
 
     return hash == recHash;
 }
@@ -379,6 +344,8 @@ qint32 Admin::changeRemoteAdminRank(QWidget* parent, QString& sernum)
     if ( ok && !item.isEmpty() )
     {
         rank = ranks.indexOf( item );
+
+        sernum = Helper::sanitizeSerNum( sernum );
         setRemoteAdminRank( sernum, rank );
     }
     return rank;
@@ -390,10 +357,11 @@ bool Admin::deleteRemoteAdmin(QWidget* parent, QString& sernum)
     QString prompt{ "Are you certain you want to REVOKE [ " % sernum
                    % " ]'s powers?" };
 
+    sernum = Helper::sanitizeSerNum( sernum );
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
-                  adminData.remove( Helper::serNumToHexStr( sernum, 8 ) );
+                  adminData.remove( sernum );
         return true;
     }
     return false;
@@ -401,6 +369,7 @@ bool Admin::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 
 bool Admin::createRemoteAdmin(QWidget* parent, QString& sernum)
 {
+    sernum = Helper::serNumToIntStr( sernum );
     QString title{ "Create Admin:" };
     QString prompt{ "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
                     "\r\n\r\nPlease make sure you trust [ %2 ] as this will "

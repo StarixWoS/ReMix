@@ -11,7 +11,7 @@ DABanWidget::DABanWidget(QWidget *parent) :
 
     //Setup the IP-Ban TableView.
     daModel = new QStandardItemModel( 0, 3, 0 );
-    daModel->setHeaderData( 0, Qt::Horizontal, "Device ID" );
+    daModel->setHeaderData( 0, Qt::Horizontal, "Date ID" );
     daModel->setHeaderData( 1, Qt::Horizontal, "Ban Reason" );
     daModel->setHeaderData( 2, Qt::Horizontal, "Ban Time" );
 

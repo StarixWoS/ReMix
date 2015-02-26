@@ -250,6 +250,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
             break;
             case 'P':   //Store the Player information into a struct.
                 sernum = Helper::getStrStr( data, "sernum", "=", "," );
+                sernum = Helper::sanitizeSerNum( sernum );
 
                 //Only log BIO data when the Host runs the server with
                 //the "/fudge" commandline argument.
@@ -270,6 +271,8 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
             break;
             case 'Q':   //Send Online User Information.
                 sernum = Helper::getStrStr( data, "sernum", "=", "," );
+                sernum = Helper::sanitizeSerNum( sernum );
+
                 if (( Settings::getReqSernums()
                    && Helper::serNumtoInt( sernum ) )
                   || !Settings::getReqSernums() )

@@ -18,7 +18,7 @@ class CmdHandler : public QObject
     static const QString commands[ ADMIN_COMMAND_COUNT ];
 
     public:
-        enum Ranks{ GMASTER = 0, COADMIN = 1, ADMIN = 2, OWNER = 3 };
+        enum Ranks{ GMASTER = 1, COADMIN = 2, ADMIN = 3, OWNER = 4 };
         enum CMDS{ BAN = 0, UNBAN = 1, KICK = 2, MUTE = 3, UNMUTE = 4, MSG = 5,
                    LOGIN = 6, REGISTER = 7, SHUTDOWN = 8, RESTART = 9,
                    MKADMIN = 10, RMADMIN = 11, CHADMIN = 12, CHRULES = 13,

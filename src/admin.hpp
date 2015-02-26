@@ -48,7 +48,7 @@ class Admin : public QDialog
         static QVariant getAdminData(const QString& key, const QString& subKey);
 
         static bool getIsRemoteAdmin(QString& serNum);
-        static bool cmpRemoteAdminPwd(QString& serNum, QVariant& value);
+        static bool cmpRemoteAdminPwd(QString& serNum, QString& value);
 
         static qint32 getRemoteAdminRank(QString& sernum);
         static void setRemoteAdminRank(QString& sernum, qint32 rank);

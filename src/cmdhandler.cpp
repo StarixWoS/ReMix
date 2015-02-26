@@ -114,8 +114,10 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         if ( msg.startsWith( "/" ) )
         {
             if ( msg.startsWith( "/cmd " ) )
+            {
                 msg = msg.mid( msg.indexOf( "/cmd ", 0,
                                             Qt::CaseInsensitive ) + 4 );
+            }
             else
                 msg = msg.mid( msg.indexOf( "/", 0 ) + 1 );
 
@@ -535,13 +537,15 @@ void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
 void CmdHandler::loginHandler(Player* plr, QString& argType)
 {
     QString sernum{ plr->getSernum_s() };
+            sernum = Helper::sanitizeSerNum( sernum );
+
     QString response{ "%1 %2 Password. Welcome!" };
     QString invalid{ "Incorrect" };
     QString valid{ "Correct" };
 
     bool disconnect{ false };
 
-    QVariant pwd{ argType };
+    QString pwd{ argType };
     if ( plr->getPwdRequested()
       && !plr->getEnteredPwd() )
     {
@@ -562,7 +566,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     else if ( !plr->getGotAuthPwd()
            || plr->getReqAuthPwd() )
     {
-        if ( !pwd.toString().isEmpty()
+        if ( !pwd.isEmpty()
           && Admin::cmpRemoteAdminPwd( sernum, pwd ) )
         {
             response = response.arg( valid );
@@ -575,7 +579,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             if ( Settings::getInformAdminLogin() )
             {
                 QString message{ "Remote Admin [ "
-                                 % sernum
+                                 % Helper::serNumToIntStr( sernum )
                                  % " ] has Authenticated with the server." };
 
                 Player* tmpPlr{ nullptr };

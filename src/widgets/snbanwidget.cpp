@@ -112,7 +112,7 @@ void SNBanWidget::loadBannedSernums()
                 snModel->insertRow( row );
 
                 snModel->setData( snModel->index( row, 0 ),
-                                  group,
+                                  Helper::serNumToIntStr( group ),
                                   Qt::DisplayRole );
 
                 snModel->setData( snModel->index( row, 1 ),
@@ -137,17 +137,7 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
     int row{ -1 };
     if ( !sernum.isEmpty() )
     {
-        //Display the SERNUM in the correct format as required.
-        if ( sernum.contains( "SOUL", Qt::CaseInsensitive )
-          && !sernum.contains( " " ) )
-        {
-            sernum = "SOUL " % Helper::getStrStr( sernum, "SOUL", "SOUL", "" );
-        }
-        else if ( !( sernum.toInt( 0, 16 ) & MIN_HEX_SERNUM )
-               && !sernum.contains( "SOUL " ) )
-        {
-            sernum.prepend( "SOUL " );
-        }
+        sernum = Helper::sanitizeSerNum( sernum );
 
         //Prevent adding new rows for previously-banned users.
         if ( !SNBanWidget::getIsSernumBanned( sernum ) )
@@ -156,7 +146,7 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
             snModel->insertRow( row );
 
             snModel->setData( snModel->index( row, 0 ),
-                              sernum,
+                              Helper::serNumToIntStr( sernum ),
                               Qt::DisplayRole );
 
             snModel->setData( snModel->index( row, 2 ),
@@ -185,8 +175,11 @@ void SNBanWidget::removeSerNumBanImpl(QModelIndex& index)
     QSettings banData( "banData.ini", QSettings::IniFormat );
     if ( index.isValid() )
     {
-        banData.remove( snModel->data( snModel->index( index.row(), 0 ) )
-                                  .toString() );
+        QString sernum{ snModel->data( snModel->index( index.row(), 0 ) )
+                                 .toString() };
+                sernum = Helper::sanitizeSerNum( sernum );
+
+        banData.remove( sernum );
         snModel->removeRow( index.row() );
     }
     ui->snBanTable->resizeColumnsToContents();

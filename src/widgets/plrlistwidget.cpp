@@ -171,6 +171,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
                  "(/register *YOURPASS). Note: The server Host and other Admins"
                  " will not have access to this information." };
 
+    sernum = Helper::sanitizeSerNum( sernum );
     if ( !Admin::getIsRemoteAdmin( sernum ) )
     {
         if ( Admin::createRemoteAdmin( this, sernum ) )

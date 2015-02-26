@@ -23,6 +23,7 @@ namespace Helper
     QString getStrStr(const QString& str, QString indStr, QString mid,
                       QString left);
 
+    QString sanitizeSerNum(const QString& value);
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
     qint32 serNumtoInt(QString& sernum);
@@ -39,8 +40,9 @@ namespace Helper
     QString getBanishReason(QWidget* parent = nullptr);
     QString getDisconnectReason(QWidget* parent = nullptr);
 
-    QString hashPassword(QVariant& password);
+    QString hashPassword(QString& password);
     QString genPwdSalt(RandDev* randGen, qint32 length = SALT_LENGTH);
+    bool validateSalt(QString& salt);
 
     void logBIOData(QString& serNum, QHostAddress& ip, quint16 port,
                     QString& bio);

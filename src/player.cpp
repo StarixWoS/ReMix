@@ -441,12 +441,16 @@ void Player::setGotAuthPwd(bool value)
 bool Player::getIsAdmin()
 {
     QString sernum = this->getSernum_s();
+            sernum = Helper::sanitizeSerNum( sernum );
+
     return Admin::getIsRemoteAdmin( sernum );
 }
 
 qint32 Player::getAdminRank()
 {
     QString sernum = this->getSernum_s();
+            sernum = Helper::sanitizeSerNum( sernum );
+
     return Admin::getRemoteAdminRank( sernum );
 }
 

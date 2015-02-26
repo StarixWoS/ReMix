@@ -259,9 +259,8 @@ void Settings::setPassword(QString& value)
 
     //Convert the password to a SHA3_512 hash.
     if ( !value.isEmpty() )
-    {
-        pwd = Helper::hashPassword( pwd );
-    }
+        pwd = Helper::hashPassword( value );
+
     setSetting( keys[ Keys::Setting ],
                 subKeys[ SubKeys::Password ], pwd );
 }
@@ -286,12 +285,12 @@ bool Settings::getRequirePassword()
               .toBool();
 }
 
-bool Settings::cmpServerPassword(QVariant& value)
+bool Settings::cmpServerPassword(QString& value)
 {
-    if ( !value.toString().isEmpty() )
+    if ( !value.isEmpty() )
         value = Helper::hashPassword( value );
 
-    return ( getPassword() == value.toString() );
+    return ( getPassword() == value );
 }
 
 void Settings::setServerRules(QVariant& value)

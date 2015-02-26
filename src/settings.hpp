@@ -60,7 +60,7 @@ class Settings : public QDialog
 
         static void setRequirePassword(QVariant& value);
         static bool getRequirePassword();
-        static bool cmpServerPassword(QVariant& value);
+        static bool cmpServerPassword(QString& value);
 
         static void setServerRules(QVariant& value);
         static QString getServerRules();

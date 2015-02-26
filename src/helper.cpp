@@ -105,26 +105,42 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     return QString();
 }
 
+QString Helper::sanitizeSerNum(const QString& value)
+{
+    QString sernum{ value };
+    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    {
+        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
+                       .trimmed();
+    }
+
+    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    if ( sernum_i & MIN_HEX_SERNUM )
+        return value;
+
+    return serNumToHexStr( sernum, 8 );
+}
+
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
-    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    {
+        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
+                       .trimmed();
+    }
 
+    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString result{ "" };
-    if ( sernum.contains( "SOUL" ) )
-    {
-        result = intToStr( getStrStr( sernum, "SOUL", "SOUL", "" )
-                                 .toInt(), 16, fillAmt );
-    }
-    else
-    {
-        if ( sernum_i & MIN_HEX_SERNUM )
-            result = intToStr( sernum_i, 16, fillAmt );
-        else
-            result = intToStr( sernum.toInt( 0, 10 ), 16, fillAmt );
-    }
 
-    //Remove Spaces.
-    return result.trimmed();
+    if ( sernum_i & MIN_HEX_SERNUM )
+        result = intToStr( sernum_i, 16, fillAmt );
+    else
+        result = intToStr( sernum.toInt( 0, 10 ), 16, fillAmt );
+
+    if ( result.length() > 8 )
+        result = result.mid( result.length() - 8 );
+
+    return result;
 }
 
 QString Helper::serNumToIntStr(QString sernum)
@@ -149,11 +165,17 @@ QString Helper::serNumToIntStr(QString sernum)
 
 qint32 Helper::serNumtoInt(QString& sernum)
 {
-    int sernum_i{ 0 };
-    if ( sernum.contains( "SOUL" ) )
-        sernum_i = strToInt( getStrStr( sernum, "SOUL", " ", "" ), 10 );
-    else
+    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    {
+        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
+                       .trimmed();
+    }
+
+    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    if ( sernum_i & MIN_HEX_SERNUM )
         sernum_i = strToInt( sernum, 16 );
+    else
+        sernum_i = strToInt( sernum, 10 );
 
     return sernum_i;
 }
@@ -245,10 +267,10 @@ QString Helper::getDisconnectReason(QWidget* parent)
     return dialog->textValue();
 }
 
-QString Helper::hashPassword(QVariant& password)
+QString Helper::hashPassword(QString& password)
 {
     QCryptographicHash hash( QCryptographicHash::Sha3_512 );
-                       hash.addData( password.toString().toLatin1() );
+                       hash.addData( password.toLatin1() );
 
     return QString( hash.result().toHex() );
 }
@@ -281,7 +303,27 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
     if ( newRNG )
         delete randGen;
 
+    if ( !validateSalt( salt ) )
+        salt = genPwdSalt( randGen, length );
+
     return salt;
+}
+
+bool Helper::validateSalt(QString& salt)
+{
+    QSettings adminData( "adminData.ini", QSettings::IniFormat );
+    QStringList groups = adminData.childGroups();
+
+    QString j{ "" };
+    for ( int i = 0; i < groups.count(); ++i )
+    {
+        j = adminData.value( groups.at( i ) % "/salt" )
+                     .toString();
+
+        if ( j == salt )
+            return false;
+    }
+    return true;
 }
 
 void Helper::logBIOData(QString& serNum, QHostAddress& ip,
