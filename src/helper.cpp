@@ -105,14 +105,25 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     return QString();
 }
 
-QString Helper::sanitizeSerNum(const QString& value)
+void Helper::stripSerNumHeader(QString& sernum)
 {
-    QString sernum{ value };
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
     {
         sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
                        .trimmed();
     }
+
+    if ( sernum.contains( "WP", Qt::CaseInsensitive ) )
+    {
+        sernum = sernum.remove( "WP", Qt::CaseInsensitive )
+                       .trimmed();
+    }
+}
+
+QString Helper::sanitizeSerNum(const QString& value)
+{
+    QString sernum{ value };
+    stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
@@ -123,11 +134,7 @@ QString Helper::sanitizeSerNum(const QString& value)
 
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
-    {
-        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
-                       .trimmed();
-    }
+    stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString result{ "" };
@@ -174,11 +181,7 @@ QString Helper::serNumToIntStr(QString sernum)
 
 quint32 Helper::serNumtoInt(QString& sernum)
 {
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
-    {
-        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
-                       .trimmed();
-    }
+    stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )

@@ -23,6 +23,7 @@ namespace Helper
     QString getStrStr(const QString& str, QString indStr, QString mid,
                       QString left);
 
+    void stripSerNumHeader(QString& sernum);
     QString sanitizeSerNum(const QString& value);
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
