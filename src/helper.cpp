@@ -31,14 +31,14 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
                    .toUpper();
 }
 
-int Helper::strToInt(QString str, int base)
+quint32 Helper::strToInt(QString str, int base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };
 
-    int val = str.toInt( &ok, base );
+    int val = str.toUInt( &ok, base );
     if ( !ok && !base16 )
-        val = str.toInt( &ok, 16 );
+        val = str.toUInt( &ok, 16 );
 
     if ( !ok )
         val = -1;
@@ -135,7 +135,16 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     if ( sernum_i & MIN_HEX_SERNUM )
         result = intToStr( sernum_i, 16, fillAmt );
     else
-        result = intToStr( sernum.toInt( 0, 10 ), 16, fillAmt );
+    {
+        bool ok{ false };
+        sernum.toUInt( &ok, 10 );
+
+        result = intToStr( sernum.toUInt( &ok, 10 ), 16, fillAmt );
+        if ( !ok )
+            result = intToStr( sernum.toUInt( &ok, 16 ), 16, fillAmt );
+        else
+            result = intToStr( sernum.toUInt( &ok, 10 ), 16, fillAmt );
+    }
 
     if ( result.length() > 8 )
         result = result.mid( result.length() - 8 );
@@ -163,7 +172,7 @@ QString Helper::serNumToIntStr(QString sernum)
     return retn;
 }
 
-qint32 Helper::serNumtoInt(QString& sernum)
+quint32 Helper::serNumtoInt(QString& sernum)
 {
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
     {

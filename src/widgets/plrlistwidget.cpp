@@ -143,11 +143,11 @@ void PlrListWidget::on_actionRevokeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString sernum = menuTarget->getSernum_s();
     QString msg{ "Your Remote Administrator privileges have been REVOKED "
                  "by either the Server Host. Please contact the Server Host if "
                  "you believe this was in error." };
 
+    QString sernum{ menuTarget->getSernumHex_s() };
     if ( Admin::deleteRemoteAdmin( this, sernum ) )
     {
         //The User is no longer a registered Admin.
@@ -165,13 +165,12 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString sernum = menuTarget->getSernum_s();
     QString msg{ "The Server Host is attempting to register you as an "
                  "Admin with the server. Please reply to this message with "
                  "(/register *YOURPASS). Note: The server Host and other Admins"
                  " will not have access to this information." };
 
-    sernum = Helper::sanitizeSerNum( sernum );
+    QString sernum{ menuTarget->getSernumHex_s() };
     if ( !Admin::getIsRemoteAdmin( sernum ) )
     {
         if ( Admin::createRemoteAdmin( this, sernum ) )
@@ -256,12 +255,12 @@ void PlrListWidget::on_actionBANISHIPAddress_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString sernum = menuTarget->getSernum_s();
     QString ipAddr = menuTarget->getPublicIP();
 
     QString title{ "Ban IP Address:" };
-    QString prompt{ "Are you certain you want to BANISH [ " % sernum % " ]'s "
-                    "IP Address [ " % ipAddr % " ]?" };
+    QString prompt{ "Are you certain you want to BANISH [ "
+                  % menuTarget->getSernum_s() % " ]'s IP Address [ "
+                  % ipAddr % " ]?" };
 
     QString inform{ "The Server Host has banned your IP Address [ %1 ]. "
                     "Reason: %2" };
@@ -300,11 +299,9 @@ void PlrListWidget::on_actionBANISHSerNum_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString sernum = menuTarget->getSernum_s();
-
     QString title{ "Ban SerNum:" };
     QString prompt{ "Are you certain you want to BANISH the SerNum [ "
-                  % sernum % " ]?" };
+                  % menuTarget->getSernum_s() % " ]?" };
 
     QString inform{ "The Server Host has banned your SerNum [ %1 ]. "
                     "Reason: %2" };
@@ -316,7 +313,7 @@ void PlrListWidget::on_actionBANISHSerNum_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             reason = reason.arg( Helper::getBanishReason( this ) );
-            inform = inform.arg( sernum )
+            inform = inform.arg( menuTarget->getSernum_s() )
                            .arg( reason ).toLatin1();
             server->sendMasterMessage( inform, menuTarget, false );
 
@@ -325,6 +322,8 @@ void PlrListWidget::on_actionBANISHSerNum_triggered()
                          .arg( menuTarget->getPublicIP() )
                          .arg( menuTarget->getPublicPort() )
                          .arg( QString( menuTarget->getBioData() ) );
+
+            QString sernum{ menuTarget->getSernumHex_s() };
             admin->getBanDialog()->addSerNumBan( sernum, reason );
 
             if ( sock->waitForBytesWritten() )

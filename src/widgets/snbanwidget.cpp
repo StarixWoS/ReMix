@@ -72,8 +72,9 @@ void SNBanWidget::addSerNumBan(QString& sernum, QString& reason)
 
 void SNBanWidget::removeSerNumBan(QString& sernum)
 {
-    QList<QStandardItem *> list = snModel->findItems( sernum,
-                                                      Qt::MatchExactly, 0 );
+    QList<QStandardItem *> list = snModel->findItems(
+                                      Helper::serNumToIntStr( sernum ),
+                                      Qt::MatchExactly, 0 );
     if ( list.count() > 1 && list.count() > 0 )
     {
         return; //Too many Bans, do nothing. --Inform the User later?
@@ -137,8 +138,6 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
     int row{ -1 };
     if ( !sernum.isEmpty() )
     {
-        sernum = Helper::sanitizeSerNum( sernum );
-
         //Prevent adding new rows for previously-banned users.
         if ( !SNBanWidget::getIsSernumBanned( sernum ) )
         {
@@ -177,7 +176,7 @@ void SNBanWidget::removeSerNumBanImpl(QModelIndex& index)
     {
         QString sernum{ snModel->data( snModel->index( index.row(), 0 ) )
                                  .toString() };
-                sernum = Helper::sanitizeSerNum( sernum );
+                sernum = Helper::serNumToHexStr( sernum );
 
         banData.remove( sernum );
         snModel->removeRow( index.row() );
@@ -217,6 +216,7 @@ void SNBanWidget::on_addSernumBan_clicked()
     else
         reason = reason.arg( "Unknown Reason." );
 
+    sernum = Helper::sanitizeSerNum( sernum );
     this->addSerNumBan( sernum, reason );
 
     ui->trgSerNum->clear();

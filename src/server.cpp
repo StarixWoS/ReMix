@@ -102,9 +102,8 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         if ( !sernum.isEmpty() )
         {
-            plr->setSernum( Helper::serNumToHexStr( sernum )
-                                       .toInt( 0, 16 ) );
-            plr->setSernum_s( sernum );
+            plr->setSernum_i( Helper::serNumToHexStr( sernum )
+                                       .toUInt( 0, 16 ) );
         }
         plrViewModel->setData( plrViewModel->index( row, 1 ),
                                sernum,
@@ -155,22 +154,9 @@ void Server::setupServerInfo()
         }
 
         QHostAddress addr{ server->getPrivateIP() };
-        bool validUDP = server->initMasterSocket( addr,
-                                                  server->getPrivatePort() );
-        bool validTCP = this->listen( addr, server->getPrivatePort() );
 
-        if ( !validUDP
-          || !validTCP )
-        {
-            QString title{ "Invalid Port [ %1 ]" };
-                    title = title.arg( server->getPrivatePort() );
-
-            QString prompt{ "The selected UDP/TCP Port [ %1 ]\r\n"
-                            "is either invalid or already in use." };
-                    prompt = prompt.arg( server->getPrivatePort() );
-
-            Helper::warningMessage( mother, title, prompt );
-        }
+        server->initMasterSocket( addr, server->getPrivatePort() );
+        this->listen( addr, server->getPrivatePort() );
 
         server->setIsSetUp( true );
         if ( server->getIsPublic() && this->isListening() )

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'messages.ui'
 **
-** Created by: Qt User Interface Compiler version 5.4.0
+** Created by: Qt User Interface Compiler version 5.4.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -135,7 +135,7 @@ public:
 
     void retranslateUi(QDialog *Messages)
     {
-        Messages->setWindowTitle(QApplication::translate("Messages", "System Messages", 0));
+        Messages->setWindowTitle(QApplication::translate("Messages", "System Messages:", 0));
         groupBox_4->setTitle(QApplication::translate("Messages", "Server Rules:", 0));
         groupBox_2->setTitle(QApplication::translate("Messages", "Banished Message:", 0));
         banishedEdit->setHtml(QApplication::translate("Messages", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"

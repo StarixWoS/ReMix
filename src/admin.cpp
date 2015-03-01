@@ -164,8 +164,9 @@ void Admin::setAdminRank(int rank, QModelIndex index)
 
 void Admin::on_makeAdmin_clicked()
 {
-    QString sernum = ui->adminSerNum->text().simplified();
     QString pwd = ui->adminPwd->text();
+    QString sernum = ui->adminSerNum->text().simplified();
+            sernum = Helper::sanitizeSerNum( sernum );
 
     if ( !sernum.isEmpty() && !pwd.isEmpty() )
     {
@@ -189,14 +190,11 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
 {
     QSettings adminData( "adminData.ini", QSettings::IniFormat );
 
-    QString serNum{ sernum };
-            serNum = Helper::sanitizeSerNum( serNum );
-
-    if ( !serNum.isEmpty()
+    if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
     {
         //Remote Admins are based on Rank, not whether they're recorded.
-        if ( this->getIsRemoteAdmin( serNum ) )
+        if ( this->getIsRemoteAdmin( sernum ) )
             return false;
 
         QString salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
@@ -204,15 +202,15 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
                 hash = Helper::hashPassword( hash );
 
         qint32 rank{ ui->comboBox->currentIndex() + 1 };
-        adminData.setValue( serNum % "/rank", rank );
-        adminData.setValue( serNum % "/hash", hash );
-        adminData.setValue( serNum % "/salt", salt );
+        adminData.setValue( sernum % "/rank", rank );
+        adminData.setValue( sernum % "/hash", hash );
+        adminData.setValue( sernum % "/salt", salt );
 
         int row = tableModel->rowCount();
         tableModel->insertRow( row );
 
         //Display the SERNUM in the correct format as required.
-        sernum = Helper::serNumToIntStr( serNum );
+        sernum = Helper::serNumToIntStr( sernum );
         tableModel->setData( tableModel->index( row, 0 ),
                              sernum,
                              Qt::DisplayRole );
@@ -255,6 +253,7 @@ void Admin::on_actionRevokeAdmin_triggered()
         QString sernum = tableModel->data(
                              tableModel->index(
                                  menuIndex.row(), 0 ) ).toString();
+                sernum = Helper::sanitizeSerNum( sernum );
 
         if ( !sernum.isEmpty() )
         {
@@ -272,6 +271,7 @@ void Admin::on_actionChangeRank_triggered()
         QString sernum = tableModel->data(
                              tableModel->index(
                                  menuIndex.row(), 0 ) ).toString();
+                sernum = Helper::sanitizeSerNum( sernum );
 
         qint32 rank{ -1 };
         if ( !sernum.isEmpty() )
@@ -345,7 +345,6 @@ qint32 Admin::changeRemoteAdminRank(QWidget* parent, QString& sernum)
     {
         rank = ranks.indexOf( item );
 
-        sernum = Helper::sanitizeSerNum( sernum );
         setRemoteAdminRank( sernum, rank );
     }
     return rank;
@@ -354,10 +353,10 @@ qint32 Admin::changeRemoteAdminRank(QWidget* parent, QString& sernum)
 bool Admin::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 {
     QString title{ "Revoke Admin:" };
-    QString prompt{ "Are you certain you want to REVOKE [ " % sernum
+    QString prompt{ "Are you certain you want to REVOKE [ "
+                   % Helper::serNumToIntStr( sernum )
                    % " ]'s powers?" };
 
-    sernum = Helper::sanitizeSerNum( sernum );
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );

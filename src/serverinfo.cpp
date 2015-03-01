@@ -52,10 +52,10 @@ void ServerInfo::setMasterInfoHost(const QString& value)
     QString scheme = QUrl( url ).scheme();
 
     QFile synRealIni( "synreal.ini" );
-    if ( isUrl.exactMatch( scheme ) )
+    if ( masterInfoHost != value
+      && isUrl.exactMatch( scheme ) )
     {
-        if ( masterInfoHost != value )
-            synRealIni.remove();
+        synRealIni.remove();
     }
     else
         url = "http://synthetic-reality.com/synreal.ini";
@@ -115,9 +115,9 @@ void ServerInfo::sendUserList(QHostAddress& addr, quint16 port)
     {
         plr = this->getPlayer( i );
         if ( plr != nullptr
-          && plr->getSernum() != 0 )
+          && plr->getSernum_i() != 0 )
         {
-            response += Helper::intToStr( plr->getSernum(), 16 ) % ",";
+            response += Helper::intToStr( plr->getSernum_i(), 16 ) % ",";
         }
     }
 
@@ -231,36 +231,6 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
     {
         if ( players[ i ] != nullptr
           && players[ i ]->getSocket() == soc )
-        {
-            slot = i;
-            break;
-        }
-    }
-    return slot;
-}
-
-int ServerInfo::getSernumSlot(qint32 sernum)
-{
-    int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        if ( players[ i ] != nullptr
-          && players[ i ]->getSernum() == sernum )
-        {
-            slot = i;
-            break;
-        }
-    }
-    return slot;
-}
-
-int ServerInfo::getSernumSlot(QString& sernum)
-{
-    int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        if ( players[ i ] != nullptr
-          && players[ i ]->getSernum_s() == sernum )
         {
             slot = i;
             break;

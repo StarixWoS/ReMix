@@ -81,16 +81,15 @@ void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reaso
         return;
     }
 
-    QString sernum{ target->getSernum_s() };
     QString msg{ reason };
-
     if ( msg.isEmpty() )
     {
         msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
         msg = msg.arg( admin->getSernum_s() )
-                 .arg( sernum );
+                 .arg( target->getSernum_s() );
     }
 
+    QString sernum{ target->getSernumHex_s() };
     snBanWidget->addSerNumBan( sernum, msg );
 }
 

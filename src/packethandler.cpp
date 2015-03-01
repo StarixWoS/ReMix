@@ -113,19 +113,19 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                         isAuth = true;
                         send = false;
 
-                        qint32 trgScene{ plr->getTargetScene() };
+                        quint32 trgScene{ plr->getTargetScene() };
                         if ( plr->getTargetType() == Player::ALL )
                         {
                             send = true;
                         }
                         else if ( plr->getTargetType() == Player::PLAYER )
                         {
-                            if ( plr->getTargetSerNum() == tmpPlr->getSernum() )
+                            if ( plr->getTargetSerNum() == tmpPlr->getSernum_i() )
                                 send = true;
                         }
                         else if ( plr->getTargetType() == Player::SCENE )
                         {
-                            if ((( trgScene == tmpPlr->getSernum() )
+                            if ((( trgScene == tmpPlr->getSernum_i() )
                               || ( trgScene == tmpPlr->getSceneHost() )))
                             {
                                 if (( plr != tmpPlr ) )
@@ -250,7 +250,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
             break;
             case 'P':   //Store the Player information into a struct.
                 sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                sernum = Helper::sanitizeSerNum( sernum );
+                sernum = Helper::serNumToHexStr( sernum );
 
                 //Only log BIO data when the Host runs the server with
                 //the "/fudge" commandline argument.
@@ -271,7 +271,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
             break;
             case 'Q':   //Send Online User Information.
                 sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                sernum = Helper::sanitizeSerNum( sernum );
+                sernum = Helper::serNumToHexStr( sernum );
 
                 if (( Settings::getReqSernums()
                    && Helper::serNumtoInt( sernum ) )
@@ -304,7 +304,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
 
     //Prevent Banned IP's or SerNums from remaining connected.
     if ( IPBanWidget::getIsIPBanned( plr->getPublicIP() )
-      || SNBanWidget::getIsSernumBanned( plr->getSernum_s() ) )
+      || SNBanWidget::getIsSernumBanned( plr->getSernumHex_s() ) )
     {
         plr->setSoftDisconnect( true );
         server->setIpDc( server->getIpDc() + 1 );
@@ -364,7 +364,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr
-              && tmpPlr->getSernum() == plr->getSernum() )
+              && tmpPlr->getSernum_i() == plr->getSernum_i() )
             {
                 if ( tmpPlr != plr )
                 {
@@ -442,10 +442,8 @@ void PacketHandler::readMIX0(QString& packet, Player* plr)
 
 void PacketHandler::readMIX1(QString& packet, Player* plr)
 {
-    QString sernum_s = packet.mid( 2 ).left( 8 );
-    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
-
-    plr->setSceneHost( sernum_i );
+    QString sernum = packet.mid( 2 ).left( 8 );
+    plr->setSceneHost( Helper::serNumtoInt( sernum ) );
 }
 
 void PacketHandler::readMIX2(QString&, Player* plr)
@@ -456,20 +454,17 @@ void PacketHandler::readMIX2(QString&, Player* plr)
 
 void PacketHandler::readMIX3(QString& packet, Player* plr)
 {
-    QString sernum_s = packet.mid( 2 ).left( 8 );
-    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
+    QString sernum = packet.mid( 2 ).left( 8 );
 
-    //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, sernum_i );
+    plr->validateSerNum( server, Helper::serNumtoInt( sernum ) );
     this->checkBannedInfo( plr );
 }
 
 void PacketHandler::readMIX4(QString& packet, Player* plr)
 {
-    QString sernum_s = packet.mid( 2 ).left( 8 );
-    qint32 sernum_i = Helper::serNumtoInt( sernum_s );
+    QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->setTargetSerNum( sernum_i );
+    plr->setTargetSerNum( Helper::serNumtoInt( sernum ) );
     plr->setTargetType( Player::PLAYER );
 }
 
@@ -492,7 +487,7 @@ void PacketHandler::readMIX7(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, packet.toInt( 0, 16 ) );
+    plr->validateSerNum( server, Helper::serNumtoInt( packet ) );
     this->checkBannedInfo( plr );
 }
 

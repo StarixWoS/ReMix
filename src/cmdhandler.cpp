@@ -126,15 +126,12 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         }
         else
         {
-            QString sernum{ plr->getSernum_s() };
             if ( !msg.isEmpty() )
             {
                 //Echo the chat back to the User.
                 if ( Settings::getEchoComments() )
                     server->sendMasterMessage( "Echo: " % msg, plr, false );
 
-                //Send the Comment to all connected Remote-Administrators
-                //Then forward the message to the Comments dialog if enabled.
                 if ( Settings::getFwdComments() )
                 {
                     Player* tmpPlr{ nullptr };
@@ -142,12 +139,12 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                     message = message.arg( plr->getAdminRank() >= 0
                                          ? "Admin"
                                          : "User" )
-                                     .arg( sernum )
+                                     .arg( plr->getSernum_s() )
                                      .arg( msg );
                     for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
                         tmpPlr = server->getPlayer( i );
-                        if (tmpPlr != nullptr)
+                        if ( tmpPlr != nullptr )
                         {
                             if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
                               && tmpPlr->getGotAuthPwd() )
@@ -157,8 +154,9 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                             }
                         }
                     }
-                    emit newUserCommentSignal( sernum, alias, msg );
                 }
+                QString sernum{ plr->getSernum_s() };
+                emit newUserCommentSignal( sernum, alias, msg );
             }
         }
     }
@@ -190,7 +188,11 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     bool all{ false };
 
     QTextStream stream( &packet );
-    QString cmd, argType, arg1, arg2, arg3;
+    QString cmd;
+    QString argType;
+    QString arg1;
+    QString arg2;
+    QString arg3;
 
     stream >> cmd >> argType >> arg1 >> arg2 >> arg3;
 
@@ -410,6 +412,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
                             QString& message, bool all)
 {
+    QString sernum = Helper::serNumToHexStr( arg1 );
     QString reason{ "A Remote-Administrator has [ Banned ] you. "
                     "Reason: [ %2 ]." };
 
@@ -422,7 +425,7 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
         if ( tmpPlr != nullptr )
         {
             if ( tmpPlr->getPublicIP() == arg1
-              || tmpPlr->getSernum_s() == arg1
+              || tmpPlr->getSernumHex_s() == sernum
               || all )
             {
                 ban = true;
@@ -448,17 +451,18 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
     }
 
     if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-        banDialog->addIPBan( arg1, message );
+        banDialog->addIPBan( sernum, message );
     else
-        banDialog->addSerNumBan( arg1, message );
+        banDialog->addSerNumBan( sernum, message );
 }
 
 void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 {
+    QString sernum = Helper::serNumToHexStr( arg1 );
     if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
         banDialog->removeIPBan( arg1 );
     else
-        banDialog->removeSerNumBan( arg1 );
+        banDialog->removeSerNumBan( sernum );
 }
 
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
@@ -536,9 +540,6 @@ void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
 
 void CmdHandler::loginHandler(Player* plr, QString& argType)
 {
-    QString sernum{ plr->getSernum_s() };
-            sernum = Helper::sanitizeSerNum( sernum );
-
     QString response{ "%1 %2 Password. Welcome!" };
     QString invalid{ "Incorrect" };
     QString valid{ "Correct" };
@@ -566,6 +567,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     else if ( !plr->getGotAuthPwd()
            || plr->getReqAuthPwd() )
     {
+        QString sernum{ plr->getSernumHex_s() };
         if ( !pwd.isEmpty()
           && Admin::cmpRemoteAdminPwd( sernum, pwd ) )
         {
@@ -579,7 +581,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             if ( Settings::getInformAdminLogin() )
             {
                 QString message{ "Remote Admin [ "
-                                 % Helper::serNumToIntStr( sernum )
+                                 % plr->getSernum_s()
                                  % " ] has Authenticated with the server." };
 
                 Player* tmpPlr{ nullptr };
@@ -619,17 +621,13 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
 
 void CmdHandler::registerHandler(Player* plr, QString& argType)
 {
-    QString sernum{ plr->getSernum_s() };
     QString response{ "" };
 
     if ( plr->getReqNewAuthPwd()
       && !plr->getGotNewAuthPwd() )
     {
-
-        QVariant pwd{ argType };
-        QString pass( pwd.toString() );
-
-        if ( adminDialog->makeAdmin( sernum, pass ) )
+        QString sernum{ plr->getSernumHex_s() };
+        if ( adminDialog->makeAdmin( sernum, argType ) )
         {
             response = "You are now registered as an Admin with the "
                        "Server. You are currently Rank-0 (Game Master) "
@@ -645,7 +643,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
             if ( Settings::getInformAdminLogin() )
             {
                 QString message{ "User [ "
-                                 % sernum
+                                 % plr->getSernum_s()
                                  % " ] has Registered as a Remote "
                                    "Administrator with the server." };
 

@@ -21,13 +21,17 @@ class Player : public QObject
 
     QString alias{ "" };
     QString playTime{ "" };
+    quint32 dVar{ 0 };
+    quint32 wVar{ 0 };
 
     QByteArray bioData;
     QByteArray outBuff;
 
     bool hasSernum{ false };
-    qint32 sernum{ 0 };
+
+    quint32 sernum_i{ 0 };
     QString sernum_s{ "" };
+    QString sernumHex_s{ "" };
 
     qint32 sceneHost{ 0 };
 
@@ -88,20 +92,23 @@ class Player : public QObject
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
-        qint32 getSernum() const;
-        void setSernum(qint32 value);
+        quint32 getSernum_i() const;
+        void setSernum_i(quint32 value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);
 
-        qint32 getTargetScene() const;
-        void setTargetScene(qint32 value);
+        QString getSernumHex_s() const;
+        void setSernumHex_s(const QString& value);
 
-        qint32 getSceneHost() const;
-        void setSceneHost(qint32 value);
+        quint32 getTargetScene() const;
+        void setTargetScene(quint32 value);
 
-        qint32 getTargetSerNum() const;
-        void setTargetSerNum(qint32 value);
+        quint32 getSceneHost() const;
+        void setSceneHost(quint32 value);
+
+        quint32 getTargetSerNum() const;
+        void setTargetSerNum(quint32 value);
 
         int getTargetType() const;
         void setTargetType(int value);
@@ -185,7 +192,13 @@ class Player : public QObject
         bool getNetworkMuted() const;
         void setNetworkMuted(bool value);
 
-        void validateSerNum(ServerInfo* server, qint32 id);
+        void validateSerNum(ServerInfo* server, quint32 id);
+
+        quint32 getDVar() const;
+        void setDVar(const quint32& value);
+
+        quint32 getWVar() const;
+        void setWVar(const quint32& value);
 
         #ifdef DECRYPT_PACKET_PLUGIN
             QString getGameInfo() const;
@@ -196,7 +209,7 @@ class Player : public QObject
         #endif
 
     signals:
-        void sendRemoteAdminPwdReqSignal(Player* plr);
+            void sendRemoteAdminPwdReqSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

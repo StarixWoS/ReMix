@@ -84,7 +84,7 @@ Player::Player()
         if ( Settings::getReqAdminAuth()
           && this->getIsAdmin() )
         {
-            if ( this->getSernum() != 0
+            if ( this->getSernum_i() != 0
               && !this->getReqAuthPwd() )
             {
                 if ( !Settings::getRequirePassword() || this->getEnteredPwd() )
@@ -148,12 +148,12 @@ void Player::setSocket(QTcpSocket* value)
     socket = value;
 }
 
-qint32 Player::getSernum() const
+quint32 Player::getSernum_i() const
 {
-    return sernum;
+    return sernum_i;
 }
 
-void Player::setSernum(qint32 value)
+void Player::setSernum_i(quint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
@@ -162,8 +162,35 @@ void Player::setSernum(qint32 value)
         this->setSoftDisconnect( true );
         return;
     }
+
     hasSernum = true;
-    sernum = value;
+    if ( value != sernum_i )
+    {
+        QString sernum_s{ Helper::serNumToIntStr(
+                               Helper::intToStr(
+                                    value, 16, 8 ) ) };
+        QString sernumHex_s{ Helper::serNumToHexStr( sernum_s ) };
+
+        if ( !sernum_s.isEmpty() )
+        {
+            QStandardItem* row = this->getTableRow();
+            if ( row != nullptr )
+            {
+                QStandardItemModel* model = row->model();
+                if ( model != nullptr )
+                {
+                    model->setData( model->index( row->row(), 1 ),
+                                    sernum_s,
+                                    Qt::DisplayRole );
+                }
+            }
+        }
+
+        this->setSernum_s( sernum_s );
+        this->setSernumHex_s( sernumHex_s );
+
+        sernum_i = value;
+    }
 }
 
 QString Player::getSernum_s() const
@@ -176,32 +203,42 @@ void Player::setSernum_s(const QString& value)
     sernum_s = value;
 }
 
-qint32 Player::getTargetScene() const
+QString Player::getSernumHex_s() const
+{
+    return sernumHex_s;
+}
+
+void Player::setSernumHex_s(const QString& value)
+{
+    sernumHex_s = value;
+}
+
+quint32 Player::getTargetScene() const
 {
     return targetHost;
 }
 
-void Player::setTargetScene(qint32 value)
+void Player::setTargetScene(quint32 value)
 {
     targetHost = value;
 }
 
-qint32 Player::getSceneHost() const
+quint32 Player::getSceneHost() const
 {
     return sceneHost;
 }
 
-void Player::setSceneHost(qint32 value)
+void Player::setSceneHost(quint32 value)
 {
     sceneHost = value;
 }
 
-qint32 Player::getTargetSerNum() const
+quint32 Player::getTargetSerNum() const
 {
     return targetSerNum;
 }
 
-void Player::setTargetSerNum(qint32 value)
+void Player::setTargetSerNum(quint32 value)
 {
     targetSerNum = value;
 }
@@ -440,17 +477,13 @@ void Player::setGotAuthPwd(bool value)
 
 bool Player::getIsAdmin()
 {
-    QString sernum = this->getSernum_s();
-            sernum = Helper::sanitizeSerNum( sernum );
-
+    QString sernum{ this->getSernumHex_s() };
     return Admin::getIsRemoteAdmin( sernum );
 }
 
 qint32 Player::getAdminRank()
 {
-    QString sernum = this->getSernum_s();
-            sernum = Helper::sanitizeSerNum( sernum );
-
+    QString sernum{ this->getSernumHex_s() };
     return Admin::getRemoteAdminRank( sernum );
 }
 
@@ -508,39 +541,24 @@ void Player::setNetworkMuted(bool value)
     networkMuted = value;
 }
 
-void Player::validateSerNum(ServerInfo* server, qint32 id)
+void Player::validateSerNum(ServerInfo* server, quint32 id)
 {
-    if (( this->getSernum() != id
-       && id != 0 )
-      || this->getSernum() == 0 )
+    if (( this->getSernum_i() != id
+       && id > 0 )
+      || this->getSernum_i() == 0 )
     {
-        QString serNum_s = Helper::serNumToIntStr(
-                               Helper::intToStr( id, 16, 8 ) );
-        if ( this->getSernum() == 0 )
+        if ( this->getSernum_i() == 0 )
         {
-            QStandardItem* row = this->getTableRow();
-            if ( row != nullptr )
-            {
-                QStandardItemModel* model = row->model();
-                if ( model != nullptr )
-                {
-                    model->setData( model->index( row->row(), 1 ),
-                                    serNum_s,
-                                    Qt::DisplayRole );
-                }
-            }
-
             //Disconnect the User if they have no SerNum, as we require SerNums.
             if ( Settings::getReqSernums()
               && id == 0 )
             {
                 this->setSoftDisconnect( true );
             }
-            this->setSernum( id );
-            this->setSernum_s( serNum_s );
+            this->setSernum_i( id );
         }
-        else if (( id != 0 && this->getSernum() != id )
-               && this->getSernum() != 0 )
+        else if (( id > 0 && this->getSernum_i() != id )
+               && this->getSernum_i() > 0 )
         {
             //User's sernum has somehow changed. Disconnect them.
             //This is a possible Ban event.
@@ -553,6 +571,26 @@ void Player::validateSerNum(ServerInfo* server, qint32 id)
     {
         server->setIpDc( server->getIpDc() + 1 );
     }
+}
+
+quint32 Player::getDVar() const
+{
+    return dVar;
+}
+
+void Player::setDVar(const quint32& value)
+{
+    dVar = value;
+}
+
+quint32 Player::getWVar() const
+{
+    return wVar;
+}
+
+void Player::setWVar(const quint32& value)
+{
+    wVar = value;
 }
 
 #ifdef DECRYPT_PACKET_PLUGIN

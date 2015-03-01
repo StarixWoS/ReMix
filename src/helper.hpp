@@ -18,7 +18,7 @@ namespace Helper
 
     QString intSToStr(QString val, int base = 16, int fill = 0,
                       QChar filler = '0');
-    int strToInt(QString str, int base = 16);
+    quint32 strToInt(QString str, int base = 16);
 
     QString getStrStr(const QString& str, QString indStr, QString mid,
                       QString left);
@@ -26,7 +26,7 @@ namespace Helper
     QString sanitizeSerNum(const QString& value);
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
     QString serNumToIntStr(QString sernum);
-    qint32 serNumtoInt(QString& sernum);
+    quint32 serNumtoInt(QString& sernum);
 
     void logToFile(QString& file, QString& text, bool timeStamp = false,
                    bool newLine = false);
