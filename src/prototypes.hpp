@@ -15,6 +15,7 @@
     class QCryptographicHash;
     class QStandardItemModel;
     class QNetworkInterface;
+    class QTableWidgetItem;
     class QSystemTrayIcon;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
@@ -131,7 +132,7 @@
         static const int SETTINGS_KEY_COUNT{ 3 };
 
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
-        static const int SETTINGS_SUBKEY_COUNT{ 17 };
+        static const int SETTINGS_SUBKEY_COUNT{ 18 };
 
         //Count of currently supported Remote-Admin commands.
         static const int ADMIN_COMMAND_COUNT{ 17 };

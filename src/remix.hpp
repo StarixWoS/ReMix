@@ -25,7 +25,8 @@ class ReMix : public QMainWindow
     Settings* settings{ nullptr };
     RandDev* randDev{ nullptr };
 
-    QSystemTrayIcon* trayIcon{ nullptr };
+    QSystemTrayIcon* trayObject{ nullptr };
+    QIcon trayIcon;
     QMenu* trayMenu{ nullptr };
 
     bool hasSysTray{ false };

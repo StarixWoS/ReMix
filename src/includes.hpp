@@ -6,6 +6,7 @@
     #include <QCryptographicHash>
     #include <QStandardItemModel>
     #include <QNetworkInterface>
+    #include <QTableWidgetItem>
     #include <QSystemTrayIcon>
     #include <QStringBuilder>
     #include <QElapsedTimer>

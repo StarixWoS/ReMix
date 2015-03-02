@@ -29,7 +29,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "logComments",
     "fwdComments",
     "informAdminLogin",
-    "echoComments"
+    "echoComments",
+    "minimizeToTray"
 };
 
 Settings::Settings(QWidget *parent) :
@@ -104,19 +105,34 @@ void Settings::setCheckedState(Toggles option, bool val)
     ui->settingsView->item( option, 0 )->setCheckState( state );
 }
 
+void Settings::on_settingsView_itemClicked(QTableWidgetItem *item)
+{
+    if ( item != nullptr )
+    {
+        if ( item->checkState() == Qt::Checked
+          || item->checkState() == Qt::Unchecked )
+        {
+            this->toggleSettings( item->row(), item->checkState() );
+        }
+    }
+}
+
 void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
 {
     int row = index.row();
-    if ( row < 0 )
-        return;
 
     Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
-    ui->settingsView->item( row, 0 )->setCheckState(
-                val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
+    ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked
+                                                     ? Qt::Unchecked
+                                                     : Qt::Checked );
 
     val = ui->settingsView->item( row, 0 )->checkState();
+    this->toggleSettings( row, val );
+}
 
-    QVariant state = val == Qt::Checked;
+void Settings::toggleSettings(quint32 row, Qt::CheckState value)
+{
+    QVariant state = value == Qt::Checked;
 
     QString title{ "" };
     QString prompt{ "" };
@@ -193,6 +209,9 @@ void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
         break;
         case Toggles::INFORMADMINLOGIN:
             this->setInformAdminLogin( state );
+        break;
+        case Toggles::MINIMIZETOTRAY:
+            this->setMinimizeToTray( state );
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";
@@ -449,7 +468,20 @@ bool Settings::getEchoComments()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::EchoComments ] )
-              .toBool();
+            .toBool();
+}
+
+void Settings::setMinimizeToTray(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::MinimizeToTray ], value );
+}
+
+bool Settings::getMinimizeToTray()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::MinimizeToTray ] )
+            .toBool();
 }
 
 void Settings::setServerID(QVariant& value)
@@ -480,5 +512,5 @@ int Settings::getServerID()
 bool Settings::getIsInvalidIPAddress(const QString& value)
 {
     return getSetting( keys[ Keys::WrongIP ], value )
-              .toBool();
+            .toBool();
 }

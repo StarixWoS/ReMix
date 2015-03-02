@@ -28,8 +28,8 @@ ReMix::ReMix(QWidget *parent) :
 
 ReMix::~ReMix()
 {
-    if ( trayIcon != nullptr )
-        trayIcon->deleteLater();
+    if ( trayObject != nullptr )
+        trayObject->deleteLater();
 
     if ( trayMenu != nullptr )
         trayMenu->deleteLater();
@@ -58,8 +58,9 @@ void ReMix::initSysTray()
     if ( QSystemTrayIcon::isSystemTrayAvailable()
       && !hasSysTray )
     {
-        trayIcon = new QSystemTrayIcon( QIcon( ":/icon/ReMix.ico" ), this );
-        trayIcon->show();
+        trayIcon = QIcon( QIcon( ":/icon/ReMix.png" ) );
+        trayObject = new QSystemTrayIcon( trayIcon, this );
+        trayObject->show();
 
         QAction* showAction = new QAction( "Show", this );
         QObject::connect( showAction, &QAction::triggered,
@@ -98,7 +99,7 @@ void ReMix::initSysTray()
         trayMenu->addAction( restoreAction );
         trayMenu->addAction( quitAction );
 
-        QObject::connect( trayIcon, &QSystemTrayIcon::activated,
+        QObject::connect( trayObject, &QSystemTrayIcon::activated,
                           [=]( QSystemTrayIcon::ActivationReason reason )
         {
             if ( reason == QSystemTrayIcon::Trigger )
@@ -208,7 +209,8 @@ void ReMix::getSynRealData(ServerInfo* svr)
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
-    if ( hasSysTray )
+    if ( Settings::getMinimizeToTray()
+      && hasSysTray )
     {
         if ( event->type() == QEvent::WindowStateChange )
         {

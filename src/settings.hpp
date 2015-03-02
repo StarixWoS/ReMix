@@ -23,12 +23,14 @@ class Settings : public QDialog
                   ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
                   ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,
                   ReqAdminAuth = 12, LogComments = 13, FwdComments = 14,
-                  InformAdminLogin = 15, EchoComments = 16 };
+                  InformAdminLogin = 15, EchoComments = 16,
+                  MinimizeToTray = 17 };
 
     enum Toggles{ REQPWD = 0, REQADMINPWD = 1, ALLOWDUPEDIP = 2, BANDUPEDIP = 3,
                   BANHACKERS = 4, REQSERNUM = 5, DISCONNECTIDLES = 6,
                   ALLOWSSV = 7, LOGCOMMENTS = 8, FWDCOMMENTS = 9,
-                  ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11 };
+                  ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
+                  MINIMIZETOTRAY = 12 };
 
     public:
         explicit Settings(QWidget *parent = 0);
@@ -95,13 +97,20 @@ class Settings : public QDialog
         static void setEchoComments(QVariant& value);
         static bool getEchoComments();
 
+        static void setMinimizeToTray(QVariant& value);
+        static bool getMinimizeToTray();
+
         static void setServerID(QVariant& value);
         static int getServerID();
 
         static bool getIsInvalidIPAddress(const QString& value);
 
+    private:
+        void toggleSettings(quint32 row, Qt::CheckState value);
+
     private slots:
         void on_settingsView_doubleClicked(const QModelIndex &index);
+        void on_settingsView_itemClicked(QTableWidgetItem *item);
 
     private:
         Ui::Settings *ui;
