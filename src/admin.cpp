@@ -277,7 +277,7 @@ void Admin::on_actionChangeRank_triggered()
         if ( !sernum.isEmpty() )
             rank = this->changeRemoteAdminRank( this, sernum );
 
-        if ( rank >= 1 )
+        if ( rank >= 0 )
         {
             tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
                                  ranks.at( rank ),

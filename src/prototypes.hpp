@@ -19,6 +19,7 @@
     class QSystemTrayIcon;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
+    class QStyleFactory;
     class QApplication;
     class QHostAddress;
     class QInputDialog;
@@ -95,7 +96,7 @@
     class RandDev;
     class Player;
     class Server;
-    class Remix;
+    class ReMix;
     class Admin;
 
     #ifdef DECRYPT_PACKET_PLUGIN

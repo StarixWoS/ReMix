@@ -10,6 +10,7 @@
     #include <QSystemTrayIcon>
     #include <QStringBuilder>
     #include <QElapsedTimer>
+    #include <QStyleFactory>
     #include <QStandardItem>
     #include <QApplication>
     #include <QHostAddress>

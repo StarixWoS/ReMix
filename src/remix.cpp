@@ -9,7 +9,6 @@ ReMix::ReMix(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
     //Setup Objects.
     sysMessages = new Messages( this );
     settings = new Settings( this );

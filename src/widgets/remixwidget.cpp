@@ -10,7 +10,7 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget *parent, Admin* adm, Messages* msg,
+ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm, Messages* msg,
                          QStringList* argList) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
@@ -46,6 +46,8 @@ ReMixWidget::ReMixWidget(QWidget *parent, Admin* adm, Messages* msg,
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
         tcpServer = new Server( this, server, admin, plrWidget->getPlrModel() );
+
+    defaultPalette = parent->palette();
 }
 
 ReMixWidget::~ReMixWidget()
@@ -233,6 +235,34 @@ void ReMixWidget::initUIUpdate()
     });
 }
 
+void ReMixWidget::applyThemes(QString& name)
+{
+    QPalette palette;
+    if ( name.compare( "dark", Qt::CaseInsensitive ) == 0 )
+    {
+        palette.setColor( QPalette::Window, QColor( 53,53,53 ) );
+        palette.setColor( QPalette::WindowText, Qt::white );
+        palette.setColor( QPalette::Base, QColor( 25,25,25 ) );
+        palette.setColor( QPalette::AlternateBase,
+                          QColor( 53,53,53 ) );
+        palette.setColor( QPalette::ToolTipBase, Qt::white );
+        palette.setColor( QPalette::ToolTipText, Qt::white );
+        palette.setColor( QPalette::Text, Qt::white );
+        palette.setColor( QPalette::Button, QColor( 53,53,53 ) );
+        palette.setColor( QPalette::ButtonText, Qt::white );
+        palette.setColor( QPalette::BrightText, Qt::red );
+        palette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
+        palette.setColor( QPalette::Highlight,
+                          QColor( 42, 130, 218 ) );
+        palette.setColor( QPalette::HighlightedText, Qt::black );
+    }
+    else if ( name.compare( "light", Qt::CaseInsensitive ) == 0 )
+    {
+        palette = defaultPalette;
+    }
+
+    qApp->setPalette( palette );
+}
 
 void ReMixWidget::on_enableNetworking_clicked()
 {
@@ -308,4 +338,19 @@ void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
 void ReMixWidget::on_serverName_textChanged(const QString &arg1)
 {
     server->setName( arg1 );
+}
+
+void ReMixWidget::on_nightMode_clicked()
+{
+    QString theme{ "dark" };
+    if ( nightMode )
+    {
+        theme = "light";
+        ui->nightMode->setText( "Night Mode" );
+    }
+    else
+        ui->nightMode->setText( "Normal Mode" );
+
+    this->applyThemes( theme );
+    nightMode = !nightMode;
 }
