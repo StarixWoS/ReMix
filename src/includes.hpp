@@ -82,6 +82,7 @@
     #include "settings.hpp"
     #include "comments.hpp"
     #include "randdev.hpp"
+    #include "sendmsg.hpp"
     #include "helper.hpp"
     #include "player.hpp"
     #include "server.hpp"

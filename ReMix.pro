@@ -39,7 +39,7 @@ ICON = "./resources/ReMix.ico"
 win32:RC_FILE += "./resources/ReMix.rc"
 
 #Unfortunately, there is no way to declare specific defines for release/build.
-DEFINES += USE_DARK_FUSION_UI=1 #Tell Qt to use a Non-Native UI color scheme.
+#DEFINES += USE_DARK_FUSION_UI=1 #Tell Qt to use a Non-Native UI color scheme.
 #DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
 #USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
@@ -63,12 +63,13 @@ SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/comments.cpp \
            src/settings.cpp \
            src/randdev.cpp \
+           src/sendmsg.cpp \
            src/server.cpp \
            src/player.cpp \
            src/helper.cpp \
            src/admin.cpp \
            src/remix.cpp \
-           src/main.cpp \
+           src/main.cpp
 
 HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/tblview/plrsortproxymodel.hpp \
@@ -92,6 +93,7 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/comments.hpp \
            src/settings.hpp \
            src/randdev.hpp \
+           src/sendmsg.hpp \
            src/server.hpp \
            src/player.hpp \
            src/helper.hpp \
@@ -108,6 +110,7 @@ FORMS += ui/widgets/plrlistwidget.ui \
          ui/messages.ui \
          ui/comments.ui \
          ui/settings.ui \
+         ui/sendmsg.ui \
          ui/admin.ui \
          ui/remix.ui
 

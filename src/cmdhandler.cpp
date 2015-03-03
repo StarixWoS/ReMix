@@ -136,7 +136,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
-                    message = message.arg( plr->getAdminRank() >= 0
+                    message = message.arg( plr->getAdminRank() >= Ranks::GMASTER
                                          ? "Admin"
                                          : "User" )
                                      .arg( plr->getSernum_s() )

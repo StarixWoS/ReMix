@@ -32,11 +32,11 @@ Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
 Server::~Server()
 {
     serverComments->close();
-//    serverComments->deleteLater();
+    serverComments->deleteLater();
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
-        //server->deletePlayer( i );
+        server->deletePlayer( i );
     }
     bioHash.clear();
 }
@@ -54,7 +54,7 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
     if ( data.isEmpty() )
     {
         bioHash.insert( peerAddr, QByteArray( "No BIO Data Detected. "
-                                               "Be wary of this User!" ) );
+                                              "Be wary of this User!" ) );
         data = bioHash.value( peerAddr );
     }
 

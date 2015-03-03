@@ -94,6 +94,7 @@
     class Settings;
     class Comments;
     class RandDev;
+    class SendMsg;
     class Player;
     class Server;
     class ReMix;

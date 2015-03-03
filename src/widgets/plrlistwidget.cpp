@@ -107,7 +107,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
     }
     else
     {
-        ui->actionSendMessage->setText( "Send Message to Everyone" );
+        contextMenu->removeAction( ui->actionSendMessage );
         contextMenu->removeAction( ui->actionRevokeAdmin );
         contextMenu->removeAction( ui->actionMakeAdmin );
         contextMenu->removeAction( ui->actionMuteNetwork );
@@ -121,20 +121,8 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
 
 void PlrListWidget::on_actionSendMessage_triggered()
 {
-    QString title{ "Admin Message:" };
-    QString prompt{ "Message to User(s): " };
-
-    bool ok{ false };
-    QString txt = Helper::getTextResponse( this, title, prompt, &ok, 1 );
-    if ( !txt.isEmpty()
-      && ok )
-    {
-        txt.prepend( "Owner: " );
-        if ( menuTarget != nullptr )
-            server->sendMasterMessage( txt, menuTarget, false );
-        else
-            server->sendMasterMessage( txt, nullptr, true );
-    }
+    SendMsg* adminMsg = new SendMsg( this, server, menuTarget );
+             adminMsg->show();
     menuTarget = nullptr;
 }
 

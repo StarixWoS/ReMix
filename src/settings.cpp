@@ -141,7 +141,7 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
     {
         case Toggles::REQPWD:
             {
-                QString txt{ "" };
+                QString pwd{ this->getPassword() };
                 bool ok;
 
                 this->setRequirePassword( state );
@@ -151,15 +151,18 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
                     title = "Server Password:";
                     prompt = "Password:";
 
-                    txt = Helper::getTextResponse( this, title,
-                                                   prompt, &ok, 0 );
-                    if ( ok && !txt.isEmpty() )
+                    //Recycyle the Old password. Assuming it wasn't deleted.
+                    if ( pwd.isEmpty() )
                     {
-                        this->setPassword( txt );
+                        pwd = Helper::getTextResponse( this, title,
+                                                       prompt, &ok, 0 );
+                    }
+                    if ( ok && !pwd.isEmpty() )
+                    {
+                        this->setPassword( pwd );
                     }
                     else
-                    {   //Invalid dialog state or no input Password.
-                        //Reset the Object's state.
+                    {
                         ui->settingsView->item( row, 0 )->setCheckState(
                                     Qt::Unchecked );
 
@@ -167,13 +170,15 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
                         this->setRequirePassword( state );
                     }
                 }
-                else if ( !this->getRequirePassword() )
+                else if ( !this->getRequirePassword()
+                       && !state.toBool()
+                       && !pwd.isEmpty() )
                 {
                     title = "Remove Password:";
                     prompt = "Do you wish to erase the stored Password hash?";
 
                     if ( Helper::confirmAction( this, title, prompt ) )
-                        this->setPassword( txt );
+                        this->setPassword( pwd );
                 }
             }
         break;

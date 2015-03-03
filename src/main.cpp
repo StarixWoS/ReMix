@@ -1,7 +1,8 @@
 
+#include "includes.hpp"
 #include "remix.hpp"
+
 #include <QApplication>
-#include <QStyleFactory>
 
 int main(int argc, char *argv[])
 {
