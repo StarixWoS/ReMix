@@ -45,6 +45,15 @@ void SendMsg::on_sendMsg_clicked()
     }
 
     message = message.prepend( "Owner: " );
+
+    //Strip Carriage Returns.
+    if ( message.contains( "\r" ) )
+        message = message.remove( "\r" );
+
+    //Replace NewLines with Spaces.
+    if ( message.contains( "\n" ) )
+        message = message.replace( "\n", " " );
+
     if ( ui->checkBox->isChecked() )
         server->sendMasterMessage( message, nullptr, true );
     else
@@ -64,32 +73,28 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
         return false;
 
     QKeyEvent* key = static_cast<QKeyEvent*>( event );
-    QCloseEvent* close = static_cast<QCloseEvent*>( event );
-    if ( close != nullptr )
-    {
-        if ( close->type() == QEvent::Close )
-        {
-            close->accept();
-            this->deleteLater();
-
-            return true;
-        }
-    }
-    else if ( key != nullptr )
+    if ( key != nullptr
+      && key->type() == QEvent::KeyPress )
     {
         switch ( key->key() )
         {
             case Qt::Key_Escape:
-                this->close();
+                {
+                    this->close();
+                    event->accept();
+                }
                 return true;
             break;
             case Qt::Key_Enter:
             case Qt::Key_Return:
                 {
-                    event->accept();
                     emit ui->sendMsg->clicked();
+                    event->accept();
                 }
                 return true;
+            break;
+            default:
+                event->ignore();
             break;
         }
     }

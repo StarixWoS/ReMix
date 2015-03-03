@@ -44,11 +44,8 @@ class PlrListWidget : public QWidget
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
         void on_actionMuteNetwork_triggered();
-        void on_actionUnMuteNetwork_triggered();
         void on_actionDisconnectUser_triggered();
-        void on_actionBANISHIPAddress_triggered();
-        void on_actionBANISHSerNum_triggered();
-        void on_actionRevokeAdmin_triggered();
+        void on_actionBANISHUser_triggered();
 
     private:
         Ui::PlrListWidget *ui;

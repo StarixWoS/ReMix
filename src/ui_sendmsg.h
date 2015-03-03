@@ -53,11 +53,13 @@ public:
 
         sendMsg = new QPushButton(frame);
         sendMsg->setObjectName(QStringLiteral("sendMsg"));
+        sendMsg->setFocusPolicy(Qt::ClickFocus);
 
         gridLayout_2->addWidget(sendMsg, 2, 1, 1, 1);
 
         msgEditor = new QTextEdit(frame);
         msgEditor->setObjectName(QStringLiteral("msgEditor"));
+        msgEditor->setFocusPolicy(Qt::StrongFocus);
 
         gridLayout_2->addWidget(msgEditor, 0, 0, 2, 2);
 

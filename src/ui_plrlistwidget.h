@@ -25,12 +25,9 @@ class Ui_PlrListWidget
 public:
     QAction *actionSendMessage;
     QAction *actionMakeAdmin;
-    QAction *actionBANISHIPAddress;
-    QAction *actionBANISHSerNum;
-    QAction *actionRevokeAdmin;
     QAction *actionDisconnectUser;
     QAction *actionMuteNetwork;
-    QAction *actionUnMuteNetwork;
+    QAction *actionBANISHUser;
     QGridLayout *gridLayout;
     QTableView *playerView;
 
@@ -43,18 +40,12 @@ public:
         actionSendMessage->setObjectName(QStringLiteral("actionSendMessage"));
         actionMakeAdmin = new QAction(PlrListWidget);
         actionMakeAdmin->setObjectName(QStringLiteral("actionMakeAdmin"));
-        actionBANISHIPAddress = new QAction(PlrListWidget);
-        actionBANISHIPAddress->setObjectName(QStringLiteral("actionBANISHIPAddress"));
-        actionBANISHSerNum = new QAction(PlrListWidget);
-        actionBANISHSerNum->setObjectName(QStringLiteral("actionBANISHSerNum"));
-        actionRevokeAdmin = new QAction(PlrListWidget);
-        actionRevokeAdmin->setObjectName(QStringLiteral("actionRevokeAdmin"));
         actionDisconnectUser = new QAction(PlrListWidget);
         actionDisconnectUser->setObjectName(QStringLiteral("actionDisconnectUser"));
         actionMuteNetwork = new QAction(PlrListWidget);
         actionMuteNetwork->setObjectName(QStringLiteral("actionMuteNetwork"));
-        actionUnMuteNetwork = new QAction(PlrListWidget);
-        actionUnMuteNetwork->setObjectName(QStringLiteral("actionUnMuteNetwork"));
+        actionBANISHUser = new QAction(PlrListWidget);
+        actionBANISHUser->setObjectName(QStringLiteral("actionBANISHUser"));
         gridLayout = new QGridLayout(PlrListWidget);
         gridLayout->setSpacing(0);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
@@ -90,12 +81,9 @@ public:
         PlrListWidget->setWindowTitle(QApplication::translate("PlrListWidget", "Form", 0));
         actionSendMessage->setText(QApplication::translate("PlrListWidget", "Send Message", 0));
         actionMakeAdmin->setText(QApplication::translate("PlrListWidget", "Make Admin", 0));
-        actionBANISHIPAddress->setText(QApplication::translate("PlrListWidget", "BANISH IP Address", 0));
-        actionBANISHSerNum->setText(QApplication::translate("PlrListWidget", "BANISH SerNum", 0));
-        actionRevokeAdmin->setText(QApplication::translate("PlrListWidget", "Revoke Admin", 0));
         actionDisconnectUser->setText(QApplication::translate("PlrListWidget", "Disconnect User", 0));
         actionMuteNetwork->setText(QApplication::translate("PlrListWidget", "Mute Network", 0));
-        actionUnMuteNetwork->setText(QApplication::translate("PlrListWidget", "Un-Mute Network", 0));
+        actionBANISHUser->setText(QApplication::translate("PlrListWidget", "BANISH User", 0));
     } // retranslateUi
 
 };

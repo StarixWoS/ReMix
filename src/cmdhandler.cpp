@@ -664,6 +664,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
                     }
                 }
             }
+            adminDialog->loadServerAdmins();
         }
         else
         {

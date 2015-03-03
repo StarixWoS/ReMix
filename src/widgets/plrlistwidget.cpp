@@ -66,15 +66,12 @@ void PlrListWidget::initContextMenu()
 
     ui->actionSendMessage->setText( "Send Message" );
     contextMenu->addAction( ui->actionSendMessage );
-    contextMenu->addAction( ui->actionRevokeAdmin );
     contextMenu->addAction( ui->actionMakeAdmin );
     contextMenu->addAction( ui->actionMuteNetwork );
-    contextMenu->addAction( ui->actionUnMuteNetwork );
     contextMenu->addAction( ui->actionDisconnectUser );
-    contextMenu->addAction( ui->actionBANISHIPAddress );
-    contextMenu->addAction( ui->actionBANISHSerNum );
+    contextMenu->addAction( ui->actionBANISHUser );
 
-    contextMenu->insertSeparator( ui->actionDisconnectUser );
+    contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
 void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
@@ -91,30 +88,28 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
         if ( plr != nullptr )
             menuTarget = plr;
 
-        if ( !menuTarget->getIsAdmin() )
-            contextMenu->removeAction( ui->actionRevokeAdmin );
-        else
-            contextMenu->removeAction( ui->actionMakeAdmin );
-
-        if ( plr != nullptr )
+        if ( menuTarget != nullptr )
         {
-            if( plr->getNetworkMuted() )
-                contextMenu->removeAction( ui->actionMuteNetwork );
+            if ( !menuTarget->getIsAdmin() )
+                ui->actionMakeAdmin->setText( "Make Admin" );
             else
-                contextMenu->removeAction( ui->actionUnMuteNetwork );
+                ui->actionMakeAdmin->setText( "Revoke Admin" );
+
+            if ( menuTarget->getNetworkMuted() )
+                ui->actionMuteNetwork->setText( "Un-Mute Network" );
+            else
+                ui->actionMuteNetwork->setText( "Mute Network" );
         }
+
         contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
     }
     else
     {
         contextMenu->removeAction( ui->actionSendMessage );
-        contextMenu->removeAction( ui->actionRevokeAdmin );
         contextMenu->removeAction( ui->actionMakeAdmin );
         contextMenu->removeAction( ui->actionMuteNetwork );
-        contextMenu->removeAction( ui->actionUnMuteNetwork );
         contextMenu->removeAction( ui->actionDisconnectUser );
-        contextMenu->removeAction( ui->actionBANISHSerNum );
-        contextMenu->removeAction( ui->actionBANISHIPAddress );
+        contextMenu->removeAction( ui->actionBANISHUser );
     }
     contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
 }
@@ -122,88 +117,75 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
 void PlrListWidget::on_actionSendMessage_triggered()
 {
     SendMsg* adminMsg = new SendMsg( this, server, menuTarget );
-             adminMsg->show();
-    menuTarget = nullptr;
-}
-
-void PlrListWidget::on_actionRevokeAdmin_triggered()
-{
-    if ( menuTarget == nullptr )
-        return;
-
-    QString msg{ "Your Remote Administrator privileges have been REVOKED "
-                 "by either the Server Host. Please contact the Server Host if "
-                 "you believe this was in error." };
-
-    QString sernum{ menuTarget->getSernumHex_s() };
-    if ( Admin::deleteRemoteAdmin( this, sernum ) )
-    {
-        //The User is no longer a registered Admin.
-        //Revoke their current permissions.
-        menuTarget->resetAdminAuth();
-
-        server->sendMasterMessage( msg, menuTarget, false );
-        admin->loadServerAdmins();
-    }
+             adminMsg->exec();
     menuTarget = nullptr;
 }
 
 void PlrListWidget::on_actionMakeAdmin_triggered()
 {
+    bool send{ false };
     if ( menuTarget == nullptr )
         return;
 
-    QString msg{ "The Server Host is attempting to register you as an "
-                 "Admin with the server. Please reply to this message with "
-                 "(/register *YOURPASS). Note: The server Host and other Admins"
-                 " will not have access to this information." };
+    QString msg{ "" };
+    QString make{ "The Server Host is attempting to register you as an "
+                  "Admin with the server. Please reply to this message with "
+                  "(/register *YOURPASS). Note: The server Host and other Admins"
+                  " will not have access to this information." };
+
+    QString revoke{ "Your Remote Administrator privileges have been REVOKED "
+                    "by either the Server Host. Please contact the Server Host if "
+                    "you believe this was in error." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
     if ( !Admin::getIsRemoteAdmin( sernum ) )
     {
+        msg = make;
         if ( Admin::createRemoteAdmin( this, sernum ) )
         {
-            server->sendMasterMessage( msg, menuTarget, false );
             menuTarget->setReqNewAuthPwd( true );
+            send = true;
         }
     }
+    else
+    {
+        msg = revoke;
+        if ( Admin::deleteRemoteAdmin( this, sernum ) )
+        {
+            menuTarget->resetAdminAuth();
+            admin->loadServerAdmins();
+            send = true;
+        }
+    }
+    if ( send )
+        server->sendMasterMessage( msg, menuTarget, false );
+
     menuTarget = nullptr;
 }
 
 void PlrListWidget::on_actionMuteNetwork_triggered()
 {
-    //Mute the selected User's Network.
-    //We will not inform the User of this event.
-    //This tells the Server to not re-send incoming
-    //packets from this User to other connected Users.
-
+    bool mute{ true };
     if ( menuTarget != nullptr )
     {
-        QString title{ "Mute User:" };
-        QString prompt{ "Are you certain you want to MUTE ( " %
-                        menuTarget->getSernum_s() % " )'s Network?" };
+        QString title{ "%1 User:" };
+        QString prompt{ "Are you certain you want to %1 [ %2 ]'s Network?" };
+        if ( menuTarget->getNetworkMuted() )
+        {
+            title = title.arg( "Un-Mute" );
+            prompt = prompt.arg( "Un-Mute" );
+
+            mute = false;
+        }
+        else
+        {
+            title = title.arg( "Mute" );
+            prompt = prompt.arg( "Mute" );
+        }
+        prompt = prompt.arg( menuTarget->getSernum_s() );
 
         if ( Helper::confirmAction( this, title, prompt ) )
-            menuTarget->setNetworkMuted( true );
-    }
-    menuTarget = nullptr;
-}
-
-void PlrListWidget::on_actionUnMuteNetwork_triggered()
-{
-    //Un-Mute the selected User's Network.
-    //We do not inform the User of this event.
-    //This tells the Server to re-send incoming
-    //packets from this User to other connected Users.
-
-    if ( menuTarget != nullptr )
-    {
-        QString title{ "Un-Mute User:" };
-        QString prompt{ "Are you certain you want to UN-MUTE ( " %
-                        menuTarget->getSernum_s() % " )'s Network?" };
-
-        if ( Helper::confirmAction( this, title, prompt ) )
-            menuTarget->setNetworkMuted( false );
+            menuTarget->setNetworkMuted( mute );
     }
     menuTarget = nullptr;
 }
@@ -238,61 +220,16 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
     menuTarget = nullptr;
 }
 
-void PlrListWidget::on_actionBANISHIPAddress_triggered()
-{
-    if ( menuTarget == nullptr )
-        return;
-
-    QString ipAddr = menuTarget->getPublicIP();
-
-    QString title{ "Ban IP Address:" };
-    QString prompt{ "Are you certain you want to BANISH [ "
-                  % menuTarget->getSernum_s() % " ]'s IP Address [ "
-                  % ipAddr % " ]?" };
-
-    QString inform{ "The Server Host has banned your IP Address [ %1 ]. "
-                    "Reason: %2" };
-    QString reason{ "Manual Banish; %1" };
-
-    QTcpSocket* sock = menuTarget->getSocket();
-    if ( sock != nullptr )
-    {
-        QHostAddress ip = sock->peerAddress();
-        if ( Helper::confirmAction( this, title, prompt ) )
-        {
-            reason = reason.arg( Helper::getBanishReason( this ) );
-            inform = inform.arg( ip.toString() )
-                           .arg( reason ).toLatin1();
-            server->sendMasterMessage( inform, menuTarget, false );
-
-            reason = QString( "%1 [ %2:%3 ]: %4" )
-                         .arg( reason )
-                         .arg( menuTarget->getPublicIP() )
-                         .arg( menuTarget->getPublicPort() )
-                         .arg( QString( menuTarget->getBioData() ) );
-            admin->getBanDialog()->addIPBan( ip.toString(), reason );
-
-            if ( sock->waitForBytesWritten() )
-            {
-                menuTarget->setSoftDisconnect( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
-        }
-    }
-    menuTarget = nullptr;
-}
-
-void PlrListWidget::on_actionBANISHSerNum_triggered()
+void PlrListWidget::on_actionBANISHUser_triggered()
 {
     if ( menuTarget == nullptr )
         return;
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "Are you certain you want to BANISH the SerNum [ "
+    QString prompt{ "Are you certain you want to BANISH User [ "
                   % menuTarget->getSernum_s() % " ]?" };
 
-    QString inform{ "The Server Host has banned your SerNum [ %1 ]. "
-                    "Reason: %2" };
+    QString inform{ "The Server Host has BANISHED you. Reason: %2" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -313,6 +250,9 @@ void PlrListWidget::on_actionBANISHSerNum_triggered()
 
             QString sernum{ menuTarget->getSernumHex_s() };
             admin->getBanDialog()->addSerNumBan( sernum, reason );
+
+            QHostAddress ip = sock->peerAddress();
+            admin->getBanDialog()->addIPBan( ip.toString(), reason );
 
             if ( sock->waitForBytesWritten() )
             {

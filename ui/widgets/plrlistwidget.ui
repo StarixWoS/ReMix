@@ -89,21 +89,6 @@
     <string>Make Admin</string>
    </property>
   </action>
-  <action name="actionBANISHIPAddress">
-   <property name="text">
-    <string>BANISH IP Address</string>
-   </property>
-  </action>
-  <action name="actionBANISHSerNum">
-   <property name="text">
-    <string>BANISH SerNum</string>
-   </property>
-  </action>
-  <action name="actionRevokeAdmin">
-   <property name="text">
-    <string>Revoke Admin</string>
-   </property>
-  </action>
   <action name="actionDisconnectUser">
    <property name="text">
     <string>Disconnect User</string>
@@ -114,9 +99,9 @@
     <string>Mute Network</string>
    </property>
   </action>
-  <action name="actionUnMuteNetwork">
+  <action name="actionBANISHUser">
    <property name="text">
-    <string>Un-Mute Network</string>
+    <string>BANISH User</string>
    </property>
   </action>
  </widget>
