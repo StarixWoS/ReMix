@@ -174,7 +174,7 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
                     }
                 }
                 else if ( !this->getRequirePassword()
-                       && !state.toBool()
+                       && state.toBool() != pwdCheckState
                        && !pwd.isEmpty() )
                 {
                     title = "Remove Password:";
@@ -186,6 +186,7 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
                         this->setPassword( pwd );
                     }
                 }
+                pwdCheckState = state.toBool();
             }
         break;
         case Toggles::REQADMINPWD:

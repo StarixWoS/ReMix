@@ -129,8 +129,6 @@ void DVBanWidget::addDVBanImpl(QString& ip, QString& reason)
     QSettings banData( "banData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
-    int row{ -1 };
-
     if ( !ip.isEmpty() )
     {
         //Prevent adding new rows for previously-banned users.

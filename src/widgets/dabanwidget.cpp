@@ -129,8 +129,6 @@ void DABanWidget::addDABanImpl(QString& ip, QString& reason)
     QSettings banData( "banData.ini", QSettings::IniFormat );
     quint64 date = QDateTime::currentDateTime().toTime_t();
 
-    int row{ -1 };
-
     if ( !ip.isEmpty() )
     {
         banData.setValue( ip % "/banType", "da" );
