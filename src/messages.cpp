@@ -21,6 +21,12 @@ Messages::Messages(QWidget *parent) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
+    }
+
     //Load settings from: Preferences.ini
     QObject::connect( this, &Messages::finished,
                       this, &Messages::on_reloadSettings_clicked );
@@ -29,6 +35,11 @@ Messages::Messages(QWidget *parent) :
 
 Messages::~Messages()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
     delete ui;
 }
 

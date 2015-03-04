@@ -9,6 +9,12 @@ ReMix::ReMix(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
+    }
+
     //Setup Objects.
     sysMessages = new Messages( this );
     settings = new Settings( this );
@@ -27,6 +33,12 @@ ReMix::ReMix(QWidget *parent) :
 
 ReMix::~ReMix()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
+
     if ( trayObject != nullptr )
         trayObject->deleteLater();
 

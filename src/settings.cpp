@@ -8,7 +8,8 @@ const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
 {
     "Settings",
     "WrongIPs",
-    "Messages"
+    "Messages",
+    "Positions"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
@@ -30,7 +31,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "fwdComments",
     "informAdminLogin",
     "echoComments",
-    "minimizeToTray"
+    "minimizeToTray",
+    "saveWindowPositions"
 };
 
 Settings::Settings(QWidget *parent) :
@@ -49,6 +51,12 @@ Settings::Settings(QWidget *parent) :
         this->setWindowIcon( icon );
 
         //this->setWindowModality( Qt::WindowModal );
+    }
+
+    if ( this->getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
     }
 
     //Load Settings from file.
@@ -90,10 +98,18 @@ Settings::Settings(QWidget *parent) :
 
     this->setCheckedState( Toggles::MINIMIZETOTRAY,
                            this->getMinimizeToTray() );
+
+    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
+                           this->getSaveWindowPositions() );
 }
 
 Settings::~Settings()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
     delete ui;
 }
 
@@ -224,6 +240,9 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
         break;
         case Toggles::MINIMIZETOTRAY:
             this->setMinimizeToTray( state );
+        break;
+        case Toggles::SAVEWINDOWPOSITIONS:
+            this->setSaveWindowPositions( state );
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";
@@ -480,7 +499,7 @@ bool Settings::getEchoComments()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::EchoComments ] )
-            .toBool();
+              .toBool();
 }
 
 void Settings::setMinimizeToTray(QVariant& value)
@@ -493,7 +512,35 @@ bool Settings::getMinimizeToTray()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::MinimizeToTray ] )
-            .toBool();
+              .toBool();
+}
+
+void Settings::setSaveWindowPositions(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::SaveWindowPositions ], value );
+}
+
+bool Settings::getSaveWindowPositions()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::SaveWindowPositions ] )
+              .toBool();
+}
+
+void Settings::setWindowPositions(QByteArray geometry, const char* dialog)
+{
+    QString key{ dialog };
+    QVariant value{ geometry };
+
+    setSetting( keys[ Keys::Positions ], key, value );
+}
+
+QByteArray Settings::getWindowPositions(const char* dialog)
+{
+    QString key{ dialog };
+    return getSetting( keys[ Keys::Positions ], key )
+              .toByteArray();
 }
 
 void Settings::setServerID(QVariant& value)
@@ -524,5 +571,5 @@ int Settings::getServerID()
 bool Settings::getIsInvalidIPAddress(const QString& value)
 {
     return getSetting( keys[ Keys::WrongIP ], value )
-            .toBool();
+              .toBool();
 }

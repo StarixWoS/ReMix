@@ -18,10 +18,21 @@ Comments::Comments(QWidget *parent) :
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
     }
+
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
+    }
 }
 
 Comments::~Comments()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
     delete ui;
 }
 

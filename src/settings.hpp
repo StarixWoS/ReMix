@@ -20,19 +20,19 @@ class Settings : public QDialog
 
     bool pwdCheckState{ false };
 
-    enum Keys{ Setting = 0, WrongIP = 1, Messages = 2 };
+    enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
                   ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
                   ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,
                   ReqAdminAuth = 12, LogComments = 13, FwdComments = 14,
                   InformAdminLogin = 15, EchoComments = 16,
-                  MinimizeToTray = 17 };
+                  MinimizeToTray = 17, SaveWindowPositions = 18 };
 
     enum Toggles{ REQPWD = 0, REQADMINPWD = 1, ALLOWDUPEDIP = 2, BANDUPEDIP = 3,
                   BANHACKERS = 4, REQSERNUM = 5, DISCONNECTIDLES = 6,
                   ALLOWSSV = 7, LOGCOMMENTS = 8, FWDCOMMENTS = 9,
                   ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12 };
+                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13 };
 
     public:
         explicit Settings(QWidget *parent = 0);
@@ -101,6 +101,12 @@ class Settings : public QDialog
 
         static void setMinimizeToTray(QVariant& value);
         static bool getMinimizeToTray();
+
+        static void setSaveWindowPositions(QVariant& value);
+        static bool getSaveWindowPositions();
+
+        static void setWindowPositions(QByteArray geometry, const char* dialog);
+        static QByteArray getWindowPositions(const char* dialog);
 
         static void setServerID(QVariant& value);
         static int getServerID();

@@ -19,6 +19,13 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
         this->setWindowIcon( icon );
         //this->setWindowModality( Qt::WindowModal );
     }
+
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
+    }
+
     target = trg;
     server = svr;
 
@@ -29,6 +36,11 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
 SendMsg::~SendMsg()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
     delete ui;
 }
 

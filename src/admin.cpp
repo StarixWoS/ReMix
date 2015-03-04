@@ -33,6 +33,12 @@ Admin::Admin(QWidget *parent) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                                   this->metaObject()->className() ) );
+    }
+
     //Setup our Random Device
     randDev = new RandDev();
 
@@ -68,6 +74,12 @@ Admin::Admin(QWidget *parent) :
 
 Admin::~Admin()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
+
     tableModel->deleteLater();
     tableProxy->deleteLater();
     contextMenu->deleteLater();

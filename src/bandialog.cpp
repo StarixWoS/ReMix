@@ -20,6 +20,12 @@ BanDialog::BanDialog(QWidget *parent) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
+    if ( Settings::getSaveWindowPositions() )
+    {
+        this->restoreGeometry( Settings::getWindowPositions(
+                               this->metaObject()->className() ) );
+    }
+
     ipBanWidget = new IPBanWidget( this );
     ui->tabWidget->addTab( ipBanWidget, "IP Bans" );
 
@@ -35,6 +41,12 @@ BanDialog::BanDialog(QWidget *parent) :
 
 BanDialog::~BanDialog()
 {
+    if ( Settings::getSaveWindowPositions() )
+    {
+        Settings::setWindowPositions( this->saveGeometry(),
+                                      this->metaObject()->className() );
+    }
+
     daBanWidget->deleteLater();
     dvBanWidget->deleteLater();
     ipBanWidget->deleteLater();
