@@ -1,5 +1,5 @@
-#ifndef SENDMSG_H
-#define SENDMSG_H
+#ifndef SENDMSG_HPP
+#define SENDMSG_HPP
 
 #include "prototypes.hpp"
 
@@ -32,4 +32,4 @@ class SendMsg : public QDialog
         Ui::SendMsg *ui;
 };
 
-#endif // SENDMSG_H
+#endif // SENDMSG_HPP

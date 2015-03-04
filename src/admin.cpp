@@ -95,6 +95,7 @@ void Admin::showBanDialog()
 void Admin::loadServerAdmins()
 {
     tableModel->removeRows( 0, tableModel->rowCount() );
+    tableProxy->removeRows( 0, tableProxy->rowCount() );
     if ( QFile( "adminData.ini" ).exists() )
     {
         QSettings adminData( "adminData.ini", QSettings::IniFormat );
@@ -206,30 +207,7 @@ bool Admin::makeAdminImpl(QString& sernum, QString& pwd)
         adminData.setValue( sernum % "/hash", hash );
         adminData.setValue( sernum % "/salt", salt );
 
-        int row = tableModel->rowCount();
-        tableModel->insertRow( row );
-
-        //Display the SERNUM in the correct format as required.
-        sernum = Helper::serNumToIntStr( sernum );
-        tableModel->setData( tableModel->index( row, 0 ),
-                             sernum,
-                             Qt::DisplayRole );
-
-        tableModel->setData( tableModel->index( row, 1 ),
-                             ranks.at( rank ),
-                             Qt::DisplayRole );
-
-        tableModel->setData( tableModel->index( row, 2 ),
-                             hash,
-                             Qt::DisplayRole );
-
-        tableModel->setData( tableModel->index( row, 3 ),
-                             salt,
-                             Qt::DisplayRole );
-
-        ui->adminTable->selectRow( row );
-        ui->adminTable->resizeColumnsToContents();
-
+        this->loadServerAdmins();
         return true;
     }
     return false;
@@ -258,7 +236,7 @@ void Admin::on_actionRevokeAdmin_triggered()
         if ( !sernum.isEmpty() )
         {
             if ( this->deleteRemoteAdmin( this, sernum ) )
-                tableModel->removeRow( menuIndex.row() );
+                this->loadServerAdmins();
         }
     }
     menuIndex = QModelIndex();
@@ -273,15 +251,10 @@ void Admin::on_actionChangeRank_triggered()
                                  menuIndex.row(), 0 ) ).toString();
                 sernum = Helper::sanitizeSerNum( sernum );
 
-        qint32 rank{ -1 };
         if ( !sernum.isEmpty() )
-            rank = this->changeRemoteAdminRank( this, sernum );
-
-        if ( rank >= 0 )
         {
-            tableModel->setData( tableModel->index( menuIndex.row(), 1 ),
-                                 ranks.at( rank ),
-                                 Qt::DisplayRole );
+            if ( this->changeRemoteAdminRank( this, sernum ) >= 0 )
+                this->loadServerAdmins();
         }
     }
 }
@@ -359,8 +332,7 @@ bool Admin::deleteRemoteAdmin(QWidget* parent, QString& sernum)
 
     if ( Helper::confirmAction( parent, title, prompt ) )
     {
-        QSettings adminData( "adminData.ini", QSettings::IniFormat );
-                  adminData.remove( sernum );
+        setRemoteAdminRank( sernum, 0 );
         return true;
     }
     return false;

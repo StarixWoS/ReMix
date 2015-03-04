@@ -139,19 +139,26 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString result{ "" };
 
-    if ( sernum_i & MIN_HEX_SERNUM )
-        result = intToStr( sernum_i, 16, fillAmt );
-    else
+    if ( !(sernum_i & MIN_HEX_SERNUM) )
     {
         bool ok{ false };
         sernum.toUInt( &ok, 10 );
 
-        result = intToStr( sernum.toUInt( &ok, 10 ), 16, fillAmt );
         if ( !ok )
+        {
             result = intToStr( sernum.toUInt( &ok, 16 ), 16, fillAmt );
+            if ( !ok )
+                result = intToStr( sernum.toInt( &ok, 16 ), 16, fillAmt );
+        }
         else
+        {
             result = intToStr( sernum.toUInt( &ok, 10 ), 16, fillAmt );
+            if ( !ok )
+                result = intToStr( sernum.toInt( &ok, 10 ), 16, fillAmt );
+        }
     }
+    else
+        result = intToStr( sernum_i, 16, fillAmt );
 
     if ( result.length() > 8 )
         result = result.mid( result.length() - 8 );

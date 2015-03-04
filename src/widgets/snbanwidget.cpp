@@ -138,29 +138,11 @@ void SNBanWidget::addSerNumBanImpl(QString& sernum, QString& reason)
     int row{ -1 };
     if ( !sernum.isEmpty() )
     {
-        //Prevent adding new rows for previously-banned users.
-        if ( !SNBanWidget::getIsSernumBanned( sernum ) )
-        {
-            row = snModel->rowCount();
-            snModel->insertRow( row );
-
-            snModel->setData( snModel->index( row, 0 ),
-                              Helper::serNumToIntStr( sernum ),
-                              Qt::DisplayRole );
-
-            snModel->setData( snModel->index( row, 2 ),
-                              QDateTime::fromTime_t( date )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
-        }
-
-        snModel->setData( snModel->index( row, 1 ),
-                          reason,
-                          Qt::DisplayRole );
-
         banData.setValue( sernum % "/banType", "sn" );
         banData.setValue( sernum % "/banDate", date );
         banData.setValue( sernum % "/banReason", reason );
+
+        this->loadBannedSernums();
 
         QString log{ QDate::currentDate()
                       .toString( "banLog/yyyy-MM-dd.txt" ) };

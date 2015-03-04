@@ -224,16 +224,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     //Correctly handle "all" command reason/message.
     QString message{ "" };
-    if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
+    if ( argType.compare( "all", Qt::CaseInsensitive ) == 0
+      && !arg1.isEmpty() )
     {
-        if ( !arg1.isEmpty() )
             message = packet.mid( packet.indexOf( arg1 ) );
     }
-    else
-    {
-        if ( !arg2.isEmpty() )
+    else if ( !arg2.isEmpty() )
             message = packet.mid( packet.indexOf( arg2 ) );
-    }
 
     bool canUseCommands{ false };
     switch ( argIndex )
@@ -285,13 +282,15 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case CMDS::MSG: //5
             {
+                QString tmpMsg{ "" };
                 if ( !message.isEmpty() )
                 {
-                    message.prepend( "Admin [ %1 ] to [ %2 ]: " );
-                    message = message.arg( plr->getSernum_s() )
-                                     .arg( all
-                                           ? "Everyone"
-                                           : arg1 );
+                    tmpMsg = message;
+                    tmpMsg.prepend( "Admin [ %1 ] to [ %2 ]: " );
+                    tmpMsg = tmpMsg.arg( plr->getSernum_s() )
+                                   .arg( all
+                                       ? "Everyone"
+                                       : arg1 );
                 }
 
                 canUseCommands = this->canUseAdminCommands( plr );
@@ -305,18 +304,22 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case CMDS::LOGIN: //6
             {
-                if ( !argType.isEmpty() )
+                if ( !argType.isEmpty()
+                  && plr->getReqAuthPwd() )
+                {
                     this->loginHandler( plr, argType );
-
+                }
                 retn = false;
                 logMsg = false;
             }
         break;
         case CMDS::REGISTER: //7
             {
-                if ( !argType.isEmpty() )
+                if ( !argType.isEmpty()
+                  && plr->getReqNewAuthPwd() )
+                {
                     this->registerHandler( plr, argType );
-
+                }
                 retn = false;
                 logMsg = false;
             }
@@ -384,27 +387,24 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
     }
 
+    QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
+                 "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message "
+                 "[ %6 ]." };
+
+    msg = msg.arg( plr->getSernum_s() )
+             .arg( cmd )
+             .arg( argType )
+             .arg( arg1 )
+             .arg( arg2 )
+             .arg( message );
+
+    if ( retn && canUseCommands )
+        server->sendMasterMessage( msg, plr, false);
+
     if ( logMsg )
     {
         QString log{ "adminUsage.txt" };
-        QString logMsg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
-                        "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and reason "
-                        "[ %6 ]." };
-
-        logMsg = logMsg.arg( plr->getSernum_s() )
-                       .arg( cmd )
-                       .arg( argType )
-                       .arg( arg1 )
-                       .arg( arg2 )
-                       .arg( message );
-        Helper::logToFile( log, logMsg, true, true );
-    }
-
-    if ( retn && canUseCommands )
-    {
-        QString valid{ "It has been done. I hope you entered the right "
-                       "command!" };
-        server->sendMasterMessage( valid, plr, false);
+        Helper::logToFile( log, msg, true, true );
     }
     return retn;
 }
@@ -413,7 +413,7 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
                             QString& message, bool all)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
-    QString reason{ "A Remote-Administrator has [ Banned ] you. "
+    QString reason{ "Remote-Admin [ %1 ] has [ Banned ] you. "
                     "Reason: [ %2 ]." };
 
     bool ban{ false };
@@ -435,7 +435,8 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
 
             if ( ban )
             {
-                reason = reason.arg( message.isEmpty()
+                reason = reason.arg( plr->getSernum_s() )
+                               .arg( message.isEmpty()
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
@@ -468,7 +469,7 @@ void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
 {
     QString reason{ "A Remote-Administrator has [ Kicked ] you. "
-                    "Reason: [ %2 ]." };
+                    "Reason: [ %1 ]." };
 
     Player* tmpPlr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -623,14 +624,13 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 {
     QString response{ "" };
 
-    if ( plr->getReqNewAuthPwd()
-      && !plr->getGotNewAuthPwd() )
+    if ( !plr->getGotNewAuthPwd() )
     {
         QString sernum{ plr->getSernumHex_s() };
         if ( adminDialog->makeAdmin( sernum, argType ) )
         {
             response = "You are now registered as an Admin with the "
-                       "Server. You are currently Rank-0 (Game Master) "
+                       "Server. You are currently Rank-1 (Game Master) "
                        "with limited commands.";
 
             plr->setReqNewAuthPwd( false );

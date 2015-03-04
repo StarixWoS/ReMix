@@ -134,28 +134,11 @@ void DVBanWidget::addDVBanImpl(QString& ip, QString& reason)
     if ( !ip.isEmpty() )
     {
         //Prevent adding new rows for previously-banned users.
-        if ( !this->getIsDVBanned( ip ) )
-        {
-            row = dvModel->rowCount();
-            dvModel->insertRow( row );
-
-            dvModel->setData( dvModel->index( row, 0 ),
-                              ip,
-                              Qt::DisplayRole );
-
-            dvModel->setData( dvModel->index( row, 2 ),
-                              QDateTime::fromTime_t( date )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
-        }
-
-        dvModel->setData( dvModel->index( row, 1 ),
-                          reason,
-                          Qt::DisplayRole );
-
         banData.setValue( ip % "/banType", "dv" );
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
+
+        this->loadBannedDVs();
 
         QString log{ QDate::currentDate()
                       .toString( "banLog/yyyy-MM-dd.txt" ) };

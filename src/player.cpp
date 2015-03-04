@@ -56,6 +56,12 @@ Player::Player()
                                         QBrush( QColor( "red" ) ),
                                         Qt::ForegroundRole );
                 }
+                else
+                {
+                    model->setData( row->model()->index( row->row(), 1 ),
+                                    QBrush( QColor( "black" ) ),
+                                    Qt::ForegroundRole );
+                }
 
                 //Color the User's IP address Red if the User's is muted.
                 //Otherwise, color as Green.

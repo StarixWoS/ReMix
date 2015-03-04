@@ -130,12 +130,12 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     QString msg{ "" };
     QString make{ "The Server Host is attempting to register you as an "
                   "Admin with the server. Please reply to this message with "
-                  "(/register *YOURPASS). Note: The server Host and other Admins"
-                  " will not have access to this information." };
+                  "(/register *YOURPASS). Note: The server Host and other "
+                  "Admins will not have access to this information." };
 
     QString revoke{ "Your Remote Administrator privileges have been REVOKED "
-                    "by either the Server Host. Please contact the Server Host if "
-                    "you believe this was in error." };
+                    "by either the Server Host. Please contact the Server Host "
+                    "if you believe this was in error." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
     if ( !Admin::getIsRemoteAdmin( sernum ) )

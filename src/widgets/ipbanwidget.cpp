@@ -134,28 +134,12 @@ void IPBanWidget::addIPBanImpl(QString& ip, QString& reason)
     if ( !ip.isEmpty() )
     {
         //Prevent adding new rows for previously-banned users.
-        if ( !this->getIsIPBanned( ip ) )
-        {
-            row = ipModel->rowCount();
-            ipModel->insertRow( row );
-
-            ipModel->setData( ipModel->index( row, 0 ),
-                              ip,
-                              Qt::DisplayRole );
-
-            ipModel->setData( ipModel->index( row, 2 ),
-                              QDateTime::fromTime_t( date )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
-        }
-
-        ipModel->setData( ipModel->index( row, 1 ),
-                          reason,
-                          Qt::DisplayRole );
 
         banData.setValue( ip % "/banType", "ip" );
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
+
+        this->loadBannedIPs();
 
         QString log{ QDate::currentDate()
                       .toString( "banLog/yyyy-MM-dd.txt" ) };

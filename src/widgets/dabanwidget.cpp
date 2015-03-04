@@ -133,29 +133,11 @@ void DABanWidget::addDABanImpl(QString& ip, QString& reason)
 
     if ( !ip.isEmpty() )
     {
-        //Prevent adding new rows for previously-banned users.
-        if ( !this->getIsDABanned( ip ) )
-        {
-            row = daModel->rowCount();
-            daModel->insertRow( row );
-
-            daModel->setData( daModel->index( row, 0 ),
-                              ip,
-                              Qt::DisplayRole );
-
-            daModel->setData( daModel->index( row, 2 ),
-                              QDateTime::fromTime_t( date )
-                                   .toString( "ddd MMM dd HH:mm:ss yyyy" ),
-                              Qt::DisplayRole );
-        }
-
-        daModel->setData( daModel->index( row, 1 ),
-                          reason,
-                          Qt::DisplayRole );
-
         banData.setValue( ip % "/banType", "da" );
         banData.setValue( ip % "/banDate", date );
         banData.setValue( ip % "/banReason", reason );
+
+        this->loadBannedDAs();
 
         QString log{ QDate::currentDate()
                       .toString( "banLog/yyyy-MM-dd.txt" ) };

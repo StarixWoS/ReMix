@@ -87,6 +87,9 @@ Settings::Settings(QWidget *parent) :
 
     this->setCheckedState( Toggles::ECHOCOMMENTS,
                            this->getEchoComments() );
+
+    this->setCheckedState( Toggles::MINIMIZETOTRAY,
+                           this->getMinimizeToTray() );
 }
 
 Settings::~Settings()
@@ -178,7 +181,10 @@ void Settings::toggleSettings(quint32 row, Qt::CheckState value)
                     prompt = "Do you wish to erase the stored Password hash?";
 
                     if ( Helper::confirmAction( this, title, prompt ) )
+                    {
+                        pwd.clear();
                         this->setPassword( pwd );
+                    }
                 }
             }
         break;
