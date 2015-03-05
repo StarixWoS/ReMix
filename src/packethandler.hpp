@@ -39,8 +39,9 @@ class PacketHandler : public QObject
         void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, qint16 port,
                             QHash<QHostAddress, QByteArray>* bioHash);
 
-    private:
         bool checkBannedInfo(Player* plr);
+
+    private:
         void detectFlooding(Player* plr);
 
         void readMIX0(QString& packet, Player* plr);

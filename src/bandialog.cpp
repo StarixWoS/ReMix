@@ -22,8 +22,13 @@ BanDialog::BanDialog(QWidget *parent) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                               this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 
     ipBanWidget = new IPBanWidget( this );
@@ -113,4 +118,64 @@ void BanDialog::addSerNumBan(QString& sernum, QString& reason)
 void BanDialog::removeSerNumBan(QString& sernum)
 {
     snBanWidget->removeSerNumBan( sernum );
+}
+
+//Device-Ban Tab.
+void BanDialog::remoteAddDVBan(Player* admin, Player* target, QString& reason)
+{
+    if ( admin == nullptr || target == nullptr )
+    {
+        return;
+    }
+
+    QString msg{ reason };
+    if ( msg.isEmpty() )
+    {
+        msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
+        msg = msg.arg( admin->getSernum_s() )
+                 .arg( target->getWVar() );
+    }
+
+    QString wVar{ target->getWVar() };
+    dvBanWidget->addDVBan( wVar, msg );
+}
+
+void BanDialog::addDVBan(QString& dVar, QString& reason)
+{
+    dvBanWidget->addDVBan( dVar, reason );
+}
+
+void BanDialog::removeDVBan(QString& dVar)
+{
+    dvBanWidget->removeDVBan( dVar );
+}
+
+//Device-Ban Tab.
+void BanDialog::remoteAddDABan(Player* admin, Player* target, QString& reason)
+{
+    if ( admin == nullptr || target == nullptr )
+    {
+        return;
+    }
+
+    QString msg{ reason };
+    if ( msg.isEmpty() )
+    {
+        msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
+        msg = msg.arg( admin->getSernum_s() )
+                 .arg( target->getDVar() );
+    }
+
+    QString wVar{ target->getDVar() };
+    daBanWidget->addDABan( wVar, msg );
+}
+
+void BanDialog::addDABan(QString& dVar, QString& reason)
+{
+    daBanWidget->addDABan( dVar, reason );
+}
+
+void BanDialog::removeDABan(QString& dVar)
+{
+    daBanWidget->removeDABan( dVar );
 }

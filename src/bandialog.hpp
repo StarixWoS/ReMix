@@ -38,6 +38,14 @@ class BanDialog : public QDialog
         void addSerNumBan(QString& sernum, QString& reason);
         void removeSerNumBan(QString& sernum);
 
+        void remoteAddDVBan(Player* admin, Player* target, QString& reason);
+        void addDVBan(QString& dVar, QString& reason);
+        void removeDVBan(QString& dVar);
+
+        void remoteAddDABan(Player* admin, Player* target, QString& reason);
+        void addDABan(QString& dVar, QString& reason);
+        void removeDABan(QString& dVar);
+
     private:
         Ui::BanDialog *ui;
 };

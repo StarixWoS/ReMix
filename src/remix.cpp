@@ -11,13 +11,17 @@ ReMix::ReMix(QWidget *parent) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 
     //Setup Objects.
     sysMessages = new Messages( this );
-    settings = new Settings( this );
     admin = new Admin( this );
 
     QStringList args = qApp->arguments();
@@ -50,9 +54,6 @@ ReMix::~ReMix()
 
     admin->close();
     admin->deleteLater();
-
-    settings->close();
-    settings->deleteLater();
 
     serverInstance->deleteLater();
 

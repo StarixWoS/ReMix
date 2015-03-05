@@ -23,8 +23,13 @@ Messages::Messages(QWidget *parent) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 
     //Load settings from: Preferences.ini

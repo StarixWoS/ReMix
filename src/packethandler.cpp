@@ -304,7 +304,9 @@ bool PacketHandler::checkBannedInfo(Player* plr)
 
     //Prevent Banned IP's or SerNums from remaining connected.
     if ( IPBanWidget::getIsIPBanned( plr->getPublicIP() )
-      || SNBanWidget::getIsSernumBanned( plr->getSernumHex_s() ) )
+      || SNBanWidget::getIsSernumBanned( plr->getSernumHex_s() )
+      || DABanWidget::getIsDABanned( plr->getDVar() )
+      || DVBanWidget::getIsDVBanned( plr->getWVar() ) )
     {
         plr->setSoftDisconnect( true );
         server->setIpDc( server->getIpDc() + 1 );

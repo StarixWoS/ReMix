@@ -55,8 +55,13 @@ Settings::Settings(QWidget *parent) :
 
     if ( this->getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 
     //Load Settings from file.
@@ -105,10 +110,10 @@ Settings::Settings(QWidget *parent) :
 
 Settings::~Settings()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( this->getSaveWindowPositions() )
     {
-        Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
+        this->setWindowPositions( this->saveGeometry(),
+                                  this->metaObject()->className() );
     }
     delete ui;
 }

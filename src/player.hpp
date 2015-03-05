@@ -21,8 +21,8 @@ class Player : public QObject
 
     QString alias{ "" };
     QString playTime{ "" };
-    quint32 dVar{ 0 };
-    quint32 wVar{ 0 };
+    QString dVar{ "" };
+    QString wVar{ "" };
 
     QByteArray bioData;
     QByteArray outBuff;
@@ -194,11 +194,11 @@ class Player : public QObject
 
         void validateSerNum(ServerInfo* server, quint32 id);
 
-        quint32 getDVar() const;
-        void setDVar(const quint32& value);
+        QString getDVar() const;
+        void setDVar(const QString& value);
 
-        quint32 getWVar() const;
-        void setWVar(const quint32& value);
+        QString getWVar() const;
+        void setWVar(const QString& value);
 
         #ifdef DECRYPT_PACKET_PLUGIN
             QString getGameInfo() const;

@@ -21,8 +21,13 @@ Comments::Comments(QWidget *parent) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 }
 

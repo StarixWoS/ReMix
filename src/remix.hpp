@@ -22,7 +22,6 @@ class ReMix : public QMainWindow
     Admin* admin{ nullptr };
 
     ServerInfo* server{ nullptr };
-    Settings* settings{ nullptr };
     RandDev* randDev{ nullptr };
 
     QSystemTrayIcon* trayObject{ nullptr };

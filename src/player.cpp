@@ -59,7 +59,7 @@ Player::Player()
                 else
                 {
                     model->setData( row->model()->index( row->row(), 1 ),
-                                    QBrush( QColor( "black" ) ),
+                                    qApp->palette().windowText(),
                                     Qt::ForegroundRole );
                 }
 
@@ -579,22 +579,22 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
     }
 }
 
-quint32 Player::getDVar() const
+QString Player::getDVar() const
 {
     return dVar;
 }
 
-void Player::setDVar(const quint32& value)
+void Player::setDVar(const QString& value)
 {
     dVar = value;
 }
 
-quint32 Player::getWVar() const
+QString Player::getWVar() const
 {
     return wVar;
 }
 
-void Player::setWVar(const quint32& value)
+void Player::setWVar(const QString& value)
 {
     wVar = value;
 }

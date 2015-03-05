@@ -74,6 +74,7 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
         server->setPlayerCount( server->getPlayerCount() + 1 );
         server->sendMasterInfo();
     }
+    pktHandle->checkBannedInfo( plr );
 }
 
 QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
@@ -105,6 +106,15 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
             plr->setSernum_i( Helper::serNumToHexStr( sernum )
                                        .toUInt( 0, 16 ) );
         }
+
+        QString dVar = Helper::getStrStr( bio, "d", "=", "," );
+        if ( !dVar.isEmpty() )
+            plr->setDVar( dVar );
+
+        QString wVar = Helper::getStrStr( bio, "w", "=", "," );
+        if ( !wVar.isEmpty() )
+            plr->setDVar( wVar );
+
         plrViewModel->setData( plrViewModel->index( row, 1 ),
                                sernum,
                                Qt::DisplayRole );

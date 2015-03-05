@@ -22,8 +22,13 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+        QByteArray geometry{ Settings::getWindowPositions(
+                                    this->metaObject()->className() ) };
+        if ( !geometry.isEmpty() )
+        {
+            this->restoreGeometry( Settings::getWindowPositions(
+                                       this->metaObject()->className() ) );
+        }
     }
 
     target = trg;
