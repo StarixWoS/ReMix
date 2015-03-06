@@ -9,7 +9,8 @@ const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
     "Settings",
     "WrongIPs",
     "Messages",
-    "Positions"
+    "Positions",
+    "Rules"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
@@ -25,7 +26,6 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "reqServerPwd",
     "MOTD",
     "BANISHED",
-    "RULES",
     "reqAdminAuth",
     "logComments",
     "fwdComments",
@@ -65,6 +65,10 @@ Settings::Settings(QWidget *parent) :
         if ( rules != nullptr )
             tabWidget->addTab( rules, "Rules" );
 
+        messages = new MessagesWidget( this );
+        if ( messages != nullptr )
+            tabWidget->addTab( messages, "Messages" );
+
         ui->widget->setLayout( new QGridLayout( ui->widget ) );
         ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
         ui->widget->layout()->addWidget( tabWidget );
@@ -92,6 +96,7 @@ Settings::~Settings()
 
     tabWidget->deleteLater();
     settings->deleteLater();
+    messages->deleteLater();
     rules->deleteLater();
 
     delete ui;
@@ -188,35 +193,6 @@ bool Settings::cmpServerPassword(QString& value)
         value = Helper::hashPassword( value );
 
     return ( getPassword() == value );
-}
-
-void Settings::setServerRules(QVariant& value)
-{
-    setSetting( keys[ Keys::Messages ],
-                subKeys[ SubKeys::Rules ], value );
-}
-
-QString Settings::getServerRules()
-{
-    QVariant pending = getSetting( keys[ Keys::Messages ],
-                                   subKeys[ SubKeys::Rules ] );
-
-    QString rules;
-    if ( pending.type() == QVariant::StringList )
-    {
-        QStringList ruleList = pending.toStringList();
-        for ( int i = 0; i < ruleList.count(); ++i )
-        {
-            if ( i > 0 )
-                rules.append( ", " );
-
-            rules.append( ruleList.at( i ) );
-        }
-    }
-    else if ( pending.type() == QVariant::String )
-        rules = pending.toString();
-
-    return rules;
 }
 
 void Settings::setAllowDupedIP(QVariant& value)

@@ -93,7 +93,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
     else
         response = response.arg( "" );
 
-    response = response.arg( this->getServerRules() )
+    response = response.arg( Rules::getRuleSet() )
                        .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
@@ -284,7 +284,7 @@ void ServerInfo::sendServerRules(Player* plr)
 
     quint64 bOut{ 0 };
     QString rules{ ":SR$%1\r\n" };
-            rules = rules.arg( this->getServerRules() );
+            rules = rules.arg( Rules::getRuleSet() );
 
     bOut = soc->write( rules.toLatin1(), rules.length() );
     if ( bOut >= 1 )
@@ -309,7 +309,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     if ( !greeting.isEmpty() )
         this->sendMasterMessage( greeting, plr, false );
 
-    if ( !this->getServerRules().isEmpty() )
+    if ( !Rules::getRuleSet().isEmpty() )
         this->sendServerRules( plr );
 }
 
@@ -555,17 +555,6 @@ QString ServerInfo::getPrivateIP() const
 void ServerInfo::setPrivateIP(const QString& value)
 {
     privateIP = value;
-}
-
-QString ServerInfo::getServerRules() const
-{
-    return Settings::getServerRules();
-}
-
-void ServerInfo::setServerRules(const QString& value)
-{
-    QVariant val = QVariant( value );
-    Settings::setServerRules( val );
 }
 
 QString ServerInfo::getName() const

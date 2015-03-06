@@ -69,6 +69,7 @@
 
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
+    #include "widgets/messageswidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/dabanwidget.hpp"
     #include "widgets/dvbanwidget.hpp"
@@ -82,7 +83,6 @@
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
     #include "bandialog.hpp"
-    #include "messages.hpp"
     #include "settings.hpp"
     #include "comments.hpp"
     #include "randdev.hpp"

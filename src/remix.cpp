@@ -21,12 +21,11 @@ ReMix::ReMix(QWidget *parent) :
     }
 
     //Setup Objects.
-    sysMessages = new Messages( this );
     admin = new Admin( this );
 
     QStringList args = qApp->arguments();
 
-    serverInstance = new ReMixWidget( this, admin, sysMessages, &args );
+    serverInstance = new ReMixWidget( this, admin, &args );
     ui->frame->layout()->addWidget( serverInstance );
 
     //Initialize our Tray Icon if available.
@@ -48,9 +47,6 @@ ReMix::~ReMix()
 
     if ( trayMenu != nullptr )
         trayMenu->deleteLater();
-
-    sysMessages->close();
-    sysMessages->deleteLater();
 
     admin->close();
     admin->deleteLater();

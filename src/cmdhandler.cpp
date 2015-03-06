@@ -297,7 +297,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( !arg1.isEmpty()
                   && canUseCommands )
                 {
-                    this->msgHandler( arg1, message, all );
+                    this->msgHandler( arg1, tmpMsg, all );
                 }
                 retn = true;
             }
@@ -399,7 +399,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
              .arg( message );
 
     if ( retn && canUseCommands )
-        server->sendMasterMessage( msg, plr, false);
+        server->sendMasterMessage( msg, plr, false );
 
     if ( logMsg )
     {

@@ -139,9 +139,6 @@ class ServerInfo
         QString getPrivateIP() const;
         void setPrivateIP(const QString& value);
 
-        QString getServerRules() const;
-        void setServerRules(const QString& value);
-
         QString getName() const;
         void setName(const QString& value);
 

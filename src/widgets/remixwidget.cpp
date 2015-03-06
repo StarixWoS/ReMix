@@ -10,7 +10,7 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm, Messages* msg,
+ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm,
                          QStringList* argList) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
@@ -23,7 +23,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm, Messages* msg,
     //Setup Objects.
     settings = new Settings( this );
     server = new ServerInfo();
-    sysMessages = msg;
     admin = adm;
 
     plrWidget = new PlrListWidget( this, server, admin );
@@ -32,7 +31,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm, Messages* msg,
 
     server->setServerID( Settings::getServerID() );
     server->setHostInfo( QHostInfo() );
-    server->setServerRules( Settings::getServerRules() );
 
     //Load Data from our CommandLine Args.
     if ( argList != nullptr )
@@ -302,14 +300,6 @@ void ReMixWidget::on_openSettings_clicked()
         settings->hide();
     else
         settings->show();
-}
-
-void ReMixWidget::on_openSysMessages_clicked()
-{
-    if ( sysMessages->isVisible() )
-        sysMessages->hide();
-    else
-        sysMessages->show();
 }
 
 void ReMixWidget::on_openBanDialog_clicked()

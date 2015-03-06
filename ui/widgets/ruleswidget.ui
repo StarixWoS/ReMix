@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>70</width>
-    <height>70</height>
+    <width>80</width>
+    <height>80</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,10 @@
     <number>5</number>
    </property>
    <item row="0" column="0">
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTableWidget" name="rulesView">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
@@ -39,6 +42,12 @@
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <property name="cornerButtonEnabled">
+      <bool>false</bool>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
@@ -63,6 +72,11 @@
      <row>
       <property name="text">
        <string>2</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>12</string>
       </property>
      </row>
      <row>
@@ -97,6 +111,16 @@
      </row>
      <row>
       <property name="text">
+       <string>15</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>14</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
        <string>9</string>
       </property>
      </row>
@@ -107,27 +131,12 @@
      </row>
      <row>
       <property name="text">
-       <string>11</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>12</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
        <string>13</string>
       </property>
      </row>
      <row>
       <property name="text">
-       <string>14</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>15</string>
+       <string>11</string>
       </property>
      </row>
      <column>
@@ -153,7 +162,7 @@
      </item>
      <item row="2" column="0">
       <property name="text">
-       <string>Max Players</string>
+       <string>All PKing</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -161,7 +170,7 @@
      </item>
      <item row="3" column="0">
       <property name="text">
-       <string>Max AFK</string>
+       <string>Max Players</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -169,7 +178,7 @@
      </item>
      <item row="4" column="0">
       <property name="text">
-       <string>Min Version</string>
+       <string>Max AFK</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -177,7 +186,7 @@
      </item>
      <item row="5" column="0">
       <property name="text">
-       <string>Report to Ladder</string>
+       <string>Min Version</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -185,7 +194,7 @@
      </item>
      <item row="6" column="0">
       <property name="text">
-       <string>No Cursing</string>
+       <string>Report to Ladder</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -193,7 +202,7 @@
      </item>
      <item row="7" column="0">
       <property name="text">
-       <string>No Cheating</string>
+       <string>No Cursing</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -201,7 +210,7 @@
      </item>
      <item row="8" column="0">
       <property name="text">
-       <string>No Modders</string>
+       <string>No Cheating</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -209,7 +218,7 @@
      </item>
      <item row="9" column="0">
       <property name="text">
-       <string>No Pets</string>
+       <string>No Eavesdropping</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -217,7 +226,7 @@
      </item>
      <item row="10" column="0">
       <property name="text">
-       <string>Arena PKing</string>
+       <string>No Migrating</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -225,7 +234,7 @@
      </item>
      <item row="11" column="0">
       <property name="text">
-       <string>All PKing</string>
+       <string>No Modders</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -233,7 +242,7 @@
      </item>
      <item row="12" column="0">
       <property name="text">
-       <string>No PKing</string>
+       <string>No Pets</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -241,7 +250,7 @@
      </item>
      <item row="13" column="0">
       <property name="text">
-       <string>No Migrating</string>
+       <string>No PKing</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -249,7 +258,7 @@
      </item>
      <item row="14" column="0">
       <property name="text">
-       <string>No Eavesdropping</string>
+       <string>Arena PKing</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>

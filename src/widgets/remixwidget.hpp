@@ -17,7 +17,6 @@ class ReMixWidget : public QWidget
 
     PlrListWidget* plrWidget{ nullptr };
 
-    Messages* sysMessages{ nullptr };
     Server* tcpServer{ nullptr };
     RandDev* randDev{ nullptr };
     Settings* settings{ nullptr };
@@ -34,7 +33,6 @@ class ReMixWidget : public QWidget
 
     public:
         explicit ReMixWidget(QWidget* parent = nullptr, Admin* adm = nullptr,
-                             Messages* msg = nullptr,
                              QStringList* argList = nullptr);
         ~ReMixWidget();
 
@@ -49,7 +47,6 @@ class ReMixWidget : public QWidget
         void applyThemes(QString& name);
 
     private slots:
-        void on_openSysMessages_clicked();
         void on_openSettings_clicked();
         void on_openBanDialog_clicked();
         void on_openUserComments_clicked();

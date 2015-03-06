@@ -81,6 +81,7 @@
 
     //Widget GUI Classes.
     class SettingsWidget;
+    class MessagesWidget;
     class PlrListWidget;
     class ReMixWidget;
     class DABanWidget;
@@ -94,7 +95,6 @@
     class ServerInfo;
     class CmdHandler;
     class BanDialog;
-    class Messages;
     class Settings;
     class Comments;
     class RandDev;
@@ -135,11 +135,14 @@
         //Length of a Remote Admin's password salt.
         static const int SALT_LENGTH{ 12 };
 
-        //Count of Settings Keys Accessed via the Helper namespace.
-        static const int SETTINGS_KEY_COUNT{ 4 };
+        //Count of Settings Keys Accessed via the Settings/SettingsWidget class.
+        static const int SETTINGS_KEY_COUNT{ 5 };
+
+        //Count of Rules Keys accesed via the Rules/RulesWidget class.
+        static const int SETTINGS_SUBKEY_COUNT{ 18 };
 
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
-        static const int SETTINGS_SUBKEY_COUNT{ 19 };
+        static const int RULES_SUBKEY_COUNT{ 16 };
 
         //Count of currently supported Remote-Admin commands.
         static const int ADMIN_COMMAND_COUNT{ 17 };

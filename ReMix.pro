@@ -50,6 +50,7 @@ SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/tblview/snsortproxymodel.cpp \
            src/tblview/tbleventfilter.cpp \
            src/widgets/settingswidget.cpp \
+           src/widgets/messageswidget.cpp \
            src/widgets/plrlistwidget.cpp \
            src/widgets/dabanwidget.cpp \
            src/widgets/dvbanwidget.cpp \
@@ -61,7 +62,6 @@ SOURCES += src/tblview/adminsortproxymodel.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
            src/bandialog.cpp \
-           src/messages.cpp \
            src/comments.cpp \
            src/settings.cpp \
            src/randdev.cpp \
@@ -81,6 +81,7 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/tblview/snsortproxymodel.hpp \
            src/tblview/tbleventfilter.hpp \
            src/widgets/settingswidget.hpp \
+           src/widgets/messageswidget.hpp \
            src/widgets/plrlistwidget.hpp \
            src/widgets/dabanwidget.hpp \
            src/widgets/dvbanwidget.hpp \
@@ -94,7 +95,6 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/prototypes.hpp \
            src/bandialog.hpp \
            src/includes.hpp \
-           src/messages.hpp \
            src/comments.hpp \
            src/settings.hpp \
            src/randdev.hpp \
@@ -107,6 +107,7 @@ HEADERS += src/tblview/adminsortproxymodel.hpp \
            src/remix.hpp
 
 FORMS += ui/widgets/settingswidget.ui \
+         ui/widgets/messageswidget.ui \
          ui/widgets/plrlistwidget.ui \
          ui/widgets/dabanwidget.ui \
          ui/widgets/dvbanwidget.ui \
@@ -115,7 +116,6 @@ FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/remixwidget.ui \
          ui/widgets/ruleswidget.ui \
          ui/bandialog.ui \
-         ui/messages.ui \
          ui/comments.ui \
          ui/settings.ui \
          ui/sendmsg.ui \

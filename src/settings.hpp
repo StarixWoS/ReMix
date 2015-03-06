@@ -15,29 +15,32 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    static const QString keys[ SETTINGS_KEY_COUNT ];
-    static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
-
     QTabWidget* tabWidget{ nullptr };
     SettingsWidget* settings{ nullptr };
+    MessagesWidget* messages{ nullptr };
     RulesWidget* rules{ nullptr };
 
-    enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
                   ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
-                  ReqPassword = 8, MOTD = 9, BanishMsg = 10, Rules = 11,
-                  ReqAdminAuth = 12, LogComments = 13, FwdComments = 14,
-                  InformAdminLogin = 15, EchoComments = 16,
-                  MinimizeToTray = 17, SaveWindowPositions = 18 };
+                  ReqPassword = 8, MOTD = 9, BanishMsg = 10, ReqAdminAuth = 11,
+                  LogComments = 12, FwdComments = 13, InformAdminLogin = 14,
+                  EchoComments = 15, MinimizeToTray = 16,
+                  SaveWindowPositions = 17 };
 
     public:
         explicit Settings(QWidget *parent = 0);
         ~Settings();
 
+        enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
+                   Rules = 4 };
+
+        static const QString keys[ SETTINGS_KEY_COUNT ];
+        static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
+
     public: //Static-Free functions. Ported from Helper and Admin.
 
         static void setSetting(const QString& key, const QString& subKey,
-                                QVariant& value);
+                               QVariant& value);
 
         static QVariant getSetting(const QString& key, const QString& subKey);
 
@@ -59,9 +62,6 @@ class Settings : public QDialog
         static void setRequirePassword(QVariant& value);
         static bool getRequirePassword();
         static bool cmpServerPassword(QString& value);
-
-        static void setServerRules(QVariant& value);
-        static QString getServerRules();
 
         static void setAllowDupedIP(QVariant& value);
         static bool getAllowDupedIP();

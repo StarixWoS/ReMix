@@ -17,8 +17,6 @@ class ReMix : public QMainWindow
     Q_OBJECT
 
     ReMixWidget* serverInstance{ nullptr };
-
-    Messages* sysMessages{ nullptr };
     Admin* admin{ nullptr };
 
     ServerInfo* server{ nullptr };
