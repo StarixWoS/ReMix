@@ -53,6 +53,23 @@ Settings::Settings(QWidget *parent) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
+    //Setup Objects.
+    tabWidget = new QTabWidget( this );
+    if ( tabWidget != nullptr )
+    {
+        settings = new SettingsWidget( this );
+        if ( settings != nullptr )
+            tabWidget->addTab( settings, "Settings" );
+
+        rules = new RulesWidget( this );
+        if ( rules != nullptr )
+            tabWidget->addTab( rules, "Rules" );
+
+        ui->widget->setLayout( new QGridLayout( ui->widget ) );
+        ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
+        ui->widget->layout()->addWidget( tabWidget );
+    }
+
     if ( this->getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
@@ -63,49 +80,6 @@ Settings::Settings(QWidget *parent) :
                                        this->metaObject()->className() ) );
         }
     }
-
-    //Load Settings from file.
-    this->setCheckedState( Toggles::REQPWD,
-                           this->getRequirePassword() );
-
-    this->setCheckedState( Toggles::REQADMINPWD,
-                           this->getReqAdminAuth() );
-
-    this->setCheckedState( Toggles::ALLOWDUPEDIP,
-                           this->getAllowDupedIP() );
-
-    this->setCheckedState( Toggles::BANDUPEDIP,
-                           this->getBanDupedIP() );
-
-    this->setCheckedState( Toggles::BANHACKERS,
-                           this->getBanHackers() );
-
-    this->setCheckedState( Toggles::REQSERNUM,
-                           this->getReqSernums() );
-
-    this->setCheckedState( Toggles::DISCONNECTIDLES,
-                           this->getDisconnectIdles() );
-
-    this->setCheckedState( Toggles::ALLOWSSV,
-                           this->getAllowSSV() );
-
-    this->setCheckedState( Toggles::LOGCOMMENTS,
-                           this->getLogComments() );
-
-    this->setCheckedState( Toggles::FWDCOMMENTS,
-                           this->getFwdComments() );
-
-    this->setCheckedState( Toggles::INFORMADMINLOGIN,
-                           this->getInformAdminLogin() );
-
-    this->setCheckedState( Toggles::ECHOCOMMENTS,
-                           this->getEchoComments() );
-
-    this->setCheckedState( Toggles::MINIMIZETOTRAY,
-                           this->getMinimizeToTray() );
-
-    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
-                           this->getSaveWindowPositions() );
 }
 
 Settings::~Settings()
@@ -115,144 +89,12 @@ Settings::~Settings()
         this->setWindowPositions( this->saveGeometry(),
                                   this->metaObject()->className() );
     }
+
+    tabWidget->deleteLater();
+    settings->deleteLater();
+    rules->deleteLater();
+
     delete ui;
-}
-
-void Settings::setCheckedState(Toggles option, bool val)
-{
-    Qt::CheckState state;
-    if ( val )
-        state = Qt::Checked;
-    else
-        state = Qt::Unchecked;
-
-    ui->settingsView->item( option, 0 )->setCheckState( state );
-}
-
-void Settings::on_settingsView_itemClicked(QTableWidgetItem *item)
-{
-    if ( item != nullptr )
-    {
-        if ( item->checkState() == Qt::Checked
-          || item->checkState() == Qt::Unchecked )
-        {
-            this->toggleSettings( item->row(), item->checkState() );
-        }
-    }
-}
-
-void Settings::on_settingsView_doubleClicked(const QModelIndex &index)
-{
-    int row = index.row();
-
-    Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
-    ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked
-                                                     ? Qt::Unchecked
-                                                     : Qt::Checked );
-
-    val = ui->settingsView->item( row, 0 )->checkState();
-    this->toggleSettings( row, val );
-}
-
-void Settings::toggleSettings(quint32 row, Qt::CheckState value)
-{
-    QVariant state = value == Qt::Checked;
-
-    QString title{ "" };
-    QString prompt{ "" };
-
-    switch ( row )
-    {
-        case Toggles::REQPWD:
-            {
-                QString pwd{ this->getPassword() };
-                bool ok;
-
-                this->setRequirePassword( state );
-                if ( this->getPassword().isEmpty()
-                  && this->getRequirePassword() )
-                {
-                    title = "Server Password:";
-                    prompt = "Password:";
-
-                    //Recycyle the Old password. Assuming it wasn't deleted.
-                    if ( pwd.isEmpty() )
-                    {
-                        pwd = Helper::getTextResponse( this, title,
-                                                       prompt, &ok, 0 );
-                    }
-                    if ( ok && !pwd.isEmpty() )
-                    {
-                        this->setPassword( pwd );
-                    }
-                    else
-                    {
-                        ui->settingsView->item( row, 0 )->setCheckState(
-                                    Qt::Unchecked );
-
-                        state = false;
-                        this->setRequirePassword( state );
-                    }
-                }
-                else if ( !this->getRequirePassword()
-                       && state.toBool() != pwdCheckState
-                       && !pwd.isEmpty() )
-                {
-                    title = "Remove Password:";
-                    prompt = "Do you wish to erase the stored Password hash?";
-
-                    if ( Helper::confirmAction( this, title, prompt ) )
-                    {
-                        pwd.clear();
-                        this->setPassword( pwd );
-                    }
-                }
-                pwdCheckState = state.toBool();
-            }
-        break;
-        case Toggles::REQADMINPWD:
-            this->setReqAdminAuth( state );
-        break;
-        case Toggles::ALLOWDUPEDIP:
-            this->setAllowDupedIP( state );
-        break;
-        case Toggles::BANDUPEDIP:
-            this->setBanDupedIP( state );
-        break;
-        case Toggles::BANHACKERS:
-            this->setBanHackers( state );
-        break;
-        case Toggles::REQSERNUM:
-            this->setReqSernums( state );
-        break;
-        case Toggles::DISCONNECTIDLES:
-            this->setDisconnectIdles( state );
-        break;
-        case Toggles::ALLOWSSV:
-            this->setAllowSSV( state );
-        break;
-        case Toggles::LOGCOMMENTS:
-            this->setLogComments( state );
-        break;
-        case Toggles::FWDCOMMENTS:
-            this->setFwdComments( state );
-        break;
-        case Toggles::ECHOCOMMENTS:
-            this->setEchoComments( state );
-        break;
-        case Toggles::INFORMADMINLOGIN:
-            this->setInformAdminLogin( state );
-        break;
-        case Toggles::MINIMIZETOTRAY:
-            this->setMinimizeToTray( state );
-        break;
-        case Toggles::SAVEWINDOWPOSITIONS:
-            this->setSaveWindowPositions( state );
-        break;
-        default:
-            qDebug() << "Unknown Option, doing nothing!";
-        break;
-    }
 }
 
 //Static-Free Functions.

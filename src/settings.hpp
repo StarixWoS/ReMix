@@ -18,7 +18,9 @@ class Settings : public QDialog
     static const QString keys[ SETTINGS_KEY_COUNT ];
     static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
 
-    bool pwdCheckState{ false };
+    QTabWidget* tabWidget{ nullptr };
+    SettingsWidget* settings{ nullptr };
+    RulesWidget* rules{ nullptr };
 
     enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3 };
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
@@ -28,17 +30,9 @@ class Settings : public QDialog
                   InformAdminLogin = 15, EchoComments = 16,
                   MinimizeToTray = 17, SaveWindowPositions = 18 };
 
-    enum Toggles{ REQPWD = 0, REQADMINPWD = 1, ALLOWDUPEDIP = 2, BANDUPEDIP = 3,
-                  BANHACKERS = 4, REQSERNUM = 5, DISCONNECTIDLES = 6,
-                  ALLOWSSV = 7, LOGCOMMENTS = 8, FWDCOMMENTS = 9,
-                  ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13 };
-
     public:
         explicit Settings(QWidget *parent = 0);
         ~Settings();
-
-        void setCheckedState(Toggles option, bool val);
 
     public: //Static-Free functions. Ported from Helper and Admin.
 
@@ -112,13 +106,6 @@ class Settings : public QDialog
         static int getServerID();
 
         static bool getIsInvalidIPAddress(const QString& value);
-
-    private:
-        void toggleSettings(quint32 row, Qt::CheckState value);
-
-    private slots:
-        void on_settingsView_doubleClicked(const QModelIndex &index);
-        void on_settingsView_itemClicked(QTableWidgetItem *item);
 
     private:
         Ui::Settings *ui;

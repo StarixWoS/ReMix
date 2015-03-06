@@ -165,6 +165,7 @@ Player* ServerInfo::createPlayer(int slot)
     {
         players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );    //The player will be Slot-Aware.
+        this->setPlayerCount( this->getPlayerCount() + 1 );
         return players[ slot ];
     }
     return nullptr;
@@ -210,6 +211,8 @@ void ServerInfo::deletePlayer(int slot)
 
     delete players[ slot ];
     players[ slot ] = nullptr;
+
+    this->setPlayerCount( this->getPlayerCount() - 1 );
 }
 
 int ServerInfo::getEmptySlot()

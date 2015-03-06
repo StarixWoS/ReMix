@@ -20,12 +20,14 @@
     #include <QStringList>
     #include <QTextCursor>
     #include <QCloseEvent>
+    #include <QGridLayout>
     #include <QScrollBar>
     #include <QTcpServer>
     #include <QUdpSocket>
     #include <QTcpSocket>
     #include <QTableView>
     #include <QByteArray>
+    #include <QTabWidget>
     #include <QTextEdit>
     #include <QHostInfo>
     #include <QSettings>
@@ -66,12 +68,14 @@
     #include "tblview/tbleventfilter.hpp"
 
     //Widget GUI Classes.
+    #include "widgets/settingswidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/dabanwidget.hpp"
     #include "widgets/dvbanwidget.hpp"
     #include "widgets/ipbanwidget.hpp"
     #include "widgets/snbanwidget.hpp"
     #include "widgets/remixwidget.hpp"
+    #include "widgets/ruleswidget.hpp"
 
     //GUI and Data Storage Clases.
     #include "packethandler.hpp"
@@ -86,6 +90,7 @@
     #include "helper.hpp"
     #include "player.hpp"
     #include "server.hpp"
+    #include "rules.hpp"
     #include "remix.hpp"
     #include "admin.hpp"
 

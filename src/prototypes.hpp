@@ -29,12 +29,14 @@
     class QCloseEvent;
     class QStringList;
     class QTextCursor;
+    class QGridLayout;
     class QByteArray;
     class QScrollBar;
     class QTcpServer;  //Requires Include within Class Headers.
     class QTcpSocket;
     class QUdpSocket;
     class QTableView;
+    class QTabWidget;
     class QHostInfo;
     class QDateTime;
     class QFileInfo;
@@ -78,12 +80,14 @@
     class TblEventFilter;
 
     //Widget GUI Classes.
+    class SettingsWidget;
     class PlrListWidget;
     class ReMixWidget;
     class DABanWidget;
     class DVBanWidget;
     class IPBanWidget;
     class SNBanWidget;
+    class RulesWidget;
 
     //GUI and Data Storage Classes.
     class PacketHandler;
@@ -97,6 +101,7 @@
     class SendMsg;
     class Player;
     class Server;
+    class Rules;
     class ReMix;
     class Admin;
 
