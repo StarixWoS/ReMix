@@ -71,7 +71,7 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
 
         plr->setTableRow( plrTableItems.value( ip ) );
 
-        server->setPlayerCount( server->getPlayerCount() + 1 );
+        server->setPlayerCount( server->getPlayerCount() );
         server->sendMasterInfo();
     }
     pktHandle->checkBannedInfo( plr );
@@ -279,7 +279,6 @@ void Server::userDisconnectedSlot()
             plrTableItems.insert( ip, item );
     }
 
-    server->setPlayerCount( server->getPlayerCount() - 1 );
     if ( server->getPlayerCount() <= 0 )
     {
         server->setPlayerCount( 0 );
