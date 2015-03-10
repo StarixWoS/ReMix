@@ -83,7 +83,7 @@ Player::Player()
         if ( Settings::getDisconnectIdles()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
-            this->setSoftDisconnect( true );
+            this->setDisconnected( true );
         }
 
         //Authenticate Remote Admins as required.
@@ -107,7 +107,7 @@ Player::Player()
         QTcpSocket* soc{ this->getSocket() };
         if ( soc != nullptr )
         {
-            if ( this->getSoftDisconnect() )
+            if ( this->getDisconnected() )
             {
                 //Gracefully Disconnect the User.
                 soc->flush();
@@ -165,7 +165,7 @@ void Player::setSernum_i(quint32 value)
     //forcibly remove the User from the server.
     if ( Settings::getReqSernums() && value == 0 )
     {
-        this->setSoftDisconnect( true );
+        this->setDisconnected( true );
         return;
     }
 
@@ -523,17 +523,22 @@ void Player::setGotNewAuthPwd(bool value)
     gotNewAuthPwd = value;
 }
 
-bool Player::getSoftDisconnect() const
+bool Player::getDisconnected() const
 {
     return pendingDisconnect;
 }
 
-void Player::setSoftDisconnect(bool value)
+void Player::setDisconnected(bool value)
 {
     pendingDisconnect = value;
     if ( pendingDisconnect )
     {
         killTimer.start( 250 );
+    }
+    else  //The User is no longer being disconnected. Kill the timer.
+    {
+        if ( killTimer.isActive() )
+            killTimer.stop();
     }
 }
 
@@ -559,7 +564,7 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
             if ( Settings::getReqSernums()
               && id == 0 )
             {
-                this->setSoftDisconnect( true );
+                this->setDisconnected( true );
             }
             this->setSernum_i( id );
         }
@@ -568,11 +573,11 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         {
             //User's sernum has somehow changed. Disconnect them.
             //This is a possible Ban event.
-            this->setSoftDisconnect( true );
+            this->setDisconnected( true );
         }
     }
 
-    if ( this->getSoftDisconnect()
+    if ( this->getDisconnected()
       && server != nullptr )
     {
         server->setIpDc( server->getIpDc() + 1 );

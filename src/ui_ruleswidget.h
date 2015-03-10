@@ -118,6 +118,7 @@ public:
         __qtablewidgetitem30->setCheckState(Qt::Unchecked);
         rulesView->setItem(14, 0, __qtablewidgetitem30);
         rulesView->setObjectName(QStringLiteral("rulesView"));
+        rulesView->setFrameShadow(QFrame::Sunken);
         rulesView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         rulesView->setAlternatingRowColors(true);
         rulesView->setSelectionMode(QAbstractItemView::SingleSelection);

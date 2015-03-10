@@ -16,7 +16,7 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
-#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -24,7 +24,7 @@ class Ui_BanDialog
 {
 public:
     QGridLayout *gridLayout;
-    QTabWidget *tabWidget;
+    QWidget *widget;
 
     void setupUi(QDialog *BanDialog)
     {
@@ -34,17 +34,14 @@ public:
         gridLayout = new QGridLayout(BanDialog);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(5, 5, 5, 5);
-        tabWidget = new QTabWidget(BanDialog);
-        tabWidget->setObjectName(QStringLiteral("tabWidget"));
+        gridLayout->setContentsMargins(0, 0, 0, 0);
+        widget = new QWidget(BanDialog);
+        widget->setObjectName(QStringLiteral("widget"));
 
-        gridLayout->addWidget(tabWidget, 0, 0, 1, 1);
+        gridLayout->addWidget(widget, 0, 0, 1, 1);
 
 
         retranslateUi(BanDialog);
-
-        tabWidget->setCurrentIndex(-1);
-
 
         QMetaObject::connectSlotsByName(BanDialog);
     } // setupUi

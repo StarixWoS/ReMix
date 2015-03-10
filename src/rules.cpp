@@ -23,14 +23,15 @@ const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
 
 void Rules::setRule(const QString& key, QVariant& value)
 {
-    QString name{ key };
-    Settings::setSetting( Settings::keys[ Settings::Rules ], name, value );
+    QSettings setting( "preferences.ini", QSettings::IniFormat );
+              setting.setValue( Settings::keys[ Settings::Rules ] % "/" % key,
+                                value );
 }
 
 QVariant Rules::getRule(const QString& key)
 {
-    QString name{ key };
-    return Settings::getSetting( Settings::keys[ Settings::Rules ], name );
+    QSettings setting( "preferences.ini", QSettings::IniFormat );
+    return setting.value( Settings::keys[ Settings::Rules ] % "/" % key );
 }
 
 QString Rules::getRuleSet()
@@ -41,7 +42,6 @@ QString Rules::getRuleSet()
     QStringList ruleList{ values.allKeys() };
     QString rules{ "" };
 
-    bool addRule{ false };
     bool valIsBool{ false };
 
     QString tmpRule{ "" };
@@ -53,29 +53,17 @@ QString Rules::getRuleSet()
         value = values.value( tmpRule );
 
         valIsBool = false;
-        addRule = true;
 
-        if ( value.toString().compare( "false", Qt::CaseInsensitive ) == 0
-          || value.toString().compare( "true", Qt::CaseInsensitive ) == 0 )
-        {
-            if ( !value.toBool() )
-                addRule = false;
-            else
-                addRule = true;
-
+        if ( value.toString().compare( "true", Qt::CaseInsensitive ) == 0 )
             valIsBool = true;
-        }
 
-        if ( addRule )
-        {
-            rules += tmpRule % "=";
-            if ( valIsBool )
-                rules = rules.append( QString::number( value.toBool() ) );
-            else
-                rules = rules.append( value.toString() );
+        rules += tmpRule % "=";
+        if ( valIsBool )
+            rules = rules.append( QString::number( value.toBool() ) );
+        else
+            rules = rules.append( value.toString() );
 
-            rules.append( ", " );
-        }
+        rules.append( ", " );
     }
     return rules;
 }

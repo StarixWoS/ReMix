@@ -118,6 +118,7 @@ void PlrListWidget::on_actionSendMessage_triggered()
 {
     SendMsg* adminMsg = new SendMsg( this, server, menuTarget );
              adminMsg->exec();
+    adminMsg->deleteLater();
     menuTarget = nullptr;
 }
 
@@ -212,7 +213,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
             if ( sock->waitForBytesWritten() )
             {
-                menuTarget->setSoftDisconnect( true );
+                menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
         }
@@ -229,7 +230,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
     QString prompt{ "Are you certain you want to BANISH User [ "
                   % menuTarget->getSernum_s() % " ]?" };
 
-    QString inform{ "The Server Host has BANISHED you. Reason: %2" };
+    QString inform{ "The Server Host has BANISHED you. Reason: %1" };
     QString reason{ "Manual Banish; %1" };
 
     QTcpSocket* sock = menuTarget->getSocket();
@@ -238,25 +239,14 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             reason = reason.arg( Helper::getBanishReason( this ) );
-            inform = inform.arg( menuTarget->getSernum_s() )
-                           .arg( reason ).toLatin1();
+            inform = inform.arg( reason );
+
             server->sendMasterMessage( inform, menuTarget, false );
-
-            reason = QString( "%1 [ %2:%3 ]: %4" )
-                         .arg( reason )
-                         .arg( menuTarget->getPublicIP() )
-                         .arg( menuTarget->getPublicPort() )
-                         .arg( QString( menuTarget->getBioData() ) );
-
-            QString sernum{ menuTarget->getSernumHex_s() };
-            admin->getBanDialog()->addSerNumBan( sernum, reason );
-
-            QHostAddress ip = sock->peerAddress();
-            admin->getBanDialog()->addIPBan( ip.toString(), reason );
+            admin->getBanDialog()->addBan( menuTarget, reason );
 
             if ( sock->waitForBytesWritten() )
             {
-                menuTarget->setSoftDisconnect( true );
+                menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
         }

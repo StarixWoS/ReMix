@@ -126,26 +126,32 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex &index)
 
 void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
 {
-    QVariant state = value == Qt::Checked;
+    QVariant state_v = value == Qt::Checked;
+    bool state_b{ state_v.toBool() };
+
     QSettings rules( "preferences.ini", QSettings::IniFormat );
               rules.beginGroup( Settings::keys[ Settings::Rules ] );
 
     QString prompt{ "" };
     QString title{ "" };
 
+    bool removeKey{ false };
+    quint32 key{ row };
+
     QString rowText{ "" };
 
-    switch ( row )
+    switch ( key )
     {
         case Toggles::world:
             {
                 QString world{ Rules::getWorldName() };
                 bool ok{ false };
 
-                if ( state.toBool() != worldCheckState )
+                if ( state_b != worldCheckState )
                 {
-                    if ( Rules::getRequireWorld()
-                      || !worldCheckState )
+                    if (( Rules::getRequireWorld()
+                       || !worldCheckState )
+                      && state_b )
                     {
                         if ( world.isEmpty() )
                         {
@@ -160,7 +166,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Unchecked );
 
-                            state = false;
+                            state_v = false;
                         }
                         else
                             Rules::setWorldName( world );
@@ -175,7 +181,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                         {
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Checked );
-                            state = true;
+                            state_v = true;
                         }
                         else
                             rules.remove( Rules::subKeys[ Rules::world ] );
@@ -186,7 +192,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
 
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                worldCheckState = state.toBool();
+                worldCheckState = state_v.toBool();
             }
         break;
         case Toggles::url:
@@ -194,10 +200,11 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 QString url{ Rules::getURLAddress() };
                 bool ok{ false };
 
-                if ( state.toBool() != urlCheckState )
+                if ( state_b != urlCheckState )
                 {
-                    if ( Rules::getRequireURL()
-                      || !urlCheckState )
+                    if (( Rules::getRequireURL()
+                       || !urlCheckState )
+                      && state_b )
                     {
                         if ( url.isEmpty() )
                         {
@@ -212,7 +219,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Unchecked );
 
-                            state = false;
+                            state_v = false;
                         }
                         else
                             Rules::setURLAddress( url );
@@ -227,7 +234,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                         {
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Checked );
-                            state = true;
+                            state_v = true;
                         }
                         else
                             rules.remove( Rules::subKeys[ Rules::url ] );
@@ -237,21 +244,25 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 rowText = rowText.arg( Rules::getURLAddress() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                urlCheckState = state.toBool();
+                urlCheckState = state_v.toBool();
             }
         break;
         case Toggles::allPK:
-            Rules::setAllPKing( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setAllPKing( state_v );
         break;
         case Toggles::maxP:
             {
                 quint32 maxPlrs{ Rules::getMaxPlayers() };
                 bool ok{ false };
 
-                if ( state.toBool() != maxPlayersCheckState )
+                if ( state_b != maxPlayersCheckState )
                 {
-                    if ( Rules::getRequireMaxPlayers()
-                      || !maxPlayersCheckState )
+                    if (( Rules::getRequireMaxPlayers()
+                       || !maxPlayersCheckState )
+                      && state_b )
                     {
                         if ( maxPlrs == 0 )
                         {
@@ -267,7 +278,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Unchecked );
 
-                            state = false;
+                            state_v = false;
                         }
                         else
                             Rules::setMaxPlayers( maxPlrs );
@@ -283,7 +294,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                         {
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Checked );
-                            state = true;
+                            state_v = true;
                         }
                         else
                             rules.remove( Rules::subKeys[ Rules::maxP ] );
@@ -293,7 +304,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 rowText = rowText.arg( Rules::getMaxPlayers() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                maxPlayersCheckState = state.toBool();
+                maxPlayersCheckState = state_v.toBool();
             }
         break;
         case Toggles::maxAFK:
@@ -301,10 +312,11 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 quint32 maxAFK{ Rules::getMaxAFK() };
                 bool ok{ false };
 
-                if ( state.toBool() != maxAFKCheckState )
+                if ( state_b != maxAFKCheckState )
                 {
-                    if ( Rules::getRequireMaxAFK()
-                      || !maxAFKCheckState )
+                    if (( Rules::getRequireMaxAFK()
+                       || !maxAFKCheckState )
+                      && state_b )
                     {
                         if ( maxAFK == 0 )
                         {
@@ -320,7 +332,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Unchecked );
 
-                            state = false;
+                            state_v = false;
                         }
                         else
                             Rules::setMaxAFK( maxAFK );
@@ -336,7 +348,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                         {
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Checked );
-                            state = true;
+                            state_v = true;
                         }
                         else
                             rules.remove( Rules::subKeys[ Rules::maxAFK ] );
@@ -346,7 +358,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 rowText = rowText.arg( Rules::getMaxAFK() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                maxAFKCheckState = state.toBool();
+                maxAFKCheckState = state_v.toBool();
             }
         break;
         case Toggles::minV:
@@ -354,10 +366,11 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 QString version{ Rules::getMinVersion() };
                 bool ok{ false };
 
-                if ( state.toBool() != minVersionCheckState )
+                if ( state_b != minVersionCheckState )
                 {
-                    if ( Rules::getRequireMinVersion()
-                      || !minVersionCheckState )
+                    if (( Rules::getRequireMinVersion()
+                       || !minVersionCheckState)
+                      && state_b )
                     {
                         if ( version.isEmpty() )
                         {
@@ -372,7 +385,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Unchecked );
 
-                            state = false;
+                            state_v = false;
                         }
                         else
                             Rules::setMinVersion( version );
@@ -387,7 +400,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                         {
                             ui->rulesView->item( row, 0 )->setCheckState(
                                         Qt::Checked );
-                            state = true;
+                            state_v = true;
                         }
                         else
                             rules.remove( Rules::subKeys[ Rules::minV ] );
@@ -397,38 +410,68 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                 rowText = rowText.arg( Rules::getMinVersion() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                minVersionCheckState = state.toBool();
+                minVersionCheckState = state_v.toBool();
             }
         break;
         case Toggles::ladder:
-            Rules::setReportLadder( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setReportLadder( state_v );
         break;
         case Toggles::noBleep:
-            Rules::setNoCursing( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoCursing( state_v );
         break;
         case Toggles::noCheat:
-            Rules::setNoCheating( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoCheating( state_v );
         break;
         case Toggles::noEavesdrop:
-            Rules::setNoEavesdropping( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoEavesdropping( state_v );
         break;
         case Toggles::noMigrate:
-            Rules::setNoMigrating( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoMigrating( state_v );
         break;
         case Toggles::noMod:
-            Rules::setNoModding( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoModding( state_v );
         break;
         case Toggles::noPets:
-            Rules::setNoPets( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoPets( state_v );
         break;
         case Toggles::noPK:
-            Rules::setNoPKing( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setNoPKing( state_v );
         break;
         case Toggles::arenaPK:
-            Rules::setArenaPKing( state );
+            if ( !state_b )
+                removeKey = true;
+            else
+                Rules::setArenaPKing( state_v );
          break;
         default:
             qDebug() << "Unknown Rule, doing nothing!";
         break;
     }
+
+    if ( removeKey )
+        rules.remove( Rules::subKeys[ key ] );
 }

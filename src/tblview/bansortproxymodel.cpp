@@ -1,17 +1,18 @@
 
 #include "includes.hpp"
+#include "bansortproxymodel.hpp"
 
-IPSortProxyModel::IPSortProxyModel()
+BanSortProxyModel::BanSortProxyModel()
 {
 
 }
 
-IPSortProxyModel::~IPSortProxyModel()
+BanSortProxyModel::~BanSortProxyModel()
 {
 
 }
 
-bool IPSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
+bool BanSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
     int column = sortColumn();
     if ( column >= 0 )
@@ -27,7 +28,14 @@ bool IPSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
 
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
-        if ( column == COLS::BANDATE )
+
+        if ( column == BanWidget::dv
+          || column == BanWidget::wv )
+        {
+            vlStr = QString::number( vlStr.toUInt( 0, 16 ) );
+            vrStr = QString::number( vrStr.toUInt( 0, 16 ) );
+        }
+        else if ( column == BanWidget::date )
         {
             vlStr = QString::number(
                         QDateTime::fromString( vlStr,
@@ -39,6 +47,21 @@ bool IPSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
                                                "ddd MMM dd HH:mm:ss yyyy" )
                              .toTime_t() );
         }
+        else if ( column == BanWidget::sn )
+        {
+            if ( !vlStr.contains( "SOUL" ) )
+                vlStr = Helper::intSToStr( vlStr, 10 );
+            else
+                vlStr = vlStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
+
+            if ( !vrStr.contains( "SOUL" ) )
+                vrStr = Helper::intSToStr( vrStr, 10 );
+            else
+                vrStr = vrStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
+
+            vlStr = Helper::intSToStr( vlStr, 10 );
+            vrStr = Helper::intSToStr( vrStr, 10 );
+        }
 
         bool res = false;
         if ( Helper::naturalSort( vlStr, vrStr, res ) )
@@ -46,4 +69,3 @@ bool IPSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
     }
     return QSortFilterProxyModel::lessThan( left, right );
 }
-

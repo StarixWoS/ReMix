@@ -77,11 +77,11 @@ Settings::Settings(QWidget *parent) :
     if ( this->getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className() ) };
+                             this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
+                                   this->metaObject()->className() ) );
         }
     }
 }

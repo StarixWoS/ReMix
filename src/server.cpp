@@ -70,8 +70,6 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
                                                            plr, true );
 
         plr->setTableRow( plrTableItems.value( ip ) );
-
-        server->setPlayerCount( server->getPlayerCount() );
         server->sendMasterInfo();
     }
     pktHandle->checkBannedInfo( plr );
@@ -101,19 +99,24 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        if ( !sernum.isEmpty() )
+        plr->setSernum_i( Helper::serNumToHexStr( sernum )
+                                     .toUInt( 0, 16 ) );
+
+        qint32 index{ bio.indexOf( "d=", Qt::CaseInsensitive ) };
+        QString dVar{ "" };
+        QString wVar{ "" };
+        if ( index >= 0 )
         {
-            plr->setSernum_i( Helper::serNumToHexStr( sernum )
-                                       .toUInt( 0, 16 ) );
+            dVar = bio.mid( index + 2 ).left( 8 );
+            plr->setDVar( dVar );
         }
 
-        QString dVar = Helper::getStrStr( bio, "d", "=", "," );
-        if ( !dVar.isEmpty() )
-            plr->setDVar( dVar );
-
-        QString wVar = Helper::getStrStr( bio, "w", "=", "," );
-        if ( !wVar.isEmpty() )
-            plr->setDVar( wVar );
+        index = bio.indexOf( "w=", Qt::CaseInsensitive );
+        if ( index >= 0 )
+        {
+            wVar = bio.mid( index + 2 ).left( 8 );
+            plr->setWVar( wVar );
+        }
 
         plrViewModel->setData( plrViewModel->index( row, 1 ),
                                sernum,
@@ -279,12 +282,6 @@ void Server::userDisconnectedSlot()
             plrTableItems.insert( ip, item );
     }
 
-    if ( server->getPlayerCount() <= 0 )
-    {
-        server->setPlayerCount( 0 );
-        server->setGameInfo( "" );
-    }
-
     server->deletePlayer( plr->getSlotPos() );
     server->sendMasterInfo();
 }
@@ -304,7 +301,7 @@ void Server::readyReadUDPSlot()
                               &senderAddr, &senderPort );
 
         //Check for a banned IP-Address. --Log the rejection to file.
-        if ( IPBanWidget::getIsIPBanned( senderAddr.toString() ) )
+        if ( BanDialog::getIsBanned( senderAddr.toString() ) )
         {
             QString logTxt{ "Ignoring UDP from banned IP Address: "
                             "[ %2:%3 ] sent command: %4" };

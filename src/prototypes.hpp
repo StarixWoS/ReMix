@@ -42,6 +42,7 @@
     class QFileInfo;
     class QSettings;
     class QTextEdit;
+    class QToolTip;
     class QVariant;
     class QtEndian;
     class QProcess;
@@ -74,9 +75,7 @@
     //Table-View Classes.
     class AdminSortProxyModel;
     class PlrSortProxyModel;
-    class DVSortProxyModel;
-    class IPSortProxyModel;
-    class SNSortProxyModel;
+    class BanSortProxyModel;
     class TblEventFilter;
 
     //Widget GUI Classes.
@@ -84,11 +83,8 @@
     class MessagesWidget;
     class PlrListWidget;
     class ReMixWidget;
-    class DABanWidget;
-    class DVBanWidget;
-    class IPBanWidget;
-    class SNBanWidget;
     class RulesWidget;
+    class BanWidget;
 
     //GUI and Data Storage Classes.
     class PacketHandler;

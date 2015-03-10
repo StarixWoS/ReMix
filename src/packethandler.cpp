@@ -208,85 +208,91 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                                       QByteArray>* bioHash)
 {
     QString data{ udp };
-
-    if ( !data.isEmpty() )
+    if ( !BanDialog::getIsBanned( ipAddr.toString() ) )
     {
-        QString sernum{ "" };
-        switch ( data.at( 0 ).toLatin1() )
+        if ( !data.isEmpty() )
         {
-            case 'G':   //Set the Server's gameInfoString.
-                {
-                    server->setGameInfo( data.mid( 1 ) );
-                }
-            break;
-            case 'M':   //Parse the Master Server's response.
-                {
-                    int opcode{ 0 };
-                    int pubIP{ 0 };
-                    int pubPort{ 0 };
+            qint32 index{ data.indexOf( "d=", Qt::CaseInsensitive ) };
+            QString dVar{ data.mid( index + 2 ).left( 8 ) };
 
-                    if ( !data.isEmpty() )
+            index = data.indexOf( "w=", Qt::CaseInsensitive );
+            QString wVar{ data.mid( index + 2 ).left( 8 ) };
+
+            QString sernum = Helper::getStrStr( data, "sernum", "=", "," );
+            sernum = Helper::serNumToHexStr( sernum );
+
+            switch ( data.at( 0 ).toLatin1() )
+            {
+                case 'G':   //Set the Server's gameInfoString.
                     {
-                        QDataStream mDataStream( udp );
-                                    mDataStream >> opcode;
-                                    mDataStream >> pubIP;
-                                    mDataStream >> pubPort;
-
-                        server->setPublicIP( QHostAddress( pubIP )
-                                                  .toString() );
-                        server->setPublicPort(
-                                    static_cast<quint16>(
-                                        qFromBigEndian( pubPort ) ) );
-
-                        //We've obtained valid Master information.
-                        //Reset check-in to every 5 minutes.
-
-                        server->setMasterUDPResponse( true );
-                        masterCheckIn.setInterval( 300000 );
+                        server->setGameInfo( data.mid( 1 ) );
                     }
-                    else
-                        server->setMasterUDPResponse( false );
-                }
-            break;
-            case 'P':   //Store the Player information into a struct.
-                sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                sernum = Helper::serNumToHexStr( sernum );
-
-                //Only log BIO data when the Host runs the server with
-                //the "/fudge" commandline argument.
-                if ( !sernum.isEmpty() && server->getLogUsage() )
-                    Helper::logBIOData( sernum, ipAddr, port, data );
-
-                if (( Settings::getReqSernums()
-                   && Helper::serNumtoInt( sernum ) )
-                  || !Settings::getReqSernums() )
-                {
-                    if ( !SNBanWidget::getIsSernumBanned( sernum ) )
+                break;
+                case 'M':   //Parse the Master Server's response.
                     {
-                        bioHash->insert( ipAddr, udp.mid( 1 ) );
-                        server->sendServerInfo( ipAddr, port );
-                    }
-                }
-                //TODO: Check for banned D and V variables.
-            break;
-            case 'Q':   //Send Online User Information.
-                sernum = Helper::getStrStr( data, "sernum", "=", "," );
-                sernum = Helper::serNumToHexStr( sernum );
+                        int opcode{ 0 };
+                        int pubIP{ 0 };
+                        int pubPort{ 0 };
 
-                if (( Settings::getReqSernums()
-                   && Helper::serNumtoInt( sernum ) )
-                  || !Settings::getReqSernums() )
-                {
-                    if ( !SNBanWidget::getIsSernumBanned( sernum ) )
-                        server->sendUserList( ipAddr, port );
-                }
-                //TODO: Check for banned D and V variables.
-            break;
-            case 'R':   //TODO: Command "R" with unknown use.
-            break;
-            default:    //Do nothing; Unknown command.
-                qDebug() << "Unknown Command!";
-            break;
+                        if ( !data.isEmpty() )
+                        {
+                            QDataStream mDataStream( udp );
+                            mDataStream >> opcode;
+                            mDataStream >> pubIP;
+                            mDataStream >> pubPort;
+
+                            server->setPublicIP( QHostAddress( pubIP )
+                                                 .toString() );
+                            server->setPublicPort(
+                                        static_cast<quint16>(
+                                            qFromBigEndian( pubPort ) ) );
+
+                            //We've obtained valid Master information.
+                            //Reset check-in to every 5 minutes.
+
+                            server->setMasterUDPResponse( true );
+                            masterCheckIn.setInterval( 300000 );
+                        }
+                        else
+                            server->setMasterUDPResponse( false );
+                    }
+                break;
+                case 'P':   //Store the Player information into a struct.
+                    if ( !sernum.isEmpty() && server->getLogUsage() )
+                        Helper::logBIOData( sernum, ipAddr, port, data );
+
+                    if (( Settings::getReqSernums()
+                          && Helper::serNumtoInt( sernum ) )
+                            || !Settings::getReqSernums() )
+                    {
+                        if ( !BanDialog::getIsBanned( sernum )
+                             && !BanDialog::getIsBanned( wVar )
+                             && !BanDialog::getIsBanned( dVar ) )
+                        {
+                            bioHash->insert( ipAddr, udp.mid( 1 ) );
+                            server->sendServerInfo( ipAddr, port );
+                        }
+                    }
+                break;
+                case 'Q':   //Send Online User Information.
+                    if (( Settings::getReqSernums()
+                          && Helper::serNumtoInt( sernum ) )
+                            || !Settings::getReqSernums() )
+                    {
+                        if ( !BanDialog::getIsBanned( sernum )
+                             && !BanDialog::getIsBanned( wVar )
+                             && !BanDialog::getIsBanned( dVar ) )
+                        {
+                            server->sendUserList( ipAddr, port );
+                        }
+                    }
+                break;
+                case 'R':   //TODO: Command "R" with unknown use.
+                break;
+                default:    //Do nothing; Unknown command.
+                    qDebug() << "Unknown Command!";
+                break;
+            }
         }
     }
 }
@@ -303,12 +309,12 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     bool badInfo{ true };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( IPBanWidget::getIsIPBanned( plr->getPublicIP() )
-      || SNBanWidget::getIsSernumBanned( plr->getSernumHex_s() )
-      || DABanWidget::getIsDABanned( plr->getDVar() )
-      || DVBanWidget::getIsDVBanned( plr->getWVar() ) )
+    if ( BanDialog::getIsBanned( plr->getPublicIP() )
+      || BanDialog::getIsBanned( plr->getSernumHex_s() )
+      || BanDialog::getIsBanned( plr->getWVar() )
+      || BanDialog::getIsBanned( plr->getDVar() ) )
     {
-        plr->setSoftDisconnect( true );
+        plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
         server->sendMasterMessage( Settings::getBanishMesage(), plr, false );
@@ -320,8 +326,6 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     if ( !Settings::getAllowDupedIP() )
     {
         QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
-        QString peerAddr{ plr->getPublicIP() };
-
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             tmpPlr = server->getPlayer( i );
@@ -335,18 +339,18 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( QString( plr->getBioData() ) );
 
                     if ( Settings::getBanDupedIP() )
-                        bandlg->addIPBan( peerAddr, reason );
+                        bandlg->addBan( plr, reason );
 
                     if ( plr != nullptr )
                     {
-                        plr->setSoftDisconnect( true );
+                        plr->setDisconnected( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
                     }
 
                     if ( tmpPlr != nullptr )
                     {
-                        tmpPlr->setSoftDisconnect( true );
+                        tmpPlr->setDisconnected( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
                     }
@@ -370,7 +374,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
             {
                 if ( tmpPlr != plr )
                 {
-                    plr->setSoftDisconnect( true );
+                    plr->setDisconnected( true );
                     server->setDupDc( server->getDupDc() + 1 );
 
                     badInfo = true;
@@ -393,7 +397,7 @@ void PacketHandler::detectFlooding(Player* plr)
         if ( time <= PACKET_FLOOD_TIME )
         {
             if ( floodCount >= PACKET_FLOOD_LIMIT
-              && !plr->getSoftDisconnect() )
+              && !plr->getDisconnected() )
             {
                 QString log{ QDate::currentDate()
                               .toString( "banLog/yyyy-MM-dd.txt" ) };
@@ -417,10 +421,10 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getPublicPort() )
                                        .arg( QString( plr->getBioData() ) );
 
-                        banDlg->addIPBan( plr->getPublicIP(), logMsg );
+                        banDlg->addBan( plr, logMsg );
                     }
                 }
-                plr->setSoftDisconnect( true );
+                plr->setDisconnected( true );
                 server->setPktDc( server->getPktDc() + 1 );
             }
         }

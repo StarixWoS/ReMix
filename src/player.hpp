@@ -186,8 +186,8 @@ class Player : public QObject
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
-        bool getSoftDisconnect() const;
-        void setSoftDisconnect(bool value);
+        bool getDisconnected() const;
+        void setDisconnected(bool value);
 
         bool getNetworkMuted() const;
         void setNetworkMuted(bool value);

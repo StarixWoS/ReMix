@@ -31,17 +31,10 @@ BanDialog::BanDialog(QWidget *parent) :
         }
     }
 
-    ipBanWidget = new IPBanWidget( this );
-    ui->tabWidget->addTab( ipBanWidget, "IP Bans" );
-
-    snBanWidget = new SNBanWidget( this );
-    ui->tabWidget->addTab( snBanWidget, "SerNum Bans" );
-
-    dvBanWidget = new DVBanWidget( this );
-    ui->tabWidget->addTab( dvBanWidget, "Device Bans" );
-
-    daBanWidget = new DABanWidget( this );
-    ui->tabWidget->addTab( daBanWidget, "Date Bans" );
+    banWidget = new BanWidget( this );
+    ui->widget->setLayout( new QGridLayout( ui->widget ) );
+    ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
+    ui->widget->layout()->addWidget( banWidget );
 }
 
 BanDialog::~BanDialog()
@@ -52,130 +45,39 @@ BanDialog::~BanDialog()
                                       this->metaObject()->className() );
     }
 
-    daBanWidget->deleteLater();
-    dvBanWidget->deleteLater();
-    ipBanWidget->deleteLater();
-    snBanWidget->deleteLater();
-
+    banWidget->deleteLater();
     delete ui;
 }
 
-//IP Ban Tab forward functions.
-void BanDialog::remoteAddIPBan(Player* admin, Player* target, QString& reason)
+void BanDialog::addBan(Player* plr, QString& reason)
 {
-    if ( admin == nullptr || target == nullptr )
+    QString msg{ reason };
+    if ( msg.isEmpty() )
     {
-        return;
+        msg = "Manual-Banish; Unknown reason: [ %1 ]";
+        msg = msg.arg( plr->getSernum_s() );
     }
+    banWidget->addBan( plr, msg );
+}
 
-    QString ip{ target->getPublicIP() };
+void BanDialog::removeBan(QString& value, qint32 type)
+{
+    banWidget->removeBan( value, type );
+}
 
+void BanDialog::remoteAddBan(Player* admin, Player* target, QString& reason)
+{
     QString msg{ reason };
     if ( msg.isEmpty() )
     {
         msg = "Remote-Banish by [ %1 ]; Unknown Reason: [ %2 ]";
         msg = msg.arg( admin->getSernum_s() )
-                 .arg( ip );
-    }
-    ipBanWidget->addIPBan( ip, msg );
-}
-
-void BanDialog::addIPBan(QString ip, QString& reason)
-{
-    ipBanWidget->addIPBan( ip, reason );
-}
-
-void BanDialog::removeIPBan(QString ip)
-{
-    ipBanWidget->removeIPBan( ip );
-}
-
-//Sernum-Ban Tab.
-void BanDialog::remoteAddSerNumBan(Player* admin, Player* target, QString& reason)
-{
-    if ( admin == nullptr || target == nullptr )
-    {
-        return;
-    }
-
-    QString msg{ reason };
-    if ( msg.isEmpty() )
-    {
-        msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
-        msg = msg.arg( admin->getSernum_s() )
                  .arg( target->getSernum_s() );
     }
-
-    QString sernum{ target->getSernumHex_s() };
-    snBanWidget->addSerNumBan( sernum, msg );
+    banWidget->addBan( target, msg );
 }
 
-void BanDialog::addSerNumBan(QString& sernum, QString& reason)
+bool BanDialog::getIsBanned(QString value)
 {
-    snBanWidget->addSerNumBan( sernum, reason );
-}
-
-void BanDialog::removeSerNumBan(QString& sernum)
-{
-    snBanWidget->removeSerNumBan( sernum );
-}
-
-//Device-Ban Tab.
-void BanDialog::remoteAddDVBan(Player* admin, Player* target, QString& reason)
-{
-    if ( admin == nullptr || target == nullptr )
-    {
-        return;
-    }
-
-    QString msg{ reason };
-    if ( msg.isEmpty() )
-    {
-        msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
-        msg = msg.arg( admin->getSernum_s() )
-                 .arg( target->getWVar() );
-    }
-
-    QString wVar{ target->getWVar() };
-    dvBanWidget->addDVBan( wVar, msg );
-}
-
-void BanDialog::addDVBan(QString& dVar, QString& reason)
-{
-    dvBanWidget->addDVBan( dVar, reason );
-}
-
-void BanDialog::removeDVBan(QString& dVar)
-{
-    dvBanWidget->removeDVBan( dVar );
-}
-
-//Device-Ban Tab.
-void BanDialog::remoteAddDABan(Player* admin, Player* target, QString& reason)
-{
-    if ( admin == nullptr || target == nullptr )
-    {
-        return;
-    }
-
-    QString msg{ reason };
-    if ( msg.isEmpty() )
-    {
-        msg = "Remote-Banish by [ %1 ]; Unknown reason: [ %2 ]";
-        msg = msg.arg( admin->getSernum_s() )
-                 .arg( target->getDVar() );
-    }
-
-    QString wVar{ target->getDVar() };
-    daBanWidget->addDABan( wVar, msg );
-}
-
-void BanDialog::addDABan(QString& dVar, QString& reason)
-{
-    daBanWidget->addDABan( dVar, reason );
-}
-
-void BanDialog::removeDABan(QString& dVar)
-{
-    daBanWidget->removeDABan( dVar );
+    return BanWidget::getIsBanned( value ) >= 0;
 }

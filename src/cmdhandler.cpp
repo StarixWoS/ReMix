@@ -1,5 +1,4 @@
 
-
 #include "cmdhandler.hpp"
 #include "includes.hpp"
 
@@ -81,9 +80,9 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
             reason = reason.arg( plr->getPublicIP() )
                            .arg( plr->getPublicPort() )
                            .arg( QString( plr->getBioData() ) );
-            banDialog->addIPBan( plr->getPublicIP(), reason );
+            banDialog->addBan( plr, reason );
 
-            plr->setSoftDisconnect( true );
+            plr->setDisconnected( true );
             server->setIpDc( server->getIpDc() + 1 );
         }
         else
@@ -103,7 +102,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
     }
 
     qint32 colIndex{ packet.indexOf( ": " ) };
-    QString alias = packet.left( colIndex + 2 ).mid( 10 );
+    QString alias = packet.left( colIndex ).mid( 10 );
 
     QString msg{ packet.mid( colIndex + 2 ) };
             msg = msg.left( msg.length() - 2 );
@@ -442,28 +441,21 @@ void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
                 if ( !reason.isEmpty() )
                     server->sendMasterMessage( reason, tmpPlr, false );
 
-                banDialog->remoteAddSerNumBan( plr, tmpPlr, message );
-                banDialog->remoteAddIPBan( plr, tmpPlr, message );
-
-                tmpPlr->setSoftDisconnect( true );
+                banDialog->remoteAddBan( plr, tmpPlr, message );
+                tmpPlr->setDisconnected( true );
             }
         }
         ban = false;
     }
-
-    if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-        banDialog->addIPBan( sernum, message );
-    else
-        banDialog->addSerNumBan( sernum, message );
 }
 
 void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-        banDialog->removeIPBan( arg1 );
+        banDialog->removeBan( arg1, BanWidget::ip );
     else
-        banDialog->removeSerNumBan( sernum );
+        banDialog->removeBan( sernum, BanWidget::sn );
 }
 
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
@@ -487,7 +479,7 @@ void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
                 if ( !reason.isEmpty() )
                     server->sendMasterMessage( reason, tmpPlr, false );
 
-                tmpPlr->setSoftDisconnect( true );
+                tmpPlr->setDisconnected( true );
             }
         }
     }
@@ -617,7 +609,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         server->sendMasterMessage( response, plr, false );
 
     if ( disconnect )
-        plr->setSoftDisconnect( true );
+        plr->setDisconnected( true );
 }
 
 void CmdHandler::registerHandler(Player* plr, QString& argType)

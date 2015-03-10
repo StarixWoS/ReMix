@@ -301,8 +301,8 @@ void ServerInfo::sendServerGreeting(Player* plr)
     QString greeting = Settings::getMOTDMessage();
     if ( Settings::getRequirePassword() )
     {
-        greeting.append( "Password required: Please reply with (/login *PASS) "
-                         "or be disconnected." );
+        greeting.append( " Password required: Please reply with (/login *PASS)"
+                         " or be disconnected." );
         plr->setPwdRequested( true );
     }
 
@@ -514,6 +514,11 @@ int ServerInfo::getPlayerCount() const
 
 void ServerInfo::setPlayerCount(int value)
 {
+    if ( value <= 0 )
+    {
+        this->setGameInfo( "" );
+        value = 0;
+    }
     playerCount = value;
 }
 

@@ -1,6 +1,6 @@
 
-#ifndef SNSORTMODEL_HPP
-#define SNSORTMODEL_HPP
+#ifndef BANSORTPROXYMODEL_HPP
+#define BANSORTPROXYMODEL_HPP
 
 #include "prototypes.hpp"
 
@@ -9,18 +9,16 @@
 #include <QModelIndex>
 #include <QObject>
 
-class SNSortProxyModel : public QSortFilterProxyModel
+class BanSortProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
-    enum COLS{ SERNUM = 0, BANDATE = 2 };
-
     public:
-        SNSortProxyModel();
-        ~SNSortProxyModel();
+        BanSortProxyModel();
+        ~BanSortProxyModel();
 
     protected:
         bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
 };
 
-#endif // SNSORTMODEL_HPP
+#endif // BANSORTPROXYMODEL_HPP
