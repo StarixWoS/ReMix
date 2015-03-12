@@ -77,7 +77,7 @@ public:
 
         trgIP = new QLineEdit(BanWidget);
         trgIP->setObjectName(QStringLiteral("trgIP"));
-        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(trgIP->sizePolicy().hasHeightForWidth());
@@ -95,11 +95,8 @@ public:
 
         trgSN = new QLineEdit(BanWidget);
         trgSN->setObjectName(QStringLiteral("trgSN"));
-        QSizePolicy sizePolicy2(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(trgSN->sizePolicy().hasHeightForWidth());
-        trgSN->setSizePolicy(sizePolicy2);
+        sizePolicy1.setHeightForWidth(trgSN->sizePolicy().hasHeightForWidth());
+        trgSN->setSizePolicy(sizePolicy1);
         trgSN->setMinimumSize(QSize(80, 0));
 
         gridLayout->addWidget(trgSN, 1, 3, 1, 1);
@@ -132,8 +129,11 @@ public:
 
         label_8 = new QLabel(BanWidget);
         label_8->setObjectName(QStringLiteral("label_8"));
-        sizePolicy1.setHeightForWidth(label_8->sizePolicy().hasHeightForWidth());
-        label_8->setSizePolicy(sizePolicy1);
+        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(label_8->sizePolicy().hasHeightForWidth());
+        label_8->setSizePolicy(sizePolicy2);
 
         gridLayout->addWidget(label_8, 2, 0, 1, 1);
 
@@ -145,8 +145,8 @@ public:
 
         addBan = new QPushButton(BanWidget);
         addBan->setObjectName(QStringLiteral("addBan"));
-        sizePolicy2.setHeightForWidth(addBan->sizePolicy().hasHeightForWidth());
-        addBan->setSizePolicy(sizePolicy2);
+        sizePolicy1.setHeightForWidth(addBan->sizePolicy().hasHeightForWidth());
+        addBan->setSizePolicy(sizePolicy1);
         addBan->setMinimumSize(QSize(200, 0));
         addBan->setAutoDefault(false);
 

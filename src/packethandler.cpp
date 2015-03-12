@@ -11,16 +11,6 @@ PacketHandler::PacketHandler(Admin* adm, ServerInfo* svr)
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
 
-    //Every 2 Seconds we will attempt to Obtain Master Info.
-    //This will be set to 300000 (5-Minutes) once Master info is obtained.
-    masterCheckIn.setInterval( 2000 );
-
-    QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
-    {
-        server->sendMasterInfo();
-    });
-
-
 #ifdef DECRYPT_PACKET_PLUGIN
     this->loadPlugin();
 #endif
@@ -35,16 +25,6 @@ PacketHandler::~PacketHandler()
 #endif
 
     cmdHandle->deleteLater();
-}
-
-void PacketHandler::startMasterCheckIn()
-{
-    masterCheckIn.start();
-}
-
-void PacketHandler::stopMasterCheckIn()
-{
-    masterCheckIn.stop();
 }
 
 void PacketHandler::parsePacket(QString& packet, Player* plr)
@@ -246,15 +226,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                             server->setPublicPort(
                                         static_cast<quint16>(
                                             qFromBigEndian( pubPort ) ) );
-
-                            //We've obtained valid Master information.
-                            //Reset check-in to every 5 minutes.
-
-                            server->setMasterUDPResponse( true );
-                            masterCheckIn.setInterval( 300000 );
                         }
-                        else
-                            server->setMasterUDPResponse( false );
+                        //We've obtained a Master response.
+                        server->setMasterUDPResponse( true );
                     }
                 break;
                 case 'P':   //Store the Player information into a struct.
@@ -262,12 +236,12 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                         Helper::logBIOData( sernum, ipAddr, port, data );
 
                     if (( Settings::getReqSernums()
-                          && Helper::serNumtoInt( sernum ) )
-                            || !Settings::getReqSernums() )
+                       && Helper::serNumtoInt( sernum ) )
+                      || !Settings::getReqSernums() )
                     {
                         if ( !BanDialog::getIsBanned( sernum )
-                             && !BanDialog::getIsBanned( wVar )
-                             && !BanDialog::getIsBanned( dVar ) )
+                          && !BanDialog::getIsBanned( wVar )
+                          && !BanDialog::getIsBanned( dVar ) )
                         {
                             bioHash->insert( ipAddr, udp.mid( 1 ) );
                             server->sendServerInfo( ipAddr, port );
@@ -276,12 +250,12 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                 break;
                 case 'Q':   //Send Online User Information.
                     if (( Settings::getReqSernums()
-                          && Helper::serNumtoInt( sernum ) )
-                            || !Settings::getReqSernums() )
+                       && Helper::serNumtoInt( sernum ) )
+                      || !Settings::getReqSernums() )
                     {
                         if ( !BanDialog::getIsBanned( sernum )
-                             && !BanDialog::getIsBanned( wVar )
-                             && !BanDialog::getIsBanned( dVar ) )
+                          && !BanDialog::getIsBanned( wVar )
+                          && !BanDialog::getIsBanned( dVar ) )
                         {
                             server->sendUserList( ipAddr, port );
                         }

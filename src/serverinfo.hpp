@@ -33,6 +33,10 @@ class ServerInfo
     bool sentUDPCheckin{ false };
     bool masterUDPResponse{ false };
 
+    QTimer masterCheckIn;
+    QTimer masterTimeOut;
+    bool masterTimedOut{ false };
+
     QString masterIP{ "" };
     quint16 masterPort{ 23999 };
 
@@ -186,6 +190,12 @@ class ServerInfo
 
         bool getMasterUDPResponse() const;
         void setMasterUDPResponse(bool value);
+
+        bool getMasterTimedOut();
+        void setMasterTimedOut(bool value);
+
+        void startMasterCheckIn();
+        void stopMasterCheckIn();
 };
 
 #endif // SERVERINFO_HPP

@@ -323,13 +323,13 @@ void Server::setupPublicServer(bool value)
     {
         if ( !server->getIsPublic() )
         {
-            pktHandle->startMasterCheckIn();
+            server->startMasterCheckIn();
             server->sendMasterInfo( false );
             server->setMasterUDPResponse( false );
         }
         else
         {
-            pktHandle->stopMasterCheckIn();
+            server->stopMasterCheckIn();
             server->sendMasterInfo( true );
         }
         server->setIsPublic( value );

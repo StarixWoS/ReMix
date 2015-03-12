@@ -240,7 +240,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if (( !arg1.isEmpty() && !argType.isEmpty() )
                   && canUseCommands )
                 {
-                    this->banhandler( plr, argType, arg1, message, all );
+                    this->banhandler( plr, arg1, message, all );
                 }
                 retn = true;
             }
@@ -408,8 +408,8 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     return retn;
 }
 
-void CmdHandler::banhandler(Player* plr, QString& argType, QString& arg1,
-                            QString& message, bool all)
+void CmdHandler::banhandler(Player* plr, QString& arg1, QString& message,
+                            bool all)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     QString reason{ "Remote-Admin [ %1 ] has [ Banned ] you. "

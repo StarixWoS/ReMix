@@ -90,10 +90,10 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
 
         if ( menuTarget != nullptr )
         {
-            if ( !menuTarget->getIsAdmin() )
-                ui->actionMakeAdmin->setText( "Make Admin" );
-            else
+            if ( menuTarget->getIsAdmin() )
                 ui->actionMakeAdmin->setText( "Revoke Admin" );
+            else
+                ui->actionMakeAdmin->setText( "Make Admin" );
 
             if ( menuTarget->getNetworkMuted() )
                 ui->actionMuteNetwork->setText( "Un-Mute Network" );

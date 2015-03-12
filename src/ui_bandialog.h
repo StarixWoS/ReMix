@@ -14,6 +14,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QWidget>
@@ -24,6 +25,8 @@ class Ui_BanDialog
 {
 public:
     QGridLayout *gridLayout;
+    QFrame *frame;
+    QGridLayout *gridLayout_2;
     QWidget *widget;
 
     void setupUi(QDialog *BanDialog)
@@ -34,11 +37,22 @@ public:
         gridLayout = new QGridLayout(BanDialog);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(0, 0, 0, 0);
-        widget = new QWidget(BanDialog);
+        gridLayout->setContentsMargins(5, 5, 5, 5);
+        frame = new QFrame(BanDialog);
+        frame->setObjectName(QStringLiteral("frame"));
+        frame->setFrameShape(QFrame::StyledPanel);
+        frame->setFrameShadow(QFrame::Raised);
+        gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(0);
+        gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(0, 0, 0, 0);
+        widget = new QWidget(frame);
         widget->setObjectName(QStringLiteral("widget"));
 
-        gridLayout->addWidget(widget, 0, 0, 1, 1);
+        gridLayout_2->addWidget(widget, 0, 0, 1, 1);
+
+
+        gridLayout->addWidget(frame, 0, 0, 1, 1);
 
 
         retranslateUi(BanDialog);

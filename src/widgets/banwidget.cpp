@@ -3,7 +3,7 @@
 #include "banwidget.hpp"
 #include "ui_banwidget.h"
 
-const QString BanWidget::banKeys[ 7 ] =
+const QString BanWidget::banKeys[ BAN_KEY_COUNT ] =
 {
     "BanCount",
     "IP",

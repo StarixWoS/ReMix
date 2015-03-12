@@ -34,8 +34,7 @@ class CmdHandler : public QObject
         bool parseCommandImpl(Player* plr, QString& packet);
 
     private:
-        void banhandler(Player* plr, QString& argType, QString& arg1,
-                        QString& message, bool all);
+        void banhandler(Player* plr, QString& arg1, QString& message, bool all);
 
         void unBanhandler(QString& argType, QString& arg1);
         void kickHandler(QString& arg1, QString& message, bool all);

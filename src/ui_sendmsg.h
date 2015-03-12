@@ -37,15 +37,19 @@ public:
     {
         if (SendMsg->objectName().isEmpty())
             SendMsg->setObjectName(QStringLiteral("SendMsg"));
-        SendMsg->resize(363, 183);
+        SendMsg->resize(330, 200);
         gridLayout = new QGridLayout(SendMsg);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         frame = new QFrame(SendMsg);
         frame->setObjectName(QStringLiteral("frame"));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);
+        gridLayout_2->setSpacing(5);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        gridLayout_2->setContentsMargins(5, 5, 5, 5);
         checkBox = new QCheckBox(frame);
         checkBox->setObjectName(QStringLiteral("checkBox"));
 

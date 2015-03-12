@@ -23,7 +23,7 @@ class BanWidget : public QWidget
         enum Types{ COUNT = 0, IP = 1, SN = 2, DV = 3, WV = 4, Reason = 5,
                     Date = 6 };
 
-        static const QString banKeys[ 7 ];
+        static const QString banKeys[ BAN_KEY_COUNT ];
 
         static qint32 getIsBanned(QString value);
 

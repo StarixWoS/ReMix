@@ -223,8 +223,17 @@ void ReMixWidget::initUIUpdate()
                         msg.append( msg2 );
                     }
                     else
+                    {
                         msg = { "Sent UDP check-in to Master. "
                                 "Waiting for response..." };
+
+                        if ( server->getMasterTimedOut() )
+                        {
+                            msg = "No UDP response received from master server."
+                                  " Perhaps we are behind a UDP-blocking"
+                                  " firewall?";
+                        }
+                    }
                 }
             }
             plrWidget->resizeColumns();

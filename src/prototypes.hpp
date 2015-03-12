@@ -122,6 +122,10 @@
         //enabled. 10 minutes - 600,000 milliseconds.
         static const int MAX_IDLE_TIME{ 600000 };
 
+        //Maximum amout of time in MS (30 seconds) to allow for the Master to
+        //respond to a checkin.
+        static const int MAX_MASTER_RESPONSE_TIME{ 30000 };
+
         //Amount of times an un-authenticated (admin) can use commands.
         static const int MAX_CMD_ATTEMPTS{ 3 };
 
@@ -136,6 +140,9 @@
 
         //Count of Rules Keys accesed via the Rules/RulesWidget class.
         static const int SETTINGS_SUBKEY_COUNT{ 18 };
+
+        //Count of Ban Keys accessed via the BanDialog/BanWidget class.
+        static const int BAN_KEY_COUNT{ 7 };
 
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
         static const int RULES_SUBKEY_COUNT{ 16 };

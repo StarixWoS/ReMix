@@ -28,6 +28,25 @@ ServerInfo::ServerInfo()
             baudTime.restart();
         }
     });
+
+    masterTimeOut.setInterval( MAX_MASTER_RESPONSE_TIME );
+    masterTimeOut.setSingleShot( true );
+    QObject::connect( &masterTimeOut, &QTimer::timeout, [=]()
+    {
+        qDebug() << "Master Timed out";
+        this->setMasterTimedOut( true );
+    });
+
+    //Every 2 Seconds we will attempt to Obtain Master Info.
+    //This will be set to 300000 (5-Minutes) once Master info is obtained.
+    masterCheckIn.setInterval( 2000 );
+    QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
+    {
+        this->sendMasterInfo();
+
+        if ( !masterTimeOut.isActive() )
+            masterTimeOut.start();
+    });
 }
 
 ServerInfo::~ServerInfo()
@@ -341,19 +360,19 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         //This is to prevent a Crash related to sending messages
         //to a disconnected User.
 
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            tmpPlr = this->getPlayer( i );
-            if ( plr == tmpPlr )
-            {
+        //Player* tmpPlr{ nullptr };
+        //for ( int i = 0; i < MAX_PLAYERS; ++i )
+        //{
+        //    tmpPlr = this->getPlayer( i );
+        //    if ( plr == tmpPlr )
+        //    {
                 bOut = soc->write( msg.toLatin1(),
                                    msg.length() );
                 plr->setPacketsOut( plr->getPacketsOut() + 1 );
                 plr->setBytesOut( plr->getBytesOut() + bOut );
-                break;
-            }
-        }
+        //        break;
+        //    }
+        //}
     }
 
     if ( bOut >= 1 )
@@ -712,4 +731,35 @@ bool ServerInfo::getMasterUDPResponse() const
 void ServerInfo::setMasterUDPResponse(bool value)
 {
     masterUDPResponse = value;
+    if ( masterUDPResponse )
+    {
+        this->setMasterTimedOut( false );
+        masterCheckIn.setInterval( 300000 );
+    }
+    else if ( this->getMasterTimedOut() )
+        masterCheckIn.setInterval( 2000 );
+}
+
+bool ServerInfo::getMasterTimedOut()
+{
+    return masterTimedOut;
+}
+
+void ServerInfo::setMasterTimedOut(bool value)
+{
+    masterTimedOut = value;
+    if ( masterTimedOut )
+        this->setMasterUDPResponse( false );
+    else
+       masterTimeOut.stop();
+}
+
+void ServerInfo::startMasterCheckIn()
+{
+    masterCheckIn.start();
+}
+
+void ServerInfo::stopMasterCheckIn()
+{
+    masterCheckIn.stop();
 }
