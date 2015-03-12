@@ -47,6 +47,35 @@ ServerInfo::ServerInfo()
         if ( !masterTimeOut.isActive() )
             masterTimeOut.start();
     });
+
+    //Updates the Server's Server Usage array every 10 minutes.
+    usageUpdate.start( SERVER_USAGE_UPDATE );
+    QObject::connect( &usageUpdate, &QTimer::timeout, [=]()
+    {
+        usageArray[ usageCounter ] = this->getPlayerCount();
+
+        usageDays = 0;
+        usageHours = 0;
+        usageMins = 0;
+
+        quint32 code{ 0 };
+        for ( int i = 0; i < SERVER_USAGE_48_HOURS; ++i )
+        {
+            code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
+            if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 156 )
+            {
+                usageDays += code;
+                if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 7 )
+                {
+                    usageHours += code;
+                    if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 3 )
+                        usageMins += code;
+                }
+            }
+        }
+        ++usageCounter;
+        usageCounter %= SERVER_USAGE_48_HOURS;
+    });
 }
 
 ServerInfo::~ServerInfo()
@@ -112,11 +141,16 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
     else
         response = response.arg( "" );
 
+    QString usage{ "%1.%2.%3" };
+            usage = usage.arg( this->getUsageMins() )
+                         .arg( this->getUsageHours() )
+                         .arg( this->getUsageDays() );
+
     response = response.arg( Rules::getRuleSet() )
                        .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
-                       .arg( "999.999.999" );
+                       .arg( usage );
 
     if ( !response.isEmpty() )
         this->sendUDPData( addr, port, response );
@@ -526,12 +560,12 @@ void ServerInfo::setServerID(int value)
     serverID = value;
 }
 
-int ServerInfo::getPlayerCount() const
+quint32 ServerInfo::getPlayerCount() const
 {
     return playerCount;
 }
 
-void ServerInfo::setPlayerCount(int value)
+void ServerInfo::setPlayerCount(quint32 value)
 {
     if ( value <= 0 )
     {
@@ -762,4 +796,19 @@ void ServerInfo::startMasterCheckIn()
 void ServerInfo::stopMasterCheckIn()
 {
     masterCheckIn.stop();
+}
+
+quint32 ServerInfo::getUsageHours() const
+{
+    return usageHours;
+}
+
+quint32 ServerInfo::getUsageDays() const
+{
+    return usageDays;
+}
+
+quint32 ServerInfo::getUsageMins() const
+{
+    return usageMins;
 }

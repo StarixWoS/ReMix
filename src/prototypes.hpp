@@ -150,6 +150,12 @@
         //Count of currently supported Remote-Admin commands.
         static const int ADMIN_COMMAND_COUNT{ 17 };
 
+        //Time interval for updating the server's Usage array.
+        static const int SERVER_USAGE_UPDATE{ 600000 };
+
+        //Size of the Server Usage array corresponding to 48 hours.
+        static const int SERVER_USAGE_48_HOURS{ 288 };
+
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

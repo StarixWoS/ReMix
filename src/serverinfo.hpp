@@ -24,7 +24,16 @@ class ServerInfo
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    int playerCount{ 0 };
+    quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
+    quint32 usageCounter{ 0 };
+
+    quint32 usageHours{ 0 };
+    quint32 usageDays{ 0 };
+    quint32 usageMins{ 0 };
+
+    QTimer usageUpdate;
+
+    quint32 playerCount{ 0 };
     int serverID{ 0 };
 
     bool isMaster{ false };
@@ -128,8 +137,8 @@ class ServerInfo
         int getServerID() const;
         void setServerID(int value);
 
-        int getPlayerCount() const;
-        void setPlayerCount(int value);
+        quint32 getPlayerCount() const;
+        void setPlayerCount(quint32 value);
 
         quint16 getPublicPort() const;
         void setPublicPort(quint16 value);
@@ -196,6 +205,10 @@ class ServerInfo
 
         void startMasterCheckIn();
         void stopMasterCheckIn();
+
+        quint32 getUsageHours() const;
+        quint32 getUsageDays() const;
+        quint32 getUsageMins() const;
 };
 
 #endif // SERVERINFO_HPP
