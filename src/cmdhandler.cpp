@@ -303,10 +303,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case CMDS::LOGIN: //6
             {
-                if ( !argType.isEmpty()
-                  && plr->getReqAuthPwd() )
+                if ( !argType.isEmpty() )
                 {
-                    this->loginHandler( plr, argType );
+                    if (( ( plr->getReqAuthPwd() || !plr->getGotAuthPwd() )
+                      || ( plr->getPwdRequested() && !plr->getEnteredPwd() ) ))
+                    {
+                        this->loginHandler( plr, argType );
+                    }
                 }
                 retn = false;
                 logMsg = false;
@@ -568,7 +571,6 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
 
             plr->setReqAuthPwd( false );
             plr->setGotAuthPwd( true );
-
 
             //Inform Other Users of this Remote-Admin's login if enabled.
             if ( Settings::getInformAdminLogin() )

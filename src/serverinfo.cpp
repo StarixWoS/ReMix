@@ -33,7 +33,6 @@ ServerInfo::ServerInfo()
     masterTimeOut.setSingleShot( true );
     QObject::connect( &masterTimeOut, &QTimer::timeout, [=]()
     {
-        qDebug() << "Master Timed out";
         this->setMasterTimedOut( true );
     });
 
