@@ -79,7 +79,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
             reason.append( " [ %1:%2 ]: %3" );
             reason = reason.arg( plr->getPublicIP() )
                            .arg( plr->getPublicPort() )
-                           .arg( QString( plr->getBioData() ) );
+                           .arg( plr->getBioData() );
             banDialog->addBan( plr, reason );
 
             plr->setDisconnected( true );
@@ -405,7 +405,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     if ( logMsg )
     {
-        QString log{ "adminUsage.txt" };
+        QString log{ "logs/adminUsage.txt" };
         Helper::logToFile( log, msg, true, true );
     }
     return retn;

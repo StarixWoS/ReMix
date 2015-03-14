@@ -25,7 +25,7 @@ class BanWidget : public QWidget
 
         static const QString banKeys[ BAN_KEY_COUNT ];
 
-        static qint32 getIsBanned(QString value);
+        static quint32 getIsBanned(QString value);
 
         void addBan(Player* plr, QString& reason);
         void removeBan(QString& value, qint32 type);

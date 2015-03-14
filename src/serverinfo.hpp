@@ -74,7 +74,7 @@ class ServerInfo
     quint64 bytesOut{ 0 };
     quint64 baudOut{ 0 };
 
-    bool logUsage{ false };
+    bool logFiles{ false };
 
     public:
         ServerInfo();
@@ -185,8 +185,8 @@ class ServerInfo
         quint64 getBaudOut() const;
         void setBaudOut(const quint64& bOut);
 
-        bool getLogUsage() const;
-        void setLogUsage(bool value);
+        bool getLogFiles() const;
+        void setLogFiles(bool value);
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(QHostAddress& addr, quint16 port);

@@ -300,20 +300,7 @@ void Server::readyReadUDPSlot()
         sender->readDatagram( data.data(), data.size(),
                               &senderAddr, &senderPort );
 
-        //Check for a banned IP-Address. --Log the rejection to file.
-        if ( BanDialog::getIsBanned( senderAddr.toString() ) )
-        {
-            QString logTxt{ "Ignoring UDP from banned IP Address: "
-                            "[ %2:%3 ] sent command: %4" };
-            QString log{ "ignored.txt" };
-            logTxt = logTxt.arg( senderAddr.toString() )
-                           .arg( senderPort )
-                           .arg( QString( data ) );
-
-            Helper::logToFile( log, logTxt, true, true );
-        }
-        else    //Read the incoming command.
-            pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
+        pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
     }
 }
 

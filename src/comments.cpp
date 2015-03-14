@@ -83,14 +83,15 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
 
     //Detect when the user is scrolling upwards.
     if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
+    {
         obj->verticalScrollBar()->setSliderPosition(
                     obj->verticalScrollBar()->maximum() );
+    }
 
     if ( Settings::getLogComments() )
     {
         QString log = QDate::currentDate()
-                       .toString( "mixComments/" % sernum
-                                % "_yyyy-MM-dd.txt" );
+                       .toString( "logs/Comments.txt" );
         Helper::logToFile( log, comment, false, false );
     }
 

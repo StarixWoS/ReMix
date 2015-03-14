@@ -279,7 +279,7 @@ void Player::setAlias(const QString& value)
     alias = value;
 }
 
-QByteArray Player::getBioData() const
+QString Player::getBioData() const
 {
     return bioData;
 }

@@ -74,7 +74,7 @@ void BanWidget::loadBans()
 
             tblModel->setData( tblModel->index( row, Rows::ip ),
                                bans.value( banID % banKeys[ Types::IP ],
-                               Qt::DisplayRole ));
+                               Qt::DisplayRole ).toString() );
 
             tblModel->setData( tblModel->index( row, Rows::sn ),
                                Helper::serNumToIntStr(
@@ -84,15 +84,15 @@ void BanWidget::loadBans()
 
             tblModel->setData( tblModel->index( row, Rows::dv ),
                                bans.value( banID % banKeys[ Types::DV ],
-                               Qt::DisplayRole ));
+                               Qt::DisplayRole ).toString() );
 
             tblModel->setData( tblModel->index( row, Rows::wv ),
                                bans.value( banID % banKeys[ Types::WV ],
-                               Qt::DisplayRole ));
+                               Qt::DisplayRole ).toString() );
 
             tblModel->setData( tblModel->index( row, Rows::reason ),
                                bans.value( banID % banKeys[ Types::Reason ],
-                               Qt::DisplayRole ));
+                               Qt::DisplayRole ).toString() );
 
             banDate = bans.value( banID % banKeys[ Types::Date ], 0 )
                           .toUInt();
@@ -123,21 +123,21 @@ void BanWidget::addBanImpl(QString& ip, QString& sn, QString& dv, QString& wv,
     QSettings bans( "banData.ini", QSettings::IniFormat );
     qint32 count = bans.value( banKeys[ Types::COUNT ], 0 ).toUInt();
 
-    qint32 banID_i{ -1 };
+    quint32 banID_i{ 0 };
     if ( !ip.isEmpty() )
         banID_i = this->getIsBanned( ip );
 
-    if ( banID_i < 0 )
+    if ( banID_i == 0 )
     {
         if ( !sn.isEmpty() )
             banID_i = this->getIsBanned( sn );
 
-        if ( banID_i < 0 )
+        if ( banID_i == 0 )
         {
             if ( !dv.isEmpty() )
                 banID_i = this->getIsBanned( dv );
 
-            if ( banID_i < 0 )
+            if ( banID_i == 0 )
             {
                 if ( !wv.isEmpty() )
                     banID_i = this->getIsBanned( wv );
@@ -145,7 +145,7 @@ void BanWidget::addBanImpl(QString& ip, QString& sn, QString& dv, QString& wv,
         }
     }
 
-    if ( banID_i < 0 )
+    if ( banID_i == 0 )
     {
         banID_i = count + 1;
         bans.setValue( banKeys[ Types::COUNT ], banID_i );
@@ -194,7 +194,7 @@ void BanWidget::removeBanImpl(QModelIndex& index, QString& value)
     for ( int i = 0; i < bans.count(); ++i )
     {
         key = bans.at( i );
-        data = banData.value( key , "" ).toString();
+        data = banData.value( key ).toString();
         if ( data.compare( value ) == 0 )
         {
             banData.remove( key.left( key.indexOf( "/" ) ) );
@@ -204,22 +204,26 @@ void BanWidget::removeBanImpl(QModelIndex& index, QString& value)
     tblModel->removeRow( index.row() );
 }
 
-qint32 BanWidget::getIsBanned(QString value)
+quint32 BanWidget::getIsBanned(QString value)
 {
+    if ( value.isEmpty() )
+        return 0;
+
     QSettings banData( "banData.ini", QSettings::IniFormat );
     QStringList bans = banData.allKeys();
 
     QString data{ "" };
     QString key{ "" };
-    qint32 banned{ -1 };
+    quint32 banned{ 0 };
 
     for ( int i = 0; i < bans.count(); ++i )
     {
         key = bans.at( i );
-        data = banData.value( key , "" ).toString();
+        data = banData.value( key ).toString();
+
         if ( data.compare( value ) == 0 )
         {
-            banned = key.left( key.indexOf( "/" ) ).toInt();
+            banned = data.toUInt( 0, 16 );
             break;
         }
     }
@@ -254,19 +258,21 @@ void BanWidget::on_removeBan_clicked()
 
     if ( index.isValid() )
     {
-        QString tmp{ tblModel->item( index.row(), ip )->text() };
-        if ( tmp.isEmpty() )
+        QString var{ tblModel->item( index.row(), ip )->text() };
+        if ( var.isEmpty() )
         {
-            tmp = tblModel->item( index.row(), sn )->text();
-            if ( tmp.isEmpty() )
+            var = tblModel->item( index.row(), sn )->text();
+            if ( var.isEmpty() )
             {
-                tmp = tblModel->item( index.row(), dv )->text();
-                if ( tmp.isEmpty() )
-                    tmp = tblModel->item( index.row(), wv )->text();
+                var = tblModel->item( index.row(), dv )->text();
+                if ( var.isEmpty() )
+                    var = tblModel->item( index.row(), wv )->text();
             }
+            else
+                var = Helper::sanitizeSerNum( var );
         }
 
-        if ( !tmp.isEmpty() )
-            this->removeBanImpl( index, tmp );
+        if ( !var.isEmpty() )
+            this->removeBanImpl( index, var );
     }
 }

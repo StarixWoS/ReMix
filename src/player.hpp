@@ -24,7 +24,7 @@ class Player : public QObject
     QString dVar{ "" };
     QString wVar{ "" };
 
-    QByteArray bioData;
+    QString bioData;
     QByteArray outBuff;
 
     bool hasSernum{ false };
@@ -119,7 +119,7 @@ class Player : public QObject
         QString getAlias() const;
         void setAlias(const QString& value);
 
-        QByteArray getBioData() const;
+        QString getBioData() const;
         void setBioData(const QByteArray& value);
 
         QByteArray getOutBuff() const;

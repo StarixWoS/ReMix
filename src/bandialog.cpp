@@ -79,5 +79,5 @@ void BanDialog::remoteAddBan(Player* admin, Player* target, QString& reason)
 
 bool BanDialog::getIsBanned(QString value)
 {
-    return BanWidget::getIsBanned( value ) >= 0;
+    return BanWidget::getIsBanned( value ) != 0;
 }

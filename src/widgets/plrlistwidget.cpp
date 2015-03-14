@@ -205,10 +205,12 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
         QString inform{ "The Server Host has disconnected you from the Server. "
                         "Reason: %1" };
+        QString reason{ "Manual Disconnect; %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            inform = inform.arg( Helper::getDisconnectReason( this ) );
+            reason = reason.arg( Helper::getDisconnectReason( this ) );
+            inform = inform.arg( reason );
             server->sendMasterMessage( inform, menuTarget, false );
 
             if ( sock->waitForBytesWritten() )
@@ -216,6 +218,13 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                 menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
+
+            QString log{ "logs/DCLog.txt" };
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                    logMsg = logMsg.arg( reason )
+                                   .arg( menuTarget->getSernum_s() )
+                                   .arg( menuTarget->getBioData() );
+            Helper::logToFile( log, logMsg, true, true );
         }
     }
     menuTarget = nullptr;
@@ -249,6 +258,13 @@ void PlrListWidget::on_actionBANISHUser_triggered()
                 menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
+
+            QString log{ "logs/BanLog.txt" };
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                    logMsg = logMsg.arg( reason )
+                                   .arg( menuTarget->getSernum_s() )
+                                   .arg( menuTarget->getBioData() );
+            Helper::logToFile( log, logMsg, true, true );
         }
     }
     menuTarget = nullptr;

@@ -36,7 +36,7 @@ class PacketHandler : public QObject
         void parseSRPacket(QString& packet, Player* plr = nullptr);
         void parseMIXPacket(QString& packet, Player* plr = nullptr);
 
-        void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, qint16 port,
+        void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, quint16 port,
                             QHash<QHostAddress, QByteArray>* bioHash);
 
         bool checkBannedInfo(Player* plr);

@@ -233,10 +233,10 @@ void ServerInfo::deletePlayer(int slot)
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
     {
-        if ( this->getLogUsage() )
+        if ( this->getLogFiles() )
         {
             QString log{ QDate::currentDate()
-                          .toString( "mixUsage/yyyy-MM-dd.txt" ) };
+                          .toString( "logs/UsageLog.txt" ) };
             QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
                             "bytes in %4 packets, averaging %5 baud [ %6 ]" };
             if ( plr != nullptr )
@@ -246,7 +246,7 @@ void ServerInfo::deletePlayer(int slot)
                                .arg( plr->getBytesIn() )
                                .arg( plr->getPacketsIn() )
                                .arg( plr->getAvgBaudIn() )
-                               .arg( QString( plr->getBioData() ));
+                               .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
         }
@@ -736,14 +736,14 @@ void ServerInfo::setBaudOut(const quint64& bOut)
     baudOut = baud;
 }
 
-bool ServerInfo::getLogUsage() const
+bool ServerInfo::getLogFiles() const
 {
-    return logUsage;
+    return logFiles;
 }
 
-void ServerInfo::setLogUsage(bool value)
+void ServerInfo::setLogFiles(bool value)
 {
-    logUsage = value;
+    logFiles = value;
 }
 
 bool ServerInfo::getSentUDPCheckin() const
