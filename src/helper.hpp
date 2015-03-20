@@ -45,9 +45,6 @@ namespace Helper
     QString genPwdSalt(RandDev* randGen, qint32 length = SALT_LENGTH);
     bool validateSalt(QString& salt);
 
-    void logBIOData(QString& serNum, QHostAddress& ip, quint16 port,
-                    QString& bio);
-
     bool naturalSort(QString left, QString right, bool &result);
 }
 

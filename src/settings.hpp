@@ -34,6 +34,7 @@ class Settings : public QDialog
         enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
                    Rules = 4 };
 
+        static QSettings* prefs;
         static const QString keys[ SETTINGS_KEY_COUNT ];
         static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
 

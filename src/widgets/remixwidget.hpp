@@ -22,7 +22,7 @@ class ReMixWidget : public QWidget
     Settings* settings{ nullptr };
 
     ServerInfo* server{ nullptr };
-    Admin* admin{ nullptr };
+    User* user{ nullptr };
 
     QPalette defaultPalette;
     bool nightMode{ false };
@@ -32,7 +32,7 @@ class ReMixWidget : public QWidget
     static const QStringList cmdlArgs;
 
     public:
-        explicit ReMixWidget(QWidget* parent = nullptr, Admin* adm = nullptr,
+        explicit ReMixWidget(QWidget* parent = nullptr, User* usr = nullptr,
                              QStringList* argList = nullptr);
         ~ReMixWidget();
 
@@ -48,10 +48,9 @@ class ReMixWidget : public QWidget
 
     private slots:
         void on_openSettings_clicked();
-        void on_openBanDialog_clicked();
         void on_openUserComments_clicked();
         void on_enableNetworking_clicked();
-        void on_openRemoteAdmins_clicked();
+        void on_openUserInfo_clicked();
         void on_isPublicServer_stateChanged(int arg1);
 
         void on_serverPort_textChanged(const QString &arg1);

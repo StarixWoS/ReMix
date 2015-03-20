@@ -73,9 +73,8 @@
     {}
 
     //Table-View Classes.
-    class AdminSortProxyModel;
+    class UserSortProxyModel;
     class PlrSortProxyModel;
-    class BanSortProxyModel;
     class TblEventFilter;
 
     //Widget GUI Classes.
@@ -84,13 +83,11 @@
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
-    class BanWidget;
 
     //GUI and Data Storage Classes.
     class PacketHandler;
     class ServerInfo;
     class CmdHandler;
-    class BanDialog;
     class Settings;
     class Comments;
     class RandDev;
@@ -99,7 +96,7 @@
     class Server;
     class Rules;
     class ReMix;
-    class Admin;
+    class User;
 
     #ifdef DECRYPT_PACKET_PLUGIN
         class PacketDecryptInterface;
@@ -141,14 +138,14 @@
         //Count of Rules Keys accesed via the Rules/RulesWidget class.
         static const int SETTINGS_SUBKEY_COUNT{ 18 };
 
-        //Count of Ban Keys accessed via the BanDialog/BanWidget class.
-        static const int BAN_KEY_COUNT{ 7 };
-
         //Count of Settings Sub-Kets Accessed via the Helper namespace.
         static const int RULES_SUBKEY_COUNT{ 16 };
 
         //Count of currently supported Remote-Admin commands.
         static const int ADMIN_COMMAND_COUNT{ 17 };
+
+        //Count of Keys accessed via the User class.
+        static const int USER_KEY_COUNT{ 10 };
 
         //Time interval for updating the server's Usage array.
         static const int SERVER_USAGE_UPDATE{ 600000 };

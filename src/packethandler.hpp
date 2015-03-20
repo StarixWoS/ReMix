@@ -14,7 +14,7 @@ class PacketHandler : public QObject
 
     CmdHandler* cmdHandle{ nullptr };
     ServerInfo* server{ nullptr };
-    Admin* admin{ nullptr };
+    User* user{ nullptr };
 
     QTimer masterCheckIn;
 
@@ -26,7 +26,7 @@ class PacketHandler : public QObject
 #endif
 
     public:
-        PacketHandler(Admin* adm, ServerInfo* svr);
+        PacketHandler(User* usr, ServerInfo* svr);
         ~PacketHandler();
 
         void startMasterCheckIn();

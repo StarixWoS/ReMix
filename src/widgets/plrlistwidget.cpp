@@ -3,14 +3,14 @@
 #include "plrlistwidget.hpp"
 #include "ui_plrlistwidget.h"
 
-PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr, Admin* adm) :
+PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr, User* usr) :
     QWidget(parent),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
 
     server = svr;
-    admin = adm;
+    user = usr;
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
@@ -128,38 +128,40 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString msg{ "" };
-    QString make{ "The Server Host is attempting to register you as an "
-                  "Admin with the server. Please reply to this message with "
-                  "(/register *YOURPASS). Note: The server Host and other "
-                  "Admins will not have access to this information." };
-
     QString revoke{ "Your Remote Administrator privileges have been REVOKED "
                     "by either the Server Host. Please contact the Server Host "
                     "if you believe this was in error." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
-    if ( !Admin::getIsRemoteAdmin( sernum ) )
+    if ( !User::getIsAdmin( sernum ) )
     {
-        msg = make;
-        if ( Admin::createRemoteAdmin( this, sernum ) )
-        {
+        QString title{ "Create Admin:" };
+        QString prompt{ "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
+                        "\r\n\r\nPlease make sure you trust [ %2 ] as this will "
+                        "allow the them to utilize Admin commands that can remove "
+                        "the ability for other users to connect to the Server." };
+        prompt = prompt.arg( sernum )
+                       .arg( sernum );
+
+        if ( Helper::confirmAction( this, title, prompt ) )
             menuTarget->setReqNewAuthPwd( true );
-            send = true;
-        }
     }
     else
     {
-        msg = revoke;
-        if ( Admin::deleteRemoteAdmin( this, sernum ) )
+        QString title{ "Revoke Admin:" };
+        QString prompt{ "Are you certain you want to REVOKE [ "
+                       % Helper::serNumToIntStr( sernum )
+                       % " ]'s powers?" };
+
+        if ( Helper::confirmAction( this, title, prompt ) )
         {
-            menuTarget->resetAdminAuth();
-            admin->loadServerAdmins();
+            user->setAdminRank( sernum, User::rUSER );
             send = true;
         }
     }
+
     if ( send )
-        server->sendMasterMessage( msg, menuTarget, false );
+        server->sendMasterMessage( revoke, menuTarget, false );
 
     menuTarget = nullptr;
 }
@@ -251,7 +253,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             inform = inform.arg( reason );
 
             server->sendMasterMessage( inform, menuTarget, false );
-            admin->getBanDialog()->addBan( menuTarget, reason );
+            user->addBan( nullptr, menuTarget, reason );
 
             if ( sock->waitForBytesWritten() )
             {

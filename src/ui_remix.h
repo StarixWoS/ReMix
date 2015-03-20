@@ -33,9 +33,9 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(650, 231);
-        ReMix->setMinimumSize(QSize(0, 231));
-        ReMix->setMaximumSize(QSize(16777215, 380));
+        ReMix->resize(650, 206);
+        ReMix->setMinimumSize(QSize(0, 206));
+        ReMix->setMaximumSize(QSize(16777215, 355));
         ReMix->setDockNestingEnabled(false);
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));

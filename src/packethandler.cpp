@@ -2,12 +2,12 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(Admin* adm, ServerInfo* svr)
+PacketHandler::PacketHandler(User* usr, ServerInfo* svr)
 {
     server = svr;
-    admin = adm;
+    user = usr;
 
-    cmdHandle = new CmdHandler( this, server, admin );
+    cmdHandle = new CmdHandler( this, server, user );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
 
@@ -124,7 +124,6 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
                         server->setBytesOut( server->getBytesOut() + bOut );
-
                     }
                 }
             }
@@ -193,7 +192,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
     bool logMsg{ false };
 
     QString data{ udp };
-    if ( !BanDialog::getIsBanned( ipAddr.toString() ) )
+    if ( !User::getIsBanned( ipAddr.toString() ) )
     {
         if ( !data.isEmpty() )
         {
@@ -237,16 +236,14 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                     }
                 break;
                 case 'P':   //Store the Player information into a struct.
-                    if ( !sernum.isEmpty() && server->getLogFiles() )
-                        Helper::logBIOData( sernum, ipAddr, port, data );
-
+                    user->logBIO( sernum, ipAddr, dVar, wVar, data );
                     if (( Settings::getReqSernums()
                        && Helper::serNumtoInt( sernum ) )
                       || !Settings::getReqSernums() )
                     {
-                        if ( BanDialog::getIsBanned( sernum )
-                          || BanDialog::getIsBanned( wVar )
-                          || BanDialog::getIsBanned( dVar ) )
+                        if ( User::getIsBanned( sernum )
+                          || User::getIsBanned( wVar )
+                          || User::getIsBanned( dVar ) )
                         {
                             logTxt = logTxt.arg( "Info" )
                                            .arg( ipAddr.toString() )
@@ -262,13 +259,14 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                     }
                 break;
                 case 'Q':   //Send Online User Information.
+                    user->logBIO( sernum, ipAddr, dVar, wVar, data );
                     if (( Settings::getReqSernums()
                        && Helper::serNumtoInt( sernum ) )
                       || !Settings::getReqSernums() )
                     {
-                        if ( BanDialog::getIsBanned( sernum )
-                          || BanDialog::getIsBanned( wVar )
-                          || BanDialog::getIsBanned( dVar ) )
+                        if ( User::getIsBanned( sernum )
+                          || User::getIsBanned( wVar )
+                          || User::getIsBanned( dVar ) )
                         {
                             logTxt = logTxt.arg( "Info" )
                                            .arg( ipAddr.toString() )
@@ -307,7 +305,6 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     if ( plr == nullptr )
         return true;
 
-    BanDialog* bandlg = admin->getBanDialog();
     Player* tmpPlr{ nullptr };
 
     bool badInfo{ true };
@@ -318,10 +315,10 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     QString tmpMsg{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( BanDialog::getIsBanned( plr->getPublicIP() )
-      || BanDialog::getIsBanned( plr->getSernumHex_s() )
-      || BanDialog::getIsBanned( plr->getWVar() )
-      || BanDialog::getIsBanned( plr->getDVar() ) )
+    if ( User::getIsBanned( plr->getPublicIP() )
+      || User::getIsBanned( plr->getSernumHex_s() )
+      || User::getIsBanned( plr->getWVar() )
+      || User::getIsBanned( plr->getDVar() ) )
     {
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
@@ -354,7 +351,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( plr->getBioData() );
 
                     if ( Settings::getBanDupedIP() )
-                        bandlg->addBan( plr, reason );
+                        user->addBan( nullptr, plr, reason );
 
                     if ( plr != nullptr )
                     {
@@ -448,19 +445,15 @@ void PacketHandler::detectFlooding(Player* plr)
 
                 if ( Settings::getBanHackers() )
                 {
-                    BanDialog* banDlg = admin->getBanDialog();
-                    if ( banDlg != nullptr )
-                    {
-                        log = "logs/BanLog.txt";
-                        logMsg = "Auto-Banish; Suspicious data from: "
-                                 "[ %1:%2 ]: [ %3 ]";
-                        logMsg = logMsg.arg( plr->getPublicIP() )
-                                       .arg( plr->getPublicPort() )
-                                       .arg( plr->getBioData() );
-                        Helper::logToFile( log, logMsg, true, true );
+                    log = "logs/BanLog.txt";
+                    logMsg = "Auto-Banish; Suspicious data from: "
+                             "[ %1:%2 ]: [ %3 ]";
+                    logMsg = logMsg.arg( plr->getPublicIP() )
+                                   .arg( plr->getPublicPort() )
+                                   .arg( plr->getBioData() );
+                    Helper::logToFile( log, logMsg, true, true );
 
-                        banDlg->addBan( plr, logMsg );
-                    }
+                    user->addBan( nullptr, plr, logMsg );
                 }
                 plr->setDisconnected( true );
                 server->setPktDc( server->getPktDc() + 1 );

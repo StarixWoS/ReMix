@@ -17,18 +17,18 @@ class ReMix : public QMainWindow
     Q_OBJECT
 
     ReMixWidget* serverInstance{ nullptr };
-    Admin* admin{ nullptr };
-
     ServerInfo* server{ nullptr };
+    Settings* settings{ nullptr };
     RandDev* randDev{ nullptr };
+    User* user{ nullptr };
 
     QSystemTrayIcon* trayObject{ nullptr };
-    QIcon trayIcon;
     QMenu* trayMenu{ nullptr };
+    QIcon trayIcon;
 
     bool hasSysTray{ false };
-    private:
 
+    private:
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
         void initSysTray();
     #endif

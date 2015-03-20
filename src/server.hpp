@@ -22,11 +22,11 @@ class Server : public QTcpServer
     Comments* serverComments{ nullptr };
     PacketHandler* pktHandle{ nullptr };
     ServerInfo* server{ nullptr };
-    Admin* admin{ nullptr };
+    User* user{ nullptr };
 
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               Admin* adminDlg = nullptr,
+               User* adminDlg = nullptr,
                QStandardItemModel* plrView = nullptr );
         ~Server();
 
@@ -41,6 +41,7 @@ class Server : public QTcpServer
 
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr);
+        void sendRemoteAdminRegisterSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();

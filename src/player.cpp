@@ -93,7 +93,15 @@ Player::Player()
             if ( this->getSernum_i() != 0
               && !this->getReqAuthPwd() )
             {
-                if ( !Settings::getRequirePassword() || this->getEnteredPwd() )
+                if ( !User::getHasPassword( this->getSernumHex_s() )
+                  && !this->getReqNewAuthPwd() )
+                {
+                    if ( !this->getGotNewAuthPwd() )
+                        this->setReqNewAuthPwd( true );
+                }
+                else if (( !Settings::getRequirePassword()
+                        || this->getEnteredPwd() )
+                       && !this->getReqNewAuthPwd() )
                 {
                     if ( !this->getGotAuthPwd() )
                         emit sendRemoteAdminPwdReqSignal( this );
@@ -484,13 +492,13 @@ void Player::setGotAuthPwd(bool value)
 bool Player::getIsAdmin()
 {
     QString sernum{ this->getSernumHex_s() };
-    return Admin::getIsRemoteAdmin( sernum );
+    return User::getIsAdmin( sernum );
 }
 
 qint32 Player::getAdminRank()
 {
     QString sernum{ this->getSernumHex_s() };
-    return Admin::getRemoteAdminRank( sernum );
+    return User::getAdminRank( sernum );
 }
 
 qint32 Player::getCmdAttempts() const
@@ -511,6 +519,8 @@ bool Player::getReqNewAuthPwd() const
 void Player::setReqNewAuthPwd(bool value)
 {
     reqNewAuthPwd = value;
+    if ( reqNewAuthPwd )
+        emit sendRemoteAdminRegisterSignal( this );
 }
 
 bool Player::getGotNewAuthPwd() const

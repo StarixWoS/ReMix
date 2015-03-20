@@ -61,24 +61,22 @@
     #define REMIX_INCLUDES_HPP
 
     //Table-View Classes.
-    #include "tblview/adminsortproxymodel.hpp"
+    #include "tblview/usersortproxymodel.hpp"
     #include "tblview/plrsortproxymodel.hpp"
-    #include "tblview/bansortproxymodel.hpp"
     #include "tblview/tbleventfilter.hpp"
 
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
     #include "widgets/messageswidget.hpp"
     #include "widgets/plrlistwidget.hpp"
+    #include "widgets/userdelegate.hpp"
     #include "widgets/remixwidget.hpp"
     #include "widgets/ruleswidget.hpp"
-    #include "widgets/banwidget.hpp"
 
     //GUI and Data Storage Clases.
     #include "packethandler.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
-    #include "bandialog.hpp"
     #include "settings.hpp"
     #include "comments.hpp"
     #include "randdev.hpp"
@@ -88,7 +86,7 @@
     #include "server.hpp"
     #include "rules.hpp"
     #include "remix.hpp"
-    #include "admin.hpp"
+    #include "user.hpp"
 
     #ifdef DECRYPT_PACKET_PLUGIN
         #include "packetdecryptinterface.hpp"

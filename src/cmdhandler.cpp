@@ -25,17 +25,14 @@ const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
-                       Admin* aDlg)
+                       User* uDlg)
     : QObject(parent)
 {
     //Setup our Random Device
     randDev = new RandDev();
 
-    adminDialog = aDlg;
+    user = uDlg;
     server = svr;
-
-    if ( adminDialog != nullptr )
-        banDialog = adminDialog->getBanDialog();
 }
 
 CmdHandler::~CmdHandler(){}
@@ -69,10 +66,10 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
 
         if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
         {
-            QString reason = QString( "Auto-Banish; <Unregistered Remote "
-                                      "Admin: [ %1 ] command attempts>" )
-                                 .arg( plr->getCmdAttempts() );
+            QString reason = "Auto-Banish; <Unregistered Remote Admin: [ %1 ] "
+                             "command attempts>";
 
+            reason = reason.arg( plr->getCmdAttempts() );
             server->sendMasterMessage( reason, plr, false );
 
             //Append BIO data to the reason for the Ban log.
@@ -80,7 +77,8 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
             reason = reason.arg( plr->getPublicIP() )
                            .arg( plr->getPublicPort() )
                            .arg( plr->getBioData() );
-            banDialog->addBan( plr, reason );
+
+            user->addBan( nullptr, plr, reason );
 
             plr->setDisconnected( true );
             server->setIpDc( server->getIpDc() + 1 );
@@ -226,7 +224,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     if ( argType.compare( "all", Qt::CaseInsensitive ) == 0
       && !arg1.isEmpty() )
     {
-            message = packet.mid( packet.indexOf( arg1 ) );
+        message = packet.mid( packet.indexOf( arg1 ) );
     }
     else if ( !arg2.isEmpty() )
             message = packet.mid( packet.indexOf( arg2 ) );
@@ -444,7 +442,7 @@ void CmdHandler::banhandler(Player* plr, QString& arg1, QString& message,
                 if ( !reason.isEmpty() )
                     server->sendMasterMessage( reason, tmpPlr, false );
 
-                banDialog->remoteAddBan( plr, tmpPlr, message );
+                user->addBan( plr, tmpPlr, message, true );
                 tmpPlr->setDisconnected( true );
             }
         }
@@ -456,9 +454,9 @@ void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-        banDialog->removeBan( arg1, BanWidget::ip );
+        user->removeBan( arg1, 2 );
     else
-        banDialog->removeBan( sernum, BanWidget::sn );
+        user->removeBan( sernum, 0 );
 }
 
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
@@ -565,7 +563,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     {
         QString sernum{ plr->getSernumHex_s() };
         if ( !pwd.isEmpty()
-          && Admin::cmpRemoteAdminPwd( sernum, pwd ) )
+          && User::cmpAdminPwd( sernum, pwd ) )
         {
             response = response.arg( valid );
 
@@ -616,58 +614,70 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
 
 void CmdHandler::registerHandler(Player* plr, QString& argType)
 {
+    QString success{ "You are now registered as an Admin with the "
+                     "Server. Congrats!" };
+
+    QString fail{ "You were not registered as an Admin with the "
+                  "Server. It seems something has gone wrong or "
+                  "you were already registered as an Admin." };
     QString response{ "" };
 
+    QString sernum{ plr->getSernumHex_s() };
+    qDebug() << plr->getReqNewAuthPwd() << plr->getIsAdmin() << user->getHasPassword( sernum );
+
+    bool registered{ false };
     if ( !plr->getGotNewAuthPwd() )
     {
-        QString sernum{ plr->getSernumHex_s() };
-        if ( adminDialog->makeAdmin( sernum, argType ) )
+
+        if (( plr->getReqNewAuthPwd()
+           || plr->getIsAdmin() )
+          && !user->getHasPassword( sernum ) )
         {
-            response = "You are now registered as an Admin with the "
-                       "Server. You are currently Rank-1 (Game Master) "
-                       "with limited commands.";
-
-            plr->setReqNewAuthPwd( false );
-            plr->setGotNewAuthPwd( true );
-
-            plr->setReqAuthPwd( false );
-            plr->setGotAuthPwd( true );
-
-            //Inform Other Users of this Remote-Admin's login if enabled.
-            if ( Settings::getInformAdminLogin() )
+            response = success;
+            if ( user->makeAdmin( sernum, argType ) )
             {
-                QString message{ "User [ "
-                                 % plr->getSernum_s()
-                                 % " ] has Registered as a Remote "
-                                   "Administrator with the server." };
+                registered = true;
 
-                Player* tmpPlr{ nullptr };
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                plr->setReqNewAuthPwd( false );
+                plr->setGotNewAuthPwd( true );
+
+                plr->setReqAuthPwd( false );
+                plr->setGotAuthPwd( true );
+            }
+            else
+            {
+                response = fail;
+
+                plr->setReqNewAuthPwd( false );
+                plr->setGotNewAuthPwd( false );
+            }
+        }
+    }
+
+    //Inform Other Users of this Remote-Admin's login if enabled.
+    if ( registered
+      && Settings::getInformAdminLogin() )
+    {
+        QString message{ "User [ "
+                       % plr->getSernum_s()
+                       % " ] has Registered as a Remote "
+                         "Administrator with the server." };
+
+        Player* tmpPlr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = server->getPlayer( i );
+            if ( tmpPlr != nullptr )
+            {
+                if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
+                  && tmpPlr->getGotAuthPwd() )
                 {
-                    tmpPlr = server->getPlayer( i );
-                    if ( tmpPlr != nullptr )
-                    {
-                        if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                          && tmpPlr->getGotAuthPwd() )
-                        {
-                            //Do not Inform our own Admin.. --Redundant..
-                            if ( tmpPlr != plr )
-                                server->sendMasterMessage( message, tmpPlr,
-                                                           false );
-                        }
-                    }
+                    //Do not Inform our own Admin.. --Redundant..
+                    if ( tmpPlr != plr )
+                        server->sendMasterMessage( message, tmpPlr,
+                                                   false );
                 }
             }
-            adminDialog->loadServerAdmins();
-        }
-        else
-        {
-            response = "You were not registered as an Admin with the "
-                       "Server. It seems something has gone wrong or "
-                       "you were already registered as an Admin.";
-
-            plr->setReqNewAuthPwd( false );
-            plr->setGotNewAuthPwd( false );
         }
     }
 

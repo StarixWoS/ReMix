@@ -23,23 +23,21 @@ const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
 
 void Rules::setRule(const QString& key, QVariant& value)
 {
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-              setting.setValue( Settings::keys[ Settings::Rules ] % "/" % key,
-                                value );
+    Settings::prefs->setValue( Settings::keys[ Settings::Rules ] % "/" % key,
+                               value );
 }
 
 QVariant Rules::getRule(const QString& key)
 {
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-    return setting.value( Settings::keys[ Settings::Rules ] % "/" % key );
+    return Settings::prefs->value( Settings::keys[ Settings::Rules ]
+                                 % "/" % key );
 }
 
 QString Rules::getRuleSet()
 {
-    QSettings values( "preferences.ini", QSettings::IniFormat );
-              values.beginGroup( Settings::keys[ Settings::Rules ] );
+    Settings::prefs->beginGroup( Settings::keys[ Settings::Rules ] );
 
-    QStringList ruleList{ values.allKeys() };
+    QStringList ruleList{ Settings::prefs->allKeys() };
     QString rules{ "" };
 
     bool valIsBool{ false };
@@ -50,7 +48,7 @@ QString Rules::getRuleSet()
     for ( int i = 0; i < ruleList.count(); ++i )
     {
         tmpRule = ruleList.at( i );
-        value = values.value( tmpRule );
+        value = Settings::prefs->value( tmpRule );
 
         valIsBool = false;
 
@@ -65,6 +63,7 @@ QString Rules::getRuleSet()
 
         rules.append( ", " );
     }
+    Settings::prefs->endGroup();
     return rules;
 }
 

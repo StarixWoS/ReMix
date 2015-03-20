@@ -345,25 +345,6 @@ bool Helper::validateSalt(QString& salt)
     return true;
 }
 
-void Helper::logBIOData(QString& serNum, QHostAddress& ip,
-                        quint16 port, QString& bio)
-{
-    QString sernum{ serNum };
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
-        sernum = Helper::serNumToHexStr( serNum, 8 );
-
-    QString ipAddr{ ip.toString() % ":" % Helper::intToStr( port, 10, 0 ) };
-    qint64 date{ QDateTime::currentDateTime().toTime_t() };
-
-    QSettings bioData( "userInfo.ini", QSettings::IniFormat );
-              bioData.setValue( sernum % "/bioInfo", bio.mid( 1 ) );
-              bioData.setValue( sernum % "/ipInfo", ipAddr );
-              bioData.setValue( sernum % "/date", QDateTime::fromTime_t( date )
-                                                       .toString( "ddd MMM dd"
-                                                                  " HH:mm:ss "
-                                                                  "yyyy" ));
-}
-
 bool Helper::naturalSort(QString left, QString right, bool& result)
 {
     do

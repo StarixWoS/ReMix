@@ -2,18 +2,18 @@
 #include "includes.hpp"
 #include "server.hpp"
 
-Server::Server(QWidget* parent, ServerInfo* svr, Admin* adminDlg,
+Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
                QStandardItemModel* plrView)
 {
     //Setup Objects.
     mother = parent;
     server = svr;
     plrViewModel = plrView;
-    admin = adminDlg;
+    user = usr;
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    pktHandle = new PacketHandler( admin, server );
+    pktHandle = new PacketHandler( user, server );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -199,6 +199,8 @@ void Server::newConnectionSlot()
     //turned on or off by enabling or disabling Admin Auth requirements.
     QObject::connect( plr, &Player::sendRemoteAdminPwdReqSignal,
                       this, &Server::sendRemoteAdminPwdReqSlot );
+    QObject::connect( plr, &Player::sendRemoteAdminRegisterSignal,
+                      this, &Server::sendRemoteAdminRegisterSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected,
@@ -339,4 +341,18 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
         plr->setReqAuthPwd( true );
         server->sendMasterMessage( msg, plr, false );
     }
+}
+
+void Server::sendRemoteAdminRegisterSlot(Player* plr)
+{
+    if ( plr == nullptr )
+        return;
+
+    QString msg{ "The Server Host is attempting to register you as an "
+                 "Admin with the server. Please reply to this message with "
+                 "(/register *YOURPASS). Note: The server Host and other "
+                 "Admins will not have access to this information." };
+
+    if ( plr->getIsAdmin() )
+        server->sendMasterMessage( msg, plr, false );
 }

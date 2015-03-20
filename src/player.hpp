@@ -209,7 +209,8 @@ class Player : public QObject
         #endif
 
     signals:
-            void sendRemoteAdminPwdReqSignal(Player* plr);
+        void sendRemoteAdminPwdReqSignal(Player* plr);
+        void sendRemoteAdminRegisterSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

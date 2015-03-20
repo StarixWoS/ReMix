@@ -21,11 +21,10 @@ ReMix::ReMix(QWidget *parent) :
     }
 
     //Setup Objects.
-    admin = new Admin( this );
+    user = new User( this );
 
     QStringList args = qApp->arguments();
-
-    serverInstance = new ReMixWidget( this, admin, &args );
+    serverInstance = new ReMixWidget( this, user, &args );
     ui->frame->layout()->addWidget( serverInstance );
 
     //Initialize our Tray Icon if available.
@@ -48,9 +47,10 @@ ReMix::~ReMix()
     if ( trayMenu != nullptr )
         trayMenu->deleteLater();
 
-    admin->close();
-    admin->deleteLater();
+    user->close();
+    user->deleteLater();
 
+    serverInstance->close();
     serverInstance->deleteLater();
 
     delete ui;

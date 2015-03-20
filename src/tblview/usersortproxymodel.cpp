@@ -1,17 +1,17 @@
 
 #include "includes.hpp"
 
-PlrSortProxyModel::PlrSortProxyModel()
+UserSortProxyModel::UserSortProxyModel()
 {
 
 }
 
-PlrSortProxyModel::~PlrSortProxyModel()
+UserSortProxyModel::~UserSortProxyModel()
 {
 
 }
 
-bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
+bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
     int column = sortColumn();
     if ( column >= 0 )
@@ -28,7 +28,20 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
 
-        if ( column == COLS::SERNUM )
+        if ( column == COLS::SEEN
+          || column == COLS::BANDATE )
+        {
+            vlStr = QString::number(
+                        QDateTime::fromString( vlStr,
+                                               "ddd MMM dd HH:mm:ss yyyy" )
+                             .toTime_t() );
+
+            vrStr = QString::number(
+                        QDateTime::fromString( vrStr,
+                                               "ddd MMM dd HH:mm:ss yyyy" )
+                             .toTime_t() );
+        }
+        else if ( column == COLS::SERNUM )
         {
             if ( !vlStr.contains( "SOUL" ) )
                 vlStr = Helper::intSToStr( vlStr, 10 );
@@ -42,12 +55,6 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
 
             vlStr = Helper::intSToStr( vlStr, 10 );
             vrStr = Helper::intSToStr( vrStr, 10 );
-        }
-        else if ( column == COLS::AGE
-               || column == COLS::TIME )
-        {
-            vlStr = vlStr.remove( ":" );
-            vrStr = vrStr.remove( ":" );
         }
 
         bool res = false;

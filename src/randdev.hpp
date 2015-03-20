@@ -33,4 +33,3 @@ class RandDev
 };
 
 #endif // RANDDEV_HPP
-

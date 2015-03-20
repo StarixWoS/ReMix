@@ -10,7 +10,7 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm,
+ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
                          QStringList* argList) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
@@ -23,9 +23,9 @@ ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm,
     //Setup Objects.
     settings = new Settings( this );
     server = new ServerInfo();
-    admin = adm;
+    user = usr;
 
-    plrWidget = new PlrListWidget( this, server, admin );
+    plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
@@ -43,7 +43,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Admin* adm,
 
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, admin, plrWidget->getPlrModel() );
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
 
     defaultPalette = parent->palette();
 }
@@ -52,13 +52,13 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
-    settings->close();
-    settings->deleteLater();
-
     tcpServer->close();
     tcpServer->deleteLater();
 
     plrWidget->deleteLater();
+
+    settings->close();
+    settings->deleteLater();
 
     delete randDev;
     delete server;
@@ -275,26 +275,26 @@ void ReMixWidget::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, admin, plrWidget->getPlrModel() );
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
 
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
     tcpServer->setupServerInfo();
 }
 
-void ReMixWidget::on_openRemoteAdmins_clicked()
+void ReMixWidget::on_openUserInfo_clicked()
 {
-    if ( admin->isVisible() )
-        admin->hide();
+    if ( user->isVisible() )
+        user->hide();
     else
-        admin->show();
+        user->show();
 }
 
 void ReMixWidget::on_isPublicServer_stateChanged(int)
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, admin, plrWidget->getPlrModel() );
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
 
     if ( ui->isPublicServer->isChecked() )
         //Setup a connection with the Master Server.
@@ -309,11 +309,6 @@ void ReMixWidget::on_openSettings_clicked()
         settings->hide();
     else
         settings->show();
-}
-
-void ReMixWidget::on_openBanDialog_clicked()
-{
-    admin->showBanDialog();
 }
 
 void ReMixWidget::on_openUserComments_clicked()

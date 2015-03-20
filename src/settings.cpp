@@ -35,6 +35,10 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "saveWindowPositions"
 };
 
+//Initialize our QSettings Object globally to make things more responsive.
+QSettings* Settings::prefs{ new QSettings( "preferences.ini",
+                                           QSettings::IniFormat ) };
+
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings)
@@ -98,6 +102,7 @@ Settings::~Settings()
     settings->deleteLater();
     messages->deleteLater();
     rules->deleteLater();
+    prefs->deleteLater();
 
     delete ui;
 }
@@ -106,14 +111,13 @@ Settings::~Settings()
 void Settings::setSetting(const QString& key, const QString& subKey,
                           QVariant& value)
 {
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-    setting.setValue( key % "/" % subKey, value );
+    prefs->setValue( key % "/" % subKey, value );
+    prefs->sync();
 }
 
 QVariant Settings::getSetting(const QString& key, const QString& subKey)
 {
-    QSettings setting( "preferences.ini", QSettings::IniFormat );
-    return setting.value( key % "/" % subKey );
+    return prefs->value( key % "/" % subKey );
 }
 
 void Settings::setReqAdminAuth(QVariant& value)

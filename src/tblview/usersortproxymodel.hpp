@@ -9,15 +9,15 @@
 #include <QModelIndex>
 #include <QObject>
 
-class AdminSortProxyModel : public QSortFilterProxyModel
+class UserSortProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
-    enum COLS{ SERNUM = 0 };
+    enum COLS{ SERNUM = 0, SEEN = 1, RANK = 3, BANDATE = 6 };
 
     public:
-        AdminSortProxyModel();
-        ~AdminSortProxyModel();
+        UserSortProxyModel();
+        ~UserSortProxyModel();
 
     protected:
         bool lessThan(const QModelIndex &left, const QModelIndex &right) const;

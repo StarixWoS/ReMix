@@ -57,17 +57,19 @@ ServerInfo::ServerInfo()
         usageHours = 0;
         usageMins = 0;
 
+        quint32 usageCap{ 0 };
         quint32 code{ 0 };
         for ( int i = 0; i < SERVER_USAGE_48_HOURS; ++i )
         {
             code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
-            if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 156 )
+            usageCap = ( SERVER_USAGE_48_HOURS - 1 ) - i;
+            if ( usageCap < 156 )
             {
                 usageDays += code;
-                if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 7 )
+                if ( usageCap < 7 )
                 {
                     usageHours += code;
-                    if ( ( SERVER_USAGE_48_HOURS - 1 ) - i < 3 )
+                    if ( usageCap < 3 )
                         usageMins += code;
                 }
             }
@@ -132,9 +134,10 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
     if ( addr.isNull() )
         return;
 
-    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6" };
-            response = response.arg( this->getName() );
+    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
+                      "//ReMix" };
 
+    response = response.arg( this->getName() );
     if ( !this->getGameInfo().isEmpty() )
         response = response.arg( " [" % this->getGameInfo() % "]" );
     else
