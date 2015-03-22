@@ -194,17 +194,13 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
     QString data{ udp };
     if ( !User::getIsBanned( ipAddr.toString() ) )
     {
+        QString sernum{ "" };
+        QString dVar{ "" };
+        QString wVar{ "" };
+
+        qint32 index{ 0 };
         if ( !data.isEmpty() )
         {
-            qint32 index{ data.indexOf( "d=", Qt::CaseInsensitive ) };
-            QString dVar{ data.mid( index + 2 ).left( 8 ) };
-
-            index = data.indexOf( "w=", Qt::CaseInsensitive );
-            QString wVar{ data.mid( index + 2 ).left( 8 ) };
-
-            QString sernum = Helper::getStrStr( data, "sernum", "=", "," );
-            sernum = Helper::serNumToHexStr( sernum );
-
             switch ( data.at( 0 ).toLatin1() )
             {
                 case 'G':   //Set the Server's gameInfoString.
@@ -221,9 +217,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                         if ( !data.isEmpty() )
                         {
                             QDataStream mDataStream( udp );
-                            mDataStream >> opcode;
-                            mDataStream >> pubIP;
-                            mDataStream >> pubPort;
+                                        mDataStream >> opcode;
+                                        mDataStream >> pubIP;
+                                        mDataStream >> pubPort;
 
                             server->setPublicIP( QHostAddress( pubIP )
                                                  .toString() );
@@ -236,46 +232,54 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                     }
                 break;
                 case 'P':   //Store the Player information into a struct.
-                    user->logBIO( sernum, ipAddr, dVar, wVar, data );
-                    if (( Settings::getReqSernums()
-                       && Helper::serNumtoInt( sernum ) )
-                      || !Settings::getReqSernums() )
                     {
-                        if ( User::getIsBanned( sernum )
-                          || User::getIsBanned( wVar )
-                          || User::getIsBanned( dVar ) )
+                        index = data.indexOf( "d=", Qt::CaseInsensitive );
+                        if ( index >= 0 )
+                            dVar = data.mid( index + 2 ).left( 8 );
+
+                        index = data.indexOf( "w=", Qt::CaseInsensitive );
+                        if ( index >= 0 )
+                            wVar = data.mid( index + 2 ).left( 8 );
+
+                        index = data.indexOf( "sernum=", Qt::CaseInsensitive );
+                        if ( index >= 0 )
                         {
-                            logTxt = logTxt.arg( "Info" )
-                                           .arg( ipAddr.toString() )
-                                           .arg( port )
-                                           .arg( data );
-                            logMsg = true;
+                            sernum = data.mid( index + 7 );
+                            index = sernum.indexOf( "," );
+                            if ( index >= 0 )
+                            {
+                                sernum = sernum.left( index );
+                                if ( !sernum.isEmpty() )
+                                    sernum = Helper::serNumToHexStr( sernum );
+                            }
                         }
-                        else
+
+                        if (( Settings::getReqSernums()
+                           && Helper::serNumtoInt( sernum ) )
+                          || !Settings::getReqSernums() )
                         {
-                            bioHash->insert( ipAddr, udp.mid( 1 ) );
-                            server->sendServerInfo( ipAddr, port );
+                            if ( User::getIsBanned( sernum )
+                              || User::getIsBanned( wVar )
+                              || User::getIsBanned( dVar ) )
+                            {
+                                logTxt = logTxt.arg( "Info" )
+                                               .arg( ipAddr.toString() )
+                                               .arg( port )
+                                               .arg( data );
+                                logMsg = true;
+                            }
+                            else
+                            {
+                                server->sendServerInfo( ipAddr, port );
+                                bioHash->insert( ipAddr, udp.mid( 1 ) );
+                            }
+                            user->logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
                     }
                 break;
                 case 'Q':   //Send Online User Information.
-                    user->logBIO( sernum, ipAddr, dVar, wVar, data );
-                    if (( Settings::getReqSernums()
-                       && Helper::serNumtoInt( sernum ) )
-                      || !Settings::getReqSernums() )
                     {
-                        if ( User::getIsBanned( sernum )
-                          || User::getIsBanned( wVar )
-                          || User::getIsBanned( dVar ) )
-                        {
-                            logTxt = logTxt.arg( "Info" )
-                                           .arg( ipAddr.toString() )
-                                           .arg( port )
-                                           .arg( data );
-                            logMsg = true;
-                        }
-                        else
-                            server->sendUserList( ipAddr, port );
+                        server->sendUserList( ipAddr, port );
                     }
                 break;
                 case 'R':   //TODO: Command "R" with unknown use.

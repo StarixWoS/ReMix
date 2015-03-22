@@ -63,6 +63,7 @@ public:
         playerView->setSortingEnabled(true);
         playerView->setCornerButtonEnabled(false);
         playerView->horizontalHeader()->setDefaultSectionSize(100);
+        playerView->horizontalHeader()->setHighlightSections(false);
         playerView->horizontalHeader()->setStretchLastSection(false);
         playerView->verticalHeader()->setVisible(false);
         playerView->verticalHeader()->setDefaultSectionSize(20);

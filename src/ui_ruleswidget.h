@@ -126,6 +126,7 @@ public:
         rulesView->setTextElideMode(Qt::ElideRight);
         rulesView->setCornerButtonEnabled(false);
         rulesView->horizontalHeader()->setVisible(false);
+        rulesView->horizontalHeader()->setHighlightSections(false);
         rulesView->horizontalHeader()->setStretchLastSection(true);
         rulesView->verticalHeader()->setVisible(false);
         rulesView->verticalHeader()->setDefaultSectionSize(20);

@@ -8,7 +8,8 @@ VERSION = 1.0.0
 QT += core \
       gui \
       widgets \
-      network
+      network \
+      concurrent
 
 TEMPLATE = app
 

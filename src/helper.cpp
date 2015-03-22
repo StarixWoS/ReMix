@@ -330,14 +330,13 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
 
 bool Helper::validateSalt(QString& salt)
 {
-    QSettings adminData( "adminData.ini", QSettings::IniFormat );
-    QStringList groups = adminData.childGroups();
-
+    QStringList groups = User::userData->childGroups();
     QString j{ "" };
+
     for ( int i = 0; i < groups.count(); ++i )
     {
-        j = adminData.value( groups.at( i ) % "/salt" )
-                     .toString();
+        j =  User::userData->value( groups.at( i ) % "/salt" )
+                       .toString();
 
         if ( j == salt )
             return false;

@@ -30,7 +30,7 @@ public:
     {
         if (SettingsWidget->objectName().isEmpty())
             SettingsWidget->setObjectName(QStringLiteral("SettingsWidget"));
-        SettingsWidget->resize(70, 70);
+        SettingsWidget->resize(80, 80);
         gridLayout = new QGridLayout(SettingsWidget);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
@@ -121,6 +121,7 @@ public:
         settingsView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         settingsView->setCornerButtonEnabled(false);
         settingsView->horizontalHeader()->setVisible(false);
+        settingsView->horizontalHeader()->setHighlightSections(false);
         settingsView->horizontalHeader()->setStretchLastSection(true);
         settingsView->verticalHeader()->setVisible(false);
         settingsView->verticalHeader()->setDefaultSectionSize(20);

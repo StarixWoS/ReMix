@@ -16,20 +16,19 @@ class User : public QDialog
     QStandardItemModel* tblModel{ nullptr };
 
     RandDev* randDev{ nullptr };
-    static QSettings* userData;
-
-    enum Keys{ kSEEN = 0, kBIO = 1, kIP = 2, kDV = 3, kWV = 4, kRANK = 5,
-               kHASH = 6, kSALT = 7, kREASON = 8, kBANNED = 9 };
 
     enum Cols{ cSERNUM = 0, cSEEN = 1, cIP = 2, cRANK = 3, cBANNED = 4,
                cREASON = 5, cDATE = 6 };
 
+    enum Keys{ kSEEN = 0, kBIO = 1, kIP = 2, kDV = 3, kWV = 4, kRANK = 5,
+               kHASH = 6, kSALT = 7, kREASON = 8, kBANNED = 9 };
     static const QString keys[ USER_KEY_COUNT ];
 
     public:
         explicit User(QWidget* parent = nullptr);
         ~User();
 
+    static QSettings* userData;
     enum Ranks{ rUSER = 0, rGAMEMASTER = 1, rCOADMIN = 2, rADMIN = 3,
                 rOWNER = 4 };
 
@@ -56,7 +55,9 @@ class User : public QDialog
                 QString& wv, QString& bio);
 
     private:
+        QModelIndex findModelIndex(QString value, Cols col);
         void loadUserInfo();
+        void updateRowData(quint32 row, quint32 col, QVariant data);
 
     private slots:
         void updateDataValue(const QModelIndex& index,

@@ -57,6 +57,7 @@ public:
         userTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         userTable->setSortingEnabled(true);
         userTable->setCornerButtonEnabled(false);
+        userTable->horizontalHeader()->setHighlightSections(false);
         userTable->horizontalHeader()->setMinimumSectionSize(80);
         userTable->horizontalHeader()->setStretchLastSection(true);
         userTable->verticalHeader()->setVisible(false);

@@ -252,7 +252,11 @@ void Server::userReadyReadSlot()
             plr->setBytesIn( plr->getBytesIn() + packet.length() );
 
             pktHandle->parsePacket( packet, plr );
-            emit peer->readyRead();
+            if ( peer->bytesAvailable() > 0
+              || plr->getOutBuff().size() > 0 )
+            {
+                emit peer->readyRead();
+            }
         }
     }
 }
@@ -303,6 +307,8 @@ void Server::readyReadUDPSlot()
                               &senderAddr, &senderPort );
 
         pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
+        if ( sender->hasPendingDatagrams() )
+            emit sender->readyRead();
     }
 }
 

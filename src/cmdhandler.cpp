@@ -623,12 +623,10 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
     QString response{ "" };
 
     QString sernum{ plr->getSernumHex_s() };
-    qDebug() << plr->getReqNewAuthPwd() << plr->getIsAdmin() << user->getHasPassword( sernum );
-
     bool registered{ false };
+
     if ( !plr->getGotNewAuthPwd() )
     {
-
         if (( plr->getReqNewAuthPwd()
            || plr->getIsAdmin() )
           && !user->getHasPassword( sernum ) )

@@ -82,6 +82,9 @@
         <property name="cornerButtonEnabled">
          <bool>false</bool>
         </property>
+        <attribute name="horizontalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
         <attribute name="horizontalHeaderMinimumSectionSize">
          <number>80</number>
         </attribute>

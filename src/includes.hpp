@@ -15,6 +15,7 @@
     #include <QApplication>
     #include <QHostAddress>
     #include <QInputDialog>
+    #include <QtConcurrent>
     #include <QMainWindow>
     #include <QMessageBox>
     #include <QStringList>
@@ -37,6 +38,7 @@
     #include <QProcess>
     #include <QtEndian>
     #include <QVariant>
+    #include <QFuture>
     #include <QObject>
     #include <QString>
     #include <QLayout>

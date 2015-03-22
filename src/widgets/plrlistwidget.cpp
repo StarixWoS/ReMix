@@ -144,7 +144,10 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
                        .arg( sernum );
 
         if ( Helper::confirmAction( this, title, prompt ) )
+        {
+            user->setAdminRank( sernum, User::rGAMEMASTER );
             menuTarget->setReqNewAuthPwd( true );
+        }
     }
     else
     {
