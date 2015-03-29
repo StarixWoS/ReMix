@@ -192,7 +192,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
     bool logMsg{ false };
 
     QString data{ udp };
-    if ( !User::getIsBanned( ipAddr.toString() ) )
+    if ( !User::getIsBanned( ipAddr.toString(), User::tIP ) )
     {
         QString sernum{ "" };
         QString dVar{ "" };
@@ -258,9 +258,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                            && Helper::serNumtoInt( sernum ) )
                           || !Settings::getReqSernums() )
                         {
-                            if ( User::getIsBanned( sernum )
-                              || User::getIsBanned( wVar )
-                              || User::getIsBanned( dVar ) )
+                            if ( User::getIsBanned( sernum, User::tSERNUM )
+                              || User::getIsBanned( wVar, User::tWV )
+                              || User::getIsBanned( dVar, User::tDV ) )
                             {
                                 logTxt = logTxt.arg( "Info" )
                                                .arg( ipAddr.toString() )
@@ -319,10 +319,10 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     QString tmpMsg{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( User::getIsBanned( plr->getPublicIP() )
-      || User::getIsBanned( plr->getSernumHex_s() )
-      || User::getIsBanned( plr->getWVar() )
-      || User::getIsBanned( plr->getDVar() ) )
+    if ( User::getIsBanned( plr->getPublicIP(), User::tIP )
+      || User::getIsBanned( plr->getSernumHex_s(), User::tSERNUM )
+      || User::getIsBanned( plr->getWVar(), User::tWV )
+      || User::getIsBanned( plr->getDVar(), User::tDV ) )
     {
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
@@ -591,7 +591,7 @@ void PacketHandler::readMIX9(QString& packet, Player*)
 
 
 #ifdef DECRYPT_PACKET_PLUGIN
-bool Server::loadPlugin()
+bool PacketHandler::loadPlugin()
 {
     QDir pluginsDir( qApp->applicationDirPath() );
 

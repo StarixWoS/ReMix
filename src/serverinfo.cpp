@@ -84,6 +84,10 @@ ServerInfo::~ServerInfo()
     masterSocket->close();
     masterSocket->deleteLater();
 
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        this->deletePlayer( i );
+    }
     upTimer.disconnect();
 }
 

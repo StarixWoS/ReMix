@@ -40,14 +40,14 @@ User::User(QWidget* parent) :
     randDev = new RandDev();
 
     //Setup the ServerInfo TableView.
-    tblModel = new QStandardItemModel( 0, 7, 0 );
-    tblModel->setHeaderData( 0, Qt::Horizontal, "SerNum" );
-    tblModel->setHeaderData( 1, Qt::Horizontal, "Last Seen" );
-    tblModel->setHeaderData( 2, Qt::Horizontal, "Last IP" );
-    tblModel->setHeaderData( 3, Qt::Horizontal, "Rank" );
-    tblModel->setHeaderData( 4, Qt::Horizontal, "Banned" );
-    tblModel->setHeaderData( 5, Qt::Horizontal, "Ban Reason" );
-    tblModel->setHeaderData( 6, Qt::Horizontal, "Ban Date" );
+    tblModel = new QStandardItemModel( 0, Cols::cCOLS, 0 );
+    tblModel->setHeaderData( Cols::cSERNUM, Qt::Horizontal, "SerNum" );
+    tblModel->setHeaderData( Cols::cSEEN, Qt::Horizontal, "Last Seen" );
+    tblModel->setHeaderData( Cols::cIP, Qt::Horizontal, "Last IP" );
+    tblModel->setHeaderData( Cols::cRANK, Qt::Horizontal, "Rank" );
+    tblModel->setHeaderData( Cols::cBANNED, Qt::Horizontal, "Banned" );
+    tblModel->setHeaderData( Cols::cREASON, Qt::Horizontal, "Ban Reason" );
+    tblModel->setHeaderData( Cols::cDATE, Qt::Horizontal, "Ban Date" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -80,7 +80,7 @@ User::~User()
 
 //Public Functions
 void User::setData(const QString& key, const QString& subKey,
-                         QVariant& value)
+                   QVariant& value)
 {
     userData->setValue( key % "/" % subKey, value );
 }
@@ -127,7 +127,7 @@ bool User::makeAdmin(QString& sernum, QString& pwd)
 bool User::getIsAdmin(QString& sernum)
 {
     return getData( sernum, keys[ Keys::kRANK ] )
-            .toInt() >= 1;
+              .toInt() >= 1;
 }
 
 bool User::getHasPassword(QString sernum)
@@ -263,60 +263,80 @@ bool User::addBan(Player* admin, Player* target, QString& reason, bool remote)
     return true;
 }
 
-bool User::getIsBanned(QString value)
+bool User::getIsBanned(QString value, Types type)
 {
     if ( value.isEmpty() )
         return false;
 
-    QFuture<quint32> future = QtConcurrent::run( [&]()
+    QFuture<bool> future = QtConcurrent::run( [&]()
     {
-        QStringList sernums = userData->childGroups();
         QString sernum{ "" };
         QString var{ "" };
 
         bool isValue{ false };
-        quint32 banned{ 0 };
+        bool banned{ false };
 
+        QStringList sernums = userData->childGroups();
         for ( int i = 0; i < sernums.count(); ++i )
         {
             sernum = sernums.at( i );
-            if ( sernum.compare( value ) != 0 )
+            switch ( type )
             {
-                if ( !isValue )
-                {
-                    var = getData( sernum, keys[ Keys::kIP ] ).toString();
-                    if (  var == value )
-                        isValue = true;
-                }
-
-                if ( !isValue )
-                {
-                    var = getData( sernum, keys[ Keys::kIP ] ).toString();
-                    if (  var == value )
-                        isValue = true;
-                }
-
-                if ( !isValue )
-                {
-                    var = getData( sernum, keys[ Keys::kIP ] ).toString();
-                    if (  var == value )
-                        isValue = true;
-                }
-            }
-            else
-                isValue = true;
-
-            if ( isValue )
-            {
-                banned = getData( sernum, keys[ Keys::kBANNED ] ).toUInt();
+                case Types::tSERNUM:
+                    {
+                        if ( sernum.compare( value, Qt::CaseInsensitive ) == 0 )
+                            isValue = true;
+                        else
+                            continue;
+                    }
+                break;
+                case Types::tIP:
+                    {
+                        var = getData( sernum, keys[ Keys::kIP ] ).toString();
+                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                            isValue = true;
+                        else
+                            continue;
+                    }
+                break;
+                case Types::tDV:
+                    {
+                        var = getData( sernum, keys[ Keys::kDV ] ).toString();
+                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                            isValue = true;
+                        else
+                            continue;
+                    }
+                break;
+                case Types::tWV:
+                    {
+                        var = getData( sernum, keys[ Keys::kWV ] ).toString();
+                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                            isValue = true;
+                        else
+                            continue;
+                    }
+                break;
+                default:
+                    {
+                        isValue = false;
+                        banned = false;
+                    }
                 break;
             }
+
+            if ( isValue )
+                break;
         }
+
+        if ( isValue )
+            banned = getData( sernum, keys[ Keys::kBANNED ] ).toUInt() > 0;
+
         return banned;
     });
 
     future.waitForFinished();
-    return future.result() > 0;
+    return future.result();
 }
 
 void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
@@ -453,8 +473,7 @@ void User::updateRowData(quint32 row, quint32 col, QVariant data)
     if ( col == Cols::cSEEN
       || col == Cols::cDATE )
     {
-        quint64 date{ 0 };
-        date = data.toUInt();
+        quint64 date{ data.toUInt() };
         if ( date > 0 )
         {
             data = QDateTime::fromTime_t( date )

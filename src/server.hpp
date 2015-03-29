@@ -33,9 +33,10 @@ class Server : public QTcpServer
         void setupServerInfo();
         void setupPublicServer(bool value);
 
-        void updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port);
+        void updatePlayerTable(Player* plr, QHostAddress peerAddr,
+                               quint16 port);
         QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,
-                                            Player* plr, bool insert);
+                                             Player* plr, bool insert);
 
         void showServerComments();
 

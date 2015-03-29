@@ -168,7 +168,7 @@ void ReMix::getSynRealData(ServerInfo* svr)
         {
             socket->write( QString( "GET %1\r\n" )
                                .arg( svr->getMasterInfoHost() )
-                               .toLatin1() );
+                                             .toLatin1() );
         });
 
         QObject::connect( socket, &QTcpSocket::readyRead, [=]()

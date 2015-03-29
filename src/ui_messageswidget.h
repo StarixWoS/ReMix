@@ -36,9 +36,11 @@ public:
     {
         if (MessagesWidget->objectName().isEmpty())
             MessagesWidget->setObjectName(QStringLiteral("MessagesWidget"));
-        MessagesWidget->resize(147, 190);
+        MessagesWidget->resize(139, 181);
         gridLayout = new QGridLayout(MessagesWidget);
+        gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(5, 5, 5, 5);
         groupBox = new QGroupBox(MessagesWidget);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         gridLayout_3 = new QGridLayout(groupBox);

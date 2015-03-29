@@ -14,45 +14,46 @@ class User : public QDialog
 
     QSortFilterProxyModel* tblProxy{ nullptr };
     QStandardItemModel* tblModel{ nullptr };
-
     RandDev* randDev{ nullptr };
 
     enum Cols{ cSERNUM = 0, cSEEN = 1, cIP = 2, cRANK = 3, cBANNED = 4,
-               cREASON = 5, cDATE = 6 };
+               cREASON = 5, cDATE = 6, cCOLS = cDATE };
 
+    static const QString keys[ USER_KEY_COUNT ];
     enum Keys{ kSEEN = 0, kBIO = 1, kIP = 2, kDV = 3, kWV = 4, kRANK = 5,
                kHASH = 6, kSALT = 7, kREASON = 8, kBANNED = 9 };
-    static const QString keys[ USER_KEY_COUNT ];
 
     public:
         explicit User(QWidget* parent = nullptr);
         ~User();
 
-    static QSettings* userData;
-    enum Ranks{ rUSER = 0, rGAMEMASTER = 1, rCOADMIN = 2, rADMIN = 3,
-                rOWNER = 4 };
+        static QSettings* userData;
 
-    static void setData(const QString& key, const QString& subKey,
-                        QVariant& value);
-    static QVariant getData(const QString& key, const QString& subKey);
+        enum Types{ tSERNUM = 0, tIP = 1, tDV = 2, tWV = 3 };
+        enum Ranks{ rUSER = 0, rGAMEMASTER = 1, rCOADMIN = 2, rADMIN = 3,
+                    rOWNER = 4 };
 
-    bool makeAdmin(QString& sernum, QString& pwd);
+        static void setData(const QString& key, const QString& subKey,
+                            QVariant& value);
+        static QVariant getData(const QString& key, const QString& subKey);
 
-    static bool getIsAdmin(QString& sernum);
-    static bool getHasPassword(QString sernum);
-    static bool cmpAdminPwd(QString& sernum, QString& value);
+        bool makeAdmin(QString& sernum, QString& pwd);
 
-    static qint32 getAdminRank(QString& sernum);
-    void setAdminRank(QString& sernum, qint32 rank);
+        static bool getIsAdmin(QString& sernum);
+        static bool getHasPassword(QString sernum);
+        static bool cmpAdminPwd(QString& sernum, QString& value);
 
-    void removeBan(QString& value, qint32 type);
-    bool addBan(Player* admin, Player* target, QString& reason,
-                bool remote = false);
+        static qint32 getAdminRank(QString& sernum);
+        void setAdminRank(QString& sernum, qint32 rank);
 
-    static bool getIsBanned(QString value);
+        void removeBan(QString& value, qint32 type);
+        bool addBan(Player* admin, Player* target, QString& reason,
+                    bool remote = false);
 
-    void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
-                QString& wv, QString& bio);
+        static bool getIsBanned(QString value, Types type);
+
+        void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
+                    QString& wv, QString& bio);
 
     private:
         QModelIndex findModelIndex(QString value, Cols col);
