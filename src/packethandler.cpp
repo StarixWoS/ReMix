@@ -45,7 +45,6 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
             if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
                 return;
 
-            //Prevent re-sending packets from Users with a muted Network.
             if ( !plr->getNetworkMuted() )
                 this->parseSRPacket( packet, plr );
         }
@@ -142,39 +141,39 @@ void PacketHandler::parseMIXPacket(QString& packet, Player* plr)
         return;
 
     QChar opCode = packet.at( 4 );
-    QString tmp = Helper::getStrStr( packet, "", ":MIX", "" ).mid( 1 );
+    QString data = Helper::getStrStr( packet, "", ":MIX", "" ).mid( 1 );
 
     switch ( opCode.toLatin1() )
     {
         case '0':   //Send Next Packet to Scene.
-            this->readMIX0( tmp, plr );
+            this->readMIX0( data, plr );
         break;
         case '1':   //Register Player within SerNum's Scene.
-            this->readMIX1( tmp, plr );
+            this->readMIX1( data, plr );
         break;
         case '2':   //Unknown.
-            this->readMIX2( tmp, plr );
+            this->readMIX2( data, plr );
         break;
         case '3':   //Attune a Player to thier SerNum for private messaging.
-            this->readMIX3( tmp, plr );
+            this->readMIX3( data, plr );
         break;
         case '4':   //Send the next Packet from the User to SerNum's Socket.
-            this->readMIX4( tmp, plr );
+            this->readMIX4( data, plr );
         break;
         case '5':   //Handle Server password login and User Comments.
-            this->readMIX5( tmp, plr );
+            this->readMIX5( data, plr );
         break;
         case '6':   //Handle Remote Admin Commands.
-            this->readMIX6( tmp, plr );
+            this->readMIX6( data, plr );
         break;
         case '7':   //Set the User's HB ID.
-            this->readMIX7( tmp, plr );
+            this->readMIX7( data, plr );
         break;
         case '8':   //Set/Read SSV Variable.
-            this->readMIX8( tmp, plr );
+            this->readMIX8( data, plr );
         break;
         case '9':   //Set/Read SSV Variable.
-            this->readMIX9( tmp, plr );
+            this->readMIX9( data, plr );
         break;
         default:    //Do nothing. Unknown command.
             return;
@@ -222,7 +221,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                         mDataStream >> pubPort;
 
                             server->setPublicIP( QHostAddress( pubIP )
-                                                 .toString() );
+                                                      .toString() );
                             server->setPublicPort(
                                         static_cast<quint16>(
                                             qFromBigEndian( pubPort ) ) );
@@ -279,10 +278,13 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                 break;
                 case 'Q':   //Send Online User Information.
                     {
-                        server->sendUserList( ipAddr, port );
+                        server->sendUserList( ipAddr, port, Q_Response );
                     }
                 break;
                 case 'R':   //TODO: Command "R" with unknown use.
+                    {
+                        server->sendUserList( ipAddr, port, R_Response );
+                    }
                 break;
                 default:    //Do nothing; Unknown command.
                     qDebug() << "Unknown Command!";
@@ -305,7 +307,6 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
 
 bool PacketHandler::checkBannedInfo(Player* plr)
 {
-    //TODO: Check for banned D and V variables. --Low Priority.
     if ( plr == nullptr )
         return true;
 

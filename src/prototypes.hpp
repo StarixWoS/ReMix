@@ -103,55 +103,62 @@
     #endif // DECRYPT_PACKET_PLUGIN
 
     #ifndef REMIX_GLOBALS
+        #define REMIX_GLOBALS
 
-        //Anything above PACKET_FLOOD_LIMIT (2000MS)
-        //will disconnect/ban the User.
-        static const int PACKET_FLOOD_TIME{ 2000 };
+        enum Globals
+        {
+            //Anything above PACKET_FLOOD_LIMIT (2000MS)
+            //will disconnect/ban the User.
+            PACKET_FLOOD_TIME = 2000,
 
-        //Users are able to send 100 packets within PACKET_FLOOD_TIME.
-        static const int PACKET_FLOOD_LIMIT{ 100 };
+            //Users are able to send 100 packets within PACKET_FLOOD_TIME.
+            PACKET_FLOOD_LIMIT = 100,
 
-        //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
-        //Via: sernum & MIN_HEX_SERNUM
-        static const int MIN_HEX_SERNUM{ 0x40000000 };
+            //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
+            //Via: sernum & MIN_HEX_SERNUM
+            MIN_HEX_SERNUM = 0x40000000,
 
-        //Maximum time a User may remain inactive with "Disconnect Idle Users"
-        //enabled. 10 minutes - 600,000 milliseconds.
-        static const int MAX_IDLE_TIME{ 600000 };
+            //Maximum time a User may remain inactive with "Disconnect
+            //Idle Users" enabled. 10 minutes - 600,000 milliseconds.
+            MAX_IDLE_TIME = 600000,
 
-        //Maximum amout of time in MS (30 seconds) to allow for the Master to
-        //respond to a checkin.
-        static const int MAX_MASTER_RESPONSE_TIME{ 30000 };
+            //Maximum amout of time in MS (30 seconds) to allow for the
+            //Master to respond to a checkin.
+            MAX_MASTER_RESPONSE_TIME = 30000,
 
-        //Amount of times an un-authenticated (admin) can use commands.
-        static const int MAX_CMD_ATTEMPTS{ 3 };
+            //Amount of times an un-authenticated (admin) can use commands.
+            MAX_CMD_ATTEMPTS = 3,
 
-        //Amount of Players that are able to connect to the server.
-        static const int MAX_PLAYERS{ 256 };
+            //Amount of Players that are able to connect to the server.
+            MAX_PLAYERS = 256,
 
-        //Length of a Remote Admin's password salt.
-        static const int SALT_LENGTH{ 12 };
+            //Length of a Remote Admin's password salt.
+            SALT_LENGTH = 12,
 
-        //Count of Settings Keys Accessed via the Settings/SettingsWidget class.
-        static const int SETTINGS_KEY_COUNT{ 5 };
+            //Count of Settings Keys Accessed via the
+            //Settings/SettingsWidget class.
+            SETTINGS_KEY_COUNT = 5,
 
-        //Count of Rules Keys accesed via the Rules/RulesWidget class.
-        static const int SETTINGS_SUBKEY_COUNT{ 18 };
+            //Count of Rules Keys accesed via the Rules/RulesWidget class.
+            SETTINGS_SUBKEY_COUNT = 18,
 
-        //Count of Settings Sub-Kets Accessed via the Helper namespace.
-        static const int RULES_SUBKEY_COUNT{ 16 };
+            //Count of Settings Sub-Kets Accessed via the Helper namespace.
+            RULES_SUBKEY_COUNT = 16,
 
-        //Count of currently supported Remote-Admin commands.
-        static const int ADMIN_COMMAND_COUNT{ 17 };
+            //Count of currently supported Remote-Admin commands.
+            ADMIN_COMMAND_COUNT = 17,
 
-        //Count of Keys accessed via the User class.
-        static const int USER_KEY_COUNT{ 10 };
+            //Count of Keys accessed via the User class.
+            USER_KEY_COUNT = 10,
 
-        //Time interval for updating the server's Usage array.
-        static const int SERVER_USAGE_UPDATE{ 600000 };
+            //Time interval for updating the server's Usage array.
+            SERVER_USAGE_UPDATE = 600000,
 
-        //Size of the Server Usage array corresponding to 48 hours.
-        static const int SERVER_USAGE_48_HOURS{ 288 };
+            //Size of the Server Usage array corresponding to 48 hours.
+            SERVER_USAGE_48_HOURS = 288,
+        };
+
+        enum UserListResponse{ Q_Response = 0, R_Response = 1 };
 
     #endif  // REMIX_GLOBALS
 

@@ -242,10 +242,10 @@ void ReMixWidget::initUIUpdate()
     });
 }
 
-void ReMixWidget::applyThemes(QString& name)
+void ReMixWidget::applyThemes(qint32 type)
 {
     QPalette palette;
-    if ( name.compare( "dark", Qt::CaseInsensitive ) == 0 )
+    if ( type == Themes::DARK )
     {
         palette.setColor( QPalette::Window, QColor( 53,53,53 ) );
         palette.setColor( QPalette::WindowText, Qt::white );
@@ -263,7 +263,7 @@ void ReMixWidget::applyThemes(QString& name)
                           QColor( 42, 130, 218 ) );
         palette.setColor( QPalette::HighlightedText, Qt::black );
     }
-    else if ( name.compare( "light", Qt::CaseInsensitive ) == 0 )
+    else if ( type == Themes::LIGHT )
     {
         palette = defaultPalette;
     }
@@ -336,15 +336,15 @@ void ReMixWidget::on_serverName_textChanged(const QString &arg1)
 
 void ReMixWidget::on_nightMode_clicked()
 {
-    QString theme{ "dark" };
+    qint32 type{ 1 };
     if ( nightMode )
     {
-        theme = "light";
         ui->nightMode->setText( "Night Mode" );
+        type = 0;
     }
     else
         ui->nightMode->setText( "Normal Mode" );
 
-    this->applyThemes( theme );
+    this->applyThemes( type );
     nightMode = !nightMode;
 }

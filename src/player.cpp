@@ -583,6 +583,7 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         {
             //User's sernum has somehow changed. Disconnect them.
             //This is a possible Ban event.
+            //TODO: Add Setting to enable banning.
             this->setDisconnected( true );
         }
     }

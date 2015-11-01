@@ -29,6 +29,7 @@ class ReMixWidget : public QWidget
 
     enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
                    FUDGE = 5 };
+    enum Themes{ LIGHT = 0, DARK = 1 };
     static const QStringList cmdlArgs;
 
     public:
@@ -44,7 +45,7 @@ class ReMixWidget : public QWidget
         void parseCMDLArgs(QStringList* argList);
         void initUIUpdate();
 
-        void applyThemes(QString& name);
+        void applyThemes(qint32 type);
 
     private slots:
         void on_openSettings_clicked();

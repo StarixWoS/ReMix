@@ -85,7 +85,7 @@ Settings::Settings(QWidget *parent) :
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+                                       this->metaObject()->className() ) );
         }
     }
 }

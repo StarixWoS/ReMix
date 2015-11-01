@@ -212,11 +212,11 @@ void Server::newConnectionSlot()
 
 void Server::userReadyReadSlot()
 {
-    QTcpSocket* peer{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
-    if ( peer == nullptr )
+    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
+    if ( socket == nullptr )
         return;
 
-    qint32 slot{ server->getSocketSlot( peer ) };
+    qint32 slot{ server->getSocketSlot( socket ) };
     Player* plr{ server->getPlayer( slot ) };
 
     if ( plr == nullptr )
@@ -225,7 +225,7 @@ void Server::userReadyReadSlot()
     QByteArray data = plr->getOutBuff();
     quint64 bIn = data.length();
 
-    data.append( peer->readAll() );
+    data.append( socket->readAll() );
     server->setBytesIn( server->getBytesIn() + (data.length() - bIn) );
 
     if ( data.contains( "\r" )
@@ -248,10 +248,10 @@ void Server::userReadyReadSlot()
             plr->setBytesIn( plr->getBytesIn() + packet.length() );
 
             pktHandle->parsePacket( packet, plr );
-            if ( peer->bytesAvailable() > 0
+            if ( socket->bytesAvailable() > 0
               || plr->getOutBuff().size() > 0 )
             {
-                emit peer->readyRead();
+                emit socket->readyRead();
             }
         }
     }
@@ -259,18 +259,18 @@ void Server::userReadyReadSlot()
 
 void Server::userDisconnectedSlot()
 {
-    QTcpSocket* peer{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
-    if ( peer == nullptr )
+    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
+    if ( socket == nullptr )
         return;
 
-    qint32 slot{ server->getSocketSlot( peer ) };
+    qint32 slot{ server->getSocketSlot( socket ) };
     Player* plr{ server->getPlayer( slot ) };
 
     if ( plr == nullptr )
         return;
 
-    QString ip{ peer->peerAddress().toString() % ":%1" };
-            ip = ip.arg( peer->peerPort() );
+    QString ip{ socket->peerAddress().toString() % ":%1" };
+            ip = ip.arg( socket->peerPort() );
 
     QStandardItem* item = plrTableItems.take( ip );
     if ( item != nullptr )
@@ -290,21 +290,23 @@ void Server::userDisconnectedSlot()
 
 void Server::readyReadUDPSlot()
 {
-    QUdpSocket* sender = static_cast<QUdpSocket*>( QObject::sender() );
+    QUdpSocket* socket{ server->getMasterSocket() };
+    if ( socket == nullptr )
+        return;
 
     QByteArray data;
-    if ( sender != nullptr )
+    if ( socket != nullptr )
     {
         QHostAddress senderAddr{};
         quint16 senderPort{ 0 };
 
-        data.resize( sender->pendingDatagramSize() );
-        sender->readDatagram( data.data(), data.size(),
+        data.resize( socket->pendingDatagramSize() );
+        socket->readDatagram( data.data(), data.size(),
                               &senderAddr, &senderPort );
 
         pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
-        if ( sender->hasPendingDatagrams() )
-            emit sender->readyRead();
+        if ( socket->hasPendingDatagrams() )
+            emit socket->readyRead();
     }
 }
 

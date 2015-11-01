@@ -268,75 +268,63 @@ bool User::getIsBanned(QString value, Types type)
     if ( value.isEmpty() )
         return false;
 
-    QFuture<bool> future = QtConcurrent::run( [&]()
+    QString sernum{ "" };
+    QString var{ "" };
+
+    bool isValue{ false };
+    bool banned{ false };
+
+    QStringList sernums = userData->childGroups();
+    for ( int i = 0; i < sernums.count(); ++i )
     {
-        QString sernum{ "" };
-        QString var{ "" };
-
-        bool isValue{ false };
-        bool banned{ false };
-
-        QStringList sernums = userData->childGroups();
-        for ( int i = 0; i < sernums.count(); ++i )
+        sernum = sernums.at( i );
+        switch ( type )
         {
-            sernum = sernums.at( i );
-            switch ( type )
+            case Types::tSERNUM:
             {
-                case Types::tSERNUM:
-                    {
-                        if ( sernum.compare( value, Qt::CaseInsensitive ) == 0 )
-                            isValue = true;
-                        else
-                            continue;
-                    }
-                break;
-                case Types::tIP:
-                    {
-                        var = getData( sernum, keys[ Keys::kIP ] ).toString();
-                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
-                            isValue = true;
-                        else
-                            continue;
-                    }
-                break;
-                case Types::tDV:
-                    {
-                        var = getData( sernum, keys[ Keys::kDV ] ).toString();
-                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
-                            isValue = true;
-                        else
-                            continue;
-                    }
-                break;
-                case Types::tWV:
-                    {
-                        var = getData( sernum, keys[ Keys::kWV ] ).toString();
-                        if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
-                            isValue = true;
-                        else
-                            continue;
-                    }
-                break;
-                default:
-                    {
-                        isValue = false;
-                        banned = false;
-                    }
-                break;
+                if ( sernum.compare( value, Qt::CaseInsensitive ) == 0 )
+                    isValue = true;
             }
-
-            if ( isValue )
-                break;
+            break;
+            case Types::tIP:
+            {
+                var = getData( sernum, keys[ Keys::kIP ] ).toString();
+                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                    isValue = true;
+            }
+            break;
+            case Types::tDV:
+            {
+                var = getData( sernum, keys[ Keys::kDV ] ).toString();
+                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                    isValue = true;
+            }
+            break;
+            case Types::tWV:
+            {
+                var = getData( sernum, keys[ Keys::kWV ] ).toString();
+                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                    isValue = true;
+            }
+            break;
+            default:
+            {
+                isValue = false;
+                banned = false;
+            }
+            break;
         }
 
         if ( isValue )
-            banned = getData( sernum, keys[ Keys::kBANNED ] ).toUInt() > 0;
+            break;
+        else
+            continue;
+    }
 
-        return banned;
-    });
+    if ( isValue )
+        banned = getData( sernum, keys[ Keys::kBANNED ] ).toUInt() > 0;
 
-    future.waitForFinished();
-    return future.result();
+    return banned;
 }
 
 void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
@@ -403,9 +391,14 @@ void User::loadUserInfo()
 {
     tblModel->removeRows( 0, tblModel->rowCount() );
     tblProxy->removeRows( 0, tblProxy->rowCount() );
+
+    QString title{ "User Information:" };
     if ( QFile( "userInfo.ini" ).exists() )
     {
         QStringList sernums = userData->childGroups();
+
+        title = title.append( " [ %1 ] Users" )
+                     .arg( sernums.count() );
 
         QString sernum{ "" };
         QString reason{ "" };
@@ -464,6 +457,7 @@ void User::loadUserInfo()
         }
     }
 
+    this->setWindowTitle( title );
     ui->userTable->selectRow( 0 );
     ui->userTable->resizeColumnsToContents();
 }

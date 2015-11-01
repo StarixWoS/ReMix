@@ -205,8 +205,8 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
     if ( sock != nullptr )
     {
         QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT ( " %
-                        menuTarget->getSernum_s() % " )?" };
+        QString prompt{ "Are you certain you want to DISCONNECT [ " %
+                        menuTarget->getSernum_s() % " ]?" };
 
         QString inform{ "The Server Host has disconnected you from the Server. "
                         "Reason: %1" };

@@ -83,7 +83,7 @@ class ServerInfo
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
 
         void sendServerInfo(QHostAddress& addr, quint16 port);
-        void sendUserList(QHostAddress& addr, quint16 port);
+        void sendUserList(QHostAddress& addr, quint16 port, quint32 type = 0);
         void sendMasterInfo(bool disconnect = false);
 
         Player* createPlayer(int slot);
@@ -176,14 +176,12 @@ class ServerInfo
         quint64 getBytesIn() const;
         void setBytesIn(const quint64& value);
 
-        quint64 getBaudIn() const;
-        void setBaudIn(const quint64& bIn);
-
         quint64 getBytesOut() const;
         void setBytesOut(const quint64& value);
 
+        void setBaudIO(const quint64& bytes, quint64& baud);
+        quint64 getBaudIn() const;
         quint64 getBaudOut() const;
-        void setBaudOut(const quint64& bOut);
 
         bool getLogFiles() const;
         void setLogFiles(bool value);

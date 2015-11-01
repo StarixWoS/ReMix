@@ -685,7 +685,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 
 void CmdHandler::shutDownHandler(Player* plr, bool restart)
 {
-    QString message{ "Admin [ %1 ]: The Server will be %2 in 30 seconds..." };
+    QString message{ "Admin [ %1 ]: The Server will %2 in 30 seconds..." };
             message = message.arg( plr->getSernum_s() );
 
     QTimer* timer = new QTimer();
@@ -701,9 +701,9 @@ void CmdHandler::shutDownHandler(Player* plr, bool restart)
     });
 
     if ( restart )
-        message = message.arg( "restarting" );
+        message = message.arg( "restart" );
     else
-        message = message.arg( "shutting down" );
+        message = message.arg( "shut down" );
 
     timer->start( 30000 );
 

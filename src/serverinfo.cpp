@@ -19,10 +19,10 @@ ServerInfo::ServerInfo()
         ++upTime;
         if ( baudTime.elapsed() > 5000 )
         {
-            this->setBaudIn( this->getBytesIn() );
+            this->setBaudIO( this->getBytesIn(), baudIn );
             this->setBytesIn( 0 );
 
-            this->setBaudOut( this->getBytesOut() );
+            this->setBaudIO( this->getBytesOut(), baudOut );
             this->setBytesOut( 0 );
 
             baudTime.restart();
@@ -162,21 +162,42 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
         this->sendUDPData( addr, port, response );
 }
 
-void ServerInfo::sendUserList(QHostAddress& addr, quint16 port)
+void ServerInfo::sendUserList(QHostAddress& addr, quint16 port, quint32 type)
 {
     if ( addr.isNull() )
         return;
 
     Player* plr{ nullptr };
-    QString response{ "Q" };
 
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    QString response{ "Q" };
+    if ( type == 1 )
+        response = "R";
+
+    QString filler_Q{ "%1," };
+    QString filler_R{ "%1|%2," };
+
+    //Note: The 'R' Response sent by the Syn-Real Mix Server
+    //Sends the User's IP address within field(%2) 2; we are sending the User's
+    //position within the players[] array instead to prevent IP leakage.
+
+    for ( int i = 0; i < MAX_PLAYERS && response.length() < 800; ++i )
     {
         plr = this->getPlayer( i );
         if ( plr != nullptr
           && plr->getSernum_i() != 0 )
         {
-            response += Helper::intToStr( plr->getSernum_i(), 16 ) % ",";
+            if ( type == Q_Response ) //Standard 'Q' Response.
+            {
+                response += filler_Q.arg( Helper::intToStr(
+                                              plr->getSernum_i(), 16 ) );
+            }
+            else if ( type == R_Response ) //Non-Standard 'R' Response
+            {
+                response += filler_R.arg( Helper::intToStr(
+                                              plr->getSernum_i(), 16 ) )
+                                    .arg( Helper::intToStr(
+                                              plr->getSlotPos(), 16, 8 ) );
+            }
         }
     }
 
@@ -223,7 +244,7 @@ Player* ServerInfo::createPlayer(int slot)
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
         players[ slot ] = new Player();
-        players[ slot ]->setSlotPos( slot );    //The player will be Slot-Aware.
+        players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
         return players[ slot ];
     }
@@ -376,7 +397,6 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
-
     QTcpSocket* soc{nullptr };
     if ( plr != nullptr )
         soc = plr->getSocket();
@@ -400,19 +420,19 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         //This is to prevent a Crash related to sending messages
         //to a disconnected User.
 
-        //Player* tmpPlr{ nullptr };
-        //for ( int i = 0; i < MAX_PLAYERS; ++i )
-        //{
-        //    tmpPlr = this->getPlayer( i );
-        //    if ( plr == tmpPlr )
-        //    {
+        Player* tmpPlr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = this->getPlayer( i );
+            if ( plr == tmpPlr )
+            {
                 bOut = soc->write( msg.toLatin1(),
                                    msg.length() );
                 plr->setPacketsOut( plr->getPacketsOut() + 1 );
                 plr->setBytesOut( plr->getBytesOut() + bOut );
-        //        break;
-        //    }
-        //}
+                break;
+            }
+        }
     }
 
     if ( bOut >= 1 )
@@ -701,22 +721,6 @@ void ServerInfo::setBytesIn(const quint64& value)
     bytesIn = value;
 }
 
-quint64 ServerInfo::getBaudIn() const
-{
-    return baudIn;
-}
-
-void ServerInfo::setBaudIn(const quint64& bIn)
-{
-    quint64 time = baudTime.elapsed();
-    quint64 baud{ 0 };
-
-    if ( bIn > 0 && time > 0 )
-        baud = 10000 * bIn / time;
-
-    baudIn = baud;
-}
-
 quint64 ServerInfo::getBytesOut() const
 {
     return bytesOut;
@@ -727,20 +731,22 @@ void ServerInfo::setBytesOut(const quint64& value)
     bytesOut = value;
 }
 
+void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
+{
+    quint64 time = baudTime.elapsed();
+
+    if ( bytes > 0 && time > 0 )
+        baud = 10000 * bytes / time;
+}
+
+quint64 ServerInfo::getBaudIn() const
+{
+    return baudIn;
+}
+
 quint64 ServerInfo::getBaudOut() const
 {
     return baudOut;
-}
-
-void ServerInfo::setBaudOut(const quint64& bOut)
-{
-    quint64 time = baudTime.elapsed();
-    quint64 baud{ 0 };
-
-    if ( bOut > 0 && time > 0 )
-        baud = 10000 * bOut / time;
-
-    baudOut = baud;
 }
 
 bool ServerInfo::getLogFiles() const
