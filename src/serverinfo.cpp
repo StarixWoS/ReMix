@@ -170,7 +170,7 @@ void ServerInfo::sendUserList(QHostAddress& addr, quint16 port, quint32 type)
     Player* plr{ nullptr };
 
     QString response{ "Q" };
-    if ( type == 1 )
+    if ( type == R_Response )
         response = "R";
 
     QString filler_Q{ "%1," };
@@ -215,6 +215,9 @@ void ServerInfo::sendMasterInfo(bool disconnect)
     {
         if ( this->getIsSetUp() )
         {
+            //Store the Master Server Check-In time.
+            this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
+
             response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
                          "port=%7,info=%8,name=%9" };
             response = response.arg( this->getVersionID() )
@@ -808,6 +811,76 @@ void ServerInfo::startMasterCheckIn()
 void ServerInfo::stopMasterCheckIn()
 {
     masterCheckIn.stop();
+}
+
+quint64 ServerInfo::getMasterPingSendTime() const
+{
+    return masterPingSendTime;
+}
+
+void ServerInfo::setMasterPingSendTime(const quint64& value)
+{
+    masterPingSendTime = value;
+}
+
+quint64 ServerInfo::getMasterPingRespTime() const
+{
+    return masterPingRespTime;
+}
+
+void ServerInfo::setMasterPingRespTime(const quint64& value)
+{
+    masterPingRespTime = value;
+    //Store the Master Server's Response Count.
+    this->setMasterPingCount( this->getMasterPingCount() + 1 );
+    this->setMasterPing();
+}
+
+double ServerInfo::getMasterPingTrend() const
+{
+    return masterPingTrend;
+}
+
+void ServerInfo::setMasterPingTrend(double value)
+{
+    masterPingTrend = masterPingTrend * 0.9 + value * 0.1;
+}
+
+double ServerInfo::getMasterPingAvg() const
+{
+    if ( masterPingAvg > 0 )
+        return masterPingAvg / this->getMasterPingCount();
+
+    return masterPingAvg;
+}
+
+void ServerInfo::setMasterPingAvg(const double& value)
+{
+    masterPingAvg += value;
+}
+
+quint32 ServerInfo::getMasterPingCount() const
+{
+    return masterPingCount;
+}
+
+void ServerInfo::setMasterPingCount(const quint32& value)
+{
+    masterPingCount = value;
+}
+
+quint32 ServerInfo::getMasterPing() const
+{
+    return masterPing;
+}
+
+void ServerInfo::setMasterPing()
+{
+    masterPing = this->getMasterPingRespTime()
+                 - this->getMasterPingSendTime();
+
+    this->setMasterPingAvg( masterPing );
+    this->setMasterPingTrend( masterPing );
 }
 
 quint32 ServerInfo::getUsageHours() const

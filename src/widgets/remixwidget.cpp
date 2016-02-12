@@ -216,10 +216,15 @@ void ReMixWidget::initUIUpdate()
                 {
                     if ( server->getMasterUDPResponse() )
                     {
-                        QString msg2 = QString( " ( Need port forward from "
-                                                "%1:%2 )" )
+                        QString msg2 = QString( " ( Port forward from: %1:%2 ) "
+                                                "( Ping: %3 ms, "
+                                                "Avg: %4 ms, "
+                                                "Trend: %5 ms )" )
                                            .arg( server->getPublicIP() )
-                                           .arg( server->getPublicPort() );
+                                           .arg( server->getPublicPort() )
+                                           .arg( server->getMasterPing() )
+                                           .arg( server->getMasterPingAvg() )
+                                           .arg( server->getMasterPingTrend() );
                         msg.append( msg2 );
                     }
                     else

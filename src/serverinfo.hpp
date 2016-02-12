@@ -46,6 +46,13 @@ class ServerInfo
     QTimer masterTimeOut;
     bool masterTimedOut{ false };
 
+    quint64 masterPingSendTime{ 0 };
+    quint64 masterPingRespTime{ 0 };
+    quint32 masterPingCount{ 0 };
+    double masterPingTrend{ 80 };
+    double masterPingAvg{ 0 };
+    double masterPing{ 0 };
+
     QString masterIP{ "" };
     quint16 masterPort{ 23999 };
 
@@ -203,6 +210,24 @@ class ServerInfo
 
         void startMasterCheckIn();
         void stopMasterCheckIn();
+
+        quint64 getMasterPingSendTime() const;
+        void setMasterPingSendTime(const quint64& value);
+
+        quint64 getMasterPingRespTime() const;
+        void setMasterPingRespTime(const quint64& value);
+
+        double getMasterPingTrend() const;
+        void setMasterPingTrend(double value);
+
+        double getMasterPingAvg() const;
+        void setMasterPingAvg(const double& value);
+
+        quint32 getMasterPingCount() const;
+        void setMasterPingCount(const quint32& value);
+
+        quint32 getMasterPing() const;
+        void setMasterPing();
 
         quint32 getUsageHours() const;
         quint32 getUsageDays() const;

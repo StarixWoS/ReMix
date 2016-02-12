@@ -139,7 +139,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString result{ "" };
 
-    if ( !(sernum_i & MIN_HEX_SERNUM) )
+    if ( !( sernum_i & MIN_HEX_SERNUM ) )
     {
         bool ok{ false };
         sernum.toUInt( &ok, 10 );

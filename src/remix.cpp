@@ -175,7 +175,10 @@ void ReMix::getSynRealData(ServerInfo* svr)
         {
             QFile synreal( "synReal.ini" );
             if ( synreal.open( QIODevice::WriteOnly ) )
+            {
+                socket->waitForReadyRead();
                 synreal.write( socket->readAll() );
+            }
 
             synreal.close();
 

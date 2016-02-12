@@ -209,6 +209,13 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                 break;
                 case 'M':   //Parse the Master Server's response.
                     {
+                        //Store the Master Server's Response Time.
+                        server->setMasterPingRespTime(
+                                    QDateTime::currentMSecsSinceEpoch() );
+
+                        //We've obtained a Master response.
+                        server->setMasterUDPResponse( true );
+
                         int opcode{ 0 };
                         int pubIP{ 0 };
                         int pubPort{ 0 };
@@ -226,8 +233,6 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                         static_cast<quint16>(
                                             qFromBigEndian( pubPort ) ) );
                         }
-                        //We've obtained a Master response.
-                        server->setMasterUDPResponse( true );
                     }
                 break;
                 case 'P':   //Store the Player information into a struct.
