@@ -24,9 +24,10 @@ class RulesWidget : public QWidget
     bool maxAFKCheckState{ false };
     bool worldCheckState{ false };
     bool urlCheckState{ false };
+    QString serverID{ "" };
 
     public:
-        explicit RulesWidget(QWidget* parent = nullptr);
+        explicit RulesWidget(QWidget* parent = nullptr, QString svrID = "0");
         ~RulesWidget();
 
         void setCheckedState(Toggles option, bool val);

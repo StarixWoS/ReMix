@@ -24,10 +24,11 @@ class Server : public QTcpServer
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
 
+    QString serverID{ "" };
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               User* adminDlg = nullptr,
-               QStandardItemModel* plrView = nullptr );
+               User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr,
+               QString svrID = "0");
         ~Server();
 
         void setupServerInfo();
@@ -38,7 +39,7 @@ class Server : public QTcpServer
         QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,
                                              Player* plr, bool insert);
 
-        void showServerComments();
+        Comments* getServerComments() const;
 
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr);

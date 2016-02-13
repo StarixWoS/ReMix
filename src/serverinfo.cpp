@@ -2,8 +2,9 @@
 #include "includes.hpp"
 #include "serverinfo.hpp"
 
-ServerInfo::ServerInfo()
+ServerInfo::ServerInfo(QString svrID)
 {
+    serverTabID = svrID;
     masterSocket = new QUdpSocket();
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -152,7 +153,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
                          .arg( this->getUsageHours() )
                          .arg( this->getUsageDays() );
 
-    response = response.arg( Rules::getRuleSet() )
+    response = response.arg( Rules::getRuleSet( serverTabID ) )
                        .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
@@ -367,7 +368,7 @@ void ServerInfo::sendServerRules(Player* plr)
 
     quint64 bOut{ 0 };
     QString rules{ ":SR$%1\r\n" };
-            rules = rules.arg( Rules::getRuleSet() );
+            rules = rules.arg( Rules::getRuleSet( serverTabID ) );
 
     bOut = soc->write( rules.toLatin1(), rules.length() );
     if ( bOut >= 1 )
@@ -381,8 +382,8 @@ void ServerInfo::sendServerRules(Player* plr)
 
 void ServerInfo::sendServerGreeting(Player* plr)
 {
-    QString greeting = Settings::getMOTDMessage();
-    if ( Settings::getRequirePassword() )
+    QString greeting = Settings::getMOTDMessage( serverTabID );
+    if ( Settings::getRequirePassword( serverTabID ) )
     {
         greeting.append( " Password required: Please reply with (/login *PASS)"
                          " or be disconnected." );
@@ -392,7 +393,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     if ( !greeting.isEmpty() )
         this->sendMasterMessage( greeting, plr, false );
 
-    if ( !Rules::getRuleSet().isEmpty() )
+    if ( !Rules::getRuleSet( serverTabID ).isEmpty() )
         this->sendServerRules( plr );
 }
 

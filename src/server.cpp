@@ -3,8 +3,10 @@
 #include "server.hpp"
 
 Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
-               QStandardItemModel* plrView)
+               QStandardItemModel* plrView, QString svrID)
 {
+    serverID = svrID;
+
     //Setup Objects.
     mother = parent;
     server = svr;
@@ -13,7 +15,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    pktHandle = new PacketHandler( user, server );
+    pktHandle = new PacketHandler( user, server, svrID );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -133,12 +135,9 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
     return plrViewModel->item( row, 0 );
 }
 
-void Server::showServerComments()
+Comments* Server::getServerComments() const
 {
-    if ( serverComments->isVisible() )
-        serverComments->hide();
-    else
-        serverComments->show();
+    return serverComments;
 }
 
 void Server::setupServerInfo()
@@ -339,7 +338,7 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
                  "Please enter your password with the command (/login *PASS) "
                  "or be denied access to the server. Thank you!" };
 
-    if ( Settings::getReqAdminAuth()
+    if ( Settings::getReqAdminAuth( serverID )
       && plr->getIsAdmin() )
     {
         plr->setReqAuthPwd( true );

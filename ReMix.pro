@@ -48,6 +48,7 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/tblview/tbleventfilter.cpp \
            src/widgets/settingswidget.cpp \
            src/widgets/messageswidget.cpp \
+           src/widgets/remixtabwidget.cpp \
            src/widgets/plrlistwidget.cpp \
            src/widgets/userdelegate.cpp \
            src/widgets/remixwidget.cpp \
@@ -72,6 +73,7 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/tblview/tbleventfilter.hpp \
            src/widgets/settingswidget.hpp \
            src/widgets/messageswidget.hpp \
+           src/widgets/remixtabwidget.hpp \
            src/widgets/plrlistwidget.hpp \
            src/widgets/userdelegate.hpp \
            src/widgets/remixwidget.hpp \

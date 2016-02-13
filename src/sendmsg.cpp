@@ -8,6 +8,7 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
     ui(new Ui::SendMsg)
 {
     ui->setupUi(this);
+    serverID = "0"; //Filler. This Window Position is non-unique.
 
     //Remove the "Help" button from the window title bars.
     {
@@ -20,14 +21,16 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSaveWindowPositions( serverID ) )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className() ) };
+                                    this->metaObject()->className(),
+                                    serverID ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
+                                       this->metaObject()->className(),
+                                       serverID ) );
         }
     }
 
@@ -41,10 +44,11 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
 SendMsg::~SendMsg()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSaveWindowPositions( serverID ) )
     {
         Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
+                                      this->metaObject()->className(),
+                                      serverID );
     }
     delete ui;
 }

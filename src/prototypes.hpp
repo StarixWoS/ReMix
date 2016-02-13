@@ -23,6 +23,7 @@
     class QApplication;
     class QHostAddress;
     class QInputDialog;
+    class QToolButton;
     class QModelIndex;  //Requires Include within Class Headers.
     class QMainWindow;  //Requires Include within Class Headers.
     class QMessageBox;
@@ -80,6 +81,7 @@
     //Widget GUI Classes.
     class SettingsWidget;
     class MessagesWidget;
+    class ReMixTabWidget;
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
@@ -156,6 +158,8 @@
 
             //Size of the Server Usage array corresponding to 48 hours.
             SERVER_USAGE_48_HOURS = 288,
+
+            MAX_SERVER_COUNT = 19,
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

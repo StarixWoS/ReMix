@@ -19,6 +19,7 @@ class Settings : public QDialog
     SettingsWidget* settings{ nullptr };
     MessagesWidget* messages{ nullptr };
     RulesWidget* rules{ nullptr };
+    QString serverID{ "" };
 
     enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
                   ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
@@ -28,7 +29,7 @@ class Settings : public QDialog
                   SaveWindowPositions = 17 };
 
     public:
-        explicit Settings(QWidget *parent = 0);
+        explicit Settings(QWidget *parent = 0, QString svrID = "0");
         ~Settings();
 
         enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
@@ -41,70 +42,73 @@ class Settings : public QDialog
     public: //Static-Free functions. Ported from Helper and Admin.
 
         static void setSetting(const QString& key, const QString& subKey,
-                               QVariant& value);
+                               QVariant& value, QString& svrID);
 
-        static QVariant getSetting(const QString& key, const QString& subKey);
+        static QVariant getSetting(const QString& key, const QString& subKey,
+                                   QString& svrID);
 
-        static void setReqAdminAuth(QVariant& value);
-        static bool getReqAdminAuth();
+        static void setReqAdminAuth(QVariant& value, QString& svrID);
+        static bool getReqAdminAuth(QString& svrID);
 
-        static void setMOTDMessage(QVariant& value);
-        static QString getMOTDMessage();
+        static void setMOTDMessage(QVariant& value, QString& svrID);
+        static QString getMOTDMessage(QString& svrID);
 
-        static void setBanishMesage(QVariant& value);
-        static QString getBanishMesage();
+        static void setBanishMesage(QVariant& value, QString& svrID);
+        static QString getBanishMesage(QString& svrID);
 
         static QString getBanishReason(QWidget* parent = nullptr);
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
-        static void setPassword(QString& value);
-        static QString getPassword();
+        static void setPassword(QString& value, QString& svrID);
+        static QString getPassword(QString& svrID);
 
-        static void setRequirePassword(QVariant& value);
-        static bool getRequirePassword();
-        static bool cmpServerPassword(QString& value);
+        static void setRequirePassword(QVariant& value, QString& svrID);
+        static bool getRequirePassword(QString& svrID);
+        static bool cmpServerPassword(QString& value, QString& svrID);
 
-        static void setAllowDupedIP(QVariant& value);
-        static bool getAllowDupedIP();
+        static void setAllowDupedIP(QVariant& value, QString& svrID);
+        static bool getAllowDupedIP(QString& svrID);
 
-        static void setBanDupedIP(QVariant& value);
-        static bool getBanDupedIP();
+        static void setBanDupedIP(QVariant& value, QString& svrID);
+        static bool getBanDupedIP(QString& svrID);
 
-        static void setBanHackers(QVariant& value);
-        static bool getBanHackers();
+        static void setBanHackers(QVariant& value, QString& svrID);
+        static bool getBanHackers(QString& svrID);
 
-        static void setReqSernums(QVariant& value);
-        static bool getReqSernums();
+        static void setReqSernums(QVariant& value, QString& svrID);
+        static bool getReqSernums(QString& svrID);
 
-        static void setDisconnectIdles(QVariant& value);
-        static bool getDisconnectIdles();
+        static void setDisconnectIdles(QVariant& value, QString& svrID);
+        static bool getDisconnectIdles(QString& svrID);
 
-        static void setAllowSSV(QVariant& value);
-        static bool getAllowSSV();
+        static void setAllowSSV(QVariant& value, QString& svrID);
+        static bool getAllowSSV(QString& svrID);
 
-        static void setLogComments(QVariant& value);
-        static bool getLogComments();
+        static void setLogComments(QVariant& value, QString& svrID);
+        static bool getLogComments(QString& svrID);
 
-        static void setFwdComments(QVariant& value);
-        static bool getFwdComments();
+        static void setFwdComments(QVariant& value, QString& svrID);
+        static bool getFwdComments(QString& svrID);
 
-        static void setInformAdminLogin(QVariant& value);
-        static bool getInformAdminLogin();
+        static void setInformAdminLogin(QVariant& value, QString& svrID);
+        static bool getInformAdminLogin(QString& svrID);
 
-        static void setEchoComments(QVariant& value);
-        static bool getEchoComments();
+        static void setEchoComments(QVariant& value, QString& svrID);
+        static bool getEchoComments(QString& svrID);
 
-        static void setMinimizeToTray(QVariant& value);
-        static bool getMinimizeToTray();
+        static void setMinimizeToTray(QVariant& value, QString& svrID);
+        static bool getMinimizeToTray(QString& svrID);
 
-        static void setSaveWindowPositions(QVariant& value);
-        static bool getSaveWindowPositions();
+        static void setSaveWindowPositions(QVariant& value, QString& svrID);
+        static bool getSaveWindowPositions(QString& svrID);
 
-        static void setWindowPositions(QByteArray geometry, const char* dialog);
-        static QByteArray getWindowPositions(const char* dialog);
+        static void setWindowPositions(QByteArray geometry, const char* dialog,
+                                       QString& svrID);
 
-        static void setServerID(QVariant& value);
-        static int getServerID();
+        static QByteArray getWindowPositions(const char* dialog, QString& svrID);
+
+        static void setServerID(QVariant& value, QString& svrID);
+        static int getServerID(QString& svrID);
 
         static bool getIsInvalidIPAddress(const QString& value);
 

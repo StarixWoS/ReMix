@@ -15,8 +15,9 @@ class Comments : public QDialog
 {
         Q_OBJECT
 
+        QString serverID{ "" };
     public:
-        explicit Comments(QWidget *parent = 0);
+        explicit Comments(QWidget *parent = 0, QString svrID = "0");
         ~Comments();
 
     public slots:

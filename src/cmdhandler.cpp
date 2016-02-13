@@ -25,9 +25,11 @@ const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
-                       User* uDlg)
+                       User* uDlg, QString svrID)
     : QObject(parent)
 {
+    serverID = svrID;
+
     //Setup our Random Device
     randDev = new RandDev();
 
@@ -126,10 +128,10 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
             if ( !msg.isEmpty() )
             {
                 //Echo the chat back to the User.
-                if ( Settings::getEchoComments() )
+                if ( Settings::getEchoComments( serverID ) )
                     server->sendMasterMessage( "Echo: " % msg, plr, false );
 
-                if ( Settings::getFwdComments() )
+                if ( Settings::getFwdComments( serverID ) )
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
@@ -544,7 +546,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     if ( plr->getPwdRequested()
       && !plr->getEnteredPwd() )
     {
-        if ( Settings::cmpServerPassword( pwd ) )
+        if ( Settings::cmpServerPassword( pwd, serverID ) )
         {
             response = response.arg( valid );
 
@@ -571,7 +573,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             plr->setGotAuthPwd( true );
 
             //Inform Other Users of this Remote-Admin's login if enabled.
-            if ( Settings::getInformAdminLogin() )
+            if ( Settings::getInformAdminLogin( serverID ) )
             {
                 QString message{ "Remote Admin [ "
                                  % plr->getSernum_s()
@@ -654,7 +656,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 
     //Inform Other Users of this Remote-Admin's login if enabled.
     if ( registered
-      && Settings::getInformAdminLogin() )
+      && Settings::getInformAdminLogin( serverID ) )
     {
         QString message{ "User [ "
                        % plr->getSernum_s()

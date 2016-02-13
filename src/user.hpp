@@ -16,6 +16,8 @@ class User : public QDialog
     QStandardItemModel* tblModel{ nullptr };
     RandDev* randDev{ nullptr };
 
+    QString serverID{ "0" };
+
     enum Cols{ cSERNUM = 0, cSEEN = 1, cIP = 2, cRANK = 3, cBANNED = 4,
                cREASON = 5, cDATE = 6, cCOLS = cDATE };
 

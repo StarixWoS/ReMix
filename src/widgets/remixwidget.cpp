@@ -11,25 +11,26 @@ const QStringList ReMixWidget::cmdlArgs =
 };
 
 ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
-                         QStringList* argList) :
+                         QStringList* argList, QString svrID) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
 {
     ui->setupUi(this);
+    serverID = svrID;
 
     //Setup our Random Device
     randDev = new RandDev();
 
     //Setup Objects.
-    settings = new Settings( this );
-    server = new ServerInfo();
+    settings = new Settings( this, svrID );
+    server = new ServerInfo( svrID );
     user = usr;
 
     plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
-    server->setServerID( Settings::getServerID() );
+    server->setServerID( Settings::getServerID( svrID ) );
     server->setHostInfo( QHostInfo() );
 
     //Load Data from our CommandLine Args.
@@ -43,7 +44,10 @@ ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
 
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
 
     defaultPalette = parent->palette();
 }
@@ -82,6 +86,16 @@ qint32 ReMixWidget::getPlayerCount()
 QString ReMixWidget::getServerName() const
 {
     return server->getName();
+}
+
+Settings* ReMixWidget::getSettings() const
+{
+    return settings;
+}
+
+Server* ReMixWidget::getTcpServer() const
+{
+    return tcpServer;
 }
 
 void ReMixWidget::parseCMDLArgs(QStringList* argList)
@@ -280,7 +294,10 @@ void ReMixWidget::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
 
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
@@ -299,7 +316,10 @@ void ReMixWidget::on_isPublicServer_stateChanged(int)
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
 
     if ( ui->isPublicServer->isChecked() )
         //Setup a connection with the Master Server.
@@ -318,7 +338,14 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openUserComments_clicked()
 {
-    tcpServer->showServerComments();
+    Comments* comments{ tcpServer->getServerComments() };
+    if ( comments != nullptr )
+    {
+        if ( comments->isVisible() )
+            comments->hide();
+        else
+            comments->show();
+    }
 }
 
 void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
@@ -336,7 +363,11 @@ void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
 
 void ReMixWidget::on_serverName_textChanged(const QString &arg1)
 {
-    server->setName( arg1 );
+    if ( arg1.length() <= 32 )
+    {
+        server->setName( arg1 );
+        emit this->serverNameChanged( arg1 );
+    }
 }
 
 void ReMixWidget::on_nightMode_clicked()

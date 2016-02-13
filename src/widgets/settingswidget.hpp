@@ -21,9 +21,10 @@ class SettingsWidget : public QWidget
                   MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13 };
 
     bool pwdCheckState{ false };
+    QString serverID{ "" };
 
     public:
-        explicit SettingsWidget(QWidget* parent = nullptr);
+        explicit SettingsWidget(QWidget* parent = nullptr, QString svrID = "0");
         ~SettingsWidget();
 
         void setCheckedState(Toggles option, bool val);

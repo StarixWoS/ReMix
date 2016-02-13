@@ -3,55 +3,56 @@
 #include "settingswidget.hpp"
 #include "ui_settingswidget.h"
 
-SettingsWidget::SettingsWidget(QWidget *parent) :
+SettingsWidget::SettingsWidget(QWidget *parent, QString svrID) :
     QWidget(parent),
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
+    serverID = svrID;
 
     //Load Settings from file.
-    pwdCheckState = Settings::getRequirePassword();
+    pwdCheckState = Settings::getRequirePassword( serverID );
     this->setCheckedState( Toggles::REQPWD,
                            pwdCheckState );
 
     this->setCheckedState( Toggles::REQADMINPWD,
-                           Settings::getReqAdminAuth() );
+                           Settings::getReqAdminAuth( serverID ) );
 
     this->setCheckedState( Toggles::ALLOWDUPEDIP,
-                           Settings::getAllowDupedIP() );
+                           Settings::getAllowDupedIP( serverID ) );
 
     this->setCheckedState( Toggles::BANDUPEDIP,
-                           Settings::getBanDupedIP() );
+                           Settings::getBanDupedIP( serverID ) );
 
     this->setCheckedState( Toggles::BANHACKERS,
-                           Settings::getBanHackers() );
+                           Settings::getBanHackers( serverID ) );
 
     this->setCheckedState( Toggles::REQSERNUM,
-                           Settings::getReqSernums() );
+                           Settings::getReqSernums( serverID ) );
 
     this->setCheckedState( Toggles::DISCONNECTIDLES,
-                           Settings::getDisconnectIdles() );
+                           Settings::getDisconnectIdles( serverID ) );
 
     this->setCheckedState( Toggles::ALLOWSSV,
-                           Settings::getAllowSSV() );
+                           Settings::getAllowSSV( serverID ) );
 
     this->setCheckedState( Toggles::LOGCOMMENTS,
-                           Settings::getLogComments() );
+                           Settings::getLogComments( serverID ) );
 
     this->setCheckedState( Toggles::FWDCOMMENTS,
-                           Settings::getFwdComments() );
+                           Settings::getFwdComments( serverID ) );
 
     this->setCheckedState( Toggles::INFORMADMINLOGIN,
-                           Settings::getInformAdminLogin() );
+                           Settings::getInformAdminLogin( serverID ) );
 
     this->setCheckedState( Toggles::ECHOCOMMENTS,
-                           Settings::getEchoComments() );
+                           Settings::getEchoComments( serverID ) );
 
     this->setCheckedState( Toggles::MINIMIZETOTRAY,
-                           Settings::getMinimizeToTray() );
+                           Settings::getMinimizeToTray( serverID ) );
 
     this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
-                           Settings::getSaveWindowPositions() );
+                           Settings::getSaveWindowPositions( serverID ) );
 }
 
 SettingsWidget::~SettingsWidget()
@@ -106,15 +107,15 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
     {
         case Toggles::REQPWD:
             {
-                QString pwd{ Settings::getPassword() };
+                QString pwd{ Settings::getPassword( serverID ) };
 
                 bool reUse{ false };
                 bool ok{ false };
 
-                Settings::setRequirePassword( state );
+                Settings::setRequirePassword( state, serverID );
                 if ( state.toBool() != pwdCheckState )
                 {
-                    if ( Settings::getRequirePassword() )
+                    if ( Settings::getRequirePassword( serverID ) )
                     {
                         //Recycyle the Old password. Assuming it wasn't deleted.
                         if ( !pwd.isEmpty() )
@@ -140,7 +141,7 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
                           || reUse )
                         {
                             if ( !reUse )
-                                Settings::setPassword( pwd );
+                                Settings::setPassword( pwd, serverID );
                         }
                         else
                         {
@@ -148,10 +149,10 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
                                         Qt::Unchecked );
 
                             state = false;
-                            Settings::setRequirePassword( state );
+                            Settings::setRequirePassword( state, serverID );
                         }
                     }
-                    else if ( !Settings::getRequirePassword()
+                    else if ( !Settings::getRequirePassword( serverID )
                               && !pwd.isEmpty() )
                     {
                         title = "Remove Password:";
@@ -160,7 +161,7 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
                         if ( Helper::confirmAction( this, title, prompt ) )
                         {
                             pwd.clear();
-                            Settings::setPassword( pwd );
+                            Settings::setPassword( pwd, serverID );
                         }
                     }
                 }
@@ -168,43 +169,43 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
             }
         break;
         case Toggles::REQADMINPWD:
-            Settings::setReqAdminAuth( state );
+            Settings::setReqAdminAuth( state, serverID );
         break;
         case Toggles::ALLOWDUPEDIP:
-            Settings::setAllowDupedIP( state );
+            Settings::setAllowDupedIP( state, serverID );
         break;
         case Toggles::BANDUPEDIP:
-            Settings::setBanDupedIP( state );
+            Settings::setBanDupedIP( state, serverID );
         break;
         case Toggles::BANHACKERS:
-            Settings::setBanHackers( state );
+            Settings::setBanHackers( state, serverID );
         break;
         case Toggles::REQSERNUM:
-            Settings::setReqSernums( state );
+            Settings::setReqSernums( state, serverID );
         break;
         case Toggles::DISCONNECTIDLES:
-            Settings::setDisconnectIdles( state );
+            Settings::setDisconnectIdles( state, serverID );
         break;
         case Toggles::ALLOWSSV:
-            Settings::setAllowSSV( state );
+            Settings::setAllowSSV( state, serverID );
         break;
         case Toggles::LOGCOMMENTS:
-            Settings::setLogComments( state );
+            Settings::setLogComments( state, serverID );
         break;
         case Toggles::FWDCOMMENTS:
-            Settings::setFwdComments( state );
+            Settings::setFwdComments( state, serverID );
         break;
         case Toggles::ECHOCOMMENTS:
-            Settings::setEchoComments( state );
+            Settings::setEchoComments( state, serverID );
         break;
         case Toggles::INFORMADMINLOGIN:
-            Settings::setInformAdminLogin( state );
+            Settings::setInformAdminLogin( state, serverID );
         break;
         case Toggles::MINIMIZETOTRAY:
-            Settings::setMinimizeToTray( state );
+            Settings::setMinimizeToTray( state, serverID );
         break;
         case Toggles::SAVEWINDOWPOSITIONS:
-            Settings::setSaveWindowPositions( state );
+            Settings::setSaveWindowPositions( state, serverID );
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";

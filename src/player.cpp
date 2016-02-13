@@ -2,8 +2,10 @@
 #include "includes.hpp"
 #include "player.hpp"
 
-Player::Player()
+Player::Player(QString svrID)
 {
+    serverID = svrID;
+
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
@@ -80,14 +82,14 @@ Player::Player()
             }
         }
 
-        if ( Settings::getDisconnectIdles()
+        if ( Settings::getDisconnectIdles( serverID )
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
             this->setDisconnected( true );
         }
 
         //Authenticate Remote Admins as required.
-        if ( Settings::getReqAdminAuth()
+        if ( Settings::getReqAdminAuth( serverID )
           && this->getIsAdmin() )
         {
             if ( this->getSernum_i() != 0
@@ -99,7 +101,7 @@ Player::Player()
                     if ( !this->getGotNewAuthPwd() )
                         this->setReqNewAuthPwd( true );
                 }
-                else if (( !Settings::getRequirePassword()
+                else if (( !Settings::getRequirePassword( serverID )
                         || this->getEnteredPwd() )
                        && !this->getReqNewAuthPwd() )
                 {
@@ -171,7 +173,7 @@ void Player::setSernum_i(quint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
-    if ( Settings::getReqSernums() && value == 0 )
+    if ( Settings::getReqSernums( serverID ) && value == 0 )
     {
         this->setDisconnected( true );
         return;
@@ -571,7 +573,7 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         if ( this->getSernum_i() == 0 )
         {
             //Disconnect the User if they have no SerNum, as we require SerNums.
-            if ( Settings::getReqSernums()
+            if ( Settings::getReqSernums( serverID )
               && id == 0 )
             {
                 this->setDisconnected( true );

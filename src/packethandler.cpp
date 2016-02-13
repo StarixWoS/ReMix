@@ -2,8 +2,9 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr)
+PacketHandler::PacketHandler(User* usr, ServerInfo* svr, QString svrID)
 {
+    serverID = svrID;
     server = svr;
     user = usr;
 
@@ -258,9 +259,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                             }
                         }
 
-                        if (( Settings::getReqSernums()
+                        if (( Settings::getReqSernums( serverID )
                            && Helper::serNumtoInt( sernum ) )
-                          || !Settings::getReqSernums() )
+                          || !Settings::getReqSernums( serverID ) )
                         {
                             if ( User::getIsBanned( sernum, User::tSERNUM )
                               || User::getIsBanned( wVar, User::tWV )
@@ -333,7 +334,8 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        server->sendMasterMessage( Settings::getBanishMesage(), plr, false );
+        server->sendMasterMessage( Settings::getBanishMesage( serverID ), plr,
+                                   false );
 
         tmpMsg = tmpMsg.arg( "Banned Info" )
                        .arg( plr->getPublicIP() )
@@ -345,7 +347,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     }
 
     //Disconnect and ban all duplicate IP's if required.
-    if ( !Settings::getAllowDupedIP() )
+    if ( !Settings::getAllowDupedIP( serverID ) )
     {
         QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -360,7 +362,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( plr->getPublicPort() )
                                    .arg( plr->getBioData() );
 
-                    if ( Settings::getBanDupedIP() )
+                    if ( Settings::getBanDupedIP( serverID ) )
                         user->addBan( nullptr, plr, reason );
 
                     if ( plr != nullptr )
@@ -453,7 +455,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
-                if ( Settings::getBanHackers() )
+                if ( Settings::getBanHackers( serverID ) )
                 {
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
@@ -550,7 +552,7 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
         QStringList vars = packet.split( ',' );
         QString val{ "" };
 
-        if ( Settings::getAllowSSV()
+        if ( Settings::getAllowSSV( serverID )
           && !vars.contains( "Admin", Qt::CaseInsensitive ))
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
@@ -584,7 +586,7 @@ void PacketHandler::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    if ( Settings::getAllowSSV()
+    if ( Settings::getAllowSSV( serverID )
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",

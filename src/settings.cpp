@@ -39,11 +39,12 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
 QSettings* Settings::prefs{ new QSettings( "preferences.ini",
                                            QSettings::IniFormat ) };
 
-Settings::Settings(QWidget *parent) :
+Settings::Settings(QWidget *parent, QString svrID) :
     QDialog(parent),
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
+    serverID = svrID;
 
     //Remove the "Help" button from the window title bars.
     {
@@ -61,15 +62,15 @@ Settings::Settings(QWidget *parent) :
     tabWidget = new QTabWidget( this );
     if ( tabWidget != nullptr )
     {
-        settings = new SettingsWidget( this );
+        settings = new SettingsWidget( this, serverID );
         if ( settings != nullptr )
             tabWidget->addTab( settings, "Settings" );
 
-        rules = new RulesWidget( this );
+        rules = new RulesWidget( this, serverID );
         if ( rules != nullptr )
             tabWidget->addTab( rules, "Rules" );
 
-        messages = new MessagesWidget( this );
+        messages = new MessagesWidget( this, serverID );
         if ( messages != nullptr )
             tabWidget->addTab( messages, "Messages" );
 
@@ -78,24 +79,25 @@ Settings::Settings(QWidget *parent) :
         ui->widget->layout()->addWidget( tabWidget );
     }
 
-    if ( this->getSaveWindowPositions() )
+    if ( this->getSaveWindowPositions( serverID ) )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                             this->metaObject()->className() ) };
+                             this->metaObject()->className(), serverID ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
+                                       this->metaObject()->className(),
+                                       serverID ) );
         }
     }
 }
 
 Settings::~Settings()
 {
-    if ( this->getSaveWindowPositions() )
+    if ( this->getSaveWindowPositions( serverID ) )
     {
         this->setWindowPositions( this->saveGeometry(),
-                                  this->metaObject()->className() );
+                                  this->metaObject()->className(), serverID );
     }
 
     tabWidget->deleteLater();
@@ -109,57 +111,58 @@ Settings::~Settings()
 
 //Static-Free Functions.
 void Settings::setSetting(const QString& key, const QString& subKey,
-                          QVariant& value)
+                          QVariant& value, QString& svrID)
 {
-    prefs->setValue( key % "/" % subKey, value );
+    prefs->setValue( svrID % "/" % key % "/" % subKey, value );
     prefs->sync();
 }
 
-QVariant Settings::getSetting(const QString& key, const QString& subKey)
+QVariant Settings::getSetting(const QString& key, const QString& subKey,
+                              QString& svrID)
 {
-    return prefs->value( key % "/" % subKey );
+    return prefs->value( svrID % "/" % key % "/" % subKey );
 }
 
-void Settings::setReqAdminAuth(QVariant& value)
+void Settings::setReqAdminAuth(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqAdminAuth ], value );
+                subKeys[ SubKeys::ReqAdminAuth ], value, svrID );
 }
 
-bool Settings::getReqAdminAuth()
+bool Settings::getReqAdminAuth(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqAdminAuth ] )
+                       subKeys[ SubKeys::ReqAdminAuth ], svrID )
               .toBool();
 }
 
-void Settings::setMOTDMessage(QVariant& value)
+void Settings::setMOTDMessage(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Messages ],
-                subKeys[ SubKeys::MOTD ], value );
+                subKeys[ SubKeys::MOTD ], value, svrID );
 }
 
-QString Settings::getMOTDMessage()
+QString Settings::getMOTDMessage(QString& svrID)
 {
     return getSetting( keys[ Keys::Messages ],
-                       subKeys[ SubKeys::MOTD ] )
+                       subKeys[ SubKeys::MOTD ], svrID )
               .toString();
 }
 
-void Settings::setBanishMesage(QVariant& value)
+void Settings::setBanishMesage(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Messages ],
-                subKeys[ SubKeys::BanishMsg ], value );
+                subKeys[ SubKeys::BanishMsg ], value, svrID );
 }
 
-QString Settings::getBanishMesage()
+QString Settings::getBanishMesage(QString& svrID)
 {
     return getSetting( keys[ Keys::Messages ],
-                       subKeys[ SubKeys::BanishMsg ] )
+                       subKeys[ SubKeys::BanishMsg ], svrID )
               .toString();
 }
 
-void Settings::setPassword(QString& value)
+void Settings::setPassword(QString& value, QString& svrID)
 {
     QVariant pwd{ value };
 
@@ -168,218 +171,219 @@ void Settings::setPassword(QString& value)
         pwd = Helper::hashPassword( value );
 
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::Password ], pwd );
+                subKeys[ SubKeys::Password ], pwd, svrID );
 }
 
-QString Settings::getPassword()
+QString Settings::getPassword(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::Password ] )
+                       subKeys[ SubKeys::Password ], svrID )
               .toString();
 }
 
-void Settings::setRequirePassword(QVariant& value)
+void Settings::setRequirePassword(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqPassword ], value );
+                subKeys[ SubKeys::ReqPassword ], value, svrID );
 }
 
-bool Settings::getRequirePassword()
+bool Settings::getRequirePassword(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqPassword ] )
+                       subKeys[ SubKeys::ReqPassword ], svrID )
               .toBool();
 }
 
-bool Settings::cmpServerPassword(QString& value)
+bool Settings::cmpServerPassword(QString& value, QString& svrID)
 {
     if ( !value.isEmpty() )
         value = Helper::hashPassword( value );
 
-    return ( getPassword() == value );
+    return ( getPassword( svrID ) == value );
 }
 
-void Settings::setAllowDupedIP(QVariant& value)
+void Settings::setAllowDupedIP(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowDupe ], value );
+                subKeys[ SubKeys::AllowDupe ], value, svrID );
 }
 
-bool Settings::getAllowDupedIP()
+bool Settings::getAllowDupedIP(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowDupe ] )
+                       subKeys[ SubKeys::AllowDupe ], svrID )
               .toBool();
 }
 
-void Settings::setBanDupedIP(QVariant& value)
+void Settings::setBanDupedIP(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::BanDupes ], value );
+                subKeys[ SubKeys::BanDupes ], value, svrID );
 }
 
-bool Settings::getBanDupedIP()
+bool Settings::getBanDupedIP(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::BanDupes ] )
+                       subKeys[ SubKeys::BanDupes ], svrID )
               .toBool();
 }
 
-void Settings::setBanHackers(QVariant& value)
+void Settings::setBanHackers(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AutoBan ], value );
+                subKeys[ SubKeys::AutoBan ], value, svrID );
 }
 
-bool Settings::getBanHackers()
+bool Settings::getBanHackers(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AutoBan ] )
+                       subKeys[ SubKeys::AutoBan ], svrID )
               .toBool();
 }
 
-void Settings::setReqSernums(QVariant& value)
+void Settings::setReqSernums(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqSerNum ], value );
+                subKeys[ SubKeys::ReqSerNum ], value, svrID );
 }
 
-bool Settings::getReqSernums()
+bool Settings::getReqSernums(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqSerNum ] )
+                       subKeys[ SubKeys::ReqSerNum ], svrID )
               .toBool();
 }
 
-void Settings::setDisconnectIdles(QVariant& value)
+void Settings::setDisconnectIdles(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowIdle ], value );
+                subKeys[ SubKeys::AllowIdle ], value, svrID );
 }
 
-bool Settings::getDisconnectIdles()
+bool Settings::getDisconnectIdles(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowIdle ] )
+                       subKeys[ SubKeys::AllowIdle ], svrID )
               .toBool();
 }
 
-void Settings::setAllowSSV(QVariant& value)
+void Settings::setAllowSSV(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowSSV ], value );
+                subKeys[ SubKeys::AllowSSV ], value, svrID );
 }
 
-bool Settings::getAllowSSV()
+bool Settings::getAllowSSV(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowSSV ] )
+                       subKeys[ SubKeys::AllowSSV ], svrID )
               .toBool();
 }
 
-void Settings::setLogComments(QVariant& value)
+void Settings::setLogComments(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::LogComments ], value );
+                subKeys[ SubKeys::LogComments ], value, svrID );
 }
 
-bool Settings::getLogComments()
+bool Settings::getLogComments(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::LogComments ] )
+                       subKeys[ SubKeys::LogComments ], svrID )
               .toBool();
 }
 
-void Settings::setFwdComments(QVariant& value)
+void Settings::setFwdComments(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::FwdComments ], value );
+                subKeys[ SubKeys::FwdComments ], value, svrID );
 }
 
-bool Settings::getFwdComments()
+bool Settings::getFwdComments(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::FwdComments ] )
+                       subKeys[ SubKeys::FwdComments ], svrID )
               .toBool();
 }
 
-void Settings::setInformAdminLogin(QVariant& value)
+void Settings::setInformAdminLogin(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::InformAdminLogin ], value );
+                subKeys[ SubKeys::InformAdminLogin ], value, svrID );
 }
 
-bool Settings::getInformAdminLogin()
+bool Settings::getInformAdminLogin(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::InformAdminLogin ] )
+                       subKeys[ SubKeys::InformAdminLogin ], svrID )
               .toBool();
 }
 
-void Settings::setEchoComments(QVariant& value)
+void Settings::setEchoComments(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::EchoComments ], value );
+                subKeys[ SubKeys::EchoComments ], value, svrID );
 }
 
-bool Settings::getEchoComments()
+bool Settings::getEchoComments(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::EchoComments ] )
+                       subKeys[ SubKeys::EchoComments ], svrID )
               .toBool();
 }
 
-void Settings::setMinimizeToTray(QVariant& value)
+void Settings::setMinimizeToTray(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::MinimizeToTray ], value );
+                subKeys[ SubKeys::MinimizeToTray ], value, svrID );
 }
 
-bool Settings::getMinimizeToTray()
+bool Settings::getMinimizeToTray(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::MinimizeToTray ] )
+                       subKeys[ SubKeys::MinimizeToTray ], svrID )
               .toBool();
 }
 
-void Settings::setSaveWindowPositions(QVariant& value)
+void Settings::setSaveWindowPositions(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::SaveWindowPositions ], value );
+                subKeys[ SubKeys::SaveWindowPositions ], value, svrID );
 }
 
-bool Settings::getSaveWindowPositions()
+bool Settings::getSaveWindowPositions(QString& svrID)
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::SaveWindowPositions ] )
+                       subKeys[ SubKeys::SaveWindowPositions ], svrID )
               .toBool();
 }
 
-void Settings::setWindowPositions(QByteArray geometry, const char* dialog)
+void Settings::setWindowPositions(QByteArray geometry, const char* dialog,
+                                  QString& svrID)
 {
     QString key{ dialog };
     QVariant value{ geometry };
 
-    setSetting( keys[ Keys::Positions ], key, value );
+    setSetting( keys[ Keys::Positions ], key, value, svrID );
 }
 
-QByteArray Settings::getWindowPositions(const char* dialog)
+QByteArray Settings::getWindowPositions(const char* dialog, QString& svrID)
 {
     QString key{ dialog };
-    return getSetting( keys[ Keys::Positions ], key )
+    return getSetting( keys[ Keys::Positions ], key, svrID )
               .toByteArray();
 }
 
-void Settings::setServerID(QVariant& value)
+void Settings::setServerID(QVariant& value, QString& svrID)
 {
     setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::Extension ], value );
+                subKeys[ SubKeys::Extension ], value, svrID );
 }
 
-int Settings::getServerID()
+int Settings::getServerID(QString& svrID)
 {
     qint32 id = getSetting( keys[ Keys::Setting ],
-                            subKeys[ SubKeys::Extension ] )
+                            subKeys[ SubKeys::Extension ], svrID )
                    .toInt();
     if ( id <= 0 )
     {
@@ -388,7 +392,7 @@ int Settings::getServerID()
             id = randDev->genRandNum( 1, 0x7FFFFFFE );
 
         QVariant var{ id };
-        setServerID( var );
+        setServerID( var, svrID );
 
         delete randDev;
     }
@@ -397,6 +401,6 @@ int Settings::getServerID()
 
 bool Settings::getIsInvalidIPAddress(const QString& value)
 {
-    return getSetting( keys[ Keys::WrongIP ], value )
+    return prefs->value( keys[ Keys::WrongIP ] % "/" % value )
               .toBool();
 }

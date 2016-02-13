@@ -27,6 +27,8 @@ class ReMixWidget : public QWidget
     QPalette defaultPalette;
     bool nightMode{ false };
 
+    QString serverID{ "" };
+
     enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
                    FUDGE = 5 };
     enum Themes{ LIGHT = 0, DARK = 1 };
@@ -34,12 +36,16 @@ class ReMixWidget : public QWidget
 
     public:
         explicit ReMixWidget(QWidget* parent = nullptr, User* usr = nullptr,
-                             QStringList* argList = nullptr);
+                             QStringList* argList = nullptr,
+                             QString svrID = "0" );
         ~ReMixWidget();
 
         void sendServerMessage(QString msg, Player* plr, bool toAll);
         qint32 getPlayerCount();
         QString getServerName() const;
+
+        Settings* getSettings() const;
+        Server* getTcpServer() const;
 
     private:
         void parseCMDLArgs(QStringList* argList);
@@ -58,6 +64,9 @@ class ReMixWidget : public QWidget
         void on_serverName_textChanged(const QString &arg1);
 
         void on_nightMode_clicked();
+
+    signals:
+        void serverNameChanged(const QString& name);
 
     private:
         Ui::ReMixWidget *ui;

@@ -18,6 +18,8 @@ class PacketHandler : public QObject
 
     QTimer masterCheckIn;
 
+    QString serverID{ "" };
+
 
 #ifdef DECRYPT_PACKET_PLUGIN
     PacketDecryptInterface* packetInterface{ nullptr };
@@ -26,7 +28,7 @@ class PacketHandler : public QObject
 #endif
 
     public:
-        PacketHandler(User* usr, ServerInfo* svr);
+        PacketHandler(User* usr, ServerInfo* svr, QString svrID = "0");
         ~PacketHandler();
 
         void startMasterCheckIn();

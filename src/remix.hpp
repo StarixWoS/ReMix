@@ -16,9 +16,8 @@ class ReMix : public QMainWindow
 {
     Q_OBJECT
 
-    ReMixWidget* serverInstance{ nullptr };
+    ReMixTabWidget* serverInstance{ nullptr };
     ServerInfo* server{ nullptr };
-    Settings* settings{ nullptr };
     RandDev* randDev{ nullptr };
     User* user{ nullptr };
 
@@ -27,6 +26,8 @@ class ReMix : public QMainWindow
     QIcon trayIcon;
 
     bool hasSysTray{ false };
+
+    QString serverID{ "0" };
 
     private:
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )

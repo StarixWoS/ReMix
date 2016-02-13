@@ -3,26 +3,27 @@
 #include "messageswidget.hpp"
 #include "ui_messageswidget.h"
 
-MessagesWidget::MessagesWidget(QWidget *parent) :
+MessagesWidget::MessagesWidget(QWidget *parent, QString svrID) :
     QWidget(parent),
     ui(new Ui::MessagesWidget)
 {
     ui->setupUi(this);
+    serverID = svrID;
 
-    QVariant text = Settings::getMOTDMessage();
+    QVariant text = Settings::getMOTDMessage( serverID );
     if ( text.toString().isEmpty() )
     {
         text = ui->motdEdit->toPlainText();
-        Settings::setMOTDMessage( text );
+        Settings::setMOTDMessage( text, serverID );
     }
     else
         ui->motdEdit->setText( text.toString() );
 
-    text = Settings::getBanishMesage();
+    text = Settings::getBanishMesage( serverID );
     if ( text.toString().isEmpty() )
     {
         text = ui->banishedEdit->toPlainText();
-        Settings::setBanishMesage( text );
+        Settings::setBanishMesage( text, serverID );
     }
     else
         ui->banishedEdit->setText( text.toString() );
@@ -34,7 +35,7 @@ MessagesWidget::MessagesWidget(QWidget *parent) :
     QObject::connect( &motdUpdate, &QTimer::timeout, [=]()
     {
         QVariant var{ ui->motdEdit->toPlainText() };
-        Settings::setMOTDMessage( var );
+        Settings::setMOTDMessage( var, serverID );
     });
 
     //Update the MOTD file after the timer has elapsed.
@@ -44,7 +45,7 @@ MessagesWidget::MessagesWidget(QWidget *parent) :
     QObject::connect( &banMUpdate, &QTimer::timeout, [=]()
     {
         QVariant var{ ui->banishedEdit->toPlainText() };
-        Settings::setBanishMesage( var );
+        Settings::setBanishMesage( var, serverID );
     });
 }
 

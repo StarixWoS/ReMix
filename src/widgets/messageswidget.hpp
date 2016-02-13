@@ -18,8 +18,10 @@ class MessagesWidget : public QWidget
     QTimer motdUpdate;
     QTimer banMUpdate;
 
+    QString serverID{ "" };
+
     public:
-        explicit MessagesWidget(QWidget *parent = 0);
+        explicit MessagesWidget(QWidget *parent = 0, QString svrID = "0");
         ~MessagesWidget();
 
     private slots:

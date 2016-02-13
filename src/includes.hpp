@@ -16,6 +16,7 @@
     #include <QHostAddress>
     #include <QInputDialog>
     #include <QtConcurrent>
+    #include <QToolButton>
     #include <QMainWindow>
     #include <QMessageBox>
     #include <QStringList>
@@ -70,6 +71,7 @@
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
     #include "widgets/messageswidget.hpp"
+    #include "widgets/remixtabwidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/userdelegate.hpp"
     #include "widgets/remixwidget.hpp"

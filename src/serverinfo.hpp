@@ -83,8 +83,9 @@ class ServerInfo
 
     bool logFiles{ false };
 
+    QString serverTabID{ "" };
     public:
-        ServerInfo();
+        ServerInfo(QString svrID = "0");
         ~ServerInfo();
 
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);

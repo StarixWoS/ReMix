@@ -14,6 +14,8 @@ class CmdHandler : public QObject
     User* user{ nullptr };
     RandDev* randDev{ nullptr };
 
+    QString serverID{ "" };
+
     static const QString commands[ ADMIN_COMMAND_COUNT ];
 
     public:
@@ -24,7 +26,7 @@ class CmdHandler : public QObject
                    GETCOMMENTS = 14, CHSETTINGS = 15, VANISH = 16 };
 
         explicit CmdHandler(QObject* parent = nullptr, ServerInfo* svr = nullptr,
-                            User* uDlg = nullptr);
+                            User* uDlg = nullptr, QString svrID = "0");
         ~CmdHandler();
 
         bool canUseAdminCommands(Player* plr);

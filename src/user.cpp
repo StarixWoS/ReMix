@@ -30,10 +30,11 @@ User::User(QWidget* parent) :
         this->setWindowIcon( icon );
     }
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSaveWindowPositions( serverID ) )
     {
         this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
+                                   this->metaObject()->className(),
+                                   serverID ) );
     }
 
     //Setup our Random Device
@@ -68,10 +69,11 @@ User::User(QWidget* parent) :
 
 User::~User()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSaveWindowPositions( serverID ) )
     {
         Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
+                                      this->metaObject()->className(),
+                                      serverID );
     }
 
     userData->deleteLater();
