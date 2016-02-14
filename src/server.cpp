@@ -4,6 +4,7 @@
 
 Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
                QStandardItemModel* plrView, QString svrID)
+    : QTcpServer(parent)
 {
     serverID = svrID;
 
@@ -33,6 +34,9 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
 Server::~Server()
 {
+    pktHandle->disconnect();
+    pktHandle->deleteLater();
+
     serverComments->close();
     serverComments->deleteLater();
 

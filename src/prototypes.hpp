@@ -163,6 +163,7 @@
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
+        enum Themes{ LIGHT = 0, DARK = 1 };
 
     #endif  // REMIX_GLOBALS
 

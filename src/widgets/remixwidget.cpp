@@ -261,35 +261,6 @@ void ReMixWidget::initUIUpdate()
     });
 }
 
-void ReMixWidget::applyThemes(qint32 type)
-{
-    QPalette palette;
-    if ( type == Themes::DARK )
-    {
-        palette.setColor( QPalette::Window, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::WindowText, Qt::white );
-        palette.setColor( QPalette::Base, QColor( 25,25,25 ) );
-        palette.setColor( QPalette::AlternateBase,
-                          QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ToolTipBase, Qt::white );
-        palette.setColor( QPalette::ToolTipText, Qt::white );
-        palette.setColor( QPalette::Text, Qt::white );
-        palette.setColor( QPalette::Button, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ButtonText, Qt::white );
-        palette.setColor( QPalette::BrightText, Qt::red );
-        palette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::Highlight,
-                          QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::HighlightedText, Qt::black );
-    }
-    else if ( type == Themes::LIGHT )
-    {
-        palette = defaultPalette;
-    }
-
-    qApp->setPalette( palette );
-}
-
 void ReMixWidget::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
@@ -368,19 +339,4 @@ void ReMixWidget::on_serverName_textChanged(const QString &arg1)
         server->setName( arg1 );
         emit this->serverNameChanged( arg1 );
     }
-}
-
-void ReMixWidget::on_nightMode_clicked()
-{
-    qint32 type{ 1 };
-    if ( nightMode )
-    {
-        ui->nightMode->setText( "Night Mode" );
-        type = 0;
-    }
-    else
-        ui->nightMode->setText( "Normal Mode" );
-
-    this->applyThemes( type );
-    nightMode = !nightMode;
 }

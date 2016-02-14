@@ -35,52 +35,6 @@
    <property name="spacing">
     <number>5</number>
    </property>
-   <item row="0" column="0" colspan="2">
-    <widget class="QCheckBox" name="isPublicServer">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Register as a public server</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QLineEdit" name="serverName">
-     <property name="text">
-      <string>Server Name</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
-    <widget class="QLabel" name="onlineTime">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>00:00:00</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1" colspan="4">
-    <widget class="QLabel" name="networkStatus">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" rowspan="2">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="sizePolicy">
@@ -401,11 +355,37 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="1" colspan="4">
+   <item row="2" column="1" colspan="3">
     <widget class="QWidget" name="tmpWidget" native="true"/>
    </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QCheckBox" name="isPublicServer">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Register as a public server</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="3">
+    <widget class="QLabel" name="networkStatus">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="3">
-    <widget class="QPushButton" name="nightMode">
+    <widget class="QLabel" name="onlineTime">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -413,7 +393,14 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Night Mode</string>
+      <string>00:00:00</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLineEdit" name="serverName">
+     <property name="text">
+      <string>Server Name</string>
      </property>
     </widget>
    </item>

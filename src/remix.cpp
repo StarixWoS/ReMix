@@ -261,8 +261,8 @@ bool ReMix::rejectCloseEvent()
     if ( serverInstance == nullptr )
         return false;
 
-    QString title = QString( "Close [ %1 ]:" )
-                        ;//.arg( serverInstance->getServerName() );
+    QString title = QString( "Close [ %1 ] Server Instances:" )
+                        .arg( serverInstance->getServerCount() );
 
     QString prompt = QString( "You are about to shut down your ReMix game "
                               "server!\r\nThis will affect [ %1 ] User(s) "

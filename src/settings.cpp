@@ -104,7 +104,6 @@ Settings::~Settings()
     settings->deleteLater();
     messages->deleteLater();
     rules->deleteLater();
-    prefs->deleteLater();
 
     delete ui;
 }

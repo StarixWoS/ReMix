@@ -51,8 +51,6 @@ class ReMixWidget : public QWidget
         void parseCMDLArgs(QStringList* argList);
         void initUIUpdate();
 
-        void applyThemes(qint32 type);
-
     private slots:
         void on_openSettings_clicked();
         void on_openUserComments_clicked();
@@ -62,8 +60,6 @@ class ReMixWidget : public QWidget
 
         void on_serverPort_textChanged(const QString &arg1);
         void on_serverName_textChanged(const QString &arg1);
-
-        void on_nightMode_clicked();
 
     signals:
         void serverNameChanged(const QString& name);

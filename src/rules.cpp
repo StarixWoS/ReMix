@@ -40,7 +40,6 @@ QString Rules::getRuleSet(QString& svrID)
                                  Settings::keys[ Settings::Rules ] );
 
     QStringList ruleList{ Settings::prefs->allKeys() };
-    qDebug() << ruleList;
     QString rules{ "" };
 
     bool valIsBool{ false };
