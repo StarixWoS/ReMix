@@ -121,35 +121,47 @@ void ReMixTabWidget::createTabButtons()
         if ( user == nullptr )
             return;
 
-        QStringList list1{"/game=WoS", "/fudge",
-                         "/name=Well of Lost Souls ReMix1" };
-
-        quint32 serverID{ 0 };
-        ReMixWidget* instance{ nullptr };
-        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+        CreateInstance* createDialog{ new CreateInstance( this ) };
+        QObject::connect( createDialog, &CreateInstance::accepted,
+                          [=]()
         {
-            instance = servers[ i ];
-            if ( instance == nullptr )
+            QStringList svrArgs = createDialog->getServerArgs().split( "/" );
+            if ( svrArgs.isEmpty() )
             {
-                serverID = i;
-                break;
+                svrArgs << "/game=WoS"
+                        << "/fudge"
+                        << "/name=Well of Lost Souls ReMix";
             }
-            else
-                serverID = MAX_SERVER_COUNT + 1;
-        }
 
-        if ( this->count() <= MAX_SERVER_COUNT )
-        {
-            instanceCount += 1;
-            servers[ serverID ] = new ReMixWidget( this, user, &list1,
-                                                   QString::number( serverID ) );
-            this->insertTab( serverID, servers[ serverID ],
-                             servers[ serverID ]->getServerName() );
+            quint32 serverID{ 0 };
+            ReMixWidget* instance{ nullptr };
+            for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+            {
+                instance = servers[ i ];
+                if ( instance == nullptr )
+                {
+                    serverID = i;
+                    break;
+                }
+                else
+                    serverID = MAX_SERVER_COUNT + 1;
+            }
 
-            this->connectNameChange( serverID );
-        }
+            if ( this->count() <= MAX_SERVER_COUNT )
+            {
+                instanceCount += 1;
+                servers[ serverID ] = new ReMixWidget( this, user, &svrArgs,
+                                                       QString::number( serverID ) );
+                this->insertTab( serverID, servers[ serverID ],
+                                 servers[ serverID ]->getServerName() );
+
+                this->connectNameChange( serverID );
+            }
+            createDialog->close();
+            createDialog->disconnect();
+            createDialog->deleteLater();
+        });
     } );
-
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
@@ -260,7 +272,6 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
     quint32 prevTab{ this->getPrevTabIndex() };
 
     ReMixWidget* prevServer{ servers[ prevTab ] };
-
     if ( prevServer == nullptr )
         return;
 

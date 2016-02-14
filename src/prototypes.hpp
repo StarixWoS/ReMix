@@ -87,6 +87,7 @@
     class RulesWidget;
 
     //GUI and Data Storage Classes.
+    class CreateInstance;
     class PacketHandler;
     class ServerInfo;
     class CmdHandler;
@@ -159,7 +160,10 @@
             //Size of the Server Usage array corresponding to 48 hours.
             SERVER_USAGE_48_HOURS = 288,
 
+            //Maximum Server Count a User can have at any time.
             MAX_SERVER_COUNT = 19,
+
+            GAME_NAME_COUNT = 4,
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

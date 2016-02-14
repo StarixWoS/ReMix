@@ -53,6 +53,7 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/widgets/userdelegate.cpp \
            src/widgets/remixwidget.cpp \
            src/widgets/ruleswidget.cpp \
+           src/createinstance.cpp \
            src/packethandler.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
@@ -78,6 +79,7 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/widgets/userdelegate.hpp \
            src/widgets/remixwidget.hpp \
            src/widgets/ruleswidget.hpp \
+           src/createinstance.hpp \
            src/packethandler.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
@@ -99,6 +101,7 @@ FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/plrlistwidget.ui \
          ui/widgets/remixwidget.ui \
          ui/widgets/ruleswidget.ui \
+         ui/createinstance.ui \
          ui/comments.ui \
          ui/settings.ui \
          ui/sendmsg.ui \

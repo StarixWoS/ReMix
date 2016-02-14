@@ -78,6 +78,7 @@
     #include "widgets/ruleswidget.hpp"
 
     //GUI and Data Storage Clases.
+    #include "createinstance.hpp"
     #include "packethandler.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
