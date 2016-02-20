@@ -128,10 +128,10 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
             if ( !msg.isEmpty() )
             {
                 //Echo the chat back to the User.
-                if ( Settings::getEchoComments( serverID ) )
+                if ( Settings::getEchoComments() )
                     server->sendMasterMessage( "Echo: " % msg, plr, false );
 
-                if ( Settings::getFwdComments( serverID ) )
+                if ( Settings::getFwdComments() )
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
@@ -546,7 +546,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     if ( plr->getPwdRequested()
       && !plr->getEnteredPwd() )
     {
-        if ( Settings::cmpServerPassword( pwd, serverID ) )
+        if ( Settings::cmpServerPassword( pwd ) )
         {
             response = response.arg( valid );
 
@@ -573,7 +573,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
             plr->setGotAuthPwd( true );
 
             //Inform Other Users of this Remote-Admin's login if enabled.
-            if ( Settings::getInformAdminLogin( serverID ) )
+            if ( Settings::getInformAdminLogin() )
             {
                 QString message{ "Remote Admin [ "
                                  % plr->getSernum_s()
@@ -656,7 +656,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
 
     //Inform Other Users of this Remote-Admin's login if enabled.
     if ( registered
-      && Settings::getInformAdminLogin( serverID ) )
+      && Settings::getInformAdminLogin() )
     {
         QString message{ "User [ "
                        % plr->getSernum_s()

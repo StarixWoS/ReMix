@@ -259,9 +259,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                             }
                         }
 
-                        if (( Settings::getReqSernums( serverID )
+                        if (( Settings::getReqSernums()
                            && Helper::serNumtoInt( sernum ) )
-                          || !Settings::getReqSernums( serverID ) )
+                          || !Settings::getReqSernums() )
                         {
                             if ( User::getIsBanned( sernum, User::tSERNUM )
                               || User::getIsBanned( wVar, User::tWV )
@@ -347,7 +347,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
     }
 
     //Disconnect and ban all duplicate IP's if required.
-    if ( !Settings::getAllowDupedIP( serverID ) )
+    if ( !Settings::getAllowDupedIP() )
     {
         QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -362,7 +362,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( plr->getPublicPort() )
                                    .arg( plr->getBioData() );
 
-                    if ( Settings::getBanDupedIP( serverID ) )
+                    if ( Settings::getBanDupedIP() )
                         user->addBan( nullptr, plr, reason );
 
                     if ( plr != nullptr )
@@ -455,7 +455,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
-                if ( Settings::getBanHackers( serverID ) )
+                if ( Settings::getBanHackers() )
                 {
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
@@ -552,7 +552,7 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
         QStringList vars = packet.split( ',' );
         QString val{ "" };
 
-        if ( Settings::getAllowSSV( serverID )
+        if ( Settings::getAllowSSV()
           && !vars.contains( "Admin", Qt::CaseInsensitive ))
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
@@ -586,7 +586,7 @@ void PacketHandler::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    if ( Settings::getAllowSSV( serverID )
+    if ( Settings::getAllowSSV()
       && !vars.contains( "Admin", Qt::CaseInsensitive ))
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",

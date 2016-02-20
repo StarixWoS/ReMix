@@ -247,7 +247,7 @@ Player* ServerInfo::createPlayer(int slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
-        players[ slot ] = new Player();
+        players[ slot ] = new Player( serverTabID );
         players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
         return players[ slot ];
@@ -383,7 +383,7 @@ void ServerInfo::sendServerRules(Player* plr)
 void ServerInfo::sendServerGreeting(Player* plr)
 {
     QString greeting = Settings::getMOTDMessage( serverTabID );
-    if ( Settings::getRequirePassword( serverTabID ) )
+    if ( Settings::getRequirePassword() )
     {
         greeting.append( " Password required: Please reply with (/login *PASS)"
                          " or be disconnected." );

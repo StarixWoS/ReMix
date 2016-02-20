@@ -21,16 +21,14 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
         //this->setWindowModality( Qt::WindowModal );
     }
 
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className(),
-                                    serverID ) };
+                                    this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className(),
-                                       serverID ) );
+                                       this->metaObject()->className() ) );
         }
     }
 
@@ -44,11 +42,10 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
 SendMsg::~SendMsg()
 {
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    if ( Settings::getSaveWindowPositions() )
     {
         Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className(),
-                                      serverID );
+                                      this->metaObject()->className() );
     }
     delete ui;
 }

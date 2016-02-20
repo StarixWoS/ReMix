@@ -17,6 +17,27 @@ CreateInstance::CreateInstance(QWidget *parent) :
     ui(new Ui::CreateInstance)
 {
     ui->setupUi(this);
+    QStringList oldServers{ Settings::prefs->childGroups() };
+
+    QString name{ "" };
+    bool skip{ false };
+    for ( int i = 0; i < oldServers.count(); ++i )
+    {
+        name = oldServers.at( i );
+        for ( int i = 0; i < SETTINGS_KEY_COUNT; ++i )
+        {
+            if ( name.compare( Settings::keys[ i ],
+                               Qt::CaseInsensitive ) == 0 )
+            {
+                skip = true;
+            }
+        }
+
+        if ( !skip )
+            ui->oldServers->addItem( name );
+
+        skip = false;
+    }
     this->show();
 }
 
@@ -32,6 +53,11 @@ CreateInstance::~CreateInstance()
 QString CreateInstance::getServerArgs() const
 {
     return serverArgs;
+}
+
+QString CreateInstance::getServerName() const
+{
+    return ui->serverName->text();
 }
 
 void CreateInstance::setServerArgs(const QString& value)
@@ -72,4 +98,9 @@ void CreateInstance::closeEvent(QCloseEvent* event)
     }
     else
         QDialog::closeEvent( event );
+}
+
+void CreateInstance::on_oldServers_currentIndexChanged(int)
+{
+    ui->serverName->setText( ui->oldServers->currentText() );
 }

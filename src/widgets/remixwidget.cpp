@@ -22,15 +22,20 @@ ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
     randDev = new RandDev();
 
     //Setup Objects.
-    settings = new Settings( this, svrID );
-    server = new ServerInfo( svrID );
+    rules = new RulesWidget( this, serverID );
+    messages = new MessagesWidget( this, serverID );
+
+    settings = ReMix::getGlobalSettings();
+    settings->addTabObjects( messages, rules, serverID );
+
+    server = new ServerInfo( serverID );
     user = usr;
 
     plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
-    server->setServerID( Settings::getServerID( svrID ) );
+    server->setServerID( Settings::getServerID( serverID ) );
     server->setHostInfo( QHostInfo() );
 
     //Load Data from our CommandLine Args.
@@ -61,8 +66,7 @@ ReMixWidget::~ReMixWidget()
 
     plrWidget->deleteLater();
 
-    settings->close();
-    settings->deleteLater();
+    settings->remTabObjects( serverID );
 
     delete randDev;
     delete server;
@@ -96,6 +100,11 @@ Settings* ReMixWidget::getSettings() const
 Server* ReMixWidget::getTcpServer() const
 {
     return tcpServer;
+}
+
+QString& ReMixWidget::getServerID()
+{
+    return serverID;
 }
 
 void ReMixWidget::parseCMDLArgs(QStringList* argList)
@@ -162,6 +171,9 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 break;
                 case CMDLArgs::FUDGE:
                     server->setLogFiles( true );
+                break;
+                case CMDLArgs::RELOAD:
+                    emit reloadOldServersSignal();
                 break;
                 default:
                     qDebug() << "Unknown Command Line Argument: " << tmp;

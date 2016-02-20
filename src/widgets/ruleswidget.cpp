@@ -4,7 +4,7 @@
 #include "ui_ruleswidget.h"
 
 RulesWidget::RulesWidget(QWidget *parent, QString svrID) :
-    QWidget(parent),
+    //QWidget(parent),
     ui(new Ui::RulesWidget)
 {
     ui->setupUi(this);

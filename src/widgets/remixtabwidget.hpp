@@ -25,8 +25,7 @@ class ReMixTabWidget : public QTabWidget
     bool nightMode{ false };
 
     public:
-        explicit ReMixTabWidget(QWidget *parent = 0, User* usr = nullptr,
-                                QStringList* argList = nullptr);
+        explicit ReMixTabWidget(QWidget *parent = 0, User* usr = nullptr);
         ~ReMixTabWidget();
 
         void sendMultiServerMessage(QString msg, Player* plr, bool toAll);
@@ -39,6 +38,7 @@ class ReMixTabWidget : public QTabWidget
 
     private:
         void createTabButtons();
+        void createServer();
         void applyThemes(qint32 type);
 
     private slots:

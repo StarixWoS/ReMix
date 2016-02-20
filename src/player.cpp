@@ -82,14 +82,14 @@ Player::Player(QString svrID)
             }
         }
 
-        if ( Settings::getDisconnectIdles( serverID )
+        if ( Settings::getDisconnectIdles()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
             this->setDisconnected( true );
         }
 
         //Authenticate Remote Admins as required.
-        if ( Settings::getReqAdminAuth( serverID )
+        if ( Settings::getReqAdminAuth()
           && this->getIsAdmin() )
         {
             if ( this->getSernum_i() != 0
@@ -101,7 +101,7 @@ Player::Player(QString svrID)
                     if ( !this->getGotNewAuthPwd() )
                         this->setReqNewAuthPwd( true );
                 }
-                else if (( !Settings::getRequirePassword( serverID )
+                else if (( !Settings::getRequirePassword()
                         || this->getEnteredPwd() )
                        && !this->getReqNewAuthPwd() )
                 {
@@ -173,7 +173,7 @@ void Player::setSernum_i(quint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
-    if ( Settings::getReqSernums( serverID ) && value == 0 )
+    if ( Settings::getReqSernums() && value == 0 )
     {
         this->setDisconnected( true );
         return;
@@ -573,7 +573,7 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         if ( this->getSernum_i() == 0 )
         {
             //Disconnect the User if they have no SerNum, as we require SerNums.
-            if ( Settings::getReqSernums( serverID )
+            if ( Settings::getReqSernums()
               && id == 0 )
             {
                 this->setDisconnected( true );

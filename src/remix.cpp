@@ -3,30 +3,31 @@
 #include "remix.hpp"
 #include "ui_remix.h"
 
+Settings* ReMix::settings;
+
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
 
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    serverID = "";
+    if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className(),
-                                    serverID ) };
+                                    this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className(),
-                                       serverID ) );
+                                       this->metaObject()->className() ) );
         }
     }
 
     //Setup Objects.
+    settings = new Settings( this );
     user = new User( this );
 
-    QStringList args = qApp->arguments();
-    serverInstance = new ReMixTabWidget( this, user, &args );
+    serverInstance = new ReMixTabWidget( this, user );
     ui->frame->layout()->addWidget( serverInstance );
 
     //Initialize our Tray Icon if available.
@@ -37,11 +38,10 @@ ReMix::ReMix(QWidget *parent) :
 
 ReMix::~ReMix()
 {
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    if ( Settings::getSaveWindowPositions() )
     {
         Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className(),
-                                      serverID);
+                                      this->metaObject()->className() );
     }
 
     if ( trayObject != nullptr )
@@ -220,10 +220,18 @@ void ReMix::getSynRealData(ServerInfo* svr)
     }
 }
 
+Settings* ReMix::getGlobalSettings()
+{
+    if ( settings == nullptr )
+        settings = new Settings();
+
+    return settings;
+}
+
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
-    if ( Settings::getMinimizeToTray( serverID )
+    if ( Settings::getMinimizeToTray()
       && hasSysTray )
     {
         if ( event->type() == QEvent::WindowStateChange )

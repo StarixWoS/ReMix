@@ -15,7 +15,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     user = usr;
 
     //Setup Objects.
-    serverComments = new Comments( parent );
+    serverComments = new Comments( parent, svrID );
     pktHandle = new PacketHandler( user, server, svrID );
 
     //Connect Objects.
@@ -342,7 +342,7 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
                  "Please enter your password with the command (/login *PASS) "
                  "or be denied access to the server. Thank you!" };
 
-    if ( Settings::getReqAdminAuth( serverID )
+    if ( Settings::getReqAdminAuth()
       && plr->getIsAdmin() )
     {
         plr->setReqAuthPwd( true );

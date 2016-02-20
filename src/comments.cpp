@@ -9,6 +9,7 @@ Comments::Comments(QWidget *parent, QString svrID) :
 {
     ui->setupUi(this);
     serverID = svrID;
+    qDebug() << serverID;
 
     //Remove the "Help" button from the window title bars.
     {
@@ -20,27 +21,24 @@ Comments::Comments(QWidget *parent, QString svrID) :
         this->setWindowIcon( icon );
     }
 
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className(),
-                                    serverID ) };
+                                    this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
         {
             this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className(),
-                                       serverID ) );
+                                       this->metaObject()->className() ) );
         }
     }
 }
 
 Comments::~Comments()
 {
-    if ( Settings::getSaveWindowPositions( serverID ) )
+    if ( Settings::getSaveWindowPositions() )
     {
         Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className(),
-                                      serverID  );
+                                      this->metaObject()->className() );
     }
     delete ui;
 }
@@ -92,7 +90,7 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    if ( Settings::getLogComments( serverID ) )
+    if ( Settings::getLogComments() )
     {
         QString log = QDate::currentDate()
                        .toString( "logs/Comments.txt" );

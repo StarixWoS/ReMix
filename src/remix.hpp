@@ -41,6 +41,10 @@ class ReMix : public QMainWindow
 
         static void getSynRealData(ServerInfo* svr);
 
+    public:
+        static Settings* settings;
+        static Settings* getGlobalSettings();
+
     private slots:
         //Handle Minimize events.
         #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )

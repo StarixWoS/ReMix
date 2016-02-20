@@ -23,6 +23,7 @@ class CreateInstance : public QDialog
         ~CreateInstance();
 
         QString getServerArgs() const;
+        QString getServerName() const;
         void setServerArgs(const QString& value);
 
     private slots:
@@ -30,6 +31,8 @@ class CreateInstance : public QDialog
         void on_close_clicked();
 
         void closeEvent(QCloseEvent* event);
+
+        void on_oldServers_currentIndexChanged(int);
 
     private:
         Ui::CreateInstance *ui;

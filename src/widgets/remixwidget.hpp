@@ -15,6 +15,9 @@ class ReMixWidget : public QWidget
 {
     Q_OBJECT
 
+    MessagesWidget* messages{ nullptr };
+    RulesWidget* rules{ nullptr };
+
     PlrListWidget* plrWidget{ nullptr };
 
     Server* tcpServer{ nullptr };
@@ -30,7 +33,7 @@ class ReMixWidget : public QWidget
     QString serverID{ "" };
 
     enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
-                   FUDGE = 5 };
+                   FUDGE = 5, RELOAD = 6 };
     enum Themes{ LIGHT = 0, DARK = 1 };
     static const QStringList cmdlArgs;
 
@@ -46,6 +49,8 @@ class ReMixWidget : public QWidget
 
         Settings* getSettings() const;
         Server* getTcpServer() const;
+
+        QString& getServerID();
 
     private:
         void parseCMDLArgs(QStringList* argList);
@@ -63,6 +68,7 @@ class ReMixWidget : public QWidget
 
     signals:
         void serverNameChanged(const QString& name);
+        void reloadOldServersSignal();
 
     private:
         Ui::ReMixWidget *ui;

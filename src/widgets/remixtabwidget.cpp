@@ -2,27 +2,21 @@
 #include "includes.hpp"
 #include "remixtabwidget.hpp"
 
-ReMixTabWidget::ReMixTabWidget(QWidget* parent, User* usr, QStringList* argList)
+ReMixTabWidget::ReMixTabWidget(QWidget* parent, User* usr)
     : QTabWidget(parent)
 {
     user = usr;
     if ( usr == nullptr )
         user = new User( this );
 
+    this->setTabsClosable( true );
     this->createTabButtons();
 
-    quint32 serverID = this->count();
-    servers[ serverID ] = new ReMixWidget( this, user, argList );
-    this->insertTab( serverID, servers[ serverID ],
-                     servers[ serverID ]->getServerName() );
+    //Initalize the First Server.
+    this->createServer();
 
-    this->setTabsClosable( true );
-
-    instanceCount = 1; //Automatically create a server instance at start.
     QObject::connect( this, &QTabWidget::tabCloseRequested,
                       this, &ReMixTabWidget::tabCloseRequestedSlot );
-
-    this->connectNameChange( serverID );
 
     //Hide Tab-specific UI dialog windows when the tabs change.
     QObject::connect( this, &QTabWidget::currentChanged,
@@ -116,52 +110,8 @@ void ReMixTabWidget::createTabButtons()
     newTabButton->setAutoRaise( true );
 
     this->setCornerWidget( newTabButton, Qt::TopLeftCorner );
-    QObject::connect( newTabButton, &QToolButton::clicked, [=]()
-    {
-        if ( user == nullptr )
-            return;
-
-        CreateInstance* createDialog{ new CreateInstance( this ) };
-        QObject::connect( createDialog, &CreateInstance::accepted,
-                          [=]()
-        {
-            QStringList svrArgs = createDialog->getServerArgs().split( "/" );
-            if ( svrArgs.isEmpty() )
-            {
-                svrArgs << "/game=WoS"
-                        << "/fudge"
-                        << "/name=Well of Lost Souls ReMix";
-            }
-
-            quint32 serverID{ 0 };
-            ReMixWidget* instance{ nullptr };
-            for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
-            {
-                instance = servers[ i ];
-                if ( instance == nullptr )
-                {
-                    serverID = i;
-                    break;
-                }
-                else
-                    serverID = MAX_SERVER_COUNT + 1;
-            }
-
-            if ( this->count() <= MAX_SERVER_COUNT )
-            {
-                instanceCount += 1;
-                servers[ serverID ] = new ReMixWidget( this, user, &svrArgs,
-                                                       QString::number( serverID ) );
-                this->insertTab( serverID, servers[ serverID ],
-                                 servers[ serverID ]->getServerName() );
-
-                this->connectNameChange( serverID );
-            }
-            createDialog->close();
-            createDialog->disconnect();
-            createDialog->deleteLater();
-        });
-    } );
+    QObject::connect( newTabButton, &QToolButton::clicked,
+                      this, &ReMixTabWidget::createServer );
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
@@ -182,6 +132,53 @@ void ReMixTabWidget::createTabButtons()
         this->applyThemes( type );
         nightMode = !nightMode;
     } );
+}
+
+void ReMixTabWidget::createServer()
+{
+    if ( user == nullptr )
+        return;
+
+    CreateInstance* createDialog{ new CreateInstance( this ) };
+    QObject::connect( createDialog, &CreateInstance::accepted,
+                      [=]()
+    {
+        QStringList svrArgs = createDialog->getServerArgs().split( "/" );
+        QString serverName{ createDialog->getServerName() };
+        if ( svrArgs.isEmpty() )
+        {
+            svrArgs << "/game=WoS"
+                    << "/fudge"
+                    << "/name=Well of Lost Souls ReMix";
+        }
+
+        quint32 serverID{ 0 };
+        ReMixWidget* instance{ nullptr };
+        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+        {
+            instance = servers[ i ];
+            if ( instance == nullptr )
+            {
+                serverID = i;
+                break;
+            }
+            else
+                serverID = MAX_SERVER_COUNT + 1;
+        }
+
+        if ( this->count() <= MAX_SERVER_COUNT )
+        {
+            instanceCount += 1;
+            servers[ serverID ] = new ReMixWidget( this, user, &svrArgs,
+                                                   serverName );
+            this->insertTab( serverID, servers[ serverID ], serverName );
+
+            this->connectNameChange( serverID );
+        }
+        createDialog->close();
+        createDialog->disconnect();
+        createDialog->deleteLater();
+    });
 }
 
 void ReMixTabWidget::applyThemes(qint32 type)
@@ -269,69 +266,10 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
 
 void ReMixTabWidget::currentChangedSlot(quint32 newTab)
 {
-    quint32 prevTab{ this->getPrevTabIndex() };
-
-    ReMixWidget* prevServer{ servers[ prevTab ] };
-    if ( prevServer == nullptr )
-        return;
-
-    Settings* settings{ prevServer->getSettings() };
-    Server* tcpServer{ prevServer->getTcpServer() };
-
-    Comments* comments{ nullptr };
-    bool showingPrevSettings{ false };
-    bool showingPrevComments{ false };
-
-    //Hide the Settings dialog if it is are opened.
-    if ( settings != nullptr )
-    {
-        if ( !settings->isHidden() )
-        {
-            showingPrevSettings = true;
-            settings->hide();
-        }
-    }
-
-    //Hide the Comments dialog if it is are opened.
-    if ( tcpServer != nullptr )
-    {
-        comments = tcpServer->getServerComments();
-        if ( comments != nullptr )
-        {
-            if ( !comments->isHidden() )
-            {
-                showingPrevComments = true;
-                comments->hide();
-            }
-        }
-    }
-
-    //Show the dialogs for the newly-opened Server Tab.
-    //(Only if they were open on the previous tab.)
     ReMixWidget* server{ servers[ newTab ] };
     if ( server != nullptr )
     {
-        settings = server->getSettings();
-        tcpServer = server->getTcpServer();
-
-        //Open the Settings dialog if it was are opened.
-        if ( settings != nullptr )
-        {
-            if ( settings->isHidden() && showingPrevSettings )
-                settings->show();
-        }
-
-        //Open the Comments dialog if it was are opened.
-        if ( tcpServer != nullptr )
-        {
-            comments = tcpServer->getServerComments();
-            if ( comments != nullptr )
-            {
-                if ( comments->isHidden() && showingPrevComments )
-                    comments->show();
-            }
-        }
+        ReMix::getGlobalSettings()->updateTabBar( server->getServerID() );
     }
     this->setPrevTabIndex( newTab );
-
 }
