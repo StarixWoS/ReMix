@@ -287,7 +287,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                         server->sendUserList( ipAddr, port, Q_Response );
                     }
                 break;
-                case 'R':   //TODO: Command "R" with unknown use.
+                case 'R':   //Send Online User Information.
                     {
                         server->sendUserList( ipAddr, port, R_Response );
                     }

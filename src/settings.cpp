@@ -46,7 +46,6 @@ Settings::Settings(QWidget *parent, QString svrID) :
     ui->setupUi(this);
     serverID = svrID;
 
-    //Remove the "Help" button from the window title bars.
     {
         QIcon icon = this->windowIcon();
         Qt::WindowFlags flags = this->windowFlags();
@@ -54,8 +53,6 @@ Settings::Settings(QWidget *parent, QString svrID) :
 
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
-
-        //this->setWindowModality( Qt::WindowModal );
     }
 
     //Setup Objects.
@@ -126,11 +123,12 @@ void Settings::remTabObjects(QString& svrID)
 
 void Settings::updateTabBar(QString& svrID)
 {
-    quint32 index{ tabWidget->currentIndex() };
+    qint32 index{ tabWidget->currentIndex() };
     tabWidget->clear();
     if ( settings == nullptr )
         settings = new SettingsWidget( this );
 
+    this->setWindowTitle( "[ " % svrID % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
     tabWidget->insertTab( 1, ruleWidgets.value( svrID ), "Rules" );
     tabWidget->insertTab( 2, msgWidgets.value( svrID ), "Messages" );

@@ -10,7 +10,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
     ui->setupUi(this);
     serverID = "0"; //Filler. This Window Position is non-unique.
 
-    //Remove the "Help" button from the window title bars.
     {
         QIcon icon = this->windowIcon();
         Qt::WindowFlags flags = this->windowFlags();
@@ -18,7 +17,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
-        //this->setWindowModality( Qt::WindowModal );
     }
 
     if ( Settings::getSaveWindowPositions() )

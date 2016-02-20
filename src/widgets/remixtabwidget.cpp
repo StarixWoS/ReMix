@@ -152,10 +152,15 @@ void ReMixTabWidget::createServer()
                     << "/name=Well of Lost Souls ReMix";
         }
 
+        QString title{ "Unable to Initialize Server:" };
+        QString prompt{ "You are unable to initialize two servers with the same"
+                        " name!" };
+
         quint32 serverID{ 0 };
         ReMixWidget* instance{ nullptr };
         for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
         {
+            serverID = MAX_SERVER_COUNT + 1;
             instance = servers[ i ];
             if ( instance == nullptr )
             {
@@ -163,10 +168,18 @@ void ReMixTabWidget::createServer()
                 break;
             }
             else
-                serverID = MAX_SERVER_COUNT + 1;
+            {
+                if ( instance->getServerName().compare( serverName,
+                                                        Qt::CaseInsensitive )
+                     == 0 )
+                {
+                    Helper::warningMessage( this, title, prompt );
+                    break;
+                }
+            }
         }
 
-        if ( this->count() <= MAX_SERVER_COUNT )
+        if ( serverID <= MAX_SERVER_COUNT )
         {
             instanceCount += 1;
             servers[ serverID ] = new ReMixWidget( this, user, &svrArgs,

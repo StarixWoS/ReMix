@@ -72,7 +72,7 @@ void CreateInstance::on_initializeServer_clicked()
                      .arg( ui->portNumber->text( ))
                      .arg( ui->serverName->text() );
     if ( ui->isPublic->isChecked() )
-        svrArgs.append( " /Public");
+        svrArgs.append( " /Public" );
 
     this->setServerArgs( svrArgs );
     emit this->accept();
