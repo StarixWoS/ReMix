@@ -56,6 +56,9 @@ ReMix::~ReMix()
     serverInstance->close();
     serverInstance->deleteLater();
 
+    settings->close();
+    settings->deleteLater();
+
     delete ui;
 }
 

@@ -22,8 +22,7 @@ RulesWidget::RulesWidget(QWidget *parent, QString svrID) :
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
 
     urlCheckState = !Rules::getURLAddress( serverID ).isEmpty();
-    this->setCheckedState( Toggles::url,
-                           urlCheckState );
+    this->setCheckedState( Toggles::url, urlCheckState );
 
     rowText = "Server Home: [ %1 ]";
     rowText = rowText.arg( Rules::getURLAddress( serverID ) );
@@ -33,24 +32,21 @@ RulesWidget::RulesWidget(QWidget *parent, QString svrID) :
                            Rules::getAllPKing( serverID ) );
 
     maxPlayersCheckState = !Rules::getRequireMaxPlayers( serverID );
-    this->setCheckedState( Toggles::maxP,
-                           maxPlayersCheckState );
+    this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
 
     rowText = "Max Players: [ %1 ]";
     rowText = rowText.arg( Rules::getMaxPlayers( serverID ) );
     ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText );
 
     maxAFKCheckState = !Rules::getRequireMaxAFK( serverID );
-    this->setCheckedState( Toggles::maxAFK,
-                           maxAFKCheckState );
+    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
 
     rowText = "Max AFK: [ %1 ] Minutes";
     rowText = rowText.arg( Rules::getMaxAFK( serverID ) );
     ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText );
 
     minVersionCheckState = !Rules::getMinVersion( serverID ).isEmpty();
-    this->setCheckedState( Toggles::minV,
-                           minVersionCheckState );
+    this->setCheckedState( Toggles::minV, minVersionCheckState );
 
     rowText = "Min Version: [ %1 ]";
     rowText = rowText.arg( Rules::getMinVersion( serverID ) );

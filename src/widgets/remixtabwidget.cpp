@@ -257,11 +257,10 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                             qApp->quit();
 
                         servers[ i ] = nullptr;
+                        this->removeTab( index );
 
                         instance->close();
                         instance->deleteLater();
-
-                        this->removeTab( index );
 
                         break;
                     }
@@ -279,6 +278,10 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
 
 void ReMixTabWidget::currentChangedSlot(quint32 newTab)
 {
+    //Make sure there are valid Servers to access.
+    if ( instanceCount == 0 )
+        return;
+
     ReMixWidget* server{ servers[ newTab ] };
     if ( server != nullptr )
     {

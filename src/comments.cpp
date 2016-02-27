@@ -9,7 +9,6 @@ Comments::Comments(QWidget *parent, QString svrID) :
 {
     ui->setupUi(this);
     serverID = svrID;
-    qDebug() << serverID;
 
     //Remove the "Help" button from the window title bars.
     {
