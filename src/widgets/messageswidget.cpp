@@ -3,8 +3,7 @@
 #include "messageswidget.hpp"
 #include "ui_messageswidget.h"
 
-MessagesWidget::MessagesWidget(QWidget *parent, QString svrID) :
-    //QWidget(parent),
+MessagesWidget::MessagesWidget(QString svrID) :
     ui(new Ui::MessagesWidget)
 {
     ui->setupUi(this);

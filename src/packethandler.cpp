@@ -280,6 +280,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                             }
                             user->logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
+                        server->setUserPings( server->getUserPings() + 1 );
                     }
                 break;
                 case 'Q':   //Send Online User Information.

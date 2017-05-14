@@ -71,6 +71,9 @@
         <property name="text">
          <string>8888</string>
         </property>
+        <property name="maxLength">
+         <number>5</number>
+        </property>
        </widget>
       </item>
       <item row="3" column="0">
@@ -135,12 +138,18 @@
         <property name="text">
          <string>AHitB ReMix Server</string>
         </property>
+        <property name="maxLength">
+         <number>32</number>
+        </property>
        </widget>
       </item>
       <item row="5" column="2">
        <widget class="QPushButton" name="close">
         <property name="text">
          <string>Cancel</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -154,6 +163,9 @@
         </property>
         <property name="text">
          <string>Create Server</string>
+        </property>
+        <property name="default">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

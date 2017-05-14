@@ -32,19 +32,19 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "informAdminLogin",
     "echoComments",
     "minimizeToTray",
-    "saveWindowPositions"
+    "saveWindowPositions",
+    "isRunning"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
 QSettings* Settings::prefs{ new QSettings( "preferences.ini",
                                            QSettings::IniFormat ) };
 
-Settings::Settings(QWidget *parent, QString svrID) :
+Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
-    serverID = svrID;
 
     {
         QIcon icon = this->windowIcon();
@@ -442,4 +442,16 @@ int Settings::getServerID(QString& svrID)
         delete randDev;
     }
     return id;
+}
+
+void Settings::setServerRunning(QVariant value, QString svrID)
+{
+    prefs->setValue( svrID % "/" % subKeys[ SubKeys::IsRunning ], value );
+    prefs->sync();
+}
+
+bool Settings::getServerRunning(QString& svrID)
+{
+    return prefs->value( svrID % "/" % subKeys[ SubKeys::IsRunning ] )
+                    .toBool();
 }

@@ -10,8 +10,7 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
-                         QStringList* argList, QString svrID) :
+ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
 {
@@ -22,14 +21,14 @@ ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
     randDev = new RandDev();
 
     //Setup Objects.
-    rules = new RulesWidget( this, serverID );
-    messages = new MessagesWidget( this, serverID );
+    messages = new MessagesWidget( serverID );
+    rules = new RulesWidget( serverID );
 
-    settings = ReMix::getGlobalSettings();
+    settings = ReMix::getSettings();
     settings->addTabObjects( messages, rules, serverID );
 
     server = new ServerInfo( serverID );
-    user = usr;
+    user = ReMix::getUser();
 
     plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
@@ -187,7 +186,6 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                     server->getPrivatePort(), 10 ) );
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
-    ui->serverName->setText( server->getName() );
 }
 
 void ReMixWidget::initUIUpdate()
@@ -206,6 +204,10 @@ void ReMixWidget::initUIUpdate()
         ui->callCount->setText(
                     QString( "#Calls: %1" )
                         .arg( server->getUserCalls() ) );
+
+        ui->pingCount->setText(
+                    QString( "#Pings: %1" )
+                        .arg( server->getUserPings() ) );
 
         ui->packetDCCount->setText(
                     QString( "#Pkt-DC: %1" )
@@ -295,22 +297,6 @@ void ReMixWidget::on_openUserInfo_clicked()
         user->show();
 }
 
-void ReMixWidget::on_isPublicServer_stateChanged(int)
-{
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
-    if ( ui->isPublicServer->isChecked() )
-        //Setup a connection with the Master Server.
-        tcpServer->setupPublicServer( true );
-    else   //Disconnect from the Master Server if applicable.
-        tcpServer->setupPublicServer( false );
-}
-
 void ReMixWidget::on_openSettings_clicked()
 {
     if ( settings->isVisible() )
@@ -344,11 +330,18 @@ void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
     server->setPrivatePort( val );
 }
 
-void ReMixWidget::on_serverName_textChanged(const QString &arg1)
+void ReMixWidget::on_isPublicServer_toggled(bool)
 {
-    if ( arg1.length() <= 32 )
+    //Setup Networking Objects.
+    if ( tcpServer == nullptr )
     {
-        server->setName( arg1 );
-        emit this->serverNameChanged( arg1 );
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
     }
+
+    if ( ui->isPublicServer->isChecked() )
+        //Setup a connection with the Master Server.
+        tcpServer->setupPublicServer( true );
+    else   //Disconnect from the Master Server if applicable.
+        tcpServer->setupPublicServer( false );
 }

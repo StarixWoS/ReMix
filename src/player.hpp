@@ -72,15 +72,13 @@ class Player : public QObject
 
     bool networkMuted{ false };
 
-    QString serverID{ "" };
-
     #ifdef DECRYPT_PACKET_PLUGIN
         QString gameInfo{ "" };
         bool hasWorldInfo{ false };
     #endif
 
     public:
-        explicit Player(QString svrID = "0");
+        explicit Player();
         ~Player();
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };

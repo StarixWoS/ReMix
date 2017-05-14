@@ -4,6 +4,7 @@
 #include "ui_remix.h"
 
 Settings* ReMix::settings;
+User* ReMix::user;
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
@@ -11,7 +12,6 @@ ReMix::ReMix(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    serverID = "";
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
@@ -27,8 +27,8 @@ ReMix::ReMix(QWidget *parent) :
     settings = new Settings( this );
     user = new User( this );
 
-    serverInstance = new ReMixTabWidget( this, user );
-    ui->frame->layout()->addWidget( serverInstance );
+    serverUI = ReMixTabWidget::getTabInstance( this );
+    ui->frame->layout()->addWidget( serverUI );
 
     //Initialize our Tray Icon if available.
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -53,13 +53,31 @@ ReMix::~ReMix()
     user->close();
     user->deleteLater();
 
-    serverInstance->close();
-    serverInstance->deleteLater();
+    serverUI->close();
+    serverUI->deleteLater();
 
     settings->close();
     settings->deleteLater();
 
+    Settings::prefs->deleteLater();
+
     delete ui;
+}
+
+Settings* ReMix::getSettings()
+{
+    if ( settings == nullptr )
+        settings = new Settings( );
+
+    return settings;
+}
+
+User* ReMix::getUser()
+{
+    if ( user == nullptr )
+        user = new User( );
+
+    return user;
 }
 
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -223,14 +241,6 @@ void ReMix::getSynRealData(ServerInfo* svr)
     }
 }
 
-Settings* ReMix::getGlobalSettings()
-{
-    if ( settings == nullptr )
-        settings = new Settings();
-
-    return settings;
-}
-
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
@@ -269,23 +279,23 @@ void ReMix::closeEvent(QCloseEvent* event)
 
 bool ReMix::rejectCloseEvent()
 {
-    if ( serverInstance == nullptr )
+    if ( serverUI == nullptr )
         return false;
 
     QString title = QString( "Close [ %1 ] Server Instances:" )
-                        .arg( serverInstance->getServerCount() );
+                        .arg( serverUI->getServerCount() );
 
     QString prompt = QString( "You are about to shut down your ReMix game "
                               "server!\r\nThis will affect [ %1 ] User(s) "
                               "connected to it.\r\n\r\nAre you certain?" )
-                         .arg( serverInstance->getPlayerCount() );
+                         .arg( serverUI->getPlayerCount() );
 
-    serverInstance->sendMultiServerMessage( "The admin is taking this server "
+    serverUI->sendMultiServerMessage( "The admin is taking this server "
                                        "down...", nullptr, true );
 
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
-        serverInstance->sendMultiServerMessage( "The admin changed his or her "
+        serverUI->sendMultiServerMessage( "The admin changed his or her "
                                            "mind! (yay!)...", nullptr, true );
         return true;
     }

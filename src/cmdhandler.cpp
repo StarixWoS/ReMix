@@ -25,11 +25,9 @@ const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
-                       User* uDlg, QString svrID)
+                       User* uDlg)
     : QObject(parent)
 {
-    serverID = svrID;
-
     //Setup our Random Device
     randDev = new RandDev();
 
@@ -326,28 +324,28 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 logMsg = false;
             }
         break;
-        case CMDS::SHUTDOWN: //8
-            {
-                canUseCommands = this->canUseAdminCommands( plr );
-                if ( plr->getAdminRank() >= Ranks::OWNER
-                  && canUseCommands )
-                {
-                    this->shutDownHandler( plr, false );
-                    retn = true;
-                }
-            }
-        break;
-        case CMDS::RESTART: //9
-            {
-                canUseCommands = this->canUseAdminCommands( plr );
-                if ( plr->getAdminRank() >= Ranks::OWNER
-                  && canUseCommands )
-                {
-                    this->shutDownHandler( plr, true );
-                    retn = true;
-                }
-            }
-        break;
+//        case CMDS::SHUTDOWN: //8
+//            {
+//                canUseCommands = this->canUseAdminCommands( plr );
+//                if ( plr->getAdminRank() >= Ranks::OWNER
+//                  && canUseCommands )
+//                {
+//                    this->shutDownHandler( plr, false );
+//                    retn = true;
+//                }
+//            }
+//        break;
+//        case CMDS::RESTART: //9
+//            {
+//                canUseCommands = this->canUseAdminCommands( plr );
+//                if ( plr->getAdminRank() >= Ranks::OWNER
+//                  && canUseCommands )
+//                {
+//                    this->shutDownHandler( plr, true );
+//                    retn = true;
+//                }
+//            }
+//        break;
 //        case CMDS::MKADMIN: //10
 //            {
 //                this->mkAdminHandler( plr, arg1, arg2 );

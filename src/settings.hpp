@@ -20,10 +20,9 @@ class Settings : public QDialog
 
     SettingsWidget* settings;
     QTabWidget* tabWidget{ nullptr };
-    QString serverID{ "" };
 
     public:
-        explicit Settings(QWidget *parent = 0, QString svrID = "0");
+        explicit Settings(QWidget *parent = 0);
         ~Settings();
 
         void addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
@@ -36,7 +35,8 @@ class Settings : public QDialog
                       ReqPassword = 8, MOTD = 9, BanishMsg = 10,
                       ReqAdminAuth = 11, LogComments = 12, FwdComments = 13,
                       InformAdminLogin = 14, EchoComments = 15,
-                      MinimizeToTray = 16, SaveWindowPositions = 17 };
+                      MinimizeToTray = 16, SaveWindowPositions = 17,
+                      IsRunning = 18 };
 
         enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
                    Rules = 4 };
@@ -117,6 +117,9 @@ class Settings : public QDialog
 
         static void setServerID(QVariant& value, QString& svrID);
         static int getServerID(QString& svrID);
+
+        static void setServerRunning(QVariant value, QString svrID);
+        static bool getServerRunning(QString& svrID);
 
     private:
         Ui::Settings *ui;

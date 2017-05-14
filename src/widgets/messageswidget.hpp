@@ -21,7 +21,7 @@ class MessagesWidget : public QWidget
     QString serverID{ "" };
 
     public:
-        explicit MessagesWidget(QWidget *parent = 0, QString svrID = "0");
+        explicit MessagesWidget(QString svrID = "0");
         ~MessagesWidget();
 
     private slots:

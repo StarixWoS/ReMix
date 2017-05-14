@@ -3,12 +3,11 @@
 #include "settingswidget.hpp"
 #include "ui_settingswidget.h"
 
-SettingsWidget::SettingsWidget(QWidget *parent, QString svrID) :
+SettingsWidget::SettingsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-    serverID = svrID;
 
     //Load Settings from file.
     pwdCheckState = Settings::getRequirePassword();

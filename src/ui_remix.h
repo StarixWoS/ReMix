@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remix.ui'
 **
-** Created by: Qt User Interface Compiler version 5.5.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -33,9 +33,9 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(650, 231);
-        ReMix->setMinimumSize(QSize(0, 231));
-        ReMix->setMaximumSize(QSize(16777215, 370));
+        ReMix->resize(650, 246);
+        ReMix->setMinimumSize(QSize(0, 246));
+        ReMix->setMaximumSize(QSize(16777215, 407));
         ReMix->setDockNestingEnabled(false);
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));

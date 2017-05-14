@@ -38,7 +38,7 @@ class ReMixWidget : public QWidget
     static const QStringList cmdlArgs;
 
     public:
-        explicit ReMixWidget(QWidget* parent = nullptr, User* usr = nullptr,
+        explicit ReMixWidget(QWidget* parent = nullptr,
                              QStringList* argList = nullptr,
                              QString svrID = "0" );
         ~ReMixWidget();
@@ -61,13 +61,10 @@ class ReMixWidget : public QWidget
         void on_openUserComments_clicked();
         void on_enableNetworking_clicked();
         void on_openUserInfo_clicked();
-        void on_isPublicServer_stateChanged(int arg1);
-
         void on_serverPort_textChanged(const QString &arg1);
-        void on_serverName_textChanged(const QString &arg1);
+        void on_isPublicServer_toggled(bool arg1);
 
     signals:
-        void serverNameChanged(const QString& name);
         void reloadOldServersSignal();
 
     private:

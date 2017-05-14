@@ -16,18 +16,15 @@ class ReMix : public QMainWindow
 {
     Q_OBJECT
 
-    ReMixTabWidget* serverInstance{ nullptr };
-    ServerInfo* server{ nullptr };
-    RandDev* randDev{ nullptr };
-    User* user{ nullptr };
+    static Settings* settings;
+    static User* user;
 
     QSystemTrayIcon* trayObject{ nullptr };
+    ReMixTabWidget* serverUI{ nullptr };
     QMenu* trayMenu{ nullptr };
     QIcon trayIcon;
 
     bool hasSysTray{ false };
-
-    QString serverID{ "0" };
 
     private:
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -39,11 +36,10 @@ class ReMix : public QMainWindow
         explicit ReMix(QWidget *parent = 0);
         ~ReMix();
 
-        static void getSynRealData(ServerInfo* svr);
+        static Settings* getSettings();
+        static User* getUser();
 
-    public:
-        static Settings* settings;
-        static Settings* getGlobalSettings();
+        static void getSynRealData(ServerInfo* svr);
 
     private slots:
         //Handle Minimize events.

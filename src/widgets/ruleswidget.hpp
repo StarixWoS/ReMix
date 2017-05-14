@@ -27,7 +27,7 @@ class RulesWidget : public QWidget
     QString serverID{ "" };
 
     public:
-        explicit RulesWidget(QWidget* parent = nullptr, QString svrID = "0");
+        explicit RulesWidget(QString svrID = "0");
         ~RulesWidget();
 
         void setCheckedState(Toggles option, bool val);

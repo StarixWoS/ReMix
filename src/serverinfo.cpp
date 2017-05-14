@@ -247,7 +247,7 @@ Player* ServerInfo::createPlayer(int slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
-        players[ slot ] = new Player( serverTabID );
+        players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
         return players[ slot ];
@@ -673,6 +673,16 @@ quint32 ServerInfo::getUserCalls() const
 void ServerInfo::setUserCalls(const quint32& value)
 {
     userCalls = value;
+}
+
+quint32 ServerInfo::getUserPings() const
+{
+    return userPings;
+}
+
+void ServerInfo::setUserPings(const quint32& value)
+{
+    userPings = value;
 }
 
 quint32 ServerInfo::getSerNumDc() const

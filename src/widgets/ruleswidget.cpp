@@ -3,8 +3,7 @@
 #include "ruleswidget.hpp"
 #include "ui_ruleswidget.h"
 
-RulesWidget::RulesWidget(QWidget *parent, QString svrID) :
-    //QWidget(parent),
+RulesWidget::RulesWidget(QString svrID) :
     ui(new Ui::RulesWidget)
 {
     ui->setupUi(this);

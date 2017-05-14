@@ -3,12 +3,11 @@
 #include "comments.hpp"
 #include "ui_comments.h"
 
-Comments::Comments(QWidget *parent, QString svrID) :
+Comments::Comments(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Comments)
 {
     ui->setupUi(this);
-    serverID = svrID;
 
     //Remove the "Help" button from the window title bars.
     {

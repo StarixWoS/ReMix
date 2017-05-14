@@ -15,7 +15,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     user = usr;
 
     //Setup Objects.
-    serverComments = new Comments( parent, svrID );
+    serverComments = new Comments( parent );
     pktHandle = new PacketHandler( user, server, svrID );
 
     //Connect Objects.

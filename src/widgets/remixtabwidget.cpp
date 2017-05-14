@@ -2,12 +2,13 @@
 #include "includes.hpp"
 #include "remixtabwidget.hpp"
 
-ReMixTabWidget::ReMixTabWidget(QWidget* parent, User* usr)
+ReMixTabWidget* ReMixTabWidget::tabInstance;
+qint32 ReMixTabWidget::instanceCount;
+
+ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     : QTabWidget(parent)
 {
-    user = usr;
-    if ( usr == nullptr )
-        user = new User( this );
+    user = ReMix::getUser();
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -35,7 +36,12 @@ ReMixTabWidget::~ReMixTabWidget()
     {
         server = servers[ i ];
         if ( server != nullptr )
+        {
+            Settings::setServerRunning( QVariant( false ),
+                                        server->getServerName() );
+            server->close();
             server->deleteLater();
+        }
     }
 }
 
@@ -49,19 +55,6 @@ void ReMixTabWidget::sendMultiServerMessage(QString msg, Player* plr,
         if ( server != nullptr )
             server->sendServerMessage( msg, plr, toAll );
     }
-}
-
-void ReMixTabWidget::connectNameChange(quint32 id)
-{
-    ReMixWidget* server{ servers[ id ] };
-    if ( server == nullptr )
-        return;
-
-    QObject::connect( servers[ id ], &ReMixWidget::serverNameChanged,
-                      this, [=](const QString& name)
-    {
-        this->setTabText( id, name );
-    } );
 }
 
 quint32 ReMixTabWidget::getPlayerCount()
@@ -100,6 +93,23 @@ quint32 ReMixTabWidget::getPrevTabIndex() const
 void ReMixTabWidget::setPrevTabIndex(const quint32& value)
 {
     prevTabIndex = value;
+}
+
+qint32 ReMixTabWidget::getInstanceCount()
+{
+    return instanceCount;
+}
+
+ReMixTabWidget* ReMixTabWidget::getTabInstance(QWidget* parent)
+{
+    if ( tabInstance == nullptr )
+    {
+        if (parent != nullptr )
+            tabInstance = new ReMixTabWidget( parent );
+        else
+            tabInstance = new ReMixTabWidget();
+    }
+    return tabInstance;
 }
 
 void ReMixTabWidget::createTabButtons()
@@ -182,11 +192,10 @@ void ReMixTabWidget::createServer()
         if ( serverID <= MAX_SERVER_COUNT )
         {
             instanceCount += 1;
-            servers[ serverID ] = new ReMixWidget( this, user, &svrArgs,
-                                                   serverName );
+            servers[ serverID ] = new ReMixWidget( this, &svrArgs, serverName );
             this->insertTab( serverID, servers[ serverID ], serverName );
 
-            this->connectNameChange( serverID );
+            Settings::setServerRunning( QVariant( true ), serverName );
         }
         createDialog->close();
         createDialog->disconnect();
@@ -251,6 +260,9 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
                     {
+                        Settings::setServerRunning( QVariant( false ),
+                                                    instance->getServerName() );
+
                         //Last Server instance. Close ReMix.
                         instanceCount -= 1;
                         if ( instanceCount == 0 )
@@ -285,7 +297,7 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
     ReMixWidget* server{ servers[ newTab ] };
     if ( server != nullptr )
     {
-        ReMix::getGlobalSettings()->updateTabBar( server->getServerID() );
+        ReMix::getSettings()->updateTabBar( server->getServerID() );
     }
     this->setPrevTabIndex( newTab );
 }

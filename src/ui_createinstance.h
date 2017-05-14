@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'createinstance.ui'
 **
-** Created by: Qt User Interface Compiler version 5.5.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -68,6 +68,7 @@ public:
 
         portNumber = new QLineEdit(frame);
         portNumber->setObjectName(QStringLiteral("portNumber"));
+        portNumber->setMaxLength(5);
 
         gridLayout_2->addWidget(portNumber, 3, 1, 1, 2);
 
@@ -95,11 +96,13 @@ public:
 
         serverName = new QLineEdit(frame);
         serverName->setObjectName(QStringLiteral("serverName"));
+        serverName->setMaxLength(32);
 
         gridLayout_2->addWidget(serverName, 2, 1, 1, 2);
 
         close = new QPushButton(frame);
         close->setObjectName(QStringLiteral("close"));
+        close->setAutoDefault(false);
 
         gridLayout_2->addWidget(close, 5, 2, 1, 1);
 
@@ -128,6 +131,9 @@ public:
 
 
         retranslateUi(CreateInstance);
+
+        initializeServer->setDefault(false);
+
 
         QMetaObject::connectSlotsByName(CreateInstance);
     } // setupUi

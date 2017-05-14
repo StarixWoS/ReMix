@@ -21,6 +21,9 @@ CreateInstance::CreateInstance(QWidget *parent) :
 
     QString name{ "" };
     bool skip{ false };
+
+    bool running{ false };
+    quint32 oldSvrCount{ 0 };
     for ( int i = 0; i < oldServers.count(); ++i )
     {
         name = oldServers.at( i );
@@ -34,16 +37,25 @@ CreateInstance::CreateInstance(QWidget *parent) :
         }
 
         if ( !skip )
+            running = Settings::getServerRunning( name );
+
+        if ( !skip && !running )
+        {
             ui->oldServers->addItem( name );
+            ++oldSvrCount;
+        }
 
         skip = false;
+        running = false;
     }
+    if ( oldSvrCount == 0 )
+        ui->oldServers->setEnabled( false );
+
     this->show();
 }
 
 CreateInstance::~CreateInstance()
 {
-    this->close();
     this->disconnect();
     this->deleteLater();
 
@@ -80,9 +92,20 @@ void CreateInstance::on_initializeServer_clicked()
 
 void CreateInstance::on_close_clicked()
 {
-    this->close();
-    this->disconnect();
-    this->deleteLater();
+    QString title = QString( "Close ReMix:" );
+    QString prompt = QString( "You are about to shut down your ReMix "
+                              "game server!\r\n\r\nAre you "
+                              "certain?" );
+
+    if ( ReMixTabWidget::getInstanceCount() == 0 )
+    {
+        if ( Helper::confirmAction( this, title, prompt ) )
+        {
+            qApp->quit();
+        }
+    }
+    else
+        this->close();
 }
 
 void CreateInstance::closeEvent(QCloseEvent* event)
@@ -92,12 +115,10 @@ void CreateInstance::closeEvent(QCloseEvent* event)
 
     if ( event->type() == QEvent::Close )
     {
-        this->close();
         this->disconnect();
         this->deleteLater();
+        event->accept();
     }
-    else
-        QDialog::closeEvent( event );
 }
 
 void CreateInstance::on_oldServers_currentIndexChanged(int)

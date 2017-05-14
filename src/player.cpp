@@ -2,10 +2,8 @@
 #include "includes.hpp"
 #include "player.hpp"
 
-Player::Player(QString svrID)
+Player::Player()
 {
-    serverID = svrID;
-
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 

@@ -34,6 +34,9 @@ class CreateInstance : public QDialog
 
         void on_oldServers_currentIndexChanged(int);
 
+    signals:
+        void closeServer();
+
     private:
         Ui::CreateInstance *ui;
 };

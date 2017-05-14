@@ -16,7 +16,7 @@ void UserDelegate::paint(QPainter* painter,
                          const QModelIndex& index) const
 {
     painter->save();
-    QStyleOptionViewItemV2 opt = QItemDelegate::setOptions( index,
+    QStyleOptionViewItem opt = QItemDelegate::setOptions( index,
                                                             option );
 
     QString text = "";

@@ -17,8 +17,6 @@ class SendMsg : public QDialog
     ServerInfo* server{ nullptr };
     Player* target{ nullptr };
 
-    QString serverID{ "" };
-
     public:
         explicit SendMsg(QWidget *parent = nullptr, ServerInfo* svr = nullptr,
                          Player* trg = nullptr);

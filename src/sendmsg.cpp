@@ -8,7 +8,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
     ui(new Ui::SendMsg)
 {
     ui->setupUi(this);
-    serverID = "0"; //Filler. This Window Position is non-unique.
 
     {
         QIcon icon = this->windowIcon();
@@ -62,12 +61,11 @@ void SendMsg::on_sendMsg_clicked()
 
     message = message.prepend( "Owner: " );
 
-    //Strip Carriage Returns.
-    if ( message.contains( "\r" ) )
-        message = message.remove( "\r" );
-
-    //Replace NewLines with Spaces.
-    if ( message.contains( "\n" ) )
+    if ( message.contains( "\r\n" ) ) //Replace Unix NewLines with Spaces.
+        message = message.replace( "\r\n", " " );
+    else if ( message.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
+        message = message.replace( "\r", " " );
+    else if ( message.contains( "\n" ) ) //Replace NewLines with Spaces.
         message = message.replace( "\n", " " );
 
     if ( ui->checkBox->isChecked() )

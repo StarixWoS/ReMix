@@ -69,6 +69,7 @@ class ServerInfo
     Player* players[ MAX_PLAYERS ];
 
     quint32 userCalls{ 0 };
+    quint32 userPings{ 0 };
     quint32 serNumDc{ 0 };
     quint32 dupDc{ 0 };
     quint32 pktDc{ 0 };
@@ -168,6 +169,9 @@ class ServerInfo
 
         quint32 getUserCalls() const;
         void setUserCalls(const quint32& value);
+
+        quint32 getUserPings() const;
+        void setUserPings(const quint32& value);
 
         quint32 getSerNumDc() const;
         void setSerNumDc(const quint32& value);
