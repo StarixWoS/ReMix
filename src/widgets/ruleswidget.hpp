@@ -19,6 +19,7 @@ class RulesWidget : public QWidget
                   noMigrate = 10, noMod = 11, noPets = 12, noPK = 13,
                   arenaPK = 14 };
 
+    SelectWorld* selectWorld{ nullptr };
     bool maxPlayersCheckState{ false };
     bool minVersionCheckState{ false };
     bool maxAFKCheckState{ false };
@@ -31,6 +32,7 @@ class RulesWidget : public QWidget
         ~RulesWidget();
 
         void setCheckedState(Toggles option, bool val);
+        void setSelectedWorld(QString worldName, bool state);
 
     private:
         void toggleRules(quint32 row, Qt::CheckState value);

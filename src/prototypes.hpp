@@ -16,6 +16,7 @@
     class QStandardItemModel;
     class QNetworkInterface;
     class QTableWidgetItem;
+    class QStringListModel;
     class QSystemTrayIcon;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
@@ -23,6 +24,7 @@
     class QApplication;
     class QHostAddress;
     class QInputDialog;
+    class QFileDialog;
     class QToolButton;
     class QModelIndex;  //Requires Include within Class Headers.
     class QMainWindow;  //Requires Include within Class Headers.
@@ -89,6 +91,7 @@
     //GUI and Data Storage Classes.
     class CreateInstance;
     class PacketHandler;
+    class SelectWorld;
     class ServerInfo;
     class CmdHandler;
     class Settings;
@@ -143,7 +146,7 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 19,
+            SETTINGS_SUBKEY_COUNT = 20,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,

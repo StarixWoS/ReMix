@@ -105,6 +105,16 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     return QString();
 }
 
+void Helper::stripNewlines(QString& string)
+{
+    if ( string.contains( "\r\n" ) ) //Replace Unix NewLines with Spaces.
+        string = string.replace( "\r\n", " " );
+    else if ( string.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
+        string = string.replace( "\r", " " );
+    else if ( string.contains( "\n" ) ) //Replace NewLines with Spaces.
+        string = string.replace( "\n", " " );
+}
+
 void Helper::stripSerNumHeader(QString& sernum)
 {
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )

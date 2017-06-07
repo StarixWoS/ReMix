@@ -18,7 +18,8 @@ class SettingsWidget : public QWidget
                   BANDUPEDIP = 3, BANHACKERS = 4, REQSERNUM = 5,
                   DISCONNECTIDLES = 6, ALLOWSSV = 7, LOGCOMMENTS = 8,
                   FWDCOMMENTS = 9, ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13 };
+                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13,
+                  WORLDDIR = 14 };
 
     bool pwdCheckState{ false };
 

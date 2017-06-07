@@ -55,6 +55,7 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/widgets/ruleswidget.cpp \
            src/createinstance.cpp \
            src/packethandler.cpp \
+           src/selectworld.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
            src/comments.cpp \
@@ -81,6 +82,7 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/widgets/ruleswidget.hpp \
            src/createinstance.hpp \
            src/packethandler.hpp \
+           src/selectworld.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
            src/prototypes.hpp \
@@ -102,6 +104,7 @@ FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/remixwidget.ui \
          ui/widgets/ruleswidget.ui \
          ui/createinstance.ui \
+         ui/selectworld.ui \
          ui/comments.ui \
          ui/settings.ui \
          ui/sendmsg.ui \

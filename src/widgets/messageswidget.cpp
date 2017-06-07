@@ -33,7 +33,10 @@ MessagesWidget::MessagesWidget(QString svrID) :
 
     QObject::connect( &motdUpdate, &QTimer::timeout, [=]()
     {
-        QVariant var{ ui->motdEdit->toPlainText() };
+        QString strVar{ ui->motdEdit->toPlainText() };
+        Helper::stripNewlines( strVar );
+
+        QVariant var{ strVar };
         Settings::setMOTDMessage( var, serverID );
     });
 
@@ -43,7 +46,10 @@ MessagesWidget::MessagesWidget(QString svrID) :
 
     QObject::connect( &banMUpdate, &QTimer::timeout, [=]()
     {
-        QVariant var{ ui->banishedEdit->toPlainText() };
+        QString strVar{ ui->motdEdit->toPlainText() };
+        Helper::stripNewlines( strVar );
+
+        QVariant var{ strVar };
         Settings::setBanishMesage( var, serverID );
     });
 }

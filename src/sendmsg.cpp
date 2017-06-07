@@ -60,13 +60,7 @@ void SendMsg::on_sendMsg_clicked()
     }
 
     message = message.prepend( "Owner: " );
-
-    if ( message.contains( "\r\n" ) ) //Replace Unix NewLines with Spaces.
-        message = message.replace( "\r\n", " " );
-    else if ( message.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
-        message = message.replace( "\r", " " );
-    else if ( message.contains( "\n" ) ) //Replace NewLines with Spaces.
-        message = message.replace( "\n", " " );
+    Helper::stripNewlines( message );
 
     if ( ui->checkBox->isChecked() )
         server->sendMasterMessage( message, nullptr, true );

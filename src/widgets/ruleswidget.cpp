@@ -3,6 +3,8 @@
 #include "ruleswidget.hpp"
 #include "ui_ruleswidget.h"
 
+#include "selectworld.hpp"
+
 RulesWidget::RulesWidget(QString svrID) :
     ui(new Ui::RulesWidget)
 {
@@ -95,6 +97,19 @@ void RulesWidget::setCheckedState(Toggles option, bool val)
     ui->rulesView->item( option, 0 )->setCheckState( state );
 }
 
+void RulesWidget::setSelectedWorld(QString worldName, bool state)
+{
+    QString rowText{ "World Name: [ %1 ]" };
+            rowText = rowText.arg( worldName );
+
+    ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
+    ui->rulesView->item( Toggles::world, 0 )->setCheckState( state
+                                                           ? Qt::Checked
+                                                           : Qt::Unchecked );
+
+    Rules::setWorldName( worldName, serverID );
+}
+
 void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem *item)
 {
     if ( item != nullptr )
@@ -146,50 +161,79 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
 
                 if ( state_b != worldCheckState )
                 {
-                    if (( Rules::getRequireWorld( serverID )
-                       || !worldCheckState )
-                      && state_b )
+                    QString worldDir{ Settings::getWorldDir() };
+                    if ( !worldDir.isEmpty() )
                     {
-                        if ( world.isEmpty() )
-                        {
-                            title = "Server World:";
-                            prompt = "World:";
-                            world = Helper::getTextResponse( this, title,
-                                                             prompt, &ok, 0 );
-                        }
+                        QDir dir( worldDir );
+                             dir.setFilter( QDir::Dirs |
+                                            QDir::NoSymLinks|
+                                            QDir::NoDotAndDotDot);
 
-                        if ( !world.isEmpty() && !ok )
-                        {
-                            ui->rulesView->item( row, 0 )->setCheckState(
-                                        Qt::Unchecked );
+                        QStringList worldList{ dir.entryList() };
 
-                            state_v = false;
-                        }
-                        else
-                            Rules::setWorldName( world, serverID );
+                        selectWorld = new SelectWorld( this, worldList );
+                        QObject::connect( selectWorld, &SelectWorld::accepted,
+                                          [&world, worldList, this]()
+                        {
+                            QString worldName{ selectWorld->getSelectedWorld() };
+                            if ( !worldName.isEmpty()
+                              && worldList.contains( worldName ) )
+                            {
+                                world = worldName;
+                            }
+                            selectWorld->close();
+                            selectWorld->disconnect();
+                            selectWorld->deleteLater();
+                        });
+                        selectWorld->exec();
+
+                        state_v = true;
+                        worldCheckState = state_v.toBool();
+                        this->setSelectedWorld( world, state_v.toBool() );
                     }
-                    else if ( !Rules::getRequireWorld( serverID )
-                           && !world.isEmpty() )
+                    else
                     {
-                        title = "Remove World:";
-                        prompt = "Do you wish to erase the stored World Name?";
-
-                        if ( !Helper::confirmAction( this, title, prompt ) )
+                        if (( Rules::getRequireWorld( serverID )
+                          || !worldCheckState )
+                          && state_b )
                         {
-                            ui->rulesView->item( row, 0 )->setCheckState(
-                                        Qt::Checked );
-                            state_v = true;
+                            if ( world.isEmpty() )
+                            {
+                                title = "Server World:";
+                                prompt = "World:";
+                                world = Helper::getTextResponse( this, title,
+                                                                 prompt, &ok, 0 );
+                            }
+
+                            if ( !world.isEmpty() && !ok )
+                            {
+                                ui->rulesView->item( row, 0 )->setCheckState(
+                                                                Qt::Unchecked );
+
+                                state_v = false;
+                            }
+                            else
+                                this->setSelectedWorld( world, state_v.toBool() );
                         }
-                        else
-                            rules.remove( Rules::subKeys[ Rules::world ] );
+                        else if ( !Rules::getRequireWorld( serverID )
+                               && !world.isEmpty() )
+                        {
+                            title = "Remove World:";
+                            prompt = "Do you wish to erase the stored World Name?";
+
+                            if ( !Helper::confirmAction( this, title, prompt ) )
+                            {
+                                ui->rulesView->item( row, 0 )->setCheckState(
+                                                                Qt::Checked );
+                                state_v = true;
+                            }
+                            else
+                                world = "";
+                        }
                     }
-                }
-                rowText = "World Name: [ %1 ]";
-                rowText = rowText.arg( Rules::getWorldName( serverID ) );
-
-                ui->rulesView->item( row, 0 )->setText( rowText );
-
-                worldCheckState = state_v.toBool();
+                    this->setSelectedWorld( world, state_v.toBool() );
+                    worldCheckState = state_v.toBool();
+                    }
             }
         break;
         case Toggles::url:

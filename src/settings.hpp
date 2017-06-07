@@ -36,7 +36,7 @@ class Settings : public QDialog
                       ReqAdminAuth = 11, LogComments = 12, FwdComments = 13,
                       InformAdminLogin = 14, EchoComments = 15,
                       MinimizeToTray = 16, SaveWindowPositions = 17,
-                      IsRunning = 18 };
+                      IsRunning = 18, WorldDir = 19 };
 
         enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
                    Rules = 4 };
@@ -120,6 +120,9 @@ class Settings : public QDialog
 
         static void setServerRunning(QVariant value, QString svrID);
         static bool getServerRunning(QString& svrID);
+
+        static void setWorldDir(QString& value);
+        static QString getWorldDir();
 
     private:
         Ui::Settings *ui;

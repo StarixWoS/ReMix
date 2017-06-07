@@ -33,7 +33,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "echoComments",
     "minimizeToTray",
     "saveWindowPositions",
-    "isRunning"
+    "isRunning",
+    "worldDir"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -454,4 +455,17 @@ bool Settings::getServerRunning(QString& svrID)
 {
     return prefs->value( svrID % "/" % subKeys[ SubKeys::IsRunning ] )
                     .toBool();
+}
+
+void Settings::setWorldDir(QString& value)
+{
+    QVariant data{ value };
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::WorldDir ],
+                      data );
+}
+
+QString Settings::getWorldDir()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::WorldDir ] ).toString();
 }

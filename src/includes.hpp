@@ -7,6 +7,7 @@
     #include <QStandardItemModel>
     #include <QNetworkInterface>
     #include <QTableWidgetItem>
+    #include <QStringListModel>
     #include <QSystemTrayIcon>
     #include <QStringBuilder>
     #include <QElapsedTimer>
@@ -16,6 +17,7 @@
     #include <QHostAddress>
     #include <QInputDialog>
     #include <QtConcurrent>
+    #include <QFileDialog>
     #include <QToolButton>
     #include <QMainWindow>
     #include <QMessageBox>

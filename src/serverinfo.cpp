@@ -401,7 +401,7 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
-    QTcpSocket* soc{nullptr };
+    QTcpSocket* soc{ nullptr };
     if ( plr != nullptr )
         soc = plr->getSocket();
 
