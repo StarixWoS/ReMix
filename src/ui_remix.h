@@ -46,6 +46,7 @@ public:
         gridLayout->setContentsMargins(0, 0, 0, 0);
         frame = new QFrame(centralWidget);
         frame->setObjectName(QStringLiteral("frame"));
+        frame->setMouseTracking(true);
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);

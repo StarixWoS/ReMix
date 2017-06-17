@@ -13,7 +13,7 @@ class ServerInfo
     QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
 
     QTimer upTimer;
-    quint64 upTime{ 0 };
+    QVariant upTime{ 0.0 };
 
     bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };

@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
     qApp->setStyle( QStyleFactory::create( "Fusion" ) );
 
     ReMix w;
+    w.setMouseTracking( true );
     w.show();
 
     return a.exec();

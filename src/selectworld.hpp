@@ -25,10 +25,11 @@ class SelectWorld : public QDialog
         QString getSelectedWorld();
 
     private slots:
+        void on_worldViewer_activated(const QModelIndex &index);
         void on_worldViewer_clicked(const QModelIndex &index);
-        void on_okButton_clicked();
-
+        void on_worldViewer_entered(const QModelIndex &index);
         void on_cancelButton_clicked();
+        void on_okButton_clicked();
 
     private:
         Ui::SelectWorld *ui;

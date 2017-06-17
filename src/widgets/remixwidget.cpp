@@ -21,6 +21,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
     randDev = new RandDev();
 
     //Setup Objects.
+    contextMenu = new QMenu( this );
     messages = new MessagesWidget( serverID );
     rules = new RulesWidget( serverID );
 
@@ -234,7 +235,9 @@ void ReMixWidget::initUIUpdate()
                      "when ready!" };
         if ( server->getIsSetUp() )
         {
-            msg = QString( "Listening for incoming calls to %1:%2" )
+            msg = QString( "Listening for incoming calls "
+                           "to: <a href=\"%1\"><span style=\" text-decoration: "
+                           "underline; color:#007af4;\">%1:%2</span></a>" )
                       .arg( server->getPrivateIP() )
                       .arg( server->getPrivatePort() );
 
@@ -268,6 +271,12 @@ void ReMixWidget::initUIUpdate()
                         }
                     }
                 }
+            }
+            //Validate the server's IP Address is still valid.
+            //If it is now invalid, restart the network sockets.
+            if ( Settings::getIsInvalidIPAddress( server->getPrivateIP() ) )
+            {
+                emit this->reValidateServerIP();
             }
             plrWidget->resizeColumns();
         }
@@ -344,4 +353,47 @@ void ReMixWidget::on_isPublicServer_toggled(bool)
         tcpServer->setupPublicServer( true );
     else   //Disconnect from the Master Server if applicable.
         tcpServer->setupPublicServer( false );
+}
+
+void ReMixWidget::on_useUPNP_toggled(bool)
+{
+    //Tell the server to use a UPNP Port Forward.
+    if ( ui->useUPNP->isChecked() )
+        tcpServer->setupUPNPForward();
+    else   //Remove the UPNP Port Forward if applicable.
+        tcpServer->removeUPNPForward();
+}
+
+void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
+{
+    QString title = QString( "Invalid IP:" );
+    QString prompt = QString( "Do you wish to mark the IP Address [ %1 ] as "
+                              "invalid and refresh the network interface?" );
+
+    prompt = prompt.arg( link );
+    if ( Helper::confirmAction( this, title, prompt ) )
+    {
+        Settings::setIsInvalidIPAddress( link );
+        emit this->reValidateServerIP();
+
+        title = "Note:";
+        prompt = "Please refresh your server list in-game!";
+        Helper::confirmAction( this, title, prompt );
+    }
+}
+
+void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
+{
+    if ( contextMenu == nullptr )
+    {
+        contextMenu = new QMenu( this );
+        if ( contextMenu != nullptr )
+        {
+            contextMenu->addMenu( "Test 1" );
+
+            contextMenu->addMenu( "Test 2" );
+        }
+    }
+    qDebug() << pos;
+    contextMenu->popup( ui->networkStatus->mapToGlobal( pos ) );
 }

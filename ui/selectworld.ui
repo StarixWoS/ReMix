@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>213</width>
-    <height>305</height>
+    <width>256</width>
+    <height>344</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,7 @@
       <item row="0" column="0">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QListView" name="worldViewer"/>
+         <widget class="QTreeView" name="worldViewer"/>
         </item>
         <item>
          <widget class="QSplitter" name="splitter">

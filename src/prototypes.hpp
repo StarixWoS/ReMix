@@ -11,19 +11,25 @@
 //    #include <QDialog>
 //    #include <QTimer>
 
+    class QNetworkAccessManager;
     class QSortFilterProxyModel;
+    class QNetworkAddressEntry;
     class QCryptographicHash;
     class QStandardItemModel;
     class QNetworkInterface;
     class QTableWidgetItem;
     class QStringListModel;
+    class QXmlStreamReader;
+    class QNetworkRequest;
     class QSystemTrayIcon;
+    class QNetworkReply;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
     class QStyleFactory;
     class QApplication;
     class QHostAddress;
     class QInputDialog;
+    class QTextStream;
     class QFileDialog;
     class QToolButton;
     class QModelIndex;  //Requires Include within Class Headers.
@@ -61,6 +67,7 @@
     class QFile;
     class QMenu;
     class QDir;
+    class QUrl;
 
     #ifdef DECRYPT_PACKET_PLUGIN
         class QCoreApplication;
@@ -103,6 +110,7 @@
     class Rules;
     class ReMix;
     class User;
+    class UPNP;
 
     #ifdef DECRYPT_PACKET_PLUGIN
         class PacketDecryptInterface;
@@ -166,7 +174,16 @@
             //Maximum Server Count a User can have at any time.
             MAX_SERVER_COUNT = 19,
 
+            //Count of possible Game Names we can use to initialize the server.
             GAME_NAME_COUNT = 4,
+
+            //Maximum live-time for a UPNP PortForward to live.
+            //30 Minutes in seconds.
+            UPNP_TIME_OUT_S = 1800,
+
+            //Maximum live-time for a UPNP PortForward to live.
+            //30 Minutes in milliseconds.
+            UPNP_TIME_OUT_MS = 180000,
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

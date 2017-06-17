@@ -385,7 +385,13 @@ QByteArray Settings::getWindowPositions(const char* dialog)
     QString key{ dialog };
 
     return getSetting( keys[ Keys::Positions ], key )
-              .toByteArray();
+            .toByteArray();
+}
+
+void Settings::setIsInvalidIPAddress(const QString& value)
+{
+    QVariant val{ true };
+    setSetting( keys[ Keys::WrongIP ], value, val );
 }
 
 bool Settings::getIsInvalidIPAddress(const QString& value)

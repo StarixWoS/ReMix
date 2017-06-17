@@ -13,11 +13,11 @@ ServerInfo::ServerInfo(QString svrID)
     }
 
     baudTime.start();
-    upTimer.start( 1000 );
+    upTimer.start( 500 ); //Refresh the UI ever .5 seconds.
 
     QObject::connect( &upTimer, &QTimer::timeout, [=]()
     {
-        ++upTime;
+        upTime.setValue( upTime.toDouble() + 0.5 );
         if ( baudTime.elapsed() > 5000 )
         {
             this->setBaudIO( this->getBytesIn(), baudIn );
@@ -124,6 +124,9 @@ QUdpSocket* ServerInfo::getMasterSocket() const
 
 bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
 {
+    if ( masterSocket->state() == QAbstractSocket::BoundState )
+        masterSocket->close();
+
     return masterSocket->bind( addr, port );
 }
 
@@ -472,7 +475,7 @@ quint64 ServerInfo::sendToAllConnected(QString packet)
 
 quint64 ServerInfo::getUpTime() const
 {
-    return upTime;
+    return upTime.toULongLong();
 }
 
 QTimer* ServerInfo::getUpTimer()

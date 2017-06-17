@@ -107,6 +107,7 @@ class Settings : public QDialog
         static void setWindowPositions(QByteArray geometry, const char* dialog);
         static QByteArray getWindowPositions(const char* dialog);
 
+        static void setIsInvalidIPAddress(const QString& value);
         static bool getIsInvalidIPAddress(const QString& value);
 
         static void setMOTDMessage(QVariant& value, QString& svrID);

@@ -27,6 +27,8 @@ class ReMixWidget : public QWidget
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
 
+    //Setup Objects.
+    QMenu* contextMenu{ nullptr };
     QPalette defaultPalette;
     bool nightMode{ false };
 
@@ -62,10 +64,15 @@ class ReMixWidget : public QWidget
         void on_enableNetworking_clicked();
         void on_openUserInfo_clicked();
         void on_serverPort_textChanged(const QString &arg1);
-        void on_isPublicServer_toggled(bool arg1);
+        void on_isPublicServer_toggled(bool);
+        void on_useUPNP_toggled(bool);
+
+        void on_networkStatus_linkActivated(const QString &link);
+        void on_networkStatus_customContextMenuRequested(const QPoint &pos);
 
     signals:
         void reloadOldServersSignal();
+        void reValidateServerIP();
 
     private:
         Ui::ReMixWidget *ui;

@@ -68,6 +68,7 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/rules.cpp \
            src/remix.cpp \
            src/user.cpp \
+           src/upnp.cpp \
            src/main.cpp
 
 HEADERS += src/tblview/usersortproxymodel.hpp\
@@ -96,7 +97,8 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/helper.hpp \
            src/rules.hpp \
            src/remix.hpp \
-           src/user.hpp
+           src/user.hpp \
+           src/upnp.hpp
 
 FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/messageswidget.ui \

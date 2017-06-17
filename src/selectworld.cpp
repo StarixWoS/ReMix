@@ -4,16 +4,30 @@
 
 #include "ui_selectworld.h"
 
-SelectWorld::SelectWorld(QWidget *parent, QStringList worldList) :
+#include <QFileSystemModel>
+
+SelectWorld::SelectWorld(QWidget *parent, QStringList) :
     QDialog(parent),
     ui(new Ui::SelectWorld)
 {
     ui->setupUi(this);
 
-    worldModel = new QStringListModel();
-    worldModel->setStringList( worldList );
+    QFileSystemModel* model{ new QFileSystemModel( this ) };
+                      model->setFilter( QDir::NoDotAndDotDot | QDir::Dirs );
+                      model->setRootPath( Settings::getWorldDir() );
+                      model->setReadOnly( true );
 
-    ui->worldViewer->setModel( worldModel );
+    QObject::connect( model, &QFileSystemModel::directoryLoaded, [=]()
+    {
+        ui->worldViewer->setModel( model );
+        for (int i = 1; i < model->columnCount(); ++i)
+            ui->worldViewer->hideColumn( i );
+
+        ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
+    });
+
+//    worldModel = new QStringListModel();
+//    worldModel->setStringList( worldList );
 
     //Remove the "Help" button from the window title bars.
     {
@@ -37,9 +51,25 @@ QString SelectWorld::getSelectedWorld()
     return world;
 }
 
+void SelectWorld::on_worldViewer_activated(const QModelIndex &index)
+{
+    world = index.data().toString();
+}
+
 void SelectWorld::on_worldViewer_clicked(const QModelIndex &index)
 {
     world = index.data().toString();
+}
+
+void SelectWorld::on_worldViewer_entered(const QModelIndex &index)
+{
+    world = index.data().toString();
+}
+
+void SelectWorld::on_cancelButton_clicked()
+{
+    this->reject();
+    this->close();
 }
 
 void SelectWorld::on_okButton_clicked()
@@ -53,10 +83,4 @@ void SelectWorld::on_okButton_clicked()
     {
         this->accept();
     }
-}
-
-void SelectWorld::on_cancelButton_clicked()
-{
-    this->reject();
-    this->close();
 }

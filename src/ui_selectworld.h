@@ -18,9 +18,9 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
-#include <QtWidgets/QListView>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSplitter>
+#include <QtWidgets/QTreeView>
 #include <QtWidgets/QVBoxLayout>
 
 QT_BEGIN_NAMESPACE
@@ -32,7 +32,7 @@ public:
     QFrame *frame;
     QGridLayout *gridLayout;
     QVBoxLayout *verticalLayout;
-    QListView *worldViewer;
+    QTreeView *worldViewer;
     QSplitter *splitter;
     QPushButton *okButton;
     QPushButton *cancelButton;
@@ -41,7 +41,7 @@ public:
     {
         if (SelectWorld->objectName().isEmpty())
             SelectWorld->setObjectName(QStringLiteral("SelectWorld"));
-        SelectWorld->resize(213, 305);
+        SelectWorld->resize(256, 344);
         horizontalLayout = new QHBoxLayout(SelectWorld);
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
         horizontalLayout->setContentsMargins(5, 5, 5, 5);
@@ -53,7 +53,7 @@ public:
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        worldViewer = new QListView(frame);
+        worldViewer = new QTreeView(frame);
         worldViewer->setObjectName(QStringLiteral("worldViewer"));
 
         verticalLayout->addWidget(worldViewer);

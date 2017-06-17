@@ -28,12 +28,21 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
+    QObject::connect( dynamic_cast<ReMixWidget*>( mother ), &ReMixWidget::reValidateServerIP, [=]()
+    {
+        server->setIsSetUp( false );
+        this->setupServerInfo();
+    });
+
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
 }
 
 Server::~Server()
 {
+    if ( upnp != nullptr )
+        upnp->deleteLater();
+
     pktHandle->disconnect();
     pktHandle->deleteLater();
 
@@ -166,14 +175,43 @@ void Server::setupServerInfo()
         }
 
         QHostAddress addr{ server->getPrivateIP() };
-
         server->initMasterSocket( addr, server->getPrivatePort() );
+
+        if ( this->isListening() )
+            this->close();
+
         this->listen( addr, server->getPrivatePort() );
 
         server->setIsSetUp( true );
         if ( server->getIsPublic() && this->isListening() )
             server->sendMasterInfo();
     }
+}
+
+void Server::setupUPNPForward()
+{
+    if ( upnp == nullptr )
+    {
+        upnp = new UPNP( QHostAddress( server->getPrivateIP() ), this );
+        upnp->makeTunnel( server->getPrivatePort(),
+                          server->getPublicPort(),
+                          "UDP",
+                          "ReMix_" % QString::number(
+                                                server->getPublicPort() ) );
+
+        QObject::connect( upnp, &UPNP::removedTunnel, [=]()
+        {
+            upnp->disconnect();
+            upnp->deleteLater();
+            upnp = nullptr;
+        });
+    }
+}
+
+void Server::removeUPNPForward()
+{
+    if ( upnp != nullptr )
+        upnp->removeTunnel();
 }
 
 void Server::newConnectionSlot()

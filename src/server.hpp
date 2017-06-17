@@ -23,6 +23,7 @@ class Server : public QTcpServer
     PacketHandler* pktHandle{ nullptr };
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
+    UPNP* upnp{ nullptr };
 
     QString serverID{ "" };
     public:
@@ -32,6 +33,8 @@ class Server : public QTcpServer
         ~Server();
 
         void setupServerInfo();
+        void setupUPNPForward();
+        void removeUPNPForward();
         void setupPublicServer(bool value);
 
         void updatePlayerTable(Player* plr, QHostAddress peerAddr,
