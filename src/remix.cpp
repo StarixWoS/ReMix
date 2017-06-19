@@ -11,7 +11,6 @@ ReMix::ReMix(QWidget *parent) :
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
-
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(

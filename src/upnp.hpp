@@ -39,6 +39,9 @@ class UPNP : public QObject
         QString info;
         QString pcol;
 
+        QString rtrSchema{ "urn:schemas-upnp-org:service:WANIPConnection:1" };
+        QString upnpLog{ "logs/upnp.txt" };
+
     public:
         explicit UPNP(QHostAddress localip, QObject* parent = 0);
         ~UPNP();

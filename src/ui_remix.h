@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remix.ui'
 **
-** Created by: Qt User Interface Compiler version 5.7.0
+** Created by: Qt User Interface Compiler version 5.9.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -67,7 +67,7 @@ public:
 
     void retranslateUi(QMainWindow *ReMix)
     {
-        ReMix->setWindowTitle(QApplication::translate("ReMix", "ReMix", 0));
+        ReMix->setWindowTitle(QApplication::translate("ReMix", "ReMix", Q_NULLPTR));
     } // retranslateUi
 
 };

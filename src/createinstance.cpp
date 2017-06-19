@@ -17,6 +17,21 @@ CreateInstance::CreateInstance(QWidget *parent) :
     ui(new Ui::CreateInstance)
 {
     ui->setupUi(this);
+    this->updateServerList();
+}
+
+CreateInstance::~CreateInstance()
+{
+    this->disconnect();
+    this->deleteLater();
+
+    delete ui;
+}
+
+void CreateInstance::updateServerList()
+{
+    ui->oldServers->clear();
+
     QStringList oldServers{ Settings::prefs->childGroups() };
 
     QString name{ "" };
@@ -48,18 +63,11 @@ CreateInstance::CreateInstance(QWidget *parent) :
         skip = false;
         running = false;
     }
-    if ( oldSvrCount == 0 )
-        ui->oldServers->setEnabled( false );
 
-    this->show();
-}
-
-CreateInstance::~CreateInstance()
-{
-    this->disconnect();
-    this->deleteLater();
-
-    delete ui;
+    if ( oldSvrCount != 0 )
+        ui->oldServers->setEnabled( true );
+    else
+        ui->oldServers->setEnabled( true );
 }
 
 QString CreateInstance::getServerArgs() const
@@ -92,20 +100,7 @@ void CreateInstance::on_initializeServer_clicked()
 
 void CreateInstance::on_close_clicked()
 {
-    QString title = QString( "Close ReMix:" );
-    QString prompt = QString( "You are about to shut down your ReMix "
-                              "game server!\r\n\r\nAre you "
-                              "certain?" );
-
-    if ( ReMixTabWidget::getInstanceCount() == 0 )
-    {
-        if ( Helper::confirmAction( this, title, prompt ) )
-        {
-            qApp->quit();
-        }
-    }
-    else
-        this->close();
+    this->close();
 }
 
 void CreateInstance::closeEvent(QCloseEvent* event)
@@ -115,10 +110,38 @@ void CreateInstance::closeEvent(QCloseEvent* event)
 
     if ( event->type() == QEvent::Close )
     {
-        this->disconnect();
-        this->deleteLater();
-        event->accept();
+        QString title = QString( "Close ReMix:" );
+        QString prompt = QString( "You are about to shut down your ReMix "
+                                  "game server!\r\n\r\nAre you "
+                                  "certain?" );
+
+        if ( ReMixTabWidget::getInstanceCount() == 0 )
+        {
+            if ( Helper::confirmAction( this, title, prompt ) )
+            {
+                event->accept();
+                qApp->quit();
+            }
+            else
+                event->ignore();
+        }
     }
+}
+
+void CreateInstance::showEvent(QShowEvent* event)
+{
+    if ( event == nullptr )
+        return;
+
+    if ( event->type() == QEvent::Show )
+    {
+        ui->serverName->setText( "AHitB ReMix Server" );
+        ui->portNumber->setText( "8888" );
+        ui->isPublic->setChecked( false );
+
+        this->updateServerList();
+    }
+    event->accept();
 }
 
 void CreateInstance::on_oldServers_currentIndexChanged(int)

@@ -12,7 +12,12 @@ class ReMixTabWidget : public QTabWidget
 {
     Q_OBJECT
 
+    static CreateInstance* createDialog;
     static ReMixTabWidget* tabInstance;
+    static qint32 instanceCount;
+
+    static QPalette defaultPalette;
+    static QPalette customPalette;
 
     QToolButton* nightModeButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
@@ -20,10 +25,7 @@ class ReMixTabWidget : public QTabWidget
     ReMixWidget* servers[ MAX_SERVER_COUNT ]{ nullptr };
     User* user{ nullptr };
 
-    static qint32 instanceCount;
     quint32 prevTabIndex{ 0 };
-
-    QPalette defaultPalette;
     bool nightMode{ false };
 
     public:
@@ -39,6 +41,7 @@ class ReMixTabWidget : public QTabWidget
 
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
+        static CreateInstance* getCreateDialog(QWidget* parent = nullptr);
 
     private:
         void createTabButtons();
@@ -48,6 +51,7 @@ class ReMixTabWidget : public QTabWidget
     private slots:
         void tabCloseRequestedSlot(quint32 index);
         void currentChangedSlot(quint32 newTab);
+        void createServerAccepted();
 };
 
 #endif // REMIXTABWIDGET_H

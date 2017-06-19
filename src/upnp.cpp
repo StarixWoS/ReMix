@@ -153,13 +153,14 @@ void UPNP::getUdp()
                     }
 
                     QXmlStreamReader reader( response );
-                    reader.readNext();
+                                     reader.readNext();
                     while ( !reader.atEnd() )
                     {
                         if ( reader.name().toString() == QString( "serviceType" ) )
                         {
-                            if ( reader.readElementText() == QString( "urn:schemas-upnp-org:ser"
-                                                                      "vice:WANIPConnection:1" ) )
+                            rtrSchema = reader.readElementText();
+                            if ( rtrSchema == QString( "urn:schemas-upnp-org:service:WANIPConnection:1" )
+                              || rtrSchema == QString( "urn:schemas-upnp-org:service:WANPPPConnection:1" ) )
                             {
                                 while ( ( !reader.atEnd() )
                                      && ( reader.name().toString() != "controlURL" ) )
@@ -173,7 +174,6 @@ void UPNP::getUdp()
                                                          .arg( gateway.toString() )
                                                          .arg( ctrlPort )
                                                          .arg( reader.readElementText() );
-                                    //qDebug() << gatewayCtrlUrl;
                                     break;
                                 }
                             }
@@ -208,15 +208,21 @@ void UPNP::getExternalIP()
     QString message{ "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
                      "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                     "<SOAP-ENV:Body><m:GetExternalIPAddress xmlns:m=\"urn:schemas-upnp-org:service:WANIPConnection:1\"/>"
+                     "<SOAP-ENV:Body><m:GetExternalIPAddress xmlns:m=\"%1\"/>"
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
+    message = message.arg( rtrSchema );
     this->postSOAP( "GetExternalIPAddress", message );
 }
 
 void UPNP::postSOAP( QString action, QString message )
 {
     emit this->stageSucceded( QString( "POST: \nAction: " ) + action + QString( "\nMessage: " ) + message + QString( "\n\n" ) );
+
+    QString soap{ "\"%1#%2\"" };
+            soap = soap.arg( rtrSchema ).arg( action );
+    QString host{ "%1:%2" };
+            host = host.arg( gateway.toString() ).arg( ctrlPort );
 
     QNetworkRequest req( gatewayCtrlUrl );
                     req.setRawHeader( QByteArray( "Cache-Control" ), "no-cache" );
@@ -225,8 +231,8 @@ void UPNP::postSOAP( QString action, QString message )
                     req.setRawHeader( QByteArray( "Content-Type" ), "text/xml; charset=\"utf-8\"" );
                     req.setRawHeader( QByteArray( "User-Agent" ), "User-Agent: Microsoft-Windows/10.0 UPnP/1.0" );
                     req.setRawHeader( QByteArray( "Content-Length" ), QString::number( message.size() ).toLatin1() );
-                    req.setRawHeader( QByteArray( "SOAPAction" ), ( QString( "\"urn:schemas-upnp-org:service:WANIPConnection:1#" ) + action + QString( "\"" ) ).toLatin1() );
-                    req.setRawHeader( QByteArray( "Host" ), QString( gateway.toString() + QString( ":" ) + ctrlPort ).toLatin1() );
+                    req.setRawHeader( QByteArray( "SOAPAction" ), soap.toLatin1() );
+                    req.setRawHeader( QByteArray( "Host" ), host.toLatin1() );
 
     httpReply = httpSocket->post( req, message.toLatin1() );
     QObject::connect( httpReply, &QNetworkReply::readyRead, [=]()
@@ -300,13 +306,14 @@ void UPNP::checkTunnels()
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                     "<SOAP-ENV:Body><m:GetSpecificPortMappingEntry xmlns:m=\"urn:schemas-upnp-org:service:WANIPConnection:1\">"
+                     "<SOAP-ENV:Body><m:GetSpecificPortMappingEntry xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
-                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%1</NewExternalPort>"
-                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%2</NewProtocol>"
+                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
+                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
                      "</m:GetSpecificPortMappingEntry></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
-    message = message.arg( QString::number( externalPort ) )
+    message = message.arg( rtrSchema )
+                     .arg( QString::number( externalPort ) )
                      .arg( pcol );
 
     this->postSOAP( "GetSpecificPortMappingEntry", message );
@@ -316,18 +323,19 @@ void UPNP::setTunnel()
 {
     QString message{ "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                     "<SOAP-ENV:Body><m:AddPortMapping xmlns:m=\"urn:schemas-upnp-org:service:WANIPConnection:1\">"
+                     "<SOAP-ENV:Body><m:AddPortMapping xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
-                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%1</NewExternalPort>"
-                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%2</NewProtocol>"
-                     "<NewInternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%3</NewInternalPort>"
-                     "<NewInternalClient xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%4</NewInternalClient>"
+                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
+                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
+                     "<NewInternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%4</NewInternalPort>"
+                     "<NewInternalClient xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%5</NewInternalClient>"
                      "<NewEnabled xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"boolean\">1</NewEnabled>"
-                     "<NewPortMappingDescription xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%5</NewPortMappingDescription>"
-                     "<NewLeaseDuration xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">%6</NewLeaseDuration></m:AddPortMapping>"
+                     "<NewPortMappingDescription xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%6</NewPortMappingDescription>"
+                     "<NewLeaseDuration xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">%7</NewLeaseDuration></m:AddPortMapping>"
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
-    message = message.arg( QString::number( externalPort ) )
+    message = message.arg( rtrSchema )
+                     .arg( QString::number( externalPort ) )
                      .arg( pcol )
                      .arg( internalPort )
                      .arg( localAddress.ip().toString() )
@@ -341,13 +349,14 @@ void UPNP::removeTunnel()
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                     "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"urn:schemas-upnp-org:service:WANIPConnection:1\">"
+                     "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
-                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%1</NewExternalPort>"
-                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%2</NewProtocol>"
+                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
+                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
                      "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
-    message = message.arg( QString::number( externalPort ) )
+    message = message.arg( rtrSchema )
+                     .arg( QString::number( externalPort ) )
                      .arg( pcol );
 
     this->postSOAP( "DeletePortMapping", message );

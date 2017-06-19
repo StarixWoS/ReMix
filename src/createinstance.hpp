@@ -22,6 +22,7 @@ class CreateInstance : public QDialog
         explicit CreateInstance(QWidget *parent = 0);
         ~CreateInstance();
 
+        void updateServerList();
         QString getServerArgs() const;
         QString getServerName() const;
         void setServerArgs(const QString& value);
@@ -31,11 +32,14 @@ class CreateInstance : public QDialog
         void on_close_clicked();
 
         void closeEvent(QCloseEvent* event);
+        void showEvent(QShowEvent* event);
 
         void on_oldServers_currentIndexChanged(int);
 
     signals:
         void closeServer();
+
+    private slots:
 
     private:
         Ui::CreateInstance *ui;

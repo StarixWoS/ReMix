@@ -40,6 +40,8 @@ class ReMix : public QMainWindow
         static User* getUser();
 
         static void getSynRealData(ServerInfo* svr);
+        static QPalette& setupPalette(qint32 type);
+        static QPalette& getPalette(qint32 type);
 
     private slots:
         //Handle Minimize events.

@@ -2,13 +2,19 @@
 #include "includes.hpp"
 #include "remixtabwidget.hpp"
 
+CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance;
 qint32 ReMixTabWidget::instanceCount;
+QPalette ReMixTabWidget::defaultPalette;
+QPalette ReMixTabWidget::customPalette;
 
 ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     : QTabWidget(parent)
 {
     user = ReMix::getUser();
+    createDialog = this->getCreateDialog( this );
+    QObject::connect( createDialog, &CreateInstance::accepted,
+                      this, &ReMixTabWidget::createServerAccepted );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -23,7 +29,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( this, &QTabWidget::currentChanged,
                       this, &ReMixTabWidget::currentChangedSlot );
 
-    defaultPalette = parent->palette();
+    defaultPalette = this->palette();
 }
 
 ReMixTabWidget::~ReMixTabWidget()
@@ -112,6 +118,15 @@ ReMixTabWidget* ReMixTabWidget::getTabInstance(QWidget* parent)
     return tabInstance;
 }
 
+CreateInstance* ReMixTabWidget::getCreateDialog(QWidget* parent)
+{
+    if ( createDialog == nullptr )
+    {
+        createDialog = new CreateInstance( parent );
+    }
+    return createDialog;
+}
+
 void ReMixTabWidget::createTabButtons()
 {
     newTabButton = new QToolButton( this );
@@ -149,85 +164,70 @@ void ReMixTabWidget::createServer()
     if ( user == nullptr )
         return;
 
-    CreateInstance* createDialog{ new CreateInstance( this ) };
-    QObject::connect( createDialog, &CreateInstance::accepted,
-                      [=]()
-    {
-        QStringList svrArgs = createDialog->getServerArgs().split( "/" );
-        QString serverName{ createDialog->getServerName() };
-        if ( svrArgs.isEmpty() )
-        {
-            svrArgs << "/game=WoS"
-                    << "/fudge"
-                    << "/name=Well of Lost Souls ReMix";
-        }
-
-        QString title{ "Unable to Initialize Server:" };
-        QString prompt{ "You are unable to initialize two servers with the same"
-                        " name!" };
-
-        quint32 serverID{ 0 };
-        ReMixWidget* instance{ nullptr };
-        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
-        {
-            serverID = MAX_SERVER_COUNT + 1;
-            instance = servers[ i ];
-            if ( instance == nullptr )
-            {
-                serverID = i;
-                break;
-            }
-            else
-            {
-                if ( instance->getServerName().compare( serverName,
-                                                        Qt::CaseInsensitive )
-                     == 0 )
-                {
-                    Helper::warningMessage( this, title, prompt );
-                    break;
-                }
-            }
-        }
-
-        if ( serverID <= MAX_SERVER_COUNT )
-        {
-            instanceCount += 1;
-            servers[ serverID ] = new ReMixWidget( this, &svrArgs, serverName );
-            this->insertTab( serverID, servers[ serverID ], serverName );
-
-            Settings::setServerRunning( QVariant( true ), serverName );
-        }
-        createDialog->close();
-        createDialog->disconnect();
-        createDialog->deleteLater();
-    });
+    if ( createDialog->isVisible() )
+        createDialog->hide();
+    else
+        createDialog->show();
 }
 
 void ReMixTabWidget::applyThemes(qint32 type)
 {
-    QPalette palette;
+    customPalette = defaultPalette;
     if ( type == Themes::DARK )
     {
-        palette.setColor( QPalette::Window, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::WindowText, Qt::white );
-        palette.setColor( QPalette::Base, QColor( 25,25,25 ) );
-        palette.setColor( QPalette::AlternateBase,
-                          QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ToolTipBase, Qt::white );
-        palette.setColor( QPalette::ToolTipText, Qt::white );
-        palette.setColor( QPalette::Text, Qt::white );
-        palette.setColor( QPalette::Button, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ButtonText, Qt::white );
-        palette.setColor( QPalette::BrightText, Qt::red );
-        palette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::Highlight,
-                          QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::HighlightedText, Qt::black );
-    }
-    else
-        palette = defaultPalette;
+        //Activated Color Roles
+        customPalette.setColor( QPalette::All, QPalette::WindowText,
+                          QColor( 231, 231, 231 ) );
+        customPalette.setColor( QPalette::All, QPalette::Text,
+                          QColor( 231, 231, 231 ) );
+        customPalette.setColor( QPalette::All, QPalette::Base,
+                          QColor( 51, 51, 51 ) );
+        customPalette.setColor( QPalette::All, QPalette::Window,
+                          QColor( 51, 51, 51 ) );
+        customPalette.setColor( QPalette::All, QPalette::Shadow,
+                          QColor( 105, 105, 105 ) );
+        customPalette.setColor( QPalette::All, QPalette::Midlight,
+                          QColor( 227, 227, 227 ) );
+        customPalette.setColor( QPalette::All, QPalette::Button,
+                          QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::All, QPalette::Light,
+                          QColor( 255, 255, 255 ) );
+        customPalette.setColor( QPalette::All, QPalette::Dark,
+                          QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::All, QPalette::Mid,
+                          QColor( 160, 160, 160 ) );
+        customPalette.setColor( QPalette::All, QPalette::BrightText,
+                          QColor( 255, 255, 255 ) );
+        customPalette.setColor( QPalette::All, QPalette::ButtonText,
+                          QColor( 231, 231, 231 ) );
+        customPalette.setColor( QPalette::All, QPalette::HighlightedText,
+                          QColor( 255, 255, 255 ) );
+        customPalette.setColor( QPalette::All, QPalette::Link,
+                          QColor( 0, 122, 144 ) );
+        customPalette.setColor( QPalette::All, QPalette::LinkVisited,
+                          QColor( 165, 122, 255 ) );
+        customPalette.setColor( QPalette::All, QPalette::AlternateBase,
+                          QColor( 81, 81, 81 ) );
+        customPalette.setColor( QPalette::All, QPalette::ToolTipText,
+                          QColor( 231, 231, 231 ) );
 
-    qApp->setPalette( palette );
+        //Disabled Color Roles
+        customPalette.setColor( QPalette::Disabled, QPalette::Button,
+                          QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::WindowText,
+                          QColor( 255, 255, 255 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Text,
+                          QColor( 255, 255, 255 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Base,
+                          QColor( 68, 68, 68 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Window,
+                          QColor( 68, 68, 68 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Shadow,
+                          QColor( 0, 0, 0 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Midlight,
+                          QColor( 247, 247, 247 ) );
+    }
+    qApp->setPalette( customPalette );
 }
 
 void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
@@ -300,4 +300,51 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
         ReMix::getSettings()->updateTabBar( server->getServerID() );
     }
     this->setPrevTabIndex( newTab );
+}
+
+void ReMixTabWidget::createServerAccepted()
+{
+    QStringList svrArgs = createDialog->getServerArgs().split( "/" );
+    QString serverName{ createDialog->getServerName() };
+    if ( svrArgs.isEmpty() )
+    {
+        svrArgs << "/game=WoS"
+                << "/fudge"
+                << "/name=Well of Lost Souls ReMix";
+    }
+
+    QString title{ "Unable to Initialize Server:" };
+    QString prompt{ "You are unable to initialize two servers with the same"
+                    " name!" };
+
+    quint32 serverID{ 0 };
+    ReMixWidget* instance{ nullptr };
+    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    {
+        serverID = MAX_SERVER_COUNT + 1;
+        instance = servers[ i ];
+        if ( instance == nullptr )
+        {
+            serverID = i;
+            break;
+        }
+        else
+        {
+            if ( instance->getServerName().compare(
+                 serverName, Qt::CaseInsensitive ) == 0 )
+            {
+                Helper::warningMessage( this, title, prompt );
+                break;
+            }
+        }
+    }
+
+    if ( serverID <= MAX_SERVER_COUNT )
+    {
+        instanceCount += 1;
+        servers[ serverID ] = new ReMixWidget( this, &svrArgs, serverName );
+        this->insertTab( serverID, servers[ serverID ], serverName );
+
+        Settings::setServerRunning( QVariant( true ), serverName );
+    }
 }

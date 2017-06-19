@@ -183,7 +183,7 @@
 
             //Maximum live-time for a UPNP PortForward to live.
             //30 Minutes in milliseconds.
-            UPNP_TIME_OUT_MS = 180000,
+            UPNP_TIME_OUT_MS = 1800000,
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

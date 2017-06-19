@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'sendmsg.ui'
 **
-** Created by: Qt User Interface Compiler version 5.7.0
+** Created by: Qt User Interface Compiler version 5.9.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -78,9 +78,9 @@ public:
 
     void retranslateUi(QDialog *SendMsg)
     {
-        SendMsg->setWindowTitle(QApplication::translate("SendMsg", "Admin Message:", 0));
-        checkBox->setText(QApplication::translate("SendMsg", "Send to Everyone", 0));
-        sendMsg->setText(QApplication::translate("SendMsg", "Send Message", 0));
+        SendMsg->setWindowTitle(QApplication::translate("SendMsg", "Admin Message:", Q_NULLPTR));
+        checkBox->setText(QApplication::translate("SendMsg", "Send to Everyone", Q_NULLPTR));
+        sendMsg->setText(QApplication::translate("SendMsg", "Send Message", Q_NULLPTR));
     } // retranslateUi
 
 };

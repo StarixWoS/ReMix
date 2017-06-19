@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'createinstance.ui'
 **
-** Created by: Qt User Interface Compiler version 5.7.0
+** Created by: Qt User Interface Compiler version 5.9.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -140,23 +140,23 @@ public:
 
     void retranslateUi(QDialog *CreateInstance)
     {
-        CreateInstance->setWindowTitle(QApplication::translate("CreateInstance", "Create Server:", 0));
-        label_2->setText(QApplication::translate("CreateInstance", "Server Name:", 0));
-        portNumber->setText(QApplication::translate("CreateInstance", "8888", 0));
-        label_3->setText(QApplication::translate("CreateInstance", "Port:", 0));
-        isPublic->setText(QApplication::translate("CreateInstance", "Register as Public Server", 0));
-        label->setText(QApplication::translate("CreateInstance", "Game:", 0));
+        CreateInstance->setWindowTitle(QApplication::translate("CreateInstance", "Create Server:", Q_NULLPTR));
+        label_2->setText(QApplication::translate("CreateInstance", "Server Name:", Q_NULLPTR));
+        portNumber->setText(QApplication::translate("CreateInstance", "8888", Q_NULLPTR));
+        label_3->setText(QApplication::translate("CreateInstance", "Port:", Q_NULLPTR));
+        isPublic->setText(QApplication::translate("CreateInstance", "Register as Public Server", Q_NULLPTR));
+        label->setText(QApplication::translate("CreateInstance", "Game:", Q_NULLPTR));
         gameName->clear();
         gameName->insertItems(0, QStringList()
-         << QApplication::translate("CreateInstance", "Well of Souls", 0)
-         << QApplication::translate("CreateInstance", "Arcadia", 0)
-         << QApplication::translate("CreateInstance", "Rocket Club", 0)
-         << QApplication::translate("CreateInstance", "Warpath", 0)
+         << QApplication::translate("CreateInstance", "Well of Souls", Q_NULLPTR)
+         << QApplication::translate("CreateInstance", "Arcadia", Q_NULLPTR)
+         << QApplication::translate("CreateInstance", "Rocket Club", Q_NULLPTR)
+         << QApplication::translate("CreateInstance", "Warpath", Q_NULLPTR)
         );
-        serverName->setText(QApplication::translate("CreateInstance", "AHitB ReMix Server", 0));
-        close->setText(QApplication::translate("CreateInstance", "Cancel", 0));
-        initializeServer->setText(QApplication::translate("CreateInstance", "Create Server", 0));
-        label_4->setText(QApplication::translate("CreateInstance", "Previous Servers:", 0));
+        serverName->setText(QApplication::translate("CreateInstance", "AHitB ReMix Server", Q_NULLPTR));
+        close->setText(QApplication::translate("CreateInstance", "Cancel", Q_NULLPTR));
+        initializeServer->setText(QApplication::translate("CreateInstance", "Create Server", Q_NULLPTR));
+        label_4->setText(QApplication::translate("CreateInstance", "Previous Servers:", Q_NULLPTR));
     } // retranslateUi
 
 };

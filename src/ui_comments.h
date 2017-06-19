@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'comments.ui'
 **
-** Created by: Qt User Interface Compiler version 5.7.0
+** Created by: Qt User Interface Compiler version 5.9.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -64,7 +64,7 @@ public:
 
     void retranslateUi(QDialog *Comments)
     {
-        Comments->setWindowTitle(QApplication::translate("Comments", "User Comments:", 0));
+        Comments->setWindowTitle(QApplication::translate("Comments", "User Comments:", Q_NULLPTR));
     } // retranslateUi
 
 };
