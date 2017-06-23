@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remixwidget.ui'
 **
-** Created by: Qt User Interface Compiler version 5.9.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -251,26 +251,26 @@ public:
 
     void retranslateUi(QWidget *ReMixWidget)
     {
-        ReMixWidget->setWindowTitle(QApplication::translate("ReMixWidget", "Form", Q_NULLPTR));
-        networkStatus->setText(QApplication::translate("ReMixWidget", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", Q_NULLPTR));
-        onlineTime->setText(QApplication::translate("ReMixWidget", "00:00:00", Q_NULLPTR));
-        groupBox_2->setTitle(QApplication::translate("ReMixWidget", "Server Info", Q_NULLPTR));
-        label->setText(QApplication::translate("ReMixWidget", "Port:", Q_NULLPTR));
-        isPublicServer->setText(QApplication::translate("ReMixWidget", "Public Server", Q_NULLPTR));
-        useUPNP->setText(QApplication::translate("ReMixWidget", "!", Q_NULLPTR));
-        serverPort->setText(QApplication::translate("ReMixWidget", "8888", Q_NULLPTR));
-        enableNetworking->setText(QApplication::translate("ReMixWidget", "Accept Calls", Q_NULLPTR));
-        openSettings->setText(QApplication::translate("ReMixWidget", "Settings", Q_NULLPTR));
-        openUserInfo->setText(QApplication::translate("ReMixWidget", "User Information", Q_NULLPTR));
-        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", Q_NULLPTR));
-        groupBox->setTitle(QApplication::translate("ReMixWidget", "Stats", Q_NULLPTR));
-        callCount->setText(QApplication::translate("ReMixWidget", "#Calls: 0", Q_NULLPTR));
-        pingCount->setText(QApplication::translate("ReMixWidget", "#Pings: 0", Q_NULLPTR));
-        packetDCCount->setText(QApplication::translate("ReMixWidget", "#Pkt-DC: 0", Q_NULLPTR));
-        dupDCCount->setText(QApplication::translate("ReMixWidget", "#Dup-DC: 0", Q_NULLPTR));
-        ipDCCount->setText(QApplication::translate("ReMixWidget", "#IP-DC: 0", Q_NULLPTR));
-        packetINBD->setText(QApplication::translate("ReMixWidget", "#IN: 0 BD", Q_NULLPTR));
-        packetOUTBD->setText(QApplication::translate("ReMixWidget", "#OUT: 0 BD", Q_NULLPTR));
+        ReMixWidget->setWindowTitle(QApplication::translate("ReMixWidget", "Form", 0));
+        networkStatus->setText(QApplication::translate("ReMixWidget", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
+        onlineTime->setText(QApplication::translate("ReMixWidget", "00:00:00", 0));
+        groupBox_2->setTitle(QApplication::translate("ReMixWidget", "Server Info", 0));
+        label->setText(QApplication::translate("ReMixWidget", "Port:", 0));
+        isPublicServer->setText(QApplication::translate("ReMixWidget", "Public Server", 0));
+        useUPNP->setText(QApplication::translate("ReMixWidget", "!", 0));
+        serverPort->setText(QApplication::translate("ReMixWidget", "8888", 0));
+        enableNetworking->setText(QApplication::translate("ReMixWidget", "Accept Calls", 0));
+        openSettings->setText(QApplication::translate("ReMixWidget", "Settings", 0));
+        openUserInfo->setText(QApplication::translate("ReMixWidget", "User Information", 0));
+        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", 0));
+        groupBox->setTitle(QApplication::translate("ReMixWidget", "Stats", 0));
+        callCount->setText(QApplication::translate("ReMixWidget", "#Calls: 0", 0));
+        pingCount->setText(QApplication::translate("ReMixWidget", "#Pings: 0", 0));
+        packetDCCount->setText(QApplication::translate("ReMixWidget", "#Pkt-DC: 0", 0));
+        dupDCCount->setText(QApplication::translate("ReMixWidget", "#Dup-DC: 0", 0));
+        ipDCCount->setText(QApplication::translate("ReMixWidget", "#IP-DC: 0", 0));
+        packetINBD->setText(QApplication::translate("ReMixWidget", "#IN: 0 BD", 0));
+        packetOUTBD->setText(QApplication::translate("ReMixWidget", "#OUT: 0 BD", 0));
     } // retranslateUi
 
 };

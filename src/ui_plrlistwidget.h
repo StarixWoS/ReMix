@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'plrlistwidget.ui'
 **
-** Created by: Qt User Interface Compiler version 5.9.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -79,12 +79,12 @@ public:
 
     void retranslateUi(QWidget *PlrListWidget)
     {
-        PlrListWidget->setWindowTitle(QApplication::translate("PlrListWidget", "Form", Q_NULLPTR));
-        actionSendMessage->setText(QApplication::translate("PlrListWidget", "Send Message", Q_NULLPTR));
-        actionMakeAdmin->setText(QApplication::translate("PlrListWidget", "Make Admin", Q_NULLPTR));
-        actionDisconnectUser->setText(QApplication::translate("PlrListWidget", "Disconnect User", Q_NULLPTR));
-        actionMuteNetwork->setText(QApplication::translate("PlrListWidget", "Mute Network", Q_NULLPTR));
-        actionBANISHUser->setText(QApplication::translate("PlrListWidget", "BANISH User", Q_NULLPTR));
+        PlrListWidget->setWindowTitle(QApplication::translate("PlrListWidget", "Form", 0));
+        actionSendMessage->setText(QApplication::translate("PlrListWidget", "Send Message", 0));
+        actionMakeAdmin->setText(QApplication::translate("PlrListWidget", "Make Admin", 0));
+        actionDisconnectUser->setText(QApplication::translate("PlrListWidget", "Disconnect User", 0));
+        actionMuteNetwork->setText(QApplication::translate("PlrListWidget", "Mute Network", 0));
+        actionBANISHUser->setText(QApplication::translate("PlrListWidget", "BANISH User", 0));
     } // retranslateUi
 
 };

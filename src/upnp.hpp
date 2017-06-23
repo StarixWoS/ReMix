@@ -15,15 +15,12 @@ class UPNP : public QObject
     Q_OBJECT
 
     public:
-        enum State {
-            Opened = 0,
-            NotOpened,
-            Closed
-        };
+        static QVector<qint32> ports;
+        static bool tunneled;
+        static UPNP* upnp;
 
     private:
         QNetworkAccessManager* httpSocket;
-        QNetworkReply* httpReply;
         QUdpSocket* udpSocket;
         QTimer* refreshTunnel;
         QTimer* timer;
@@ -32,48 +29,47 @@ class UPNP : public QObject
         QHostAddress externalAddress;
         QHostAddress gateway;
         QUrl gatewayCtrlUrl;
-        int internalPort;
-        int externalPort;
-        QString ctrlPort;
-        State connState;
-        QString info;
-        QString pcol;
 
         QString rtrSchema{ "urn:schemas-upnp-org:service:WANIPConnection:1" };
-        QString upnpLog{ "logs/upnp.txt" };
+        QString ctrlPort{ "" };
+
+        int internalPort{ 0 };
+        int externalPort{ 0 };
 
     public:
         explicit UPNP(QHostAddress localip, QObject* parent = 0);
         ~UPNP();
 
     public:
-        void makeTunnel(int internal, int external,
-                        QString protocol, QString text = "Tunnel ");
+        void makeTunnel(int internal, int external);
 
-        void setTunnel();
-        void removeTunnel();
-        State getState() const;
-        QHostAddress getExternalAddress() const;
+        void checkPortForward(QString protocol, qint32 port);
+        void addPortForward(QString protocol, qint32 port);
+        void removePortForward(QString protocol, qint32 port);
+
+        static UPNP* getUpnp(QHostAddress localip);
+
+        static bool getTunneled();
+        static void setTunneled(bool value);
 
     private:
         void getExternalIP();
-        void checkTunnels();
         void extractExternalIP(QString message);
-        void extractError(QString message);
-        void postSOAP(QString action, QString message);
+        void postSOAP(QString action, QString message, QString protocol, qint32 port = 0);
+        void extractError(QString message, qint32 port, QString protocol);
 
     private slots:
         void getUdp();
         void timeExpired();
 
     signals:
+        void removedPortForward(qint32 port, QString protocol);
+        void addedPortForward(qint32 port, QString protocol);
+        void checkedPortForward(qint32 port, QString protocol);
         void success();
-        void stageSucceded(QString stage);
         void udpResponse();
-        void addressExtracted(QHostAddress);
         void error(QString message);
         void createdTunnel();
-        void removedTunnel();
 };
 
 #endif // UPNP_HPP

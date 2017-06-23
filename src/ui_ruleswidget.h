@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'ruleswidget.ui'
 **
-** Created by: Qt User Interface Compiler version 5.9.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -142,72 +142,72 @@ public:
 
     void retranslateUi(QWidget *RulesWidget)
     {
-        RulesWidget->setWindowTitle(QApplication::translate("RulesWidget", "Form", Q_NULLPTR));
+        RulesWidget->setWindowTitle(QApplication::translate("RulesWidget", "Form", 0));
         QTableWidgetItem *___qtablewidgetitem = rulesView->horizontalHeaderItem(0);
-        ___qtablewidgetitem->setText(QApplication::translate("RulesWidget", "Settings", Q_NULLPTR));
+        ___qtablewidgetitem->setText(QApplication::translate("RulesWidget", "Settings", 0));
         QTableWidgetItem *___qtablewidgetitem1 = rulesView->verticalHeaderItem(0);
-        ___qtablewidgetitem1->setText(QApplication::translate("RulesWidget", "1", Q_NULLPTR));
+        ___qtablewidgetitem1->setText(QApplication::translate("RulesWidget", "1", 0));
         QTableWidgetItem *___qtablewidgetitem2 = rulesView->verticalHeaderItem(1);
-        ___qtablewidgetitem2->setText(QApplication::translate("RulesWidget", "2", Q_NULLPTR));
+        ___qtablewidgetitem2->setText(QApplication::translate("RulesWidget", "2", 0));
         QTableWidgetItem *___qtablewidgetitem3 = rulesView->verticalHeaderItem(2);
-        ___qtablewidgetitem3->setText(QApplication::translate("RulesWidget", "12", Q_NULLPTR));
+        ___qtablewidgetitem3->setText(QApplication::translate("RulesWidget", "12", 0));
         QTableWidgetItem *___qtablewidgetitem4 = rulesView->verticalHeaderItem(3);
-        ___qtablewidgetitem4->setText(QApplication::translate("RulesWidget", "3", Q_NULLPTR));
+        ___qtablewidgetitem4->setText(QApplication::translate("RulesWidget", "3", 0));
         QTableWidgetItem *___qtablewidgetitem5 = rulesView->verticalHeaderItem(4);
-        ___qtablewidgetitem5->setText(QApplication::translate("RulesWidget", "4", Q_NULLPTR));
+        ___qtablewidgetitem5->setText(QApplication::translate("RulesWidget", "4", 0));
         QTableWidgetItem *___qtablewidgetitem6 = rulesView->verticalHeaderItem(5);
-        ___qtablewidgetitem6->setText(QApplication::translate("RulesWidget", "5", Q_NULLPTR));
+        ___qtablewidgetitem6->setText(QApplication::translate("RulesWidget", "5", 0));
         QTableWidgetItem *___qtablewidgetitem7 = rulesView->verticalHeaderItem(6);
-        ___qtablewidgetitem7->setText(QApplication::translate("RulesWidget", "6", Q_NULLPTR));
+        ___qtablewidgetitem7->setText(QApplication::translate("RulesWidget", "6", 0));
         QTableWidgetItem *___qtablewidgetitem8 = rulesView->verticalHeaderItem(7);
-        ___qtablewidgetitem8->setText(QApplication::translate("RulesWidget", "7", Q_NULLPTR));
+        ___qtablewidgetitem8->setText(QApplication::translate("RulesWidget", "7", 0));
         QTableWidgetItem *___qtablewidgetitem9 = rulesView->verticalHeaderItem(8);
-        ___qtablewidgetitem9->setText(QApplication::translate("RulesWidget", "8", Q_NULLPTR));
+        ___qtablewidgetitem9->setText(QApplication::translate("RulesWidget", "8", 0));
         QTableWidgetItem *___qtablewidgetitem10 = rulesView->verticalHeaderItem(9);
-        ___qtablewidgetitem10->setText(QApplication::translate("RulesWidget", "15", Q_NULLPTR));
+        ___qtablewidgetitem10->setText(QApplication::translate("RulesWidget", "15", 0));
         QTableWidgetItem *___qtablewidgetitem11 = rulesView->verticalHeaderItem(10);
-        ___qtablewidgetitem11->setText(QApplication::translate("RulesWidget", "14", Q_NULLPTR));
+        ___qtablewidgetitem11->setText(QApplication::translate("RulesWidget", "14", 0));
         QTableWidgetItem *___qtablewidgetitem12 = rulesView->verticalHeaderItem(11);
-        ___qtablewidgetitem12->setText(QApplication::translate("RulesWidget", "9", Q_NULLPTR));
+        ___qtablewidgetitem12->setText(QApplication::translate("RulesWidget", "9", 0));
         QTableWidgetItem *___qtablewidgetitem13 = rulesView->verticalHeaderItem(12);
-        ___qtablewidgetitem13->setText(QApplication::translate("RulesWidget", "10", Q_NULLPTR));
+        ___qtablewidgetitem13->setText(QApplication::translate("RulesWidget", "10", 0));
         QTableWidgetItem *___qtablewidgetitem14 = rulesView->verticalHeaderItem(13);
-        ___qtablewidgetitem14->setText(QApplication::translate("RulesWidget", "13", Q_NULLPTR));
+        ___qtablewidgetitem14->setText(QApplication::translate("RulesWidget", "13", 0));
         QTableWidgetItem *___qtablewidgetitem15 = rulesView->verticalHeaderItem(14);
-        ___qtablewidgetitem15->setText(QApplication::translate("RulesWidget", "11", Q_NULLPTR));
+        ___qtablewidgetitem15->setText(QApplication::translate("RulesWidget", "11", 0));
 
         const bool __sortingEnabled = rulesView->isSortingEnabled();
         rulesView->setSortingEnabled(false);
         QTableWidgetItem *___qtablewidgetitem16 = rulesView->item(0, 0);
-        ___qtablewidgetitem16->setText(QApplication::translate("RulesWidget", "World Name", Q_NULLPTR));
+        ___qtablewidgetitem16->setText(QApplication::translate("RulesWidget", "World Name", 0));
         QTableWidgetItem *___qtablewidgetitem17 = rulesView->item(1, 0);
-        ___qtablewidgetitem17->setText(QApplication::translate("RulesWidget", "Server Home", Q_NULLPTR));
+        ___qtablewidgetitem17->setText(QApplication::translate("RulesWidget", "Server Home", 0));
         QTableWidgetItem *___qtablewidgetitem18 = rulesView->item(2, 0);
-        ___qtablewidgetitem18->setText(QApplication::translate("RulesWidget", "All PKing", Q_NULLPTR));
+        ___qtablewidgetitem18->setText(QApplication::translate("RulesWidget", "All PKing", 0));
         QTableWidgetItem *___qtablewidgetitem19 = rulesView->item(3, 0);
-        ___qtablewidgetitem19->setText(QApplication::translate("RulesWidget", "Max Players", Q_NULLPTR));
+        ___qtablewidgetitem19->setText(QApplication::translate("RulesWidget", "Max Players", 0));
         QTableWidgetItem *___qtablewidgetitem20 = rulesView->item(4, 0);
-        ___qtablewidgetitem20->setText(QApplication::translate("RulesWidget", "Max AFK", Q_NULLPTR));
+        ___qtablewidgetitem20->setText(QApplication::translate("RulesWidget", "Max AFK", 0));
         QTableWidgetItem *___qtablewidgetitem21 = rulesView->item(5, 0);
-        ___qtablewidgetitem21->setText(QApplication::translate("RulesWidget", "Min Version", Q_NULLPTR));
+        ___qtablewidgetitem21->setText(QApplication::translate("RulesWidget", "Min Version", 0));
         QTableWidgetItem *___qtablewidgetitem22 = rulesView->item(6, 0);
-        ___qtablewidgetitem22->setText(QApplication::translate("RulesWidget", "Report to Ladder", Q_NULLPTR));
+        ___qtablewidgetitem22->setText(QApplication::translate("RulesWidget", "Report to Ladder", 0));
         QTableWidgetItem *___qtablewidgetitem23 = rulesView->item(7, 0);
-        ___qtablewidgetitem23->setText(QApplication::translate("RulesWidget", "No Cursing", Q_NULLPTR));
+        ___qtablewidgetitem23->setText(QApplication::translate("RulesWidget", "No Cursing", 0));
         QTableWidgetItem *___qtablewidgetitem24 = rulesView->item(8, 0);
-        ___qtablewidgetitem24->setText(QApplication::translate("RulesWidget", "No Cheating", Q_NULLPTR));
+        ___qtablewidgetitem24->setText(QApplication::translate("RulesWidget", "No Cheating", 0));
         QTableWidgetItem *___qtablewidgetitem25 = rulesView->item(9, 0);
-        ___qtablewidgetitem25->setText(QApplication::translate("RulesWidget", "No Eavesdropping", Q_NULLPTR));
+        ___qtablewidgetitem25->setText(QApplication::translate("RulesWidget", "No Eavesdropping", 0));
         QTableWidgetItem *___qtablewidgetitem26 = rulesView->item(10, 0);
-        ___qtablewidgetitem26->setText(QApplication::translate("RulesWidget", "No Migrating", Q_NULLPTR));
+        ___qtablewidgetitem26->setText(QApplication::translate("RulesWidget", "No Migrating", 0));
         QTableWidgetItem *___qtablewidgetitem27 = rulesView->item(11, 0);
-        ___qtablewidgetitem27->setText(QApplication::translate("RulesWidget", "No Modders", Q_NULLPTR));
+        ___qtablewidgetitem27->setText(QApplication::translate("RulesWidget", "No Modders", 0));
         QTableWidgetItem *___qtablewidgetitem28 = rulesView->item(12, 0);
-        ___qtablewidgetitem28->setText(QApplication::translate("RulesWidget", "No Pets", Q_NULLPTR));
+        ___qtablewidgetitem28->setText(QApplication::translate("RulesWidget", "No Pets", 0));
         QTableWidgetItem *___qtablewidgetitem29 = rulesView->item(13, 0);
-        ___qtablewidgetitem29->setText(QApplication::translate("RulesWidget", "No PKing", Q_NULLPTR));
+        ___qtablewidgetitem29->setText(QApplication::translate("RulesWidget", "No PKing", 0));
         QTableWidgetItem *___qtablewidgetitem30 = rulesView->item(14, 0);
-        ___qtablewidgetitem30->setText(QApplication::translate("RulesWidget", "Arena PKing", Q_NULLPTR));
+        ___qtablewidgetitem30->setText(QApplication::translate("RulesWidget", "Arena PKing", 0));
         rulesView->setSortingEnabled(__sortingEnabled);
 
     } // retranslateUi

@@ -2,9 +2,27 @@
 #include "upnp.hpp"
 #include "includes.hpp"
 
-QHostAddress UPNP::getExternalAddress() const
+QVector<qint32> UPNP::ports;
+bool UPNP::tunneled{ false };
+UPNP* UPNP::upnp{ nullptr };
+
+UPNP* UPNP::getUpnp(QHostAddress localip )
 {
-    return externalAddress;
+    if ( upnp == nullptr )
+    {
+        upnp = new UPNP( localip );
+    }
+    return upnp;
+}
+
+bool UPNP::getTunneled()
+{
+    return tunneled;
+}
+
+void UPNP::setTunneled(bool value)
+{
+    tunneled = value;
 }
 
 UPNP::UPNP(QHostAddress localip, QObject* parent )
@@ -14,13 +32,10 @@ UPNP::UPNP(QHostAddress localip, QObject* parent )
     localAddress.setBroadcast( QHostAddress::Broadcast );
 
     httpSocket = new QNetworkAccessManager();
-    connState = State::NotOpened;
     udpSocket = new QUdpSocket();
     timer = new QTimer( this );
 
-    httpReply = NULL;
-
-    udpSocket->bind( localAddress.ip(), 1900 );
+    udpSocket->bind( localAddress.ip(), 0 );
 
     //When the UPNP Tunnel is initialized, begin refreshing the Tunnel
     //every 30 minutes as it time's out.
@@ -28,7 +43,21 @@ UPNP::UPNP(QHostAddress localip, QObject* parent )
     refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
     QObject::connect( refreshTunnel, &QTimer::timeout, [=]()
     {
-        this->setTunnel();
+        for (  qint32 port : ports )
+        {
+            if ( port != 0 )
+            {
+                this->checkPortForward( "TCP", port );
+                this->checkPortForward( "UDP", port );
+            }
+
+            //Delay the next Port refresh by 5 seconds.
+            QTime time = QTime::currentTime().addSecs( 5 );
+            while ( QTime::currentTime() < time )
+            {
+                QCoreApplication::processEvents( QEventLoop::AllEvents, 100  );
+            }
+        }
     });
 }
 
@@ -37,9 +66,6 @@ UPNP::~UPNP()
     httpSocket->disconnect();
     httpSocket->deleteLater();
 
-    httpReply->disconnect();
-    httpReply->deleteLater();
-
     udpSocket->disconnect();
     udpSocket->deleteLater();
 
@@ -47,37 +73,29 @@ UPNP::~UPNP()
     timer->deleteLater();
 }
 
-void UPNP::makeTunnel( int internal, int external, QString protocol, QString text )
+void UPNP::makeTunnel( int internal, int external )
 {
-    if ( ( protocol == "TCP" )||( protocol == "UDP" ) )
-    {
-        QObject::connect( udpSocket, &QUdpSocket::readyRead,
-                          this, &UPNP::getUdp );
+    QObject::connect( udpSocket, &QUdpSocket::readyRead,
+                      this, &UPNP::getUdp );
 
-        QObject::connect( timer, &QTimer::timeout,
-                          this, &UPNP::timeExpired );
+    QObject::connect( timer, &QTimer::timeout,
+                      this, &UPNP::timeExpired );
 
-        externalPort = external;
-        internalPort = internal;
-        info = text;
-        pcol = protocol;
-        QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
-                                    "HOST:239.255.255.250:1900\r\n"
-                                    "ST:urn:schemas-upnp-org:device:Internet"
-                                    "GatewayDevice:1\r\n"/*upnp:rootdevice*/
-                                    "Man:\"ssdp:discover\"\r\n"
-                                    "MX:3\r\n\r\n" );
+    externalPort = external;
+    internalPort = internal;
+    QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
+                                "HOST:239.255.255.250:1900\r\n"
+                                "ST:urn:schemas-upnp-org:device:Internet"
+                                "GatewayDevice:1\r\n"/*upnp:rootdevice*/
+                                "Man:\"ssdp:discover\"\r\n"
+                                "MX:3\r\n\r\n" );
 
-        udpSocket->writeDatagram( discover.toLatin1(),
-                                   discover.size(),
-                                   localAddress.broadcast(),
-                                   1900 );
-        timer->start( 1000 );
-    }
-    else
-    {
-        emit this->error( "Invalid protocol" );
-    }
+    udpSocket->writeDatagram( discover.toLatin1(),
+                              discover.size(),
+                              localAddress.broadcast(),
+                              1900 );
+    timer->start( 1000 );
+    this->setTunneled( true );
 }
 
 void UPNP::getUdp()
@@ -92,20 +110,15 @@ void UPNP::getUdp()
 
         datagram.resize( udpSocket->pendingDatagramSize() );
         udpSocket->readDatagram( datagram.data(),
-                                  datagram.size(),
-                                  &sender,
-                                  &senderPort );
+                                 datagram.size(),
+                                 &sender,
+                                 &senderPort );
 
         QHostAddress st_addr( sender.toIPv4Address() );
         if ( st_addr != localAddress.ip() )
         {
             timer->stop();
             gateway = st_addr;
-            //qDebug() << gateway;
-            emit this->stageSucceded( QString( "%1:%2;\n%3\n" )
-                                         .arg( st_addr.toString() )
-                                         .arg( senderPort )
-                                         .arg( datagram.data() ) );
 
             vs = datagram.data();
             int index = vs.indexOf( "LOCATION: " );
@@ -174,6 +187,7 @@ void UPNP::getUdp()
                                                          .arg( gateway.toString() )
                                                          .arg( ctrlPort )
                                                          .arg( reader.readElementText() );
+                                    emit this->success();
                                     break;
                                 }
                             }
@@ -183,7 +197,7 @@ void UPNP::getUdp()
                         else
                             reader.readNext();
                     }
-                    this->getExternalIP();
+                    //this->getExternalIP();
 
                     httpSocket->disconnect();
                 });
@@ -212,13 +226,11 @@ void UPNP::getExternalIP()
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
     message = message.arg( rtrSchema );
-    this->postSOAP( "GetExternalIPAddress", message );
+    this->postSOAP( "GetExternalIPAddress", message, "" );
 }
 
-void UPNP::postSOAP( QString action, QString message )
+void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 port)
 {
-    emit this->stageSucceded( QString( "POST: \nAction: " ) + action + QString( "\nMessage: " ) + message + QString( "\n\n" ) );
-
     QString soap{ "\"%1#%2\"" };
             soap = soap.arg( rtrSchema ).arg( action );
     QString host{ "%1:%2" };
@@ -234,7 +246,7 @@ void UPNP::postSOAP( QString action, QString message )
                     req.setRawHeader( QByteArray( "SOAPAction" ), soap.toLatin1() );
                     req.setRawHeader( QByteArray( "Host" ), host.toLatin1() );
 
-    httpReply = httpSocket->post( req, message.toLatin1() );
+    QNetworkReply* httpReply = httpSocket->post( req, message.toLatin1() );
     QObject::connect( httpReply, &QNetworkReply::readyRead, [=]()
     {
         QString reply = httpReply->readAll();
@@ -245,46 +257,25 @@ void UPNP::postSOAP( QString action, QString message )
 
             if ( reply.contains( "DeletePortMappingResponse" ) )
             {
-                connState = State::Closed;
-                emit this->removedTunnel();
+                emit this->removedPortForward( port, protocol );
             }
 
             if ( reply.contains( "AddPortMappingResponse" ) )
             {
-                connState = State::Opened;
+                emit this->addedPortForward( port, protocol );
                 refreshTunnel->start();
-                emit this->success();
             }
         }
         else
-            this->extractError( reply );
-
-        emit this->stageSucceded( reply + "\n" );
-    });
-
-    QObject::connect( httpReply, &QNetworkReply::readyRead, [=]()
-    {
-        emit this->error( httpReply->errorString() );
+        {
+            this->extractError( reply, port, protocol );
+        }
+        httpReply->disconnect();
+        httpReply->deleteLater();
     });
 }
 
-void UPNP::extractExternalIP( QString message )
-{
-    QXmlStreamReader reader( message );
-    reader.readNext();
-    while ( reader.name().toString() != QString( "NewExternalIPAddress" ) )
-    {
-        reader.readNext();
-    }
-    if ( reader.name().toString() == QString( "NewExternalIPAddress" ) )
-    {
-        externalAddress = QHostAddress( reader.readElementText() );
-    }
-    emit this->addressExtracted( externalAddress );
-    this->checkTunnels();
-}
-
-void UPNP::extractError( QString message )
+void UPNP::extractError( QString message, qint32 port, QString protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
@@ -296,13 +287,29 @@ void UPNP::extractError( QString message )
     if ( reader.name().toString() == QString( "errorDescription" ) )
     {
         if ( reader.readElementText() == QString( "NoSuchEntryInArray" ) )
-            this->setTunnel();
+        {
+            this->addPortForward( protocol, port );
+            emit this->checkedPortForward( port, protocol );
+        }
         else
             emit this->error( reader.readElementText() );
     }
 }
 
-void UPNP::checkTunnels()
+void UPNP::extractExternalIP( QString message )
+{
+    QXmlStreamReader reader( message );
+    reader.readNext();
+    while ( reader.name().toString() != QString( "NewExternalIPAddress" ) )
+    {
+        reader.readNext();
+    }
+
+    if ( reader.name().toString() == QString( "NewExternalIPAddress" ) )
+        externalAddress = QHostAddress( reader.readElementText() );
+}
+
+void UPNP::checkPortForward(QString protocol, qint32 port)
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
@@ -313,14 +320,19 @@ void UPNP::checkTunnels()
                      "</m:GetSpecificPortMappingEntry></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
     message = message.arg( rtrSchema )
-                     .arg( QString::number( externalPort ) )
-                     .arg( pcol );
+                     .arg( QString::number( port ) )
+                     .arg( protocol );
 
-    this->postSOAP( "GetSpecificPortMappingEntry", message );
+    this->postSOAP( "GetSpecificPortMappingEntry", message, protocol, port );
 }
 
-void UPNP::setTunnel()
+void UPNP::addPortForward(QString protocol, qint32 port)
 {
+    if ( !ports.contains( port ) )
+    {
+        ports.append( port );
+    }
+
     QString message{ "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
                      "<SOAP-ENV:Body><m:AddPortMapping xmlns:m=\"%1\">"
@@ -335,34 +347,34 @@ void UPNP::setTunnel()
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
     message = message.arg( rtrSchema )
-                     .arg( QString::number( externalPort ) )
-                     .arg( pcol )
-                     .arg( internalPort )
+                     .arg( QString::number( port ) )
+                     .arg( protocol )
+                     .arg( QString::number( port ) )
                      .arg( localAddress.ip().toString() )
-                     .arg( info )
+                     .arg( "ReMix_" % QString::number( port ) % protocol )
                      .arg( QString::number( UPNP_TIME_OUT_S ) );
 
-    this->postSOAP( "AddPortMapping", message );
+    this->postSOAP( "AddPortMapping", message, protocol, port );
 }
 
-void UPNP::removeTunnel()
+void UPNP::removePortForward(QString protocol, qint32 port)
 {
-    QString message( "<?xml version=\"1.0\"?>"
-                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                     "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
-                     "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
-                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
-                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
-                     "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
+    if ( ports.contains( port ) )
+    {
+        QString message( "<?xml version=\"1.0\"?>"
+                         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+                         "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
+                         "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
+                         "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
+                         "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
+                         "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
-    message = message.arg( rtrSchema )
-                     .arg( QString::number( externalPort ) )
-                     .arg( pcol );
+        message = message.arg( rtrSchema )
+                         .arg( QString::number( port ) )
+                         .arg( protocol );
 
-    this->postSOAP( "DeletePortMapping", message );
-}
+        this->postSOAP( "DeletePortMapping", message, protocol, port );
 
-UPNP::State UPNP::getState() const
-{
-    return connState;
+        ports.remove( ports.indexOf( port ) );
+    }
 }

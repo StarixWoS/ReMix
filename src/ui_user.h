@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'user.ui'
 **
-** Created by: Qt User Interface Compiler version 5.9.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -77,7 +77,7 @@ public:
 
     void retranslateUi(QDialog *User)
     {
-        User->setWindowTitle(QApplication::translate("User", "User Information:", Q_NULLPTR));
+        User->setWindowTitle(QApplication::translate("User", "User Information:", 0));
     } // retranslateUi
 
 };

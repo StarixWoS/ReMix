@@ -40,9 +40,6 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
 Server::~Server()
 {
-    if ( upnp != nullptr )
-        upnp->deleteLater();
-
     pktHandle->disconnect();
     pktHandle->deleteLater();
 
@@ -170,6 +167,7 @@ void Server::setupServerInfo()
             {
                 //Use first non-local IP address.
                 server->setPrivateIP( ipList.at(i).toString() );
+                upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
                 break;
             }
         }
@@ -192,26 +190,34 @@ void Server::setupUPNPForward()
 {
     if ( upnp == nullptr )
     {
-        upnp = new UPNP( QHostAddress( server->getPrivateIP() ), this );
-        upnp->makeTunnel( server->getPrivatePort(),
-                          server->getPublicPort(),
-                          "UDP",
-                          "ReMix_" % QString::number(
-                                                server->getPublicPort() ) );
+        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
+    }
 
-        QObject::connect( upnp, &UPNP::removedTunnel, [=]()
+    bool tunneled = UPNP::getTunneled();
+    if ( tunneled != true )
+    {
+        QObject::connect( upnp, &UPNP::success, [=]()
         {
+            upnp->checkPortForward( "TCP", server->getPrivatePort() );
+            upnp->checkPortForward( "UDP", server->getPrivatePort() );
             upnp->disconnect();
-            upnp->deleteLater();
-            upnp = nullptr;
         });
+        upnp->makeTunnel( server->getPrivatePort(), server->getPublicPort() );
+    }
+    else
+    {
+        upnp->checkPortForward( "TCP", server->getPrivatePort() );
+        upnp->checkPortForward( "UDP", server->getPrivatePort() );
     }
 }
 
 void Server::removeUPNPForward()
 {
     if ( upnp != nullptr )
-        upnp->removeTunnel();
+    {
+        upnp->removePortForward( "TCP", server->getPrivatePort() );
+        upnp->removePortForward( "UDP", server->getPrivatePort() );
+    }
 }
 
 void Server::newConnectionSlot()

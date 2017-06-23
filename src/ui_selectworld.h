@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'selectworld.ui'
 **
-** Created by: Qt User Interface Compiler version 5.9.0
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -84,9 +84,9 @@ public:
 
     void retranslateUi(QDialog *SelectWorld)
     {
-        SelectWorld->setWindowTitle(QApplication::translate("SelectWorld", "Select World:", Q_NULLPTR));
-        okButton->setText(QApplication::translate("SelectWorld", "Ok", Q_NULLPTR));
-        cancelButton->setText(QApplication::translate("SelectWorld", "Cancel", Q_NULLPTR));
+        SelectWorld->setWindowTitle(QApplication::translate("SelectWorld", "Select World:", 0));
+        okButton->setText(QApplication::translate("SelectWorld", "Ok", 0));
+        cancelButton->setText(QApplication::translate("SelectWorld", "Cancel", 0));
     } // retranslateUi
 
 };
