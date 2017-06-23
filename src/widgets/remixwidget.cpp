@@ -61,6 +61,11 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
+    if ( ui->useUPNP->isChecked() )
+    {
+        tcpServer->removeUPNPForward();
+    }
+
     tcpServer->close();
     tcpServer->deleteLater();
 

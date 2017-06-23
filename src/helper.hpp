@@ -46,6 +46,7 @@ namespace Helper
     bool validateSalt(QString& salt);
 
     bool naturalSort(QString left, QString right, bool &result);
+    void delay(qint32 time);
 }
 
 #endif // PREFERENCES_HPP

@@ -52,11 +52,7 @@ UPNP::UPNP(QHostAddress localip, QObject* parent )
             }
 
             //Delay the next Port refresh by 5 seconds.
-            QTime time = QTime::currentTime().addSecs( 5 );
-            while ( QTime::currentTime() < time )
-            {
-                QCoreApplication::processEvents( QEventLoop::AllEvents, 100  );
-            }
+            Helper::delay( 5 );
         }
     });
 }
@@ -359,22 +355,20 @@ void UPNP::addPortForward(QString protocol, qint32 port)
 
 void UPNP::removePortForward(QString protocol, qint32 port)
 {
+    QString message( "<?xml version=\"1.0\"?>"
+                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+                     "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
+                     "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
+                     "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
+                     "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
+                     "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
+
+    message = message.arg( rtrSchema )
+                     .arg( QString::number( port ) )
+                     .arg( protocol );
+
+    this->postSOAP( "DeletePortMapping", message, protocol, port );
+
     if ( ports.contains( port ) )
-    {
-        QString message( "<?xml version=\"1.0\"?>"
-                         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                         "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
-                         "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
-                         "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
-                         "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
-                         "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
-
-        message = message.arg( rtrSchema )
-                         .arg( QString::number( port ) )
-                         .arg( protocol );
-
-        this->postSOAP( "DeletePortMapping", message, protocol, port );
-
         ports.remove( ports.indexOf( port ) );
-    }
 }

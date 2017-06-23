@@ -215,8 +215,13 @@ void Server::removeUPNPForward()
 {
     if ( upnp != nullptr )
     {
+        //Add a delay of one second after each removal command.
+        //This is to ensure the command is sent.
         upnp->removePortForward( "TCP", server->getPrivatePort() );
+        Helper::delay( 1 );
+
         upnp->removePortForward( "UDP", server->getPrivatePort() );
+        Helper::delay( 1 );
     }
 }
 
