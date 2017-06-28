@@ -157,7 +157,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
                          .arg( this->getUsageDays() );
 
     response = response.arg( Rules::getRuleSet( serverTabID ) )
-                       .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
+                       .arg( this->getServerID() )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
                        .arg( usage );
@@ -583,12 +583,12 @@ void ServerInfo::setIsMaster(bool value)
     isMaster = value;
 }
 
-int ServerInfo::getServerID() const
+QString ServerInfo::getServerID() const
 {
     return serverID;
 }
 
-void ServerInfo::setServerID(int value)
+void ServerInfo::setServerID(QString value)
 {
     serverID = value;
 }

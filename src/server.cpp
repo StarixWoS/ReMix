@@ -163,7 +163,9 @@ void Server::setupServerInfo()
             QString tmp = ipList.at( i ).toString();
             if ( ipList.at( i ) != QHostAddress::LocalHost
               && ipList.at( i ).toIPv4Address()
-              && !Settings::getIsInvalidIPAddress( tmp ) )
+              && !Settings::getIsInvalidIPAddress( tmp )
+              //Remove Windows generated APIPA addresses.
+              && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
             {
                 //Use first non-local IP address.
                 server->setPrivateIP( ipList.at(i).toString() );

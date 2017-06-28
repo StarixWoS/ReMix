@@ -9,7 +9,7 @@ const QString CreateInstance::gameNames[ GAME_NAME_COUNT ] =
     "WOS",
     "TOY",
     "RC",
-    "WPA"
+    "W97"
 };
 
 CreateInstance::CreateInstance(QWidget *parent) :

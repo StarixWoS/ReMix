@@ -34,7 +34,7 @@ class ServerInfo
     QTimer usageUpdate;
 
     quint32 playerCount{ 0 };
-    int serverID{ 0 };
+    QString serverID{ "" };
 
     bool isMaster{ false };
     bool isPublic{ false };
@@ -143,8 +143,8 @@ class ServerInfo
         bool getIsMaster() const;
         void setIsMaster(bool value);
 
-        int getServerID() const;
-        void setServerID(int value);
+        QString getServerID() const;
+        void setServerID(QString value);
 
         quint32 getPlayerCount() const;
         void setPlayerCount(quint32 value);

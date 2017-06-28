@@ -117,7 +117,7 @@ class Settings : public QDialog
         static QString getBanishMesage(QString& svrID);
 
         static void setServerID(QVariant& value, QString& svrID);
-        static int getServerID(QString& svrID);
+        static QString getServerID(QString& svrID);
 
         static void setServerRunning(QVariant value, QString svrID);
         static bool getServerRunning(QString& svrID);

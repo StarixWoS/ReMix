@@ -432,7 +432,7 @@ void Settings::setServerID(QVariant& value, QString& svrID)
                       value, svrID );
 }
 
-int Settings::getServerID(QString& svrID)
+QString Settings::getServerID(QString& svrID)
 {
     qint32 id = getServerSetting( keys[ Keys::Setting ],
                                   subKeys[ SubKeys::Extension ], svrID )
@@ -448,7 +448,7 @@ int Settings::getServerID(QString& svrID)
 
         delete randDev;
     }
-    return id;
+    return Helper::intToStr( id, 16, 8 );
 }
 
 void Settings::setServerRunning(QVariant value, QString svrID)
