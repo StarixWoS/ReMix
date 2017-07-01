@@ -22,7 +22,7 @@ class CreateInstance : public QDialog
         explicit CreateInstance(QWidget *parent = 0);
         ~CreateInstance();
 
-        void updateServerList();
+        void updateServerList(bool firstRun);
         QString getServerArgs() const;
         QString getServerName() const;
         void setServerArgs(const QString& value);

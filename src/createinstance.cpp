@@ -17,7 +17,7 @@ CreateInstance::CreateInstance(QWidget *parent) :
     ui(new Ui::CreateInstance)
 {
     ui->setupUi(this);
-    this->updateServerList();
+    this->updateServerList( true );
 }
 
 CreateInstance::~CreateInstance()
@@ -28,7 +28,7 @@ CreateInstance::~CreateInstance()
     delete ui;
 }
 
-void CreateInstance::updateServerList()
+void CreateInstance::updateServerList(bool firstRun)
 {
     ui->oldServers->clear();
 
@@ -52,7 +52,15 @@ void CreateInstance::updateServerList()
         }
 
         if ( !skip )
-            running = Settings::getServerRunning( name );
+        {
+            running = false;
+            if ( firstRun == true )
+            {
+                Settings::setServerRunning( QVariant( false ), name );
+            }
+            else
+                running = Settings::getServerRunning( name );
+        }
 
         if ( !skip && !running )
         {
@@ -88,11 +96,21 @@ void CreateInstance::setServerArgs(const QString& value)
 void CreateInstance::on_initializeServer_clicked()
 {
     QString svrArgs{ "/Game=%1 /Listen=%2 /Name=%3 /fudge" };
-    svrArgs = svrArgs.arg( gameNames[ ui->gameName->currentIndex() ] )
-                     .arg( ui->portNumber->text( ))
-                     .arg( ui->serverName->text() );
-    if ( ui->isPublic->isChecked() )
+    QString svrName{ ui->serverName->text() };
+    QString svrPort{ ui->portNumber->text( ) };
+    QString gameName{ gameNames[ ui->gameName->currentIndex() ] };
+
+    svrArgs = svrArgs.arg( gameName )
+                     .arg( svrPort )
+                     .arg( svrName );
+
+    bool isPublic{ ui->isPublic->isChecked() };
+    if ( isPublic )
         svrArgs.append( " /Public" );
+
+    Settings::setIsPublic( QVariant( isPublic ), svrName );
+    Settings::setPortNumber( QVariant( svrPort ), svrName );
+    Settings::setGameName( QVariant( gameName ), svrName );
 
     this->setServerArgs( svrArgs );
     emit this->accept();
@@ -135,16 +153,47 @@ void CreateInstance::showEvent(QShowEvent* event)
 
     if ( event->type() == QEvent::Show )
     {
+        ui->gameName->setCurrentIndex( 0 );
         ui->serverName->setText( "AHitB ReMix Server" );
         ui->portNumber->setText( "8888" );
         ui->isPublic->setChecked( false );
 
-        this->updateServerList();
+        this->updateServerList( false );
     }
     event->accept();
 }
 
 void CreateInstance::on_oldServers_currentIndexChanged(int)
 {
-    ui->serverName->setText( ui->oldServers->currentText() );
+    QString svrName{ ui->oldServers->currentText() };
+    ui->serverName->setText( svrName );
+
+    QString gameName{ Settings::getGameName( svrName ) };
+    if ( !gameName.isEmpty() )
+    {
+        bool notFound{ true };
+        for ( int i = 0; i < GAME_NAME_COUNT; ++i )
+        {
+            if ( gameNames[ i ].compare( gameName, Qt::CaseInsensitive ) == 0 )
+            {
+                ui->gameName->setCurrentIndex( i );
+                notFound = false;
+            }
+        }
+
+        if ( notFound == true )
+            ui->gameName->setCurrentIndex( 0 );
+    }
+
+    QString svrPort{ Settings::getPortNumber( svrName ) };
+    if ( !svrPort.isEmpty() )
+        ui->portNumber->setText( svrPort );
+    else
+        ui->portNumber->setText( "8888" );
+
+    bool isPublic{ Settings::getIsPublic( svrName ) };
+    if ( isPublic )
+        ui->isPublic->setChecked( isPublic );
+    else
+        ui->isPublic->setChecked( false );
 }

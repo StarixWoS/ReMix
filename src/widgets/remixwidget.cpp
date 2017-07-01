@@ -354,10 +354,15 @@ void ReMixWidget::on_isPublicServer_toggled(bool)
     }
 
     if ( ui->isPublicServer->isChecked() )
-        //Setup a connection with the Master Server.
+    {   //Setup a connection with the Master Server.
         tcpServer->setupPublicServer( true );
-    else   //Disconnect from the Master Server if applicable.
+        Settings::setIsPublic( QVariant( true ), this->getServerID() );
+    }
+    else
+    {   //Disconnect from the Master Server if applicable.
         tcpServer->setupPublicServer( false );
+        Settings::setIsPublic( QVariant( false ), this->getServerID() );
+    }
 }
 
 void ReMixWidget::on_useUPNP_toggled(bool)

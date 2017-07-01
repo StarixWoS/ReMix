@@ -34,7 +34,10 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "minimizeToTray",
     "saveWindowPositions",
     "isRunning",
-    "worldDir"
+    "worldDir",
+    "portNumber",
+    "isPublic",
+    "gameName"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -473,5 +476,45 @@ void Settings::setWorldDir(QString& value)
 QString Settings::getWorldDir()
 {
     return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::WorldDir ] ).toString();
+                       subKeys[ SubKeys::WorldDir ] )
+              .toString();
+}
+
+void Settings::setPortNumber(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::PortNumber ],
+                      value, svrID );
+}
+
+QString Settings::getPortNumber(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::PortNumber ], svrID )
+                    .toString();
+}
+
+void Settings::setIsPublic(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::IsPublic ],
+                      value, svrID );
+}
+
+bool Settings::getIsPublic(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::IsPublic ], svrID )
+              .toBool();
+}
+
+void Settings::setGameName(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::GameName ],
+                      value, svrID );
+}
+
+QString Settings::getGameName(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::GameName ], svrID )
+                    .toString();
 }

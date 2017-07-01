@@ -36,7 +36,8 @@ class Settings : public QDialog
                       ReqAdminAuth = 11, LogComments = 12, FwdComments = 13,
                       InformAdminLogin = 14, EchoComments = 15,
                       MinimizeToTray = 16, SaveWindowPositions = 17,
-                      IsRunning = 18, WorldDir = 19 };
+                      IsRunning = 18, WorldDir = 19, PortNumber = 20,
+                      IsPublic = 21, GameName = 22 };
 
         enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
                    Rules = 4 };
@@ -124,6 +125,15 @@ class Settings : public QDialog
 
         static void setWorldDir(QString& value);
         static QString getWorldDir();
+
+        static void setPortNumber(QVariant value, QString svrID);
+        static QString getPortNumber(QString& svrID);
+
+        static void setIsPublic(QVariant value, QString svrID);
+        static bool getIsPublic(QString& svrID);
+
+        static void setGameName(QVariant value, QString svrID);
+        static QString getGameName(QString& svrID);
 
     private:
         Ui::Settings *ui;
