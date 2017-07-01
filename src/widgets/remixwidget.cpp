@@ -165,7 +165,7 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 case CMDLArgs::LISTEN:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
-                        server->setPrivatePort( tmp.toInt() );
+                        server->setPrivatePort( tmp.toUShort() );
 
                     emit ui->enableNetworking->clicked();
                 break;
@@ -333,15 +333,26 @@ void ReMixWidget::on_openUserComments_clicked()
 
 void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
 {
-    qint32 val = arg1.toInt();
-    if ( val < 0 || val > 65535 )
+    quint16 val = arg1.toInt();
+    if ( val < std::numeric_limits<quint16>::min()
+      || val > std::numeric_limits<quint16>::max() )
+    {
         val = 0;
+    }
 
     //Generate a Valid Port Number.
     if ( val == 0 )
         val = randDev->genRandNum( 10000, 65535 );
 
-    server->setPrivatePort( val );
+    if ( val != server->getPrivatePort() )
+    {
+        server->setPrivatePort( val );
+
+        QHostAddress addr{ server->getPrivateIP() };
+        server->initMasterSocket( addr, val );
+
+        ui->serverPort->setText( Helper::intToStr( val ) );
+    }
 }
 
 void ReMixWidget::on_isPublicServer_toggled(bool)

@@ -197,3 +197,19 @@ void CreateInstance::on_oldServers_currentIndexChanged(int)
     else
         ui->isPublic->setChecked( false );
 }
+
+void CreateInstance::on_portNumber_textChanged(const QString &arg1)
+{
+    //Reduce the User Inputted Port Number to within proper bounds.
+
+    quint16 port{ arg1.toUShort() };
+    quint16 portMax{ std::numeric_limits<quint16>::max() };
+    quint16 portMin{ std::numeric_limits<quint16>::min() };
+
+    if ( ( port > portMin )
+      && ( port > portMax ) )
+    {
+        port = portMax;
+    }
+    ui->portNumber->setText( Helper::intToStr( port ) );
+}

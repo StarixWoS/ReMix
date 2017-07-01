@@ -68,6 +68,7 @@ public:
 
         portNumber = new QLineEdit(frame);
         portNumber->setObjectName(QStringLiteral("portNumber"));
+        portNumber->setInputMethodHints(Qt::ImhNone);
         portNumber->setMaxLength(5);
 
         gridLayout_2->addWidget(portNumber, 3, 1, 1, 2);

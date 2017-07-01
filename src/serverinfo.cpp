@@ -628,12 +628,12 @@ void ServerInfo::setPublicIP(const QString& value)
     publicIP = value;
 }
 
-int ServerInfo::getPrivatePort() const
+quint16 ServerInfo::getPrivatePort() const
 {
     return privatePort;
 }
 
-void ServerInfo::setPrivatePort(int value)
+void ServerInfo::setPrivatePort(quint16 value)
 {
     privatePort = value;
 }

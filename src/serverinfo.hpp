@@ -19,7 +19,7 @@ class ServerInfo
     QString name{ "AHitB ReMix Server" };
 
     QString privateIP{ "" };
-    int privatePort{ 8888 };
+    quint16 privatePort{ 8888 };
 
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
@@ -155,8 +155,8 @@ class ServerInfo
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
 
-        int getPrivatePort() const;
-        void setPrivatePort(int value);
+        quint16 getPrivatePort() const;
+        void setPrivatePort(quint16 value);
 
         QString getPrivateIP() const;
         void setPrivateIP(const QString& value);

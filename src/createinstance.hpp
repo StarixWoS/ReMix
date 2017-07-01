@@ -40,6 +40,7 @@ class CreateInstance : public QDialog
         void closeServer();
 
     private slots:
+        void on_portNumber_textChanged(const QString &arg1);
 
     private:
         Ui::CreateInstance *ui;
