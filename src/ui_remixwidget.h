@@ -18,7 +18,6 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
@@ -34,14 +33,10 @@ public:
     QWidget *tmpWidget;
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_4;
-    QLabel *label;
     QCheckBox *isPublicServer;
-    QCheckBox *useUPNP;
-    QLineEdit *serverPort;
-    QPushButton *enableNetworking;
+    QPushButton *openUserComments;
     QPushButton *openSettings;
     QPushButton *openUserInfo;
-    QPushButton *openUserComments;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
     QLabel *callCount;
@@ -56,7 +51,7 @@ public:
     {
         if (ReMixWidget->objectName().isEmpty())
             ReMixWidget->setObjectName(QStringLiteral("ReMixWidget"));
-        ReMixWidget->resize(856, 398);
+        ReMixWidget->resize(856, 160);
         ReMixWidget->setMinimumSize(QSize(0, 0));
         ReMixWidget->setMouseTracking(true);
         gridLayout = new QGridLayout(ReMixWidget);
@@ -106,44 +101,22 @@ public:
         gridLayout_4->setSpacing(5);
         gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
         gridLayout_4->setContentsMargins(5, 5, 5, 5);
-        label = new QLabel(groupBox_2);
-        label->setObjectName(QStringLiteral("label"));
-        sizePolicy1.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
-        label->setSizePolicy(sizePolicy1);
-
-        gridLayout_4->addWidget(label, 1, 0, 1, 1);
-
         isPublicServer = new QCheckBox(groupBox_2);
         isPublicServer->setObjectName(QStringLiteral("isPublicServer"));
 
-        gridLayout_4->addWidget(isPublicServer, 0, 0, 1, 3);
+        gridLayout_4->addWidget(isPublicServer, 0, 0, 1, 2);
 
-        useUPNP = new QCheckBox(groupBox_2);
-        useUPNP->setObjectName(QStringLiteral("useUPNP"));
-
-        gridLayout_4->addWidget(useUPNP, 0, 3, 1, 1);
-
-        serverPort = new QLineEdit(groupBox_2);
-        serverPort->setObjectName(QStringLiteral("serverPort"));
+        openUserComments = new QPushButton(groupBox_2);
+        openUserComments->setObjectName(QStringLiteral("openUserComments"));
         QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy3.setHorizontalStretch(0);
         sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(serverPort->sizePolicy().hasHeightForWidth());
-        serverPort->setSizePolicy(sizePolicy3);
-        serverPort->setMinimumSize(QSize(0, 20));
-        serverPort->setMaximumSize(QSize(16777215, 19));
-        serverPort->setMaxLength(5);
+        sizePolicy3.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
+        openUserComments->setSizePolicy(sizePolicy3);
+        openUserComments->setMinimumSize(QSize(0, 20));
+        openUserComments->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_4->addWidget(serverPort, 1, 1, 1, 3);
-
-        enableNetworking = new QPushButton(groupBox_2);
-        enableNetworking->setObjectName(QStringLiteral("enableNetworking"));
-        sizePolicy3.setHeightForWidth(enableNetworking->sizePolicy().hasHeightForWidth());
-        enableNetworking->setSizePolicy(sizePolicy3);
-        enableNetworking->setMinimumSize(QSize(0, 20));
-        enableNetworking->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(enableNetworking, 2, 0, 1, 4);
+        gridLayout_4->addWidget(openUserComments, 4, 0, 1, 3);
 
         openSettings = new QPushButton(groupBox_2);
         openSettings->setObjectName(QStringLiteral("openSettings"));
@@ -152,7 +125,7 @@ public:
         openSettings->setMinimumSize(QSize(0, 20));
         openSettings->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_4->addWidget(openSettings, 3, 0, 1, 4);
+        gridLayout_4->addWidget(openSettings, 1, 0, 1, 3);
 
         openUserInfo = new QPushButton(groupBox_2);
         openUserInfo->setObjectName(QStringLiteral("openUserInfo"));
@@ -161,16 +134,7 @@ public:
         openUserInfo->setMinimumSize(QSize(0, 20));
         openUserInfo->setMaximumSize(QSize(16777215, 20));
 
-        gridLayout_4->addWidget(openUserInfo, 4, 0, 1, 4);
-
-        openUserComments = new QPushButton(groupBox_2);
-        openUserComments->setObjectName(QStringLiteral("openUserComments"));
-        sizePolicy3.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
-        openUserComments->setSizePolicy(sizePolicy3);
-        openUserComments->setMinimumSize(QSize(0, 20));
-        openUserComments->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openUserComments, 6, 0, 1, 4);
+        gridLayout_4->addWidget(openUserInfo, 2, 0, 1, 3);
 
         groupBox = new QGroupBox(groupBox_2);
         groupBox->setObjectName(QStringLiteral("groupBox"));
@@ -238,7 +202,7 @@ public:
         verticalLayout->addWidget(packetOUTBD);
 
 
-        gridLayout_4->addWidget(groupBox, 7, 0, 1, 4);
+        gridLayout_4->addWidget(groupBox, 5, 0, 1, 3);
 
 
         gridLayout->addWidget(groupBox_2, 1, 0, 2, 1);
@@ -255,14 +219,10 @@ public:
         networkStatus->setText(QApplication::translate("ReMixWidget", "Listening for incoming calls to: 127.0.0.1:8888 ( Need port forward from 192.168.1.1:8888 )", 0));
         onlineTime->setText(QApplication::translate("ReMixWidget", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMixWidget", "Server Info", 0));
-        label->setText(QApplication::translate("ReMixWidget", "Port:", 0));
         isPublicServer->setText(QApplication::translate("ReMixWidget", "Public Server", 0));
-        useUPNP->setText(QApplication::translate("ReMixWidget", "!", 0));
-        serverPort->setText(QApplication::translate("ReMixWidget", "8888", 0));
-        enableNetworking->setText(QApplication::translate("ReMixWidget", "Accept Calls", 0));
+        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", 0));
         openSettings->setText(QApplication::translate("ReMixWidget", "Settings", 0));
         openUserInfo->setText(QApplication::translate("ReMixWidget", "User Information", 0));
-        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", 0));
         groupBox->setTitle(QApplication::translate("ReMixWidget", "Stats", 0));
         callCount->setText(QApplication::translate("ReMixWidget", "#Calls: 0", 0));
         pingCount->setText(QApplication::translate("ReMixWidget", "#Pings: 0", 0));

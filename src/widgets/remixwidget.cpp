@@ -61,10 +61,8 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
-    if ( ui->useUPNP->isChecked() )
-    {
+    if ( ui->isPublicServer->isChecked() )
         tcpServer->removeUPNPForward();
-    }
 
     tcpServer->close();
     tcpServer->deleteLater();
@@ -175,7 +173,6 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                     if ( !tmp.isEmpty() )
                         server->setPrivatePort( tmp.toUShort() );
 
-                    emit ui->enableNetworking->clicked();
                 break;
                 case CMDLArgs::NAME:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
@@ -194,10 +191,6 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
             }
         }
     }
-
-    ui->serverPort->setText(
-                Helper::intToStr(
-                    server->getPrivatePort(), 10 ) );
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
 }
@@ -244,8 +237,7 @@ void ReMixWidget::initUIUpdate()
                         .arg( server->getBaudOut() ) );
 
         //Update other Info as well.
-        QString msg{ "Select Port Number and press \"Accept Calls\" "
-                     "when ready!" };
+        QString msg{ "Toggle \"Public Servers\" when ready!" };
         if ( server->getIsSetUp() )
         {
             msg = QString( "Listening for incoming calls "
@@ -297,20 +289,6 @@ void ReMixWidget::initUIUpdate()
     });
 }
 
-void ReMixWidget::on_enableNetworking_clicked()
-{
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
-    ui->enableNetworking->setEnabled( false );
-    ui->serverPort->setEnabled( false );
-    tcpServer->setupServerInfo();
-}
-
 void ReMixWidget::on_openUserInfo_clicked()
 {
     if ( user->isVisible() )
@@ -339,26 +317,6 @@ void ReMixWidget::on_openUserComments_clicked()
     }
 }
 
-void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
-{
-    quint16 val = arg1.toInt();
-    if ( val < std::numeric_limits<quint16>::min()
-      || val > std::numeric_limits<quint16>::max() )
-    {
-        val = 0;
-    }
-
-    //Generate a Valid Port Number.
-    if ( val == 0 )
-        val = randDev->genRandNum( 10000, 65535 );
-
-    if ( val != server->getPrivatePort() )
-    {
-        server->setPrivatePort( val );
-        ui->serverPort->setText( Helper::intToStr( val ) );
-    }
-}
-
 void ReMixWidget::on_isPublicServer_toggled(bool)
 {
     //Setup Networking Objects.
@@ -369,24 +327,25 @@ void ReMixWidget::on_isPublicServer_toggled(bool)
     }
 
     if ( ui->isPublicServer->isChecked() )
-    {   //Setup a connection with the Master Server.
+    {
+        //Prepare the Server's Private IP.
+        tcpServer->setupServerInfo();
+
+        //Setup a connection with the Master Server.
         tcpServer->setupPublicServer( true );
         Settings::setIsPublic( QVariant( true ), this->getServerID() );
+
+        //Tell the server to use a UPNP Port Forward.
+        tcpServer->setupUPNPForward();
     }
     else
     {   //Disconnect from the Master Server if applicable.
         tcpServer->setupPublicServer( false );
         Settings::setIsPublic( QVariant( false ), this->getServerID() );
-    }
-}
 
-void ReMixWidget::on_useUPNP_toggled(bool)
-{
-    //Tell the server to use a UPNP Port Forward.
-    if ( ui->useUPNP->isChecked() )
-        tcpServer->setupUPNPForward();
-    else   //Remove the UPNP Port Forward if applicable.
+        //Remove the UPNP Port Forward if applicable.
         tcpServer->removeUPNPForward();
+    }
 }
 
 void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
