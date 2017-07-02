@@ -17,6 +17,7 @@ class ReMix : public QMainWindow
     Q_OBJECT
 
     static Settings* settings;
+    static ReMix* instance;
     static User* user;
 
     QSystemTrayIcon* trayObject{ nullptr };
@@ -25,6 +26,7 @@ class ReMix : public QMainWindow
     QIcon trayIcon;
 
     bool hasSysTray{ false };
+    bool exiting{ false };
 
     private:
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -36,6 +38,10 @@ class ReMix : public QMainWindow
         explicit ReMix(QWidget *parent = 0);
         ~ReMix();
 
+        static ReMix* getInstance();
+        static void setInstance(ReMix* value);
+
+        static void updateTitleBars(QString serverName, quint16 port);
         static Settings* getSettings();
         static User* getUser();
 

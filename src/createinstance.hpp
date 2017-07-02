@@ -14,6 +14,7 @@ class CreateInstance : public QDialog
 {
         Q_OBJECT
 
+        RandDev* randDev{ nullptr };
         QString serverArgs{ "" };
 
         static const QString gameNames[ GAME_NAME_COUNT ];

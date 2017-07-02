@@ -53,6 +53,7 @@ class ReMixWidget : public QWidget
         Server* getTcpServer() const;
 
         QString& getServerID();
+        quint16 getPrivatePort() const;
 
     private:
         void parseCMDLArgs(QStringList* argList);

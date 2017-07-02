@@ -4,6 +4,7 @@
 #include "ui_remix.h"
 
 Settings* ReMix::settings;
+ReMix* ReMix::instance;
 User* ReMix::user;
 
 ReMix::ReMix(QWidget *parent) :
@@ -11,6 +12,8 @@ ReMix::ReMix(QWidget *parent) :
     ui(new Ui::ReMix)
 {
     ui->setupUi(this);
+
+    this->setInstance( this );
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
@@ -58,9 +61,33 @@ ReMix::~ReMix()
     settings->close();
     settings->deleteLater();
 
-    Settings::prefs->deleteLater();
+    instance->close();
+    instance->deleteLater();
 
+    Settings::prefs->deleteLater();
     delete ui;
+}
+
+ReMix* ReMix::getInstance()
+{
+    return instance;
+}
+
+void ReMix::setInstance(ReMix* value)
+{
+    instance = value;
+}
+
+void ReMix::updateTitleBars(QString serverName, quint16 port)
+{
+    if ( settings != nullptr )
+    {
+        settings->updateTabBar( serverName );
+    }
+    QString title{ "ReMix: %1 [ %2 ]" };
+            title = title.arg( serverName )
+                         .arg( port );
+    ReMix::getInstance()->setWindowTitle( title );
 }
 
 Settings* ReMix::getSettings()
@@ -261,9 +288,9 @@ void ReMix::closeEvent(QCloseEvent* event)
     if ( event == nullptr )
         return;
 
-    if ( event->type() == QEvent::Close )
+    if ( event->type() == QEvent::Close
+      && !exiting )
     {
-        //Allow rejection of a CloseEvent.
         if ( !this->rejectCloseEvent() )
         {
             event->accept();
@@ -278,7 +305,12 @@ void ReMix::closeEvent(QCloseEvent* event)
 
 bool ReMix::rejectCloseEvent()
 {
+    exiting = true;
     if ( serverUI == nullptr )
+        return false;
+
+    //There aren't any servers to keep open. Close without question.
+    if ( serverUI->getServerCount() == 0 )
         return false;
 
     QString title = QString( "Close [ %1 ] Server Instances:" )
@@ -294,6 +326,7 @@ bool ReMix::rejectCloseEvent()
 
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
+        exiting = false;
         serverUI->sendMultiServerMessage( "The admin changed his or her "
                                            "mind! (yay!)...", nullptr, true );
         return true;

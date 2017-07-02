@@ -17,6 +17,8 @@ CreateInstance::CreateInstance(QWidget *parent) :
     ui(new Ui::CreateInstance)
 {
     ui->setupUi(this);
+
+    randDev = new RandDev();
     this->updateServerList( true );
 }
 
@@ -209,7 +211,16 @@ void CreateInstance::on_portNumber_textChanged(const QString &arg1)
     if ( ( port > portMin )
       && ( port > portMax ) )
     {
-        port = portMax;
+        port = portMax - 1;
+    }
+
+    //Generate a Valid Port Number.
+    if ( port == portMin )
+    {
+        if ( randDev != nullptr )
+        {
+            port = randDev->genRandNum( quint16( 10000 ), portMax );
+        }
     }
     ui->portNumber->setText( Helper::intToStr( port ) );
 }

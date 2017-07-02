@@ -112,6 +112,14 @@ QString& ReMixWidget::getServerID()
     return serverID;
 }
 
+quint16 ReMixWidget::getPrivatePort() const
+{
+    if ( server == nullptr )
+        return 0;
+
+    return server->getPrivatePort();
+}
+
 void ReMixWidget::parseCMDLArgs(QStringList* argList)
 {
     QString tmpArg{ "" };
@@ -347,10 +355,6 @@ void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
     if ( val != server->getPrivatePort() )
     {
         server->setPrivatePort( val );
-
-        QHostAddress addr{ server->getPrivateIP() };
-        server->initMasterSocket( addr, val );
-
         ui->serverPort->setText( Helper::intToStr( val ) );
     }
 }

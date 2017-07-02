@@ -266,7 +266,9 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                         //Last Server instance. Close ReMix.
                         instanceCount -= 1;
                         if ( instanceCount == 0 )
-                            qApp->quit();
+                        {
+                            createDialog->show();
+                        }
 
                         servers[ i ] = nullptr;
                         this->removeTab( index );
@@ -297,7 +299,8 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
     ReMixWidget* server{ servers[ newTab ] };
     if ( server != nullptr )
     {
-        ReMix::getSettings()->updateTabBar( server->getServerID() );
+        ReMix::updateTitleBars( server->getServerID(),
+                                server->getPrivatePort() );
     }
     this->setPrevTabIndex( newTab );
 }
