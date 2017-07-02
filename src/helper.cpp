@@ -410,3 +410,27 @@ void Helper::delay(qint32 time)
         QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
     }
 }
+
+QHostAddress Helper::getPrivateIP()
+{
+    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+
+    //Default to our localhost address if nothing valid is found.
+    QHostAddress ipAddress{ QHostAddress::LocalHost };
+
+    for ( int i = 0; i < ipList.size(); ++i )
+    {
+        QString tmp = ipList.at( i ).toString();
+        if ( ipList.at( i ) != QHostAddress::LocalHost
+          && ipList.at( i ).toIPv4Address()
+          && !Settings::getIsInvalidIPAddress( tmp )
+          //Remove Windows generated APIPA addresses.
+          && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
+        {
+            //Use first non-local IP address.
+            ipAddress = ipList.at(i).toString();
+            break;
+        }
+    }
+    return ipAddress;
+}

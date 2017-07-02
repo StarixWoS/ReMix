@@ -123,6 +123,49 @@ void CreateInstance::on_close_clicked()
     this->close();
 }
 
+quint16 CreateInstance::genPort()
+{
+    quint16 portMax{ std::numeric_limits<quint16>::max() };
+    quint16 portMin{ std::numeric_limits<quint16>::min() };
+    quint16 port{ 0 };
+
+    if ( randDev == nullptr )
+        return 8888;    //Return Arbitrary number if Generator is invalid.
+
+    //Generate a Valid Port Number.
+    if ( port == portMin )
+    {
+        if ( randDev != nullptr )
+        {
+            do
+            {   //Generate a Possibly Usable Port Number.
+                port = randDev->genRandNum( quint16( 10000 ), portMax );
+            }   //Test our Generated Port Number for usability.
+            while ( !this->testPort( port ) );
+        }
+    }
+    return port;
+}
+
+bool CreateInstance::testPort(quint16 port)
+{
+    //Get the best possible PrivateIP.
+    QHostAddress addr{ Helper::getPrivateIP() };
+
+    //Check if the Port can be listened to via a TCP Socket.
+    QTcpSocket* socket{ new QTcpSocket( this ) };
+
+    bool canListen{ false };
+    if ( socket != nullptr )
+    {
+        canListen = socket->bind( addr, port );
+
+        socket->close();
+        socket->deleteLater();
+    }
+    return canListen;
+}
+
 void CreateInstance::closeEvent(QCloseEvent* event)
 {
     if ( event == nullptr )
@@ -157,9 +200,8 @@ void CreateInstance::showEvent(QShowEvent* event)
     {
         ui->gameName->setCurrentIndex( 0 );
         ui->serverName->setText( "AHitB ReMix Server" );
-        ui->portNumber->setText( "8888" );
+        ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
         ui->isPublic->setChecked( false );
-
         this->updateServerList( false );
     }
     event->accept();
@@ -168,42 +210,45 @@ void CreateInstance::showEvent(QShowEvent* event)
 void CreateInstance::on_oldServers_currentIndexChanged(int)
 {
     QString svrName{ ui->oldServers->currentText() };
-    ui->serverName->setText( svrName );
-
-    QString gameName{ Settings::getGameName( svrName ) };
-    if ( !gameName.isEmpty() )
+    if ( !svrName.isEmpty() )
     {
-        bool notFound{ true };
-        for ( int i = 0; i < GAME_NAME_COUNT; ++i )
+        ui->serverName->setText( svrName );
+
+        QString gameName{ Settings::getGameName( svrName ) };
+        if ( !gameName.isEmpty() )
         {
-            if ( gameNames[ i ].compare( gameName, Qt::CaseInsensitive ) == 0 )
+            bool notFound{ true };
+            for ( int i = 0; i < GAME_NAME_COUNT; ++i )
             {
-                ui->gameName->setCurrentIndex( i );
-                notFound = false;
+                if ( gameNames[ i ].compare( gameName,
+                                             Qt::CaseInsensitive ) == 0 )
+                {
+                    ui->gameName->setCurrentIndex( i );
+                    notFound = false;
+                }
             }
+
+            if ( notFound == true )
+                ui->gameName->setCurrentIndex( 0 );
         }
 
-        if ( notFound == true )
-            ui->gameName->setCurrentIndex( 0 );
+        QString svrPort{ Settings::getPortNumber( svrName ) };
+        if ( !svrPort.isEmpty() )
+            ui->portNumber->setText( svrPort );
+        else
+            ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
+
+        bool isPublic{ Settings::getIsPublic( svrName ) };
+        if ( isPublic )
+            ui->isPublic->setChecked( isPublic );
+        else
+            ui->isPublic->setChecked( false );
     }
-
-    QString svrPort{ Settings::getPortNumber( svrName ) };
-    if ( !svrPort.isEmpty() )
-        ui->portNumber->setText( svrPort );
-    else
-        ui->portNumber->setText( "8888" );
-
-    bool isPublic{ Settings::getIsPublic( svrName ) };
-    if ( isPublic )
-        ui->isPublic->setChecked( isPublic );
-    else
-        ui->isPublic->setChecked( false );
 }
 
 void CreateInstance::on_portNumber_textChanged(const QString &arg1)
 {
     //Reduce the User Inputted Port Number to within proper bounds.
-
     quint16 port{ arg1.toUShort() };
     quint16 portMax{ std::numeric_limits<quint16>::max() };
     quint16 portMin{ std::numeric_limits<quint16>::min() };
@@ -214,13 +259,10 @@ void CreateInstance::on_portNumber_textChanged(const QString &arg1)
         port = portMax - 1;
     }
 
-    //Generate a Valid Port Number.
-    if ( port == portMin )
+    if ( port == portMin
+      || !this->testPort( port ) )
     {
-        if ( randDev != nullptr )
-        {
-            port = randDev->genRandNum( quint16( 10000 ), portMax );
-        }
+        port = this->genPort();
     }
     ui->portNumber->setText( Helper::intToStr( port ) );
 }

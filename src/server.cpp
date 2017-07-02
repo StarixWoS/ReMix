@@ -154,27 +154,10 @@ void Server::setupServerInfo()
 {
     if ( !server->getIsSetUp() )
     {
-        server->setPrivateIP( QHostAddress( QHostAddress::LocalHost )
-                                   .toString() );
+        QHostAddress addr{ Helper::getPrivateIP() };
+        server->setPrivateIP( addr.toString() );
 
-        QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
-        for ( int i = 0; i < ipList.size(); ++i )
-        {
-            QString tmp = ipList.at( i ).toString();
-            if ( ipList.at( i ) != QHostAddress::LocalHost
-              && ipList.at( i ).toIPv4Address()
-              && !Settings::getIsInvalidIPAddress( tmp )
-              //Remove Windows generated APIPA addresses.
-              && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
-            {
-                //Use first non-local IP address.
-                server->setPrivateIP( ipList.at(i).toString() );
-                upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
-                break;
-            }
-        }
-
-        QHostAddress addr{ server->getPrivateIP() };
+        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
         server->initMasterSocket( addr, server->getPrivatePort() );
 
         if ( this->isListening() )

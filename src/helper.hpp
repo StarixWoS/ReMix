@@ -47,6 +47,8 @@ namespace Helper
 
     bool naturalSort(QString left, QString right, bool &result);
     void delay(qint32 time);
+
+    QHostAddress getPrivateIP();
 }
 
 #endif // PREFERENCES_HPP

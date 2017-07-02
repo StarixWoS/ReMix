@@ -32,6 +32,9 @@ class CreateInstance : public QDialog
         void on_initializeServer_clicked();
         void on_close_clicked();
 
+        quint16 genPort();
+        bool testPort(quint16 port);
+
         void closeEvent(QCloseEvent* event);
         void showEvent(QShowEvent* event);
 
