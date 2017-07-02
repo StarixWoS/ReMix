@@ -11,18 +11,27 @@
 //    #include <QDialog>
 //    #include <QTimer>
 
+    class QNetworkAccessManager;
     class QSortFilterProxyModel;
+    class QNetworkAddressEntry;
     class QCryptographicHash;
     class QStandardItemModel;
     class QNetworkInterface;
     class QTableWidgetItem;
+    class QStringListModel;
+    class QXmlStreamReader;
+    class QNetworkRequest;
     class QSystemTrayIcon;
+    class QNetworkReply;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
     class QStyleFactory;
     class QApplication;
     class QHostAddress;
     class QInputDialog;
+    class QTextStream;
+    class QFileDialog;
+    class QToolButton;
     class QModelIndex;  //Requires Include within Class Headers.
     class QMainWindow;  //Requires Include within Class Headers.
     class QMessageBox;
@@ -58,6 +67,7 @@
     class QFile;
     class QMenu;
     class QDir;
+    class QUrl;
 
     #ifdef DECRYPT_PACKET_PLUGIN
         class QCoreApplication;
@@ -80,12 +90,15 @@
     //Widget GUI Classes.
     class SettingsWidget;
     class MessagesWidget;
+    class ReMixTabWidget;
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
 
     //GUI and Data Storage Classes.
+    class CreateInstance;
     class PacketHandler;
+    class SelectWorld;
     class ServerInfo;
     class CmdHandler;
     class Settings;
@@ -97,6 +110,7 @@
     class Rules;
     class ReMix;
     class User;
+    class UPNP;
 
     #ifdef DECRYPT_PACKET_PLUGIN
         class PacketDecryptInterface;
@@ -140,7 +154,7 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 18,
+            SETTINGS_SUBKEY_COUNT = 23,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
@@ -156,9 +170,24 @@
 
             //Size of the Server Usage array corresponding to 48 hours.
             SERVER_USAGE_48_HOURS = 288,
+
+            //Maximum Server Count a User can have at any time.
+            MAX_SERVER_COUNT = 19,
+
+            //Count of possible Game Names we can use to initialize the server.
+            GAME_NAME_COUNT = 4,
+
+            //Maximum live-time for a UPNP PortForward to live.
+            //30 Minutes in seconds.
+            UPNP_TIME_OUT_S = 1800,
+
+            //Maximum live-time for a UPNP PortForward to live.
+            //30 Minutes in milliseconds.
+            UPNP_TIME_OUT_MS = 1800000,
         };
 
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
+        enum Themes{ LIGHT = 0, DARK = 1 };
 
     #endif  // REMIX_GLOBALS
 

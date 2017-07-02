@@ -32,7 +32,12 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "informAdminLogin",
     "echoComments",
     "minimizeToTray",
-    "saveWindowPositions"
+    "saveWindowPositions",
+    "isRunning",
+    "worldDir",
+    "portNumber",
+    "isPublic",
+    "gameName"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -45,7 +50,6 @@ Settings::Settings(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //Remove the "Help" button from the window title bars.
     {
         QIcon icon = this->windowIcon();
         Qt::WindowFlags flags = this->windowFlags();
@@ -53,8 +57,6 @@ Settings::Settings(QWidget *parent) :
 
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
-
-        //this->setWindowModality( Qt::WindowModal );
     }
 
     //Setup Objects.
@@ -63,15 +65,7 @@ Settings::Settings(QWidget *parent) :
     {
         settings = new SettingsWidget( this );
         if ( settings != nullptr )
-            tabWidget->addTab( settings, "Settings" );
-
-        rules = new RulesWidget( this );
-        if ( rules != nullptr )
-            tabWidget->addTab( rules, "Rules" );
-
-        messages = new MessagesWidget( this );
-        if ( messages != nullptr )
-            tabWidget->addTab( messages, "Messages" );
+            tabWidget->insertTab( 0, settings, "Settings" );
 
         ui->widget->setLayout( new QGridLayout( ui->widget ) );
         ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
@@ -100,11 +94,50 @@ Settings::~Settings()
 
     tabWidget->deleteLater();
     settings->deleteLater();
-    messages->deleteLater();
-    rules->deleteLater();
-    prefs->deleteLater();
 
     delete ui;
+}
+
+void Settings::addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
+                             QString& svrID)
+{
+    if ( msgWidget != nullptr )
+        msgWidgets.insert( svrID, msgWidget );
+
+    if ( ruleWidget != nullptr )
+        ruleWidgets.insert( svrID, ruleWidget );
+}
+
+void Settings::remTabObjects(QString& svrID)
+{
+    MessagesWidget* msgWidget{ msgWidgets.take( svrID ) };
+    if ( msgWidget != nullptr )
+    {
+        msgWidget->setParent( nullptr );
+        msgWidget->deleteLater();
+    }
+
+    RulesWidget* ruleWidget{ ruleWidgets.take( svrID ) };
+    if ( ruleWidget != nullptr )
+    {
+        ruleWidget->setParent( nullptr );
+        ruleWidget->deleteLater();
+    }
+}
+
+void Settings::updateTabBar(QString& svrID)
+{
+    qint32 index{ tabWidget->currentIndex() };
+    tabWidget->clear();
+    if ( settings == nullptr )
+        settings = new SettingsWidget( this );
+
+    this->setWindowTitle( "[ " % svrID % " ] Settings:");
+    tabWidget->insertTab( 0, settings, "Settings" );
+    tabWidget->insertTab( 1, ruleWidgets.value( svrID ), "Rules" );
+    tabWidget->insertTab( 2, msgWidgets.value( svrID ), "Messages" );
+
+    tabWidget->setCurrentIndex( index );
 }
 
 //Static-Free Functions.
@@ -120,6 +153,19 @@ QVariant Settings::getSetting(const QString& key, const QString& subKey)
     return prefs->value( key % "/" % subKey );
 }
 
+void Settings::setServerSetting(const QString& key, const QString& subKey,
+                                QVariant& value, QString& svrID)
+{
+    prefs->setValue( svrID % "/" % key % "/" % subKey, value );
+    prefs->sync();
+}
+
+QVariant Settings::getServerSetting(const QString& key, const QString& subKey,
+                                    QString& svrID)
+{
+    return prefs->value( svrID % "/" % key % "/" % subKey );
+}
+
 void Settings::setReqAdminAuth(QVariant& value)
 {
     setSetting( keys[ Keys::Setting ],
@@ -131,32 +177,6 @@ bool Settings::getReqAdminAuth()
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::ReqAdminAuth ] )
               .toBool();
-}
-
-void Settings::setMOTDMessage(QVariant& value)
-{
-    setSetting( keys[ Keys::Messages ],
-                subKeys[ SubKeys::MOTD ], value );
-}
-
-QString Settings::getMOTDMessage()
-{
-    return getSetting( keys[ Keys::Messages ],
-                       subKeys[ SubKeys::MOTD ] )
-              .toString();
-}
-
-void Settings::setBanishMesage(QVariant& value)
-{
-    setSetting( keys[ Keys::Messages ],
-                subKeys[ SubKeys::BanishMsg ], value );
-}
-
-QString Settings::getBanishMesage()
-{
-    return getSetting( keys[ Keys::Messages ],
-                       subKeys[ SubKeys::BanishMsg ] )
-              .toString();
 }
 
 void Settings::setPassword(QString& value)
@@ -366,21 +386,60 @@ void Settings::setWindowPositions(QByteArray geometry, const char* dialog)
 QByteArray Settings::getWindowPositions(const char* dialog)
 {
     QString key{ dialog };
+
     return getSetting( keys[ Keys::Positions ], key )
-              .toByteArray();
+            .toByteArray();
 }
 
-void Settings::setServerID(QVariant& value)
+void Settings::setIsInvalidIPAddress(const QString& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::Extension ], value );
+    QVariant val{ true };
+    setSetting( keys[ Keys::WrongIP ], value, val );
 }
 
-int Settings::getServerID()
+bool Settings::getIsInvalidIPAddress(const QString& value)
 {
-    qint32 id = getSetting( keys[ Keys::Setting ],
-                            subKeys[ SubKeys::Extension ] )
-                   .toInt();
+    return getSetting( keys[ Keys::WrongIP ], value )
+              .toBool();
+}
+
+void Settings::setMOTDMessage(QVariant& value, QString& svrID)
+{
+    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ],
+                      value, svrID );
+}
+
+QString Settings::getMOTDMessage(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Messages ],
+                             subKeys[ SubKeys::MOTD ], svrID  )
+                    .toString();
+}
+
+void Settings::setBanishMesage(QVariant& value, QString& svrID)
+{
+    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::BanishMsg ],
+                      value, svrID );
+}
+
+QString Settings::getBanishMesage(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Messages ],
+                             subKeys[ SubKeys::BanishMsg ], svrID  )
+                    .toString();
+}
+
+void Settings::setServerID(QVariant& value, QString& svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Extension ],
+                      value, svrID );
+}
+
+QString Settings::getServerID(QString& svrID)
+{
+    qint32 id = getServerSetting( keys[ Keys::Setting ],
+                                  subKeys[ SubKeys::Extension ], svrID )
+                         .toInt();
     if ( id <= 0 )
     {
         RandDev* randDev = new RandDev();
@@ -388,15 +447,74 @@ int Settings::getServerID()
             id = randDev->genRandNum( 1, 0x7FFFFFFE );
 
         QVariant var{ id };
-        setServerID( var );
+        setServerID( var, svrID );
 
         delete randDev;
     }
-    return id;
+    return Helper::intToStr( id, 16, 8 );
 }
 
-bool Settings::getIsInvalidIPAddress(const QString& value)
+void Settings::setServerRunning(QVariant value, QString svrID)
 {
-    return getSetting( keys[ Keys::WrongIP ], value )
+    prefs->setValue( svrID % "/" % subKeys[ SubKeys::IsRunning ], value );
+    prefs->sync();
+}
+
+bool Settings::getServerRunning(QString& svrID)
+{
+    return prefs->value( svrID % "/" % subKeys[ SubKeys::IsRunning ] )
+                    .toBool();
+}
+
+void Settings::setWorldDir(QString& value)
+{
+    QVariant data{ value };
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::WorldDir ],
+                      data );
+}
+
+QString Settings::getWorldDir()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::WorldDir ] )
+              .toString();
+}
+
+void Settings::setPortNumber(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::PortNumber ],
+                      value, svrID );
+}
+
+QString Settings::getPortNumber(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::PortNumber ], svrID )
+                    .toString();
+}
+
+void Settings::setIsPublic(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::IsPublic ],
+                      value, svrID );
+}
+
+bool Settings::getIsPublic(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::IsPublic ], svrID )
               .toBool();
+}
+
+void Settings::setGameName(QVariant value, QString svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::GameName ],
+                      value, svrID );
+}
+
+QString Settings::getGameName(QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::GameName ], svrID )
+                    .toString();
 }

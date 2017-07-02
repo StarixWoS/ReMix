@@ -2,8 +2,9 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr)
+PacketHandler::PacketHandler(User* usr, ServerInfo* svr, QString svrID)
 {
+    serverID = svrID;
     server = svr;
     user = usr;
 
@@ -279,6 +280,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                             }
                             user->logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
+                        server->setUserPings( server->getUserPings() + 1 );
                     }
                 break;
                 case 'Q':   //Send Online User Information.
@@ -286,7 +288,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                         server->sendUserList( ipAddr, port, Q_Response );
                     }
                 break;
-                case 'R':   //TODO: Command "R" with unknown use.
+                case 'R':   //Send Online User Information.
                     {
                         server->sendUserList( ipAddr, port, R_Response );
                     }
@@ -333,7 +335,8 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        server->sendMasterMessage( Settings::getBanishMesage(), plr, false );
+        server->sendMasterMessage( Settings::getBanishMesage( serverID ), plr,
+                                   false );
 
         tmpMsg = tmpMsg.arg( "Banned Info" )
                        .arg( plr->getPublicIP() )

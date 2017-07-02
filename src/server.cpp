@@ -3,8 +3,11 @@
 #include "server.hpp"
 
 Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
-               QStandardItemModel* plrView)
+               QStandardItemModel* plrView, QString svrID)
+    : QTcpServer(parent)
 {
+    serverID = svrID;
+
     //Setup Objects.
     mother = parent;
     server = svr;
@@ -13,7 +16,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    pktHandle = new PacketHandler( user, server );
+    pktHandle = new PacketHandler( user, server, svrID );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -25,12 +28,21 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
+    QObject::connect( dynamic_cast<ReMixWidget*>( mother ), &ReMixWidget::reValidateServerIP, [=]()
+    {
+        server->setIsSetUp( false );
+        this->setupServerInfo();
+    });
+
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
 }
 
 Server::~Server()
 {
+    pktHandle->disconnect();
+    pktHandle->deleteLater();
+
     serverComments->close();
     serverComments->deleteLater();
 
@@ -133,12 +145,9 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
     return plrViewModel->item( row, 0 );
 }
 
-void Server::showServerComments()
+Comments* Server::getServerComments() const
 {
-    if ( serverComments->isVisible() )
-        serverComments->hide();
-    else
-        serverComments->show();
+    return serverComments;
 }
 
 void Server::setupServerInfo()
@@ -154,22 +163,67 @@ void Server::setupServerInfo()
             QString tmp = ipList.at( i ).toString();
             if ( ipList.at( i ) != QHostAddress::LocalHost
               && ipList.at( i ).toIPv4Address()
-              && !Settings::getIsInvalidIPAddress( tmp ) )
+              && !Settings::getIsInvalidIPAddress( tmp )
+              //Remove Windows generated APIPA addresses.
+              && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
             {
                 //Use first non-local IP address.
                 server->setPrivateIP( ipList.at(i).toString() );
+                upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
                 break;
             }
         }
 
         QHostAddress addr{ server->getPrivateIP() };
-
         server->initMasterSocket( addr, server->getPrivatePort() );
+
+        if ( this->isListening() )
+            this->close();
+
         this->listen( addr, server->getPrivatePort() );
 
         server->setIsSetUp( true );
         if ( server->getIsPublic() && this->isListening() )
             server->sendMasterInfo();
+    }
+}
+
+void Server::setupUPNPForward()
+{
+    if ( upnp == nullptr )
+    {
+        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
+    }
+
+    bool tunneled = UPNP::getTunneled();
+    if ( tunneled != true )
+    {
+        QObject::connect( upnp, &UPNP::success, [=]()
+        {
+            upnp->checkPortForward( "TCP", server->getPrivatePort() );
+            upnp->checkPortForward( "UDP", server->getPrivatePort() );
+            upnp->disconnect();
+        });
+        upnp->makeTunnel( server->getPrivatePort(), server->getPublicPort() );
+    }
+    else
+    {
+        upnp->checkPortForward( "TCP", server->getPrivatePort() );
+        upnp->checkPortForward( "UDP", server->getPrivatePort() );
+    }
+}
+
+void Server::removeUPNPForward()
+{
+    if ( upnp != nullptr )
+    {
+        //Add a delay of one second after each removal command.
+        //This is to ensure the command is sent.
+        upnp->removePortForward( "TCP", server->getPrivatePort() );
+        Helper::delay( 1 );
+
+        upnp->removePortForward( "UDP", server->getPrivatePort() );
+        Helper::delay( 1 );
     }
 }
 

@@ -13,13 +13,13 @@ class ServerInfo
     QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
 
     QTimer upTimer;
-    quint64 upTime{ 0 };
+    QVariant upTime{ 0.0 };
 
     bool isSetUp{ false };
     QString name{ "AHitB ReMix Server" };
 
     QString privateIP{ "" };
-    int privatePort{ 8888 };
+    quint16 privatePort{ 8888 };
 
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
@@ -34,7 +34,7 @@ class ServerInfo
     QTimer usageUpdate;
 
     quint32 playerCount{ 0 };
-    int serverID{ 0 };
+    QString serverID{ "" };
 
     bool isMaster{ false };
     bool isPublic{ false };
@@ -69,6 +69,7 @@ class ServerInfo
     Player* players[ MAX_PLAYERS ];
 
     quint32 userCalls{ 0 };
+    quint32 userPings{ 0 };
     quint32 serNumDc{ 0 };
     quint32 dupDc{ 0 };
     quint32 pktDc{ 0 };
@@ -83,8 +84,9 @@ class ServerInfo
 
     bool logFiles{ false };
 
+    QString serverTabID{ "" };
     public:
-        ServerInfo();
+        ServerInfo(QString svrID = "0");
         ~ServerInfo();
 
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
@@ -141,8 +143,8 @@ class ServerInfo
         bool getIsMaster() const;
         void setIsMaster(bool value);
 
-        int getServerID() const;
-        void setServerID(int value);
+        QString getServerID() const;
+        void setServerID(QString value);
 
         quint32 getPlayerCount() const;
         void setPlayerCount(quint32 value);
@@ -153,8 +155,8 @@ class ServerInfo
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
 
-        int getPrivatePort() const;
-        void setPrivatePort(int value);
+        quint16 getPrivatePort() const;
+        void setPrivatePort(quint16 value);
 
         QString getPrivateIP() const;
         void setPrivateIP(const QString& value);
@@ -167,6 +169,9 @@ class ServerInfo
 
         quint32 getUserCalls() const;
         void setUserCalls(const quint32& value);
+
+        quint32 getUserPings() const;
+        void setUserPings(const quint32& value);
 
         quint32 getSerNumDc() const;
         void setSerNumDc(const quint32& value);

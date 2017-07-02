@@ -20,7 +20,6 @@ User::User(QWidget* parent) :
     ui(new Ui::User)
 {
     ui->setupUi(this);
-
     {
         QIcon icon = this->windowIcon();
         Qt::WindowFlags flags = this->windowFlags();

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 1.0.0
+VERSION = 2.0.0
 QT += core \
       gui \
       widgets \
@@ -48,11 +48,14 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/tblview/tbleventfilter.cpp \
            src/widgets/settingswidget.cpp \
            src/widgets/messageswidget.cpp \
+           src/widgets/remixtabwidget.cpp \
            src/widgets/plrlistwidget.cpp \
            src/widgets/userdelegate.cpp \
            src/widgets/remixwidget.cpp \
            src/widgets/ruleswidget.cpp \
+           src/createinstance.cpp \
            src/packethandler.cpp \
+           src/selectworld.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
            src/comments.cpp \
@@ -65,6 +68,7 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/rules.cpp \
            src/remix.cpp \
            src/user.cpp \
+           src/upnp.cpp \
            src/main.cpp
 
 HEADERS += src/tblview/usersortproxymodel.hpp\
@@ -72,11 +76,14 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/tblview/tbleventfilter.hpp \
            src/widgets/settingswidget.hpp \
            src/widgets/messageswidget.hpp \
+           src/widgets/remixtabwidget.hpp \
            src/widgets/plrlistwidget.hpp \
            src/widgets/userdelegate.hpp \
            src/widgets/remixwidget.hpp \
            src/widgets/ruleswidget.hpp \
+           src/createinstance.hpp \
            src/packethandler.hpp \
+           src/selectworld.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
            src/prototypes.hpp \
@@ -90,13 +97,16 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/helper.hpp \
            src/rules.hpp \
            src/remix.hpp \
-           src/user.hpp
+           src/user.hpp \
+           src/upnp.hpp
 
 FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/messageswidget.ui \
          ui/widgets/plrlistwidget.ui \
          ui/widgets/remixwidget.ui \
          ui/widgets/ruleswidget.ui \
+         ui/createinstance.ui \
+         ui/selectworld.ui \
          ui/comments.ui \
          ui/settings.ui \
          ui/sendmsg.ui \

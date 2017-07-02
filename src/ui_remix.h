@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'remix.ui'
 **
-** Created by: Qt User Interface Compiler version 5.4.1
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -33,19 +33,20 @@ public:
     {
         if (ReMix->objectName().isEmpty())
             ReMix->setObjectName(QStringLiteral("ReMix"));
-        ReMix->resize(650, 206);
-        ReMix->setMinimumSize(QSize(0, 206));
-        ReMix->setMaximumSize(QSize(16777215, 355));
+        ReMix->resize(650, 246);
+        ReMix->setMinimumSize(QSize(0, 246));
+        ReMix->setMaximumSize(QSize(16777215, 407));
         ReMix->setDockNestingEnabled(false);
         centralWidget = new QWidget(ReMix);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
-        gridLayout->setSpacing(5);
+        gridLayout->setSpacing(0);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(5, 5, 5, 5);
+        gridLayout->setContentsMargins(0, 0, 0, 0);
         frame = new QFrame(centralWidget);
         frame->setObjectName(QStringLiteral("frame"));
+        frame->setMouseTracking(true);
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         gridLayout_2 = new QGridLayout(frame);

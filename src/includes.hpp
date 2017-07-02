@@ -2,26 +2,35 @@
 #ifndef QT_INCLUDES_HPP
     #define QT_INCLUDES_HPP
 
+    #include <QNetworkAccessManager>
     #include <QSortFilterProxyModel>
+    #include <QNetworkAddressEntry>
     #include <QCryptographicHash>
     #include <QStandardItemModel>
     #include <QNetworkInterface>
     #include <QTableWidgetItem>
+    #include <QStringListModel>
+    #include <QXmlStreamReader>
     #include <QSystemTrayIcon>
+    #include <QNetworkRequest>
     #include <QStringBuilder>
     #include <QElapsedTimer>
     #include <QStyleFactory>
     #include <QStandardItem>
+    #include <QNetworkReply>
     #include <QApplication>
     #include <QHostAddress>
     #include <QInputDialog>
     #include <QtConcurrent>
+    #include <QFileDialog>
+    #include <QToolButton>
     #include <QMainWindow>
     #include <QMessageBox>
     #include <QStringList>
     #include <QTextCursor>
     #include <QCloseEvent>
     #include <QGridLayout>
+    #include <QTextStream>
     #include <QScrollBar>
     #include <QTcpServer>
     #include <QUdpSocket>
@@ -51,6 +60,7 @@
     #include <QFile>
     #include <QChar>
     #include <QDir>
+    #include <QUrl>
 
     #ifdef DECRYPT_PACKET_PLUGIN
         #include <QCoreApplication>
@@ -70,12 +80,14 @@
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
     #include "widgets/messageswidget.hpp"
+    #include "widgets/remixtabwidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/userdelegate.hpp"
     #include "widgets/remixwidget.hpp"
     #include "widgets/ruleswidget.hpp"
 
     //GUI and Data Storage Clases.
+    #include "createinstance.hpp"
     #include "packethandler.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
@@ -89,6 +101,7 @@
     #include "rules.hpp"
     #include "remix.hpp"
     #include "user.hpp"
+    #include "upnp.hpp"
 
     #ifdef DECRYPT_PACKET_PLUGIN
         #include "packetdecryptinterface.hpp"

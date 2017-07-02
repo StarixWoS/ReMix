@@ -22,7 +22,7 @@ namespace Helper
 
     QString getStrStr(const QString& str, QString indStr, QString mid,
                       QString left);
-
+    void stripNewlines(QString& string);
     void stripSerNumHeader(QString& sernum);
     QString sanitizeSerNum(const QString& value);
     QString serNumToHexStr(QString sernum, int fillAmt = 8);
@@ -46,6 +46,7 @@ namespace Helper
     bool validateSalt(QString& salt);
 
     bool naturalSort(QString left, QString right, bool &result);
+    void delay(qint32 time);
 }
 
 #endif // PREFERENCES_HPP

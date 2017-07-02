@@ -2,5 +2,6 @@
     <qresource prefix="/icon">
         <file>ReMix.ico</file>
         <file>ReMix.png</file>
+        <file>newtab.png</file>
     </qresource>
 </RCC>

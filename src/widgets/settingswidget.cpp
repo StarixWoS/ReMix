@@ -52,6 +52,13 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
 
     this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
                            Settings::getSaveWindowPositions() );
+
+    QString dir{ Settings::getWorldDir() };
+    QString rowText{ "World Dir: [ %1 ]" };
+            rowText = rowText.arg( dir );
+
+    ui->settingsView->item( Toggles::WORLDDIR, 0 )->setText( rowText );
+    this->setCheckedState( Toggles::WORLDDIR, !dir.isEmpty() );
 }
 
 SettingsWidget::~SettingsWidget()
@@ -205,6 +212,58 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
         break;
         case Toggles::SAVEWINDOWPOSITIONS:
             Settings::setSaveWindowPositions( state );
+        break;
+        case Toggles::WORLDDIR:
+            {
+                QString directory{ Settings::getWorldDir() };
+                QString rowText{ "World Dir: [ %1 ]" };
+
+                bool reUse{ false };
+                if ( !directory.isEmpty() )
+                {
+                    title = "Re-Select Directory:";
+                    prompt = "Do you wish to re-select the world directory?";
+
+                    reUse = Helper::confirmAction( this, title, prompt );
+                }
+
+                if ( directory.isEmpty() || reUse )
+                {
+                    QString title{ "Select WoS Directory" };
+                    directory = QFileDialog::getExistingDirectory(
+                                    this, title, "/worlds",
+                                    QFileDialog::ShowDirsOnly |
+                                    QFileDialog::DontResolveSymlinks );
+
+                    state = false;
+                    if ( directory.contains( "worlds", Qt::CaseInsensitive ) )
+                    {
+                        if ( directory.endsWith( "/worlds" ) )
+                        {
+                            state = true;
+                            ui->settingsView->item( Toggles::WORLDDIR, 0 )->
+                                                setCheckState( Qt::Checked );
+                        }
+                    }
+
+                    if ( state.toBool() == false )
+                    {
+                        directory = "";
+                        title = "Invalid Directory:";
+                        prompt = "You have selected an invalid world directory."
+                                 " Please try again.";
+
+                        ui->settingsView->item( Toggles::WORLDDIR, 0 )->
+                                            setCheckState( Qt::Unchecked );
+
+                        Helper::warningMessage( this, title, prompt );
+                    }
+                    rowText = rowText.arg( directory );
+                    ui->settingsView->item( Toggles::WORLDDIR, 0 )->
+                                        setText( rowText );
+                    Settings::setWorldDir( directory );
+                }
+            }
         break;
         default:
             qDebug() << "Unknown Option, doing nothing!";

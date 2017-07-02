@@ -10,26 +10,32 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
-                         QStringList* argList) :
+ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
 {
     ui->setupUi(this);
+    serverID = svrID;
 
     //Setup our Random Device
     randDev = new RandDev();
 
     //Setup Objects.
-    settings = new Settings( this );
-    server = new ServerInfo();
-    user = usr;
+    contextMenu = new QMenu( this );
+    messages = new MessagesWidget( serverID );
+    rules = new RulesWidget( serverID );
+
+    settings = ReMix::getSettings();
+    settings->addTabObjects( messages, rules, serverID );
+
+    server = new ServerInfo( serverID );
+    user = ReMix::getUser();
 
     plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
-    server->setServerID( Settings::getServerID() );
+    server->setServerID( Settings::getServerID( serverID ) );
     server->setHostInfo( QHostInfo() );
 
     //Load Data from our CommandLine Args.
@@ -43,7 +49,10 @@ ReMixWidget::ReMixWidget(QWidget* parent, User* usr,
 
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
 
     defaultPalette = parent->palette();
 }
@@ -52,13 +61,17 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
+    if ( ui->useUPNP->isChecked() )
+    {
+        tcpServer->removeUPNPForward();
+    }
+
     tcpServer->close();
     tcpServer->deleteLater();
 
     plrWidget->deleteLater();
 
-    settings->close();
-    settings->deleteLater();
+    settings->remTabObjects( serverID );
 
     delete randDev;
     delete server;
@@ -82,6 +95,29 @@ qint32 ReMixWidget::getPlayerCount()
 QString ReMixWidget::getServerName() const
 {
     return server->getName();
+}
+
+Settings* ReMixWidget::getSettings() const
+{
+    return settings;
+}
+
+Server* ReMixWidget::getTcpServer() const
+{
+    return tcpServer;
+}
+
+QString& ReMixWidget::getServerID()
+{
+    return serverID;
+}
+
+quint16 ReMixWidget::getPrivatePort() const
+{
+    if ( server == nullptr )
+        return 0;
+
+    return server->getPrivatePort();
 }
 
 void ReMixWidget::parseCMDLArgs(QStringList* argList)
@@ -137,7 +173,7 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 case CMDLArgs::LISTEN:
                     tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
                     if ( !tmp.isEmpty() )
-                        server->setPrivatePort( tmp.toInt() );
+                        server->setPrivatePort( tmp.toUShort() );
 
                     emit ui->enableNetworking->clicked();
                 break;
@@ -148,6 +184,9 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 break;
                 case CMDLArgs::FUDGE:
                     server->setLogFiles( true );
+                break;
+                case CMDLArgs::RELOAD:
+                    emit reloadOldServersSignal();
                 break;
                 default:
                     qDebug() << "Unknown Command Line Argument: " << tmp;
@@ -161,7 +200,6 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                     server->getPrivatePort(), 10 ) );
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
-    ui->serverName->setText( server->getName() );
 }
 
 void ReMixWidget::initUIUpdate()
@@ -180,6 +218,10 @@ void ReMixWidget::initUIUpdate()
         ui->callCount->setText(
                     QString( "#Calls: %1" )
                         .arg( server->getUserCalls() ) );
+
+        ui->pingCount->setText(
+                    QString( "#Pings: %1" )
+                        .arg( server->getUserPings() ) );
 
         ui->packetDCCount->setText(
                     QString( "#Pkt-DC: %1" )
@@ -206,7 +248,9 @@ void ReMixWidget::initUIUpdate()
                      "when ready!" };
         if ( server->getIsSetUp() )
         {
-            msg = QString( "Listening for incoming calls to %1:%2" )
+            msg = QString( "Listening for incoming calls "
+                           "to: <a href=\"%1\"><span style=\" text-decoration: "
+                           "underline; color:#007af4;\">%1:%2</span></a>" )
                       .arg( server->getPrivateIP() )
                       .arg( server->getPrivatePort() );
 
@@ -241,46 +285,26 @@ void ReMixWidget::initUIUpdate()
                     }
                 }
             }
+            //Validate the server's IP Address is still valid.
+            //If it is now invalid, restart the network sockets.
+            if ( Settings::getIsInvalidIPAddress( server->getPrivateIP() ) )
+            {
+                emit this->reValidateServerIP();
+            }
             plrWidget->resizeColumns();
         }
         ui->networkStatus->setText( msg );
     });
 }
 
-void ReMixWidget::applyThemes(qint32 type)
-{
-    QPalette palette;
-    if ( type == Themes::DARK )
-    {
-        palette.setColor( QPalette::Window, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::WindowText, Qt::white );
-        palette.setColor( QPalette::Base, QColor( 25,25,25 ) );
-        palette.setColor( QPalette::AlternateBase,
-                          QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ToolTipBase, Qt::white );
-        palette.setColor( QPalette::ToolTipText, Qt::white );
-        palette.setColor( QPalette::Text, Qt::white );
-        palette.setColor( QPalette::Button, QColor( 53,53,53 ) );
-        palette.setColor( QPalette::ButtonText, Qt::white );
-        palette.setColor( QPalette::BrightText, Qt::red );
-        palette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::Highlight,
-                          QColor( 42, 130, 218 ) );
-        palette.setColor( QPalette::HighlightedText, Qt::black );
-    }
-    else if ( type == Themes::LIGHT )
-    {
-        palette = defaultPalette;
-    }
-
-    qApp->setPalette( palette );
-}
-
 void ReMixWidget::on_enableNetworking_clicked()
 {
     //Setup Networking Objects.
     if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
 
     ui->enableNetworking->setEnabled( false );
     ui->serverPort->setEnabled( false );
@@ -295,19 +319,6 @@ void ReMixWidget::on_openUserInfo_clicked()
         user->show();
 }
 
-void ReMixWidget::on_isPublicServer_stateChanged(int)
-{
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
-
-    if ( ui->isPublicServer->isChecked() )
-        //Setup a connection with the Master Server.
-        tcpServer->setupPublicServer( true );
-    else   //Disconnect from the Master Server if applicable.
-        tcpServer->setupPublicServer( false );
-}
-
 void ReMixWidget::on_openSettings_clicked()
 {
     if ( settings->isVisible() )
@@ -318,38 +329,96 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openUserComments_clicked()
 {
-    tcpServer->showServerComments();
+    Comments* comments{ tcpServer->getServerComments() };
+    if ( comments != nullptr )
+    {
+        if ( comments->isVisible() )
+            comments->hide();
+        else
+            comments->show();
+    }
 }
 
 void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
 {
-    qint32 val = arg1.toInt();
-    if ( val < 0 || val > 65535 )
+    quint16 val = arg1.toInt();
+    if ( val < std::numeric_limits<quint16>::min()
+      || val > std::numeric_limits<quint16>::max() )
+    {
         val = 0;
+    }
 
     //Generate a Valid Port Number.
     if ( val == 0 )
         val = randDev->genRandNum( 10000, 65535 );
 
-    server->setPrivatePort( val );
-}
-
-void ReMixWidget::on_serverName_textChanged(const QString &arg1)
-{
-    server->setName( arg1 );
-}
-
-void ReMixWidget::on_nightMode_clicked()
-{
-    qint32 type{ 1 };
-    if ( nightMode )
+    if ( val != server->getPrivatePort() )
     {
-        ui->nightMode->setText( "Night Mode" );
-        type = 0;
+        server->setPrivatePort( val );
+        ui->serverPort->setText( Helper::intToStr( val ) );
+    }
+}
+
+void ReMixWidget::on_isPublicServer_toggled(bool)
+{
+    //Setup Networking Objects.
+    if ( tcpServer == nullptr )
+    {
+        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                                serverID );
+    }
+
+    if ( ui->isPublicServer->isChecked() )
+    {   //Setup a connection with the Master Server.
+        tcpServer->setupPublicServer( true );
+        Settings::setIsPublic( QVariant( true ), this->getServerID() );
     }
     else
-        ui->nightMode->setText( "Normal Mode" );
+    {   //Disconnect from the Master Server if applicable.
+        tcpServer->setupPublicServer( false );
+        Settings::setIsPublic( QVariant( false ), this->getServerID() );
+    }
+}
 
-    this->applyThemes( type );
-    nightMode = !nightMode;
+void ReMixWidget::on_useUPNP_toggled(bool)
+{
+    //Tell the server to use a UPNP Port Forward.
+    if ( ui->useUPNP->isChecked() )
+        tcpServer->setupUPNPForward();
+    else   //Remove the UPNP Port Forward if applicable.
+        tcpServer->removeUPNPForward();
+}
+
+void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
+{
+    QString title = QString( "Invalid IP:" );
+    QString prompt = QString( "Do you wish to mark the IP Address [ %1 ] as "
+                              "invalid and refresh the network interface?" );
+
+    prompt = prompt.arg( link );
+    if ( Helper::confirmAction( this, title, prompt ) )
+    {
+        Settings::setIsInvalidIPAddress( link );
+        emit this->reValidateServerIP();
+
+        title = "Note:";
+        prompt = "Please refresh your server list in-game!";
+        Helper::confirmAction( this, title, prompt );
+    }
+}
+
+void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
+{
+    if ( contextMenu == nullptr )
+    {
+        contextMenu = new QMenu( this );
+        if ( contextMenu != nullptr )
+        {
+            contextMenu->addMenu( "Test 1" );
+
+            contextMenu->addMenu( "Test 2" );
+        }
+    }
+    qDebug() << pos;
+    contextMenu->popup( ui->networkStatus->mapToGlobal( pos ) );
 }

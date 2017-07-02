@@ -9,7 +9,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 {
     ui->setupUi(this);
 
-    //Remove the "Help" button from the window title bars.
     {
         QIcon icon = this->windowIcon();
         Qt::WindowFlags flags = this->windowFlags();
@@ -17,7 +16,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
 
         this->setWindowFlags( flags );
         this->setWindowIcon( icon );
-        //this->setWindowModality( Qt::WindowModal );
     }
 
     if ( Settings::getSaveWindowPositions() )
@@ -62,14 +60,7 @@ void SendMsg::on_sendMsg_clicked()
     }
 
     message = message.prepend( "Owner: " );
-
-    //Strip Carriage Returns.
-    if ( message.contains( "\r" ) )
-        message = message.remove( "\r" );
-
-    //Replace NewLines with Spaces.
-    if ( message.contains( "\n" ) )
-        message = message.replace( "\n", " " );
+    Helper::stripNewlines( message );
 
     if ( ui->checkBox->isChecked() )
         server->sendMasterMessage( message, nullptr, true );

@@ -105,6 +105,16 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     return QString();
 }
 
+void Helper::stripNewlines(QString& string)
+{
+    if ( string.contains( "\r\n" ) ) //Replace Unix NewLines with Spaces.
+        string = string.replace( "\r\n", " " );
+    else if ( string.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
+        string = string.replace( "\r", " " );
+    else if ( string.contains( "\n" ) ) //Replace NewLines with Spaces.
+        string = string.replace( "\n", " " );
+}
+
 void Helper::stripSerNumHeader(QString& sernum)
 {
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
@@ -389,4 +399,14 @@ bool Helper::naturalSort(QString left, QString right, bool& result)
 
     } while ( true );
     return false;
+}
+
+void Helper::delay(qint32 time)
+{
+    //Delay the next Port refresh by /time/ seconds.
+    QTime delayedTime = QTime::currentTime().addSecs( time );
+    while ( QTime::currentTime() < delayedTime )
+    {
+        QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
+    }
 }

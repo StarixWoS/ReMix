@@ -2,8 +2,9 @@
 #include "includes.hpp"
 #include "serverinfo.hpp"
 
-ServerInfo::ServerInfo()
+ServerInfo::ServerInfo(QString svrID)
 {
+    serverTabID = svrID;
     masterSocket = new QUdpSocket();
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -12,11 +13,11 @@ ServerInfo::ServerInfo()
     }
 
     baudTime.start();
-    upTimer.start( 1000 );
+    upTimer.start( 500 ); //Refresh the UI ever .5 seconds.
 
     QObject::connect( &upTimer, &QTimer::timeout, [=]()
     {
-        ++upTime;
+        upTime.setValue( upTime.toDouble() + 0.5 );
         if ( baudTime.elapsed() > 5000 )
         {
             this->setBaudIO( this->getBytesIn(), baudIn );
@@ -123,6 +124,9 @@ QUdpSocket* ServerInfo::getMasterSocket() const
 
 bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
 {
+    if ( masterSocket->state() == QAbstractSocket::BoundState )
+        masterSocket->close();
+
     return masterSocket->bind( addr, port );
 }
 
@@ -152,8 +156,8 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
                          .arg( this->getUsageHours() )
                          .arg( this->getUsageDays() );
 
-    response = response.arg( Rules::getRuleSet() )
-                       .arg( Helper::intToStr( this->getServerID(), 16, 8 ) )
+    response = response.arg( Rules::getRuleSet( serverTabID ) )
+                       .arg( this->getServerID() )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
                        .arg( usage );
@@ -367,7 +371,7 @@ void ServerInfo::sendServerRules(Player* plr)
 
     quint64 bOut{ 0 };
     QString rules{ ":SR$%1\r\n" };
-            rules = rules.arg( Rules::getRuleSet() );
+            rules = rules.arg( Rules::getRuleSet( serverTabID ) );
 
     bOut = soc->write( rules.toLatin1(), rules.length() );
     if ( bOut >= 1 )
@@ -381,7 +385,7 @@ void ServerInfo::sendServerRules(Player* plr)
 
 void ServerInfo::sendServerGreeting(Player* plr)
 {
-    QString greeting = Settings::getMOTDMessage();
+    QString greeting = Settings::getMOTDMessage( serverTabID );
     if ( Settings::getRequirePassword() )
     {
         greeting.append( " Password required: Please reply with (/login *PASS)"
@@ -392,7 +396,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     if ( !greeting.isEmpty() )
         this->sendMasterMessage( greeting, plr, false );
 
-    if ( !Rules::getRuleSet().isEmpty() )
+    if ( !Rules::getRuleSet( serverTabID ).isEmpty() )
         this->sendServerRules( plr );
 }
 
@@ -400,7 +404,7 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
-    QTcpSocket* soc{nullptr };
+    QTcpSocket* soc{ nullptr };
     if ( plr != nullptr )
         soc = plr->getSocket();
 
@@ -471,7 +475,7 @@ quint64 ServerInfo::sendToAllConnected(QString packet)
 
 quint64 ServerInfo::getUpTime() const
 {
-    return upTime;
+    return upTime.toULongLong();
 }
 
 QTimer* ServerInfo::getUpTimer()
@@ -579,12 +583,12 @@ void ServerInfo::setIsMaster(bool value)
     isMaster = value;
 }
 
-int ServerInfo::getServerID() const
+QString ServerInfo::getServerID() const
 {
     return serverID;
 }
 
-void ServerInfo::setServerID(int value)
+void ServerInfo::setServerID(QString value)
 {
     serverID = value;
 }
@@ -624,12 +628,12 @@ void ServerInfo::setPublicIP(const QString& value)
     publicIP = value;
 }
 
-int ServerInfo::getPrivatePort() const
+quint16 ServerInfo::getPrivatePort() const
 {
     return privatePort;
 }
 
-void ServerInfo::setPrivatePort(int value)
+void ServerInfo::setPrivatePort(quint16 value)
 {
     privatePort = value;
 }
@@ -672,6 +676,16 @@ quint32 ServerInfo::getUserCalls() const
 void ServerInfo::setUserCalls(const quint32& value)
 {
     userCalls = value;
+}
+
+quint32 ServerInfo::getUserPings() const
+{
+    return userPings;
+}
+
+void ServerInfo::setUserPings(const quint32& value)
+{
+    userPings = value;
 }
 
 quint32 ServerInfo::getSerNumDc() const
