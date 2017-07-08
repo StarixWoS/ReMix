@@ -24,7 +24,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
                            Settings::getBanDupedIP() );
 
     this->setCheckedState( Toggles::BANHACKERS,
-                           Settings::getBanHackers() );
+                           Settings::getBanDeviants() );
 
     this->setCheckedState( Toggles::REQSERNUM,
                            Settings::getReqSernums() );

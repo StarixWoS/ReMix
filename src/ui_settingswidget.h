@@ -188,7 +188,7 @@ public:
         QTableWidgetItem *___qtablewidgetitem19 = settingsView->item(3, 0);
         ___qtablewidgetitem19->setText(QApplication::translate("SettingsWidget", "Ban Duplicate IP's", 0));
         QTableWidgetItem *___qtablewidgetitem20 = settingsView->item(4, 0);
-        ___qtablewidgetitem20->setText(QApplication::translate("SettingsWidget", "Auto-Ban on Hack", 0));
+        ___qtablewidgetitem20->setText(QApplication::translate("SettingsWidget", "Auto-Ban Deviants", 0));
         QTableWidgetItem *___qtablewidgetitem21 = settingsView->item(5, 0);
         ___qtablewidgetitem21->setText(QApplication::translate("SettingsWidget", "Require Sernums", 0));
         QTableWidgetItem *___qtablewidgetitem22 = settingsView->item(6, 0);

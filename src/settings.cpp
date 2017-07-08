@@ -251,7 +251,7 @@ void Settings::setBanHackers(QVariant& value)
                 subKeys[ SubKeys::AutoBan ], value );
 }
 
-bool Settings::getBanHackers()
+bool Settings::getBanDeviants()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AutoBan ] )

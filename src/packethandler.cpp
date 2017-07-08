@@ -456,7 +456,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
-                if ( Settings::getBanHackers() )
+                if ( Settings::getBanDeviants() )
                 {
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "

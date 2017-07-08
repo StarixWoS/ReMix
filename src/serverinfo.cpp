@@ -39,10 +39,20 @@ ServerInfo::ServerInfo(QString svrID)
 
     //Every 2 Seconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
-    masterCheckIn.setInterval( 2000 );
+    masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
     QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
     {
-        this->sendMasterInfo();
+        //Allow 10 attempts at 2 Seconds per,
+        //then use the standard 5 Minutes per after.
+
+        //This is to prevent the server from incessantly
+        //attempting to connect to a nonexistant master server.
+        if ( failedCheckinCount++ >= 10 )
+        {
+            masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
+        }
+        else
+            this->sendMasterInfo();
 
         if ( !masterTimeOut.isActive() )
             masterTimeOut.start();
@@ -796,11 +806,13 @@ void ServerInfo::setMasterUDPResponse(bool value)
     masterUDPResponse = value;
     if ( masterUDPResponse )
     {
+        failedCheckinCount = 0;
+
         this->setMasterTimedOut( false );
-        masterCheckIn.setInterval( 300000 );
+        masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
     }
     else if ( this->getMasterTimedOut() )
-        masterCheckIn.setInterval( 2000 );
+        masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
 }
 
 bool ServerInfo::getMasterTimedOut()

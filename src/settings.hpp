@@ -76,7 +76,7 @@ class Settings : public QDialog
         static bool getBanDupedIP();
 
         static void setBanHackers(QVariant& value);
-        static bool getBanHackers();
+        static bool getBanDeviants();
 
         static void setReqSernums(QVariant& value);
         static bool getReqSernums();

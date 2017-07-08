@@ -41,6 +41,7 @@ class ServerInfo
 
     bool sentUDPCheckin{ false };
     bool masterUDPResponse{ false };
+    quint32 failedCheckinCount{ 0 };
 
     QTimer masterCheckIn;
     QTimer masterTimeOut;

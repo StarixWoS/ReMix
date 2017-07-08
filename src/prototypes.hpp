@@ -136,9 +136,17 @@
             //Idle Users" enabled. 10 minutes - 600,000 milliseconds.
             MAX_IDLE_TIME = 600000,
 
-            //Maximum amout of time in MS (30 seconds) to allow for the
+            //Maximum amount of time in MS (30 seconds) to allow for the
             //Master to respond to a checkin.
             MAX_MASTER_RESPONSE_TIME = 30000,
+
+            //Maximum amount of time in MS (5 Minutes)
+            //before re-announcing to the Master Server.
+            MAX_MASTER_CHECKIN_TIME = 300000,
+
+            //Minimum amount of time in MS (2 Seconds)
+            //before re-announcing to the Master Server.
+            MIN_MASTER_CHECK_IN_TIME = 2000,
 
             //Amount of times an un-authenticated (admin) can use commands.
             MAX_CMD_ATTEMPTS = 3,

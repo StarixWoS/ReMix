@@ -534,7 +534,7 @@ void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
 
 void CmdHandler::loginHandler(Player* plr, QString& argType)
 {
-    QString response{ "%1 %2 Password. Welcome!" };
+    QString response{ "%1 %2 Password." };
     QString invalid{ "Incorrect" };
     QString valid{ "Correct" };
 
@@ -553,7 +553,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         }
         else
         {
-            response = response.arg( invalid );
+            response = response.arg( invalid ).append( " Goodbye." );
             disconnect = true;
         }
         response = response.arg( "Server" );
@@ -565,7 +565,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         if ( !pwd.isEmpty()
           && User::cmpAdminPwd( sernum, pwd ) )
         {
-            response = response.arg( valid );
+            response = response.arg( valid ).append( " Welcome!" );
 
             plr->setReqAuthPwd( false );
             plr->setGotAuthPwd( true );
@@ -599,7 +599,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         }
         else
         {
-            response = response.arg( invalid );
+            response = response.arg( invalid ).append( " Goodbye." );
             disconnect = true;
         }
         response = response.arg( "Admin" );
