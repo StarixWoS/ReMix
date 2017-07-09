@@ -116,9 +116,10 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
 
 void PlrListWidget::on_actionSendMessage_triggered()
 {
-    SendMsg* adminMsg = new SendMsg( this, server, menuTarget );
-             adminMsg->exec();
-    adminMsg->deleteLater();
+    if ( menuTarget != nullptr )
+    {
+        menuTarget->sendMessage();
+    }
     menuTarget = nullptr;
 }
 

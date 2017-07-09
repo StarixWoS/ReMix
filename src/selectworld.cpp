@@ -17,7 +17,8 @@ SelectWorld::SelectWorld(QWidget *parent, QStringList) :
                       model->setRootPath( Settings::getWorldDir() );
                       model->setReadOnly( true );
 
-    QObject::connect( model, &QFileSystemModel::directoryLoaded, [=]()
+    QObject::connect( model, &QFileSystemModel::directoryLoaded, model,
+    [=]()
     {
         ui->worldViewer->setModel( model );
         for (int i = 1; i < model->columnCount(); ++i)

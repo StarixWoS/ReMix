@@ -689,7 +689,8 @@ void CmdHandler::shutDownHandler(Player* plr, bool restart)
             message = message.arg( plr->getSernum_s() );
 
     QTimer* timer = new QTimer();
-    QObject::connect( timer, &QTimer::timeout, [=]()
+    QObject::connect( timer, &QTimer::timeout, timer,
+    [=]()
     {
         if ( restart )
         {

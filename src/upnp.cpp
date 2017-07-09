@@ -41,7 +41,8 @@ UPNP::UPNP(QHostAddress localip, QObject* parent )
     //every 30 minutes as it time's out.
     refreshTunnel = new QTimer( this );
     refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
-    QObject::connect( refreshTunnel, &QTimer::timeout, [=]()
+    QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
+    [=]()
     {
         for (  qint32 port : ports )
         {
@@ -149,7 +150,8 @@ void UPNP::getUdp()
 
                 ctrlPort = sport;
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished,
-                                  [=](QNetworkReply *reply)
+                                  httpSocket,
+                [=](QNetworkReply *reply)
                 {
                     QString response = reply->readAll();
                     int i = 0;
@@ -243,7 +245,8 @@ void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 p
                     req.setRawHeader( QByteArray( "Host" ), host.toLatin1() );
 
     QNetworkReply* httpReply = httpSocket->post( req, message.toLatin1() );
-    QObject::connect( httpReply, &QNetworkReply::readyRead, [=]()
+    QObject::connect( httpReply, &QNetworkReply::readyRead, httpReply,
+    [=]()
     {
         QString reply = httpReply->readAll();
         if ( !reply.contains( "UPnPError" ) )

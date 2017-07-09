@@ -14,8 +14,10 @@ class Player : public QObject
     Q_OBJECT
 
     QStandardItem* tableRow{ nullptr };
-
+    ServerInfo* serverInfo{ nullptr };
+    SendMsg* messageDialog{ nullptr };
     QTcpSocket* socket{ nullptr };
+
     QString publicIP{ "" };
     quint32 publicPort{ 0 };
 
@@ -80,6 +82,8 @@ class Player : public QObject
     public:
         explicit Player();
         ~Player();
+
+        void sendMessage();
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
 
@@ -208,9 +212,12 @@ class Player : public QObject
             void setHasGameInfo(bool value);
         #endif
 
+            ServerInfo* getServerInfo() const;
+            void setServerInfo(ServerInfo* value);
+
     signals:
-        void sendRemoteAdminPwdReqSignal(Player* plr);
-        void sendRemoteAdminRegisterSignal(Player* plr);
+            void sendRemoteAdminPwdReqSignal(Player* plr);
+            void sendRemoteAdminRegisterSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

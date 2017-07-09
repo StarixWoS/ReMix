@@ -195,7 +195,9 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
 void ReMixWidget::initUIUpdate()
 {
     //Create and Connect Lamda Objects
-    QObject::connect( server->getUpTimer(), &QTimer::timeout, [=]()
+    QObject::connect( server->getUpTimer(), &QTimer::timeout,
+                      server->getUpTimer(),
+    [=]()
     {
         quint64 time = server->getUpTime();
 

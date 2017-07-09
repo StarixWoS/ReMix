@@ -15,7 +15,8 @@ ServerInfo::ServerInfo(QString svrID)
     baudTime.start();
     upTimer.start( 500 ); //Refresh the UI ever .5 seconds.
 
-    QObject::connect( &upTimer, &QTimer::timeout, [=]()
+    QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
+    [=]()
     {
         upTime.setValue( upTime.toDouble() + 0.5 );
         if ( baudTime.elapsed() > 5000 )
@@ -32,7 +33,8 @@ ServerInfo::ServerInfo(QString svrID)
 
     masterTimeOut.setInterval( MAX_MASTER_RESPONSE_TIME );
     masterTimeOut.setSingleShot( true );
-    QObject::connect( &masterTimeOut, &QTimer::timeout, [=]()
+    QObject::connect( &masterTimeOut, &QTimer::timeout, &masterTimeOut,
+    [=]()
     {
         this->setMasterTimedOut( true );
     });
@@ -40,7 +42,8 @@ ServerInfo::ServerInfo(QString svrID)
     //Every 2 Seconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
     masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
-    QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
+    QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
+    [=]()
     {
         this->sendMasterInfo();
         if ( !masterTimeOut.isActive() )
@@ -52,7 +55,8 @@ ServerInfo::ServerInfo(QString svrID)
 
     //Updates the Server's Server Usage array every 10 minutes.
     usageUpdate.start( SERVER_USAGE_UPDATE );
-    QObject::connect( &usageUpdate, &QTimer::timeout, [=]()
+    QObject::connect( &usageUpdate, &QTimer::timeout, &usageUpdate,
+    [=]()
     {
         usageArray[ usageCounter ] = this->getPlayerCount();
 
@@ -424,24 +428,10 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
             && soc != nullptr )
            && !toAll )
     {
-        //Iterate over all Player objects.
-        //And check if our Player object exists.
-        //This is to prevent a Crash related to sending messages
-        //to a disconnected User.
-
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
-        {
-            tmpPlr = this->getPlayer( i );
-            if ( plr == tmpPlr )
-            {
-                bOut = soc->write( msg.toLatin1(),
-                                   msg.length() );
-                plr->setPacketsOut( plr->getPacketsOut() + 1 );
-                plr->setBytesOut( plr->getBytesOut() + bOut );
-                break;
-            }
-        }
+        bOut = soc->write( msg.toLatin1(),
+                           msg.length() );
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
+        plr->setBytesOut( plr->getBytesOut() + bOut );
     }
 
     if ( bOut >= 1 )

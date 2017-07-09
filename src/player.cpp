@@ -7,7 +7,8 @@ Player::Player()
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
-    QObject::connect( &connTimer, &QTimer::timeout, [=]()
+    QObject::connect( &connTimer, &QTimer::timeout, &connTimer,
+    [=]()
     {
         ++connTime;
 
@@ -128,6 +129,16 @@ Player::Player()
 
 Player::~Player()
 {
+    if ( messageDialog != nullptr )
+    {
+        if ( messageDialog->isVisible() )
+        {
+            messageDialog->close();
+        }
+        messageDialog->disconnect();
+        messageDialog->deleteLater();
+    }
+
     connTimer.stop();
     connTimer.disconnect();
 
@@ -136,6 +147,36 @@ Player::~Player()
 
     this->disconnect();
     this->deleteLater();
+}
+
+void Player::sendMessage()
+{
+    if ( messageDialog == nullptr )
+    {
+        messageDialog = new SendMsg( this->getSernum_s() );
+        QObject::connect( messageDialog, &SendMsg::forwardMessage,
+                          messageDialog,
+        [=](QString message)
+        {
+            if ( !message.isEmpty() )
+            {
+                bool sendToAll{ messageDialog->sendToAll() };
+                ServerInfo* server{ this->getServerInfo() };
+                if ( server != nullptr )
+                {
+                    if ( sendToAll == true )
+                        server->sendMasterMessage( message, nullptr, true );
+                    else
+                        server->sendMasterMessage( message, this, false );
+                }
+            }
+        } );
+    }
+
+    if ( !messageDialog->isVisible() )
+        messageDialog->show();
+    else
+        messageDialog->hide();
 }
 
 qint64 Player::getConnTime() const
@@ -161,6 +202,16 @@ QTcpSocket* Player::getSocket() const
 void Player::setSocket(QTcpSocket* value)
 {
     socket = value;
+}
+
+ServerInfo* Player::getServerInfo() const
+{
+    return serverInfo;
+}
+
+void Player::setServerInfo(ServerInfo* value)
+{
+    serverInfo = value;
 }
 
 quint32 Player::getSernum_i() const

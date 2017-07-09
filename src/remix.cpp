@@ -141,7 +141,8 @@ void ReMix::initSysTray()
                           this, &QMainWindow::showNormal );
 
         QAction* quitAction = new QAction( "Quit", this );
-        QObject::connect( quitAction, &QAction::triggered, [=]()
+        QObject::connect( quitAction, &QAction::triggered, quitAction,
+        [=]()
         {
             //Allow Rejection of a Global CloseEvent.
             if ( !this->rejectCloseEvent() )
@@ -157,8 +158,8 @@ void ReMix::initSysTray()
         trayMenu->addAction( restoreAction );
         trayMenu->addAction( quitAction );
 
-        QObject::connect( trayObject, &QSystemTrayIcon::activated,
-                          [=]( QSystemTrayIcon::ActivationReason reason )
+        QObject::connect( trayObject, &QSystemTrayIcon::activated, trayObject,
+        [=]( QSystemTrayIcon::ActivationReason reason )
         {
             if ( reason == QSystemTrayIcon::Trigger )
             {
@@ -214,14 +215,16 @@ void ReMix::getSynRealData(ServerInfo* svr)
         QUrl url( svr->getMasterInfoHost() );
 
         socket->connectToHost( url.host(), 80 );
-        QObject::connect( socket, &QTcpSocket::connected, [=]()
+        QObject::connect( socket, &QTcpSocket::connected, socket,
+        [=]()
         {
             socket->write( QString( "GET %1\r\n" )
                                .arg( svr->getMasterInfoHost() )
                                              .toLatin1() );
         });
 
-        QObject::connect( socket, &QTcpSocket::readyRead, [=]()
+        QObject::connect( socket, &QTcpSocket::readyRead, socket,
+        [=]()
         {
             QFile synreal( "synReal.ini" );
             if ( synreal.open( QIODevice::WriteOnly ) )

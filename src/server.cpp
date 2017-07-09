@@ -28,7 +28,9 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
-    QObject::connect( dynamic_cast<ReMixWidget*>( mother ), &ReMixWidget::reValidateServerIP, [=]()
+    ReMixWidget* widget = dynamic_cast<ReMixWidget*>( mother );
+    QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
+    [=]()
     {
         server->setIsSetUp( false );
         this->setupServerInfo();
@@ -181,7 +183,8 @@ void Server::setupUPNPForward()
     bool tunneled = UPNP::getTunneled();
     if ( tunneled != true )
     {
-        QObject::connect( upnp, &UPNP::success, [=]()
+        QObject::connect( upnp, &UPNP::success, upnp,
+        [=]()
         {
             upnp->checkPortForward( "TCP", server->getPrivatePort() );
             upnp->checkPortForward( "UDP", server->getPrivatePort() );
@@ -228,6 +231,9 @@ void Server::newConnectionSlot()
     //We've created a new Player, assign it's Socket.
     plr->setSocket( peer );
 
+    //Set the Player's reference to the ServerInfo class.
+    plr->setServerInfo( server );
+
     //Connect to our Password Request Signal. This signal is
     //turned on or off by enabling or disabling Admin Auth requirements.
     QObject::connect( plr, &Player::sendRemoteAdminPwdReqSignal,
@@ -236,13 +242,15 @@ void Server::newConnectionSlot()
                       this, &Server::sendRemoteAdminRegisterSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected, [=]()
+    QObject::connect( peer, &QTcpSocket::disconnected, peer,
+    [=]()
     {
         this->userDisconnected( peer );
     });
 
     //Connect the pending Connection to a ReadyRead lambda.
-    QObject::connect( peer, &QTcpSocket::readyRead, [=]()
+    QObject::connect( peer, &QTcpSocket::readyRead, peer,
+    [=]()
     {
         this->userReadyRead( peer );
     });

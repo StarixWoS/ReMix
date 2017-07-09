@@ -143,7 +143,8 @@ void ReMixTabWidget::createTabButtons()
     nightModeButton->setText( "Night Mode" );
 
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
-    QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
+    QObject::connect( nightModeButton, &QToolButton::clicked, nightModeButton,
+    [=]()
     {
         qint32 type{ 1 };
         if ( nightMode )
