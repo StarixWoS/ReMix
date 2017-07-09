@@ -236,20 +236,23 @@ void Server::newConnectionSlot()
                       this, &Server::sendRemoteAdminRegisterSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected,
-                      this, &Server::userDisconnectedSlot );
+    QObject::connect( peer, &QTcpSocket::disconnected, [=]()
+    {
+        this->userDisconnected( peer );
+    });
 
     //Connect the pending Connection to a ReadyRead lambda.
-    QObject::connect( peer, &QTcpSocket::readyRead,
-                      this, &Server::userReadyReadSlot );
+    QObject::connect( peer, &QTcpSocket::readyRead, [=]()
+    {
+        this->userReadyRead( peer );
+    });
 
     server->sendServerGreeting( plr );
     this->updatePlayerTable( plr, peer->peerAddress(), peer->peerPort() );
 }
 
-void Server::userReadyReadSlot()
+void Server::userReadyRead(QTcpSocket* socket)
 {
-    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
     if ( socket == nullptr )
         return;
 
@@ -294,9 +297,8 @@ void Server::userReadyReadSlot()
     }
 }
 
-void Server::userDisconnectedSlot()
+void Server::userDisconnected(QTcpSocket* socket)
 {
-    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
     if ( socket == nullptr )
         return;
 

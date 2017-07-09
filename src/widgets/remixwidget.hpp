@@ -35,7 +35,7 @@ class ReMixWidget : public QWidget
     QString serverID{ "" };
 
     enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
-                   FUDGE = 5, RELOAD = 6 };
+                   FUDGE = 5 };
     enum Themes{ LIGHT = 0, DARK = 1 };
     static const QStringList cmdlArgs;
 
@@ -69,7 +69,6 @@ class ReMixWidget : public QWidget
         void on_networkStatus_customContextMenuRequested(const QPoint &pos);
 
     signals:
-        void reloadOldServersSignal();
         void reValidateServerIP();
 
     private:

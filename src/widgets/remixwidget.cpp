@@ -182,9 +182,6 @@ void ReMixWidget::parseCMDLArgs(QStringList* argList)
                 case CMDLArgs::FUDGE:
                     server->setLogFiles( true );
                 break;
-                case CMDLArgs::RELOAD:
-                    emit reloadOldServersSignal();
-                break;
                 default:
                     qDebug() << "Unknown Command Line Argument: " << tmp;
                 break;

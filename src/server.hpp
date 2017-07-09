@@ -44,15 +44,15 @@ class Server : public QTcpServer
 
         Comments* getServerComments() const;
 
+        void userReadyRead(QTcpSocket* socket);
+        void userDisconnected(QTcpSocket* socket);
+
     public slots:
         void sendRemoteAdminPwdReqSlot(Player* plr);
         void sendRemoteAdminRegisterSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();
-        void userReadyReadSlot();
-        void userDisconnectedSlot();
-
         void readyReadUDPSlot();
 };
 

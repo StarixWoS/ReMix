@@ -42,20 +42,12 @@ ServerInfo::ServerInfo(QString svrID)
     masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
     QObject::connect( &masterCheckIn, &QTimer::timeout, [=]()
     {
-        //Allow 10 attempts at 2 Seconds per,
-        //then use the standard 5 Minutes per after.
-
-        //This is to prevent the server from incessantly
-        //attempting to connect to a nonexistant master server.
-        if ( failedCheckinCount++ >= 10 )
-        {
-            masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
-        }
-        else
-            this->sendMasterInfo();
-
+        this->sendMasterInfo();
         if ( !masterTimeOut.isActive() )
+        {
+            masterCheckIn.stop();
             masterTimeOut.start();
+        }
     });
 
     //Updates the Server's Server Usage array every 10 minutes.
@@ -806,8 +798,6 @@ void ServerInfo::setMasterUDPResponse(bool value)
     masterUDPResponse = value;
     if ( masterUDPResponse )
     {
-        failedCheckinCount = 0;
-
         this->setMasterTimedOut( false );
         masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
     }
