@@ -187,7 +187,7 @@
      </item>
      <item row="4" column="0">
       <property name="text">
-       <string>Auto-Ban on Hack</string>
+       <string>Auto-Ban Deviants</string>
       </property>
       <property name="checkState">
        <enum>Checked</enum>

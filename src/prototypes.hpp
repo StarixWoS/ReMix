@@ -89,11 +89,11 @@
 
     //Widget GUI Classes.
     class SettingsWidget;
-    class MessagesWidget;
     class ReMixTabWidget;
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
+    class MOTDWidget;
 
     //GUI and Data Storage Classes.
     class CreateInstance;
@@ -162,7 +162,7 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 23,
+            SETTINGS_SUBKEY_COUNT = 22,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,

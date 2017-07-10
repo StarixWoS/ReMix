@@ -165,7 +165,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     }
 
     if ( send )
-        server->sendMasterMessage( revoke, menuTarget, false );
+        menuTarget->sendMessage( revoke );
 
     menuTarget = nullptr;
 }
@@ -217,8 +217,8 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
         {
             reason = reason.arg( Helper::getDisconnectReason( this ) );
             inform = inform.arg( reason );
-            server->sendMasterMessage( inform, menuTarget, false );
 
+            menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
             {
                 menuTarget->setDisconnected( true );
@@ -256,9 +256,8 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( reason );
 
-            server->sendMasterMessage( inform, menuTarget, false );
             user->addBan( nullptr, menuTarget, reason );
-
+            menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
             {
                 menuTarget->setDisconnected( true );

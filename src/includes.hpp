@@ -79,12 +79,12 @@
 
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
-    #include "widgets/messageswidget.hpp"
     #include "widgets/remixtabwidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/userdelegate.hpp"
     #include "widgets/remixwidget.hpp"
     #include "widgets/ruleswidget.hpp"
+    #include "widgets/motdwidget.hpp"
 
     //GUI and Data Storage Clases.
     #include "createinstance.hpp"

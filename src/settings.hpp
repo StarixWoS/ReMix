@@ -15,7 +15,7 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    QHash<QString, MessagesWidget*> msgWidgets;
+    QHash<QString, MOTDWidget*> msgWidgets;
     QHash<QString, RulesWidget*> ruleWidgets;
 
     SettingsWidget* settings;
@@ -25,22 +25,19 @@ class Settings : public QDialog
         explicit Settings(QWidget *parent = 0);
         ~Settings();
 
-        void addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
+        void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
                            QString& svrID);
         void remTabObjects(QString& svrID);
         void updateTabBar(QString& svrID);
 
-        enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
-                      ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
-                      ReqPassword = 8, MOTD = 9, BanishMsg = 10,
-                      ReqAdminAuth = 11, LogComments = 12, FwdComments = 13,
-                      InformAdminLogin = 14, EchoComments = 15,
-                      MinimizeToTray = 16, SaveWindowPositions = 17,
-                      IsRunning = 18, WorldDir = 19, PortNumber = 20,
-                      IsPublic = 21, GameName = 22 };
+        enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
+                      AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,
+                      ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
+                      EchoComments, MinimizeToTray, SaveWindowPositions,
+                      IsRunning, WorldDir, PortNumber, IsPublic,
+                      GameName = 21 };
 
-        enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
-                   Rules = 4 };
+        enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
         static QSettings* prefs;
 
@@ -113,9 +110,6 @@ class Settings : public QDialog
 
         static void setMOTDMessage(QVariant& value, QString& svrID);
         static QString getMOTDMessage(QString& svrID);
-
-        static void setBanishMesage(QVariant& value, QString& svrID);
-        static QString getBanishMesage(QString& svrID);
 
         static void setServerID(QVariant& value, QString& svrID);
         static QString getServerID(QString& svrID);

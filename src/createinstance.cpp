@@ -56,7 +56,7 @@ void CreateInstance::updateServerList(bool firstRun)
         if ( !skip )
         {
             running = false;
-            if ( firstRun == true )
+            if ( firstRun )
             {
                 Settings::setServerRunning( QVariant( false ), name );
             }
@@ -228,7 +228,7 @@ void CreateInstance::on_oldServers_currentIndexChanged(int)
                 }
             }
 
-            if ( notFound == true )
+            if ( notFound )
                 ui->gameName->setCurrentIndex( 0 );
         }
 

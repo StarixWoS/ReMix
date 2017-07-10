@@ -335,9 +335,6 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        server->sendMasterMessage( Settings::getBanishMesage( serverID ), plr,
-                                   false );
-
         tmpMsg = tmpMsg.arg( "Banned Info" )
                        .arg( plr->getPublicIP() )
                        .arg( plr->getPublicPort() )

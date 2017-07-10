@@ -181,7 +181,7 @@ void Server::setupUPNPForward()
     }
 
     bool tunneled = UPNP::getTunneled();
-    if ( tunneled != true )
+    if ( !tunneled )
     {
         QObject::connect( upnp, &UPNP::success, upnp,
         [=]()
@@ -390,7 +390,7 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
       && plr->getIsAdmin() )
     {
         plr->setReqAuthPwd( true );
-        server->sendMasterMessage( msg, plr, false );
+        plr->sendMessage( msg );
     }
 }
 
@@ -405,5 +405,5 @@ void Server::sendRemoteAdminRegisterSlot(Player* plr)
                  "Admins will not have access to this information." };
 
     if ( plr->getIsAdmin() )
-        server->sendMasterMessage( msg, plr, false );
+        plr->sendMessage( msg );
 }

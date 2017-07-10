@@ -41,18 +41,17 @@ win32:RC_FILE += "./resources/ReMix.rc"
 
 #Unfortunately, there is no way to declare specific defines for release/build.
 #DEFINES += DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
-#           USE_MULTIWORLD_FEATURE=1 #the server supports Multi-World hosting.
 
 SOURCES += src/tblview/usersortproxymodel.cpp\
            src/tblview/plrsortproxymodel.cpp \
            src/tblview/tbleventfilter.cpp \
            src/widgets/settingswidget.cpp \
-           src/widgets/messageswidget.cpp \
            src/widgets/remixtabwidget.cpp \
            src/widgets/plrlistwidget.cpp \
            src/widgets/userdelegate.cpp \
            src/widgets/remixwidget.cpp \
            src/widgets/ruleswidget.cpp \
+           src/widgets/motdwidget.cpp \
            src/createinstance.cpp \
            src/packethandler.cpp \
            src/selectworld.cpp \
@@ -75,12 +74,12 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/tblview/plrsortproxymodel.hpp \
            src/tblview/tbleventfilter.hpp \
            src/widgets/settingswidget.hpp \
-           src/widgets/messageswidget.hpp \
            src/widgets/remixtabwidget.hpp \
            src/widgets/plrlistwidget.hpp \
            src/widgets/userdelegate.hpp \
            src/widgets/remixwidget.hpp \
            src/widgets/ruleswidget.hpp \
+           src/widgets/motdwidget.hpp \
            src/createinstance.hpp \
            src/packethandler.hpp \
            src/selectworld.hpp \
@@ -101,10 +100,10 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/upnp.hpp
 
 FORMS += ui/widgets/settingswidget.ui \
-         ui/widgets/messageswidget.ui \
          ui/widgets/plrlistwidget.ui \
          ui/widgets/remixwidget.ui \
          ui/widgets/ruleswidget.ui \
+         ui/widgets/motdwidget.ui \
          ui/createinstance.ui \
          ui/selectworld.ui \
          ui/comments.ui \

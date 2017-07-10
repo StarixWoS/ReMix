@@ -15,7 +15,7 @@ class ReMixWidget : public QWidget
 {
     Q_OBJECT
 
-    MessagesWidget* messages{ nullptr };
+    MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
     PlrListWidget* plrWidget{ nullptr };

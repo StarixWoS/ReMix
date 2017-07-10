@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'messageswidget.ui'
+** Form generated from reading UI file 'motdwidget.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef UI_MESSAGESWIDGET_H
-#define UI_MESSAGESWIDGET_H
+#ifndef UI_MOTDWIDGET_H
+#define UI_MOTDWIDGET_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_MessagesWidget
+class Ui_MOTDWidget
 {
 public:
     QGridLayout *gridLayout;
@@ -29,16 +29,16 @@ public:
     QGridLayout *gridLayout_3;
     QTextEdit *motdEdit;
 
-    void setupUi(QWidget *MessagesWidget)
+    void setupUi(QWidget *MOTDWidget)
     {
-        if (MessagesWidget->objectName().isEmpty())
-            MessagesWidget->setObjectName(QStringLiteral("MessagesWidget"));
-        MessagesWidget->resize(139, 93);
-        gridLayout = new QGridLayout(MessagesWidget);
+        if (MOTDWidget->objectName().isEmpty())
+            MOTDWidget->setObjectName(QStringLiteral("MOTDWidget"));
+        MOTDWidget->resize(139, 93);
+        gridLayout = new QGridLayout(MOTDWidget);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         gridLayout->setContentsMargins(5, 5, 5, 5);
-        groupBox = new QGroupBox(MessagesWidget);
+        groupBox = new QGroupBox(MOTDWidget);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         gridLayout_3 = new QGridLayout(groupBox);
         gridLayout_3->setSpacing(5);
@@ -55,16 +55,16 @@ public:
         gridLayout->addWidget(groupBox, 0, 0, 1, 1);
 
 
-        retranslateUi(MessagesWidget);
+        retranslateUi(MOTDWidget);
 
-        QMetaObject::connectSlotsByName(MessagesWidget);
+        QMetaObject::connectSlotsByName(MOTDWidget);
     } // setupUi
 
-    void retranslateUi(QWidget *MessagesWidget)
+    void retranslateUi(QWidget *MOTDWidget)
     {
-        MessagesWidget->setWindowTitle(QApplication::translate("MessagesWidget", "Form", 0));
-        groupBox->setTitle(QApplication::translate("MessagesWidget", "Message of the Day:", 0));
-        motdEdit->setHtml(QApplication::translate("MessagesWidget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        MOTDWidget->setWindowTitle(QApplication::translate("MOTDWidget", "Form", 0));
+        groupBox->setTitle(QApplication::translate("MOTDWidget", "Message of the Day:", 0));
+        motdEdit->setHtml(QApplication::translate("MOTDWidget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
@@ -74,9 +74,9 @@ public:
 };
 
 namespace Ui {
-    class MessagesWidget: public Ui_MessagesWidget {};
+    class MOTDWidget: public Ui_MOTDWidget {};
 } // namespace Ui
 
 QT_END_NAMESPACE
 
-#endif // UI_MESSAGESWIDGET_H
+#endif // UI_MOTDWIDGET_H

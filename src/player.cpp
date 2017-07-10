@@ -149,34 +149,47 @@ Player::~Player()
     this->deleteLater();
 }
 
-void Player::sendMessage()
+void Player::sendMessage(QString msg, bool toAll)
 {
-    if ( messageDialog == nullptr )
-    {
-        messageDialog = new SendMsg( this->getSernum_s() );
-        QObject::connect( messageDialog, &SendMsg::forwardMessage,
-                          messageDialog,
-        [=](QString message)
-        {
-            if ( !message.isEmpty() )
-            {
-                bool sendToAll{ messageDialog->sendToAll() };
-                ServerInfo* server{ this->getServerInfo() };
-                if ( server != nullptr )
-                {
-                    if ( sendToAll == true )
-                        server->sendMasterMessage( message, nullptr, true );
-                    else
-                        server->sendMasterMessage( message, this, false );
-                }
-            }
-        } );
-    }
+    ServerInfo* server{ this->getServerInfo() };
+    if ( server == nullptr )
+        return;
 
-    if ( !messageDialog->isVisible() )
-        messageDialog->show();
+    if ( !msg.isEmpty() )
+    {
+        if ( toAll )
+            server->sendMasterMessage( msg, nullptr, true );
+        else
+            server->sendMasterMessage( msg, this, false );
+    }
     else
-        messageDialog->hide();
+    {
+        if ( messageDialog == nullptr )
+        {
+            messageDialog = new SendMsg( this->getSernum_s() );
+            QObject::connect( messageDialog, &SendMsg::forwardMessage,
+                              messageDialog,
+                              [=](QString message)
+            {
+                if ( !message.isEmpty() )
+                {
+                    bool sendToAll{ messageDialog->sendToAll() };
+                    if ( server != nullptr )
+                    {
+                        if ( sendToAll )
+                            server->sendMasterMessage( message, nullptr, true );
+                        else
+                            server->sendMasterMessage( message, this, false );
+                    }
+                }
+            } );
+        }
+
+        if ( !messageDialog->isVisible() )
+            messageDialog->show();
+        else
+            messageDialog->hide();
+    }
 }
 
 qint64 Player::getConnTime() const

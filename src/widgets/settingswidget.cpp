@@ -246,7 +246,7 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
                         }
                     }
 
-                    if ( state.toBool() == false )
+                    if ( !state.toBool() )
                     {
                         directory = "";
                         title = "Invalid Directory:";

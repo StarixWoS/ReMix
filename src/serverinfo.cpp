@@ -400,7 +400,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     }
 
     if ( !greeting.isEmpty() )
-        this->sendMasterMessage( greeting, plr, false );
+        plr->sendMessage( greeting );
 
     if ( !Rules::getRuleSet( serverTabID ).isEmpty() )
         this->sendServerRules( plr );
@@ -428,10 +428,24 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
             && soc != nullptr )
            && !toAll )
     {
-        bOut = soc->write( msg.toLatin1(),
-                           msg.length() );
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + bOut );
+        //Iterate over all Player objects.
+        //And check if our Player object exists.
+        //This is to prevent a Crash related to sending messages
+        //to a disconnected User.
+
+//        Player* tmpPlr{ nullptr };
+//        for ( int i = 0; i < MAX_PLAYERS; ++i )
+//        {
+//            tmpPlr = this->getPlayer( i );
+//            if ( plr == tmpPlr )
+//            {
+                bOut = soc->write( msg.toLatin1(),
+                                   msg.length() );
+                plr->setPacketsOut( plr->getPacketsOut() + 1 );
+                plr->setBytesOut( plr->getBytesOut() + bOut );
+//                break;
+//            }
+//        }
     }
 
     if ( bOut >= 1 )

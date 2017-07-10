@@ -57,7 +57,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
         if ( plr->getGotAuthPwd() )
             retn = true;
         else
-            server->sendMasterMessage( unauth, plr, false );
+            plr->sendMessage( unauth );
     }
     else
     {
@@ -70,7 +70,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
                              "command attempts>";
 
             reason = reason.arg( plr->getCmdAttempts() );
-            server->sendMasterMessage( reason, plr, false );
+            plr->sendMessage( reason );
 
             //Append BIO data to the reason for the Ban log.
             reason.append( " [ %1:%2 ]: %3" );
@@ -84,7 +84,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
             server->setIpDc( server->getIpDc() + 1 );
         }
         else
-            server->sendMasterMessage( invalid, plr, false );
+            plr->sendMessage( invalid );
 
         retn = false;
     }
@@ -127,7 +127,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
             {
                 //Echo the chat back to the User.
                 if ( Settings::getEchoComments() )
-                    server->sendMasterMessage( "Echo: " % msg, plr, false );
+                    plr->sendMessage( "Echo: " % msg );
 
                 if ( Settings::getFwdComments() )
                 {
@@ -146,8 +146,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                             if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
                               && tmpPlr->getGotAuthPwd() )
                             {
-                                server->sendMasterMessage( message, tmpPlr,
-                                                           false );
+                                tmpPlr->sendMessage( message );
                             }
                         }
                     }
@@ -399,7 +398,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
              .arg( message );
 
     if ( retn && canUseCommands )
-        server->sendMasterMessage( msg, plr, false );
+        plr->sendMessage( msg );
 
     if ( logMsg )
     {
@@ -440,7 +439,7 @@ void CmdHandler::banhandler(Player* plr, QString& arg1, QString& message,
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
-                    server->sendMasterMessage( reason, tmpPlr, false );
+                    tmpPlr->sendMessage( reason );
 
                 user->addBan( plr, tmpPlr, message, true );
                 tmpPlr->setDisconnected( true );
@@ -478,7 +477,7 @@ void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
                                    ? "No Reason!"
                                    : message );
                 if ( !reason.isEmpty() )
-                    server->sendMasterMessage( reason, tmpPlr, false );
+                    tmpPlr->sendMessage( reason );
 
                 tmpPlr->setDisconnected( true );
             }
@@ -522,7 +521,7 @@ void CmdHandler::msgHandler(QString& arg1, QString& message, bool all)
                     if ( tmpPlr->getPublicIP() == arg1
                       || tmpPlr->getSernum_s() == arg1 )
                     {
-                        server->sendMasterMessage( message, tmpPlr, false );
+                        tmpPlr->sendMessage( message );
                     }
                 }
             }
@@ -588,10 +587,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
                         {
                             //Do not Inform our own Admin.. --Redundant..
                             if ( tmpPlr != plr )
-                            {
-                                server->sendMasterMessage( message, tmpPlr,
-                                                           false );
-                            }
+                                tmpPlr->sendMessage( message );
                         }
                     }
                 }
@@ -606,7 +602,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     }
 
     if ( !response.isEmpty() )
-        server->sendMasterMessage( response, plr, false );
+        plr->sendMessage( response );
 
     if ( disconnect )
         plr->setDisconnected( true );
@@ -672,15 +668,14 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
                 {
                     //Do not Inform our own Admin.. --Redundant..
                     if ( tmpPlr != plr )
-                        server->sendMasterMessage( message, tmpPlr,
-                                                   false );
+                        tmpPlr->sendMessage( message );
                 }
             }
         }
     }
 
     if ( !response.isEmpty() )
-        server->sendMasterMessage( response, plr, false );
+        plr->sendMessage( response );
 }
 
 void CmdHandler::shutDownHandler(Player* plr, bool restart)

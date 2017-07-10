@@ -22,11 +22,11 @@ ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
 
     //Setup Objects.
     contextMenu = new QMenu( this );
-    messages = new MessagesWidget( serverID );
+    motdWidget = new MOTDWidget( serverID );
     rules = new RulesWidget( serverID );
 
     settings = ReMix::getSettings();
-    settings->addTabObjects( messages, rules, serverID );
+    settings->addTabObjects( motdWidget, rules, serverID );
 
     server = new ServerInfo( serverID );
     user = ReMix::getUser();
@@ -79,7 +79,10 @@ ReMixWidget::~ReMixWidget()
 void ReMixWidget::sendServerMessage(QString msg, Player* plr, bool toAll)
 {
     if ( server != nullptr )
-        server->sendMasterMessage( msg, plr,toAll );
+    {
+        if ( plr != nullptr )
+            plr->sendMessage( msg, toAll );
+    }
 }
 
 qint32 ReMixWidget::getPlayerCount()

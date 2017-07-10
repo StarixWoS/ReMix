@@ -83,7 +83,7 @@ class Player : public QObject
         explicit Player();
         ~Player();
 
-        void sendMessage();
+        void sendMessage(QString msg = "", bool toAll = false);
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
 

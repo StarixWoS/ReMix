@@ -25,7 +25,6 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "banishDupeIP",
     "reqServerPwd",
     "MOTD",
-    "BANISHED",
     "reqAdminAuth",
     "logComments",
     "fwdComments",
@@ -98,7 +97,7 @@ Settings::~Settings()
     delete ui;
 }
 
-void Settings::addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
+void Settings::addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
                              QString& svrID)
 {
     if ( msgWidget != nullptr )
@@ -110,7 +109,7 @@ void Settings::addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
 
 void Settings::remTabObjects(QString& svrID)
 {
-    MessagesWidget* msgWidget{ msgWidgets.take( svrID ) };
+    MOTDWidget* msgWidget{ msgWidgets.take( svrID ) };
     if ( msgWidget != nullptr )
     {
         msgWidget->setParent( nullptr );
@@ -135,7 +134,7 @@ void Settings::updateTabBar(QString& svrID)
     this->setWindowTitle( "[ " % svrID % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
     tabWidget->insertTab( 1, ruleWidgets.value( svrID ), "Rules" );
-    tabWidget->insertTab( 2, msgWidgets.value( svrID ), "Messages" );
+    tabWidget->insertTab( 2, msgWidgets.value( svrID ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
 }
@@ -413,19 +412,6 @@ QString Settings::getMOTDMessage(QString& svrID)
 {
     return getServerSetting( keys[ Keys::Messages ],
                              subKeys[ SubKeys::MOTD ], svrID  )
-                    .toString();
-}
-
-void Settings::setBanishMesage(QVariant& value, QString& svrID)
-{
-    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::BanishMsg ],
-                      value, svrID );
-}
-
-QString Settings::getBanishMesage(QString& svrID)
-{
-    return getServerSetting( keys[ Keys::Messages ],
-                             subKeys[ SubKeys::BanishMsg ], svrID  )
                     .toString();
 }
 
