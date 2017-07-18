@@ -21,6 +21,7 @@ class Server : public QTcpServer
 
     Comments* serverComments{ nullptr };
     PacketHandler* pktHandle{ nullptr };
+    ChatView* chatView{ nullptr };
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
     UPNP* upnp{ nullptr };
@@ -43,6 +44,7 @@ class Server : public QTcpServer
                                              Player* plr, bool insert);
 
         Comments* getServerComments() const;
+        ChatView* getChatView() const;
 
         void userReadyRead(QTcpSocket* socket);
         void userDisconnected(QTcpSocket* socket);

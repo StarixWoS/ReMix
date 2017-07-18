@@ -19,6 +19,8 @@ class Comments : public QDialog
         explicit Comments(QWidget *parent = 0);
         ~Comments();
 
+        void setTitle(QString name);
+
     public slots:
         void newUserCommentSlot(QString& sernum, QString& alias,
                                 QString& message);

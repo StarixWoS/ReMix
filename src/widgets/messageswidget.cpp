@@ -31,8 +31,7 @@ MessagesWidget::MessagesWidget(QString svrID) :
     motdUpdate.setInterval( 10000 ); //Update the file after 10seconds.
     motdUpdate.setSingleShot( true );
 
-    QObject::connect( &motdUpdate, &QTimer::timeout, &motdUpdate,
-    [=]()
+    QObject::connect( &motdUpdate, &QTimer::timeout, [=]()
     {
         QString strVar{ ui->motdEdit->toPlainText() };
         Helper::stripNewlines( strVar );
@@ -45,8 +44,7 @@ MessagesWidget::MessagesWidget(QString svrID) :
     banMUpdate.setInterval( 10000 ); //Update the file after 10seconds.
     banMUpdate.setSingleShot( true );
 
-    QObject::connect( &banMUpdate, &QTimer::timeout, &banMUpdate,
-    [=]()
+    QObject::connect( &banMUpdate, &QTimer::timeout, [=]()
     {
         QString strVar{ ui->motdEdit->toPlainText() };
         Helper::stripNewlines( strVar );

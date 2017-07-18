@@ -319,6 +319,18 @@ void ReMixWidget::on_openUserComments_clicked()
     }
 }
 
+void ReMixWidget::on_openChatView_clicked()
+{
+    ChatView* viewer{ tcpServer->getChatView() };
+    if ( viewer != nullptr )
+    {
+        if ( viewer->isVisible() )
+            viewer->hide();
+        else
+            viewer->show();
+    }
+}
+
 void ReMixWidget::on_isPublicServer_toggled(bool)
 {
     //Setup Networking Objects.
@@ -380,6 +392,5 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
             contextMenu->addMenu( "Test 2" );
         }
     }
-    qDebug() << pos;
     contextMenu->popup( ui->networkStatus->mapToGlobal( pos ) );
 }

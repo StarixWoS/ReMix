@@ -43,6 +43,7 @@
     #include <QSettings>
     #include <QDateTime>
     #include <QFileInfo>
+    #include <QLibrary>
     #include <QToolTip>
     #include <QProcess>
     #include <QtEndian>
@@ -61,11 +62,6 @@
     #include <QChar>
     #include <QDir>
     #include <QUrl>
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        #include <QCoreApplication>
-        #include <QPluginLoader>
-    #endif // DECRYPT_PACKET_PLUGIN
 
 #endif // QT_INCLUDES_HPP
 
@@ -89,8 +85,10 @@
     //GUI and Data Storage Clases.
     #include "createinstance.hpp"
     #include "packethandler.hpp"
+    #include "packetforge.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
+    #include "chatview.hpp"
     #include "settings.hpp"
     #include "comments.hpp"
     #include "randdev.hpp"
@@ -102,9 +100,5 @@
     #include "remix.hpp"
     #include "user.hpp"
     #include "upnp.hpp"
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        #include "packetdecryptinterface.hpp"
-    #endif // DECRYPT_PACKET_PLUGIN
 
 #endif // REMIX_INCLUDES_HPP

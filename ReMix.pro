@@ -17,18 +17,17 @@ INCLUDEPATH += "./src" \
                "./plugin/src"
 
 UI_DIR = "./src"
-
-CONFIG += C++14
+CONFIG += strict_c++ c++14
 
 CONFIG(release, debug|release) {
-    QMAKE_CXXFLAGS = -std=c++14 -s
+    QMAKE_CXXFLAGS += -std=c++14 -s
     TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
     DESTDIR = "./build-$$QT_VERSION/release"
     RCC_DIR = "./build-$$QT_VERSION/release/rcc"
     MOC_DIR = "./build-$$QT_VERSION/release/moc"
     OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
 } else {
-    QMAKE_CXXFLAGS = -std=c++14 -Wall
+    QMAKE_CXXFLAGS += -std=c++14 -Wall
     TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
     DESTDIR = "./build-$$QT_VERSION/debug"
     RCC_DIR = "./build-$$QT_VERSION/debug/rcc"
@@ -38,9 +37,6 @@ CONFIG(release, debug|release) {
 
 ICON = "./resources/ReMix.ico"
 win32:RC_FILE += "./resources/ReMix.rc"
-
-#Unfortunately, there is no way to declare specific defines for release/build.
-#DEFINES += DECRYPT_PACKET_PLUGIN=1 \ #Tell Qt to load the Packet decryption plugin.
 
 SOURCES += src/tblview/usersortproxymodel.cpp\
            src/tblview/plrsortproxymodel.cpp \
@@ -54,9 +50,11 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/widgets/motdwidget.cpp \
            src/createinstance.cpp \
            src/packethandler.cpp \
+           src/packetforge.cpp \
            src/selectworld.cpp \
            src/cmdhandler.cpp \
            src/serverinfo.cpp \
+           src/chatview.cpp \
            src/comments.cpp \
            src/settings.cpp \
            src/randdev.cpp \
@@ -82,10 +80,12 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/widgets/motdwidget.hpp \
            src/createinstance.hpp \
            src/packethandler.hpp \
+           src/packetforge.hpp \
            src/selectworld.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
            src/prototypes.hpp \
+           src/chatview.hpp \
            src/includes.hpp \
            src/comments.hpp \
            src/settings.hpp \
@@ -106,6 +106,7 @@ FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/motdwidget.ui \
          ui/createinstance.ui \
          ui/selectworld.ui \
+         ui/chatview.ui \
          ui/comments.ui \
          ui/settings.ui \
          ui/sendmsg.ui \

@@ -14,21 +14,16 @@ class PacketHandler : public QObject
 
     CmdHandler* cmdHandle{ nullptr };
     ServerInfo* server{ nullptr };
+    ChatView* chatView{ nullptr };
     User* user{ nullptr };
 
     QTimer masterCheckIn;
 
     QString serverID{ "" };
 
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    PacketDecryptInterface* packetInterface{ nullptr };
-    QPluginLoader* pluginManager{ nullptr };
-    bool loadPlugin();
-#endif
-
     public:
-        PacketHandler(User* usr, ServerInfo* svr, QString svrID = "0");
+        PacketHandler(User* usr, ServerInfo* svr, ChatView* chat,
+                      QString svrID = "0");
         ~PacketHandler();
 
         void startMasterCheckIn();

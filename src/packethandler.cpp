@@ -2,29 +2,20 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr, QString svrID)
+PacketHandler::PacketHandler(User* usr, ServerInfo* svr, ChatView* chat, QString svrID)
 {
     serverID = svrID;
+    chatView = chat;
     server = svr;
     user = usr;
 
     cmdHandle = new CmdHandler( this, server, user );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    this->loadPlugin();
-#endif
 }
 
 PacketHandler::~PacketHandler()
 {
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    if ( pluginManager != nullptr )
-        pluginManager->unload();
-#endif
-
     cmdHandle->deleteLater();
 }
 
@@ -47,7 +38,10 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
                 return;
 
             if ( !plr->getNetworkMuted() )
+            {
                 this->parseSRPacket( packet, plr );
+                chatView->parsePacket( packet );
+            }
         }
     }
 
@@ -594,41 +588,3 @@ void PacketHandler::readMIX9(QString& packet, Player*)
                       vars.value( 3 ) );
     }
 }
-
-
-#ifdef DECRYPT_PACKET_PLUGIN
-bool PacketHandler::loadPlugin()
-{
-    QDir pluginsDir( qApp->applicationDirPath() );
-
-    #if defined( Q_OS_WIN )
-        if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
-          || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
-        {
-            pluginsDir.cdUp();
-        }
-
-    #elif defined(Q_OS_MAC)
-        if ( pluginsDir.dirName() == QLatin1String( "MacOS" ) )
-        {
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-        }
-    #endif
-
-    pluginsDir.cd( "plugins" );
-    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ) )
-    {
-        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ) );
-        QObject *plugin = pluginLoader.instance();
-        if ( plugin )
-        {
-            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
-            if ( packetInterface )
-                return true;
-        }
-    }
-    return false;
-}
-#endif

@@ -16,7 +16,12 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    pktHandle = new PacketHandler( user, server, svrID );
+    serverComments->setTitle( serverID );
+
+    chatView = new ChatView( parent );
+    chatView->setTitle( serverID );
+
+    pktHandle = new PacketHandler( user, server, chatView, svrID );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -36,6 +41,13 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
         this->setupServerInfo();
     });
 
+    QObject::connect( chatView, &ChatView::sendChat, chatView,
+    [=](QString msg)
+    {
+        if ( !msg.isEmpty() )
+            server->sendMasterMessage( msg, nullptr, true );
+    });
+
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
 }
@@ -47,6 +59,9 @@ Server::~Server()
 
     serverComments->close();
     serverComments->deleteLater();
+
+    chatView->close();
+    chatView->deleteLater();
 
     bioHash.clear();
 }
@@ -150,6 +165,11 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
 Comments* Server::getServerComments() const
 {
     return serverComments;
+}
+
+ChatView* Server::getChatView() const
+{
+    return chatView;
 }
 
 void Server::setupServerInfo()

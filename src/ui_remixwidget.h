@@ -34,8 +34,8 @@ public:
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_4;
     QCheckBox *isPublicServer;
-    QPushButton *openUserComments;
     QPushButton *openSettings;
+    QPushButton *openUserComments;
     QPushButton *openUserInfo;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
@@ -46,12 +46,13 @@ public:
     QLabel *ipDCCount;
     QLabel *packetINBD;
     QLabel *packetOUTBD;
+    QPushButton *openChatView;
 
     void setupUi(QWidget *ReMixWidget)
     {
         if (ReMixWidget->objectName().isEmpty())
             ReMixWidget->setObjectName(QStringLiteral("ReMixWidget"));
-        ReMixWidget->resize(856, 160);
+        ReMixWidget->resize(856, 186);
         ReMixWidget->setMinimumSize(QSize(0, 0));
         ReMixWidget->setMouseTracking(true);
         gridLayout = new QGridLayout(ReMixWidget);
@@ -106,26 +107,26 @@ public:
 
         gridLayout_4->addWidget(isPublicServer, 0, 0, 1, 2);
 
-        openUserComments = new QPushButton(groupBox_2);
-        openUserComments->setObjectName(QStringLiteral("openUserComments"));
+        openSettings = new QPushButton(groupBox_2);
+        openSettings->setObjectName(QStringLiteral("openSettings"));
         QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy3.setHorizontalStretch(0);
         sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
-        openUserComments->setSizePolicy(sizePolicy3);
-        openUserComments->setMinimumSize(QSize(0, 20));
-        openUserComments->setMaximumSize(QSize(16777215, 20));
-
-        gridLayout_4->addWidget(openUserComments, 4, 0, 1, 3);
-
-        openSettings = new QPushButton(groupBox_2);
-        openSettings->setObjectName(QStringLiteral("openSettings"));
         sizePolicy3.setHeightForWidth(openSettings->sizePolicy().hasHeightForWidth());
         openSettings->setSizePolicy(sizePolicy3);
         openSettings->setMinimumSize(QSize(0, 20));
         openSettings->setMaximumSize(QSize(16777215, 20));
 
         gridLayout_4->addWidget(openSettings, 1, 0, 1, 3);
+
+        openUserComments = new QPushButton(groupBox_2);
+        openUserComments->setObjectName(QStringLiteral("openUserComments"));
+        sizePolicy3.setHeightForWidth(openUserComments->sizePolicy().hasHeightForWidth());
+        openUserComments->setSizePolicy(sizePolicy3);
+        openUserComments->setMinimumSize(QSize(0, 20));
+        openUserComments->setMaximumSize(QSize(16777215, 20));
+
+        gridLayout_4->addWidget(openUserComments, 4, 0, 1, 3);
 
         openUserInfo = new QPushButton(groupBox_2);
         openUserInfo->setObjectName(QStringLiteral("openUserInfo"));
@@ -202,7 +203,12 @@ public:
         verticalLayout->addWidget(packetOUTBD);
 
 
-        gridLayout_4->addWidget(groupBox, 5, 0, 1, 3);
+        gridLayout_4->addWidget(groupBox, 6, 0, 1, 3);
+
+        openChatView = new QPushButton(groupBox_2);
+        openChatView->setObjectName(QStringLiteral("openChatView"));
+
+        gridLayout_4->addWidget(openChatView, 5, 0, 1, 3);
 
 
         gridLayout->addWidget(groupBox_2, 1, 0, 2, 1);
@@ -220,8 +226,8 @@ public:
         onlineTime->setText(QApplication::translate("ReMixWidget", "00:00:00", 0));
         groupBox_2->setTitle(QApplication::translate("ReMixWidget", "Server Info", 0));
         isPublicServer->setText(QApplication::translate("ReMixWidget", "Public Server", 0));
-        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", 0));
         openSettings->setText(QApplication::translate("ReMixWidget", "Settings", 0));
+        openUserComments->setText(QApplication::translate("ReMixWidget", "User Comments", 0));
         openUserInfo->setText(QApplication::translate("ReMixWidget", "User Information", 0));
         groupBox->setTitle(QApplication::translate("ReMixWidget", "Stats", 0));
         callCount->setText(QApplication::translate("ReMixWidget", "#Calls: 0", 0));
@@ -231,6 +237,7 @@ public:
         ipDCCount->setText(QApplication::translate("ReMixWidget", "#IP-DC: 0", 0));
         packetINBD->setText(QApplication::translate("ReMixWidget", "#IN: 0 BD", 0));
         packetOUTBD->setText(QApplication::translate("ReMixWidget", "#OUT: 0 BD", 0));
+        openChatView->setText(QApplication::translate("ReMixWidget", "Chat View", 0));
     } // retranslateUi
 
 };

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>309</width>
-    <height>229</height>
+    <width>287</width>
+    <height>175</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,52 +53,6 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Master IP:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Port:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Game:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QLineEdit" name="portNumber">
-        <property name="inputMethodHints">
-         <set>Qt::ImhNone</set>
-        </property>
-        <property name="text">
-         <string>8888</string>
-        </property>
-        <property name="maxLength">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_2">
         <property name="maximumSize">
@@ -112,14 +66,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="3">
-       <widget class="QCheckBox" name="isPublic">
-        <property name="text">
-         <string>Register as Public Server</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
+      <item row="5" column="0">
        <widget class="QPushButton" name="initializeServer">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -132,6 +79,13 @@
         </property>
         <property name="default">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QCheckBox" name="isPublic">
+        <property name="text">
+         <string>Register as Public Server</string>
         </property>
        </widget>
       </item>
@@ -169,7 +123,14 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Previous Servers:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
        <widget class="QPushButton" name="close">
         <property name="text">
          <string>Cancel</string>
@@ -182,31 +143,42 @@
       <item row="0" column="1" colspan="2">
        <widget class="QComboBox" name="oldServers"/>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Previous Servers:</string>
+         <string>Port:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_6">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Master Port:</string>
+         <string>Game:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="2">
-       <widget class="QLineEdit" name="masterIP">
-        <property name="text">
-         <string>127.0.0.1</string>
+      <item row="3" column="1" colspan="2">
+       <widget class="QLineEdit" name="portNumber">
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
         </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QLineEdit" name="masterPort">
         <property name="text">
          <string>8888</string>
+        </property>
+        <property name="maxLength">
+         <number>5</number>
         </property>
        </widget>
       </item>

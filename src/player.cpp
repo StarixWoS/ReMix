@@ -679,29 +679,3 @@ void Player::setWVar(const QString& value)
 {
     wVar = value;
 }
-
-#ifdef DECRYPT_PACKET_PLUGIN
-QString Player::getGameInfo() const
-{
-    return gameInfo;
-}
-
-void Player::setGameInfo(const QString& value)
-{
-    gameInfo = value;
-    if ( !gameInfo.isEmpty() )
-        this->setHasGameInfo( true );
-    else
-        this->setHasGameInfo( false );
-}
-
-bool Player::getHasGameInfo() const
-{
-    return hasWorldInfo;
-}
-
-void Player::setHasGameInfo(bool value)
-{
-    hasWorldInfo = value;
-}
-#endif

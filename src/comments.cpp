@@ -41,6 +41,12 @@ Comments::~Comments()
     delete ui;
 }
 
+void Comments::setTitle(QString name)
+{
+    if ( !name.isEmpty() )
+        this->setWindowTitle( "Server Comments: [ " % name % " ]" );
+}
+
 void Comments::newUserCommentSlot(QString& sernum, QString& alias,
                                   QString& message)
 {

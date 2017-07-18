@@ -74,11 +74,6 @@ class Player : public QObject
 
     bool networkMuted{ false };
 
-    #ifdef DECRYPT_PACKET_PLUGIN
-        QString gameInfo{ "" };
-        bool hasWorldInfo{ false };
-    #endif
-
     public:
         explicit Player();
         ~Player();
@@ -203,14 +198,6 @@ class Player : public QObject
 
         QString getWVar() const;
         void setWVar(const QString& value);
-
-        #ifdef DECRYPT_PACKET_PLUGIN
-            QString getGameInfo() const;
-            void setGameInfo(const QString& value);
-
-            bool getHasGameInfo() const;
-            void setHasGameInfo(bool value);
-        #endif
 
             ServerInfo* getServerInfo() const;
             void setServerInfo(ServerInfo* value);

@@ -19,7 +19,7 @@ class ReMixTabWidget : public QTabWidget
     static QPalette defaultPalette;
     static QPalette customPalette;
 
-    QToolButton* nightModeButton{ nullptr };
+    QToolButton* chatButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
     ReMixWidget* servers[ MAX_SERVER_COUNT ]{ nullptr };

@@ -51,6 +51,7 @@
     class QFileInfo;
     class QSettings;
     class QTextEdit;
+    class QLibrary;
     class QToolTip;
     class QVariant;
     class QtEndian;
@@ -68,11 +69,6 @@
     class QMenu;
     class QDir;
     class QUrl;
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        class QCoreApplication;
-        class QPluginLoader;
-    #endif // DECRYPT_PACKET_PLUGIN
 
 #endif // QT_PROTOTYPES_HPP
 
@@ -99,8 +95,10 @@
     class CreateInstance;
     class PacketHandler;
     class SelectWorld;
+    class PacketForge;
     class ServerInfo;
     class CmdHandler;
+    class ChatView;
     class Settings;
     class Comments;
     class RandDev;
@@ -111,10 +109,6 @@
     class ReMix;
     class User;
     class UPNP;
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        class PacketDecryptInterface;
-    #endif // DECRYPT_PACKET_PLUGIN
 
     #ifndef REMIX_GLOBALS
         #define REMIX_GLOBALS

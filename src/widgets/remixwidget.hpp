@@ -68,6 +68,8 @@ class ReMixWidget : public QWidget
         void on_networkStatus_linkActivated(const QString &link);
         void on_networkStatus_customContextMenuRequested(const QPoint &pos);
 
+        void on_openChatView_clicked();
+
     signals:
         void reValidateServerIP();
 
