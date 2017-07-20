@@ -76,12 +76,11 @@ ReMixWidget::~ReMixWidget()
     delete ui;
 }
 
-void ReMixWidget::sendServerMessage(QString msg, Player* plr, bool toAll)
+void ReMixWidget::sendServerMessage(QString msg)
 {
     if ( server != nullptr )
     {
-        if ( plr != nullptr )
-            plr->sendMessage( msg, toAll );
+        server->sendMasterMessage( msg, nullptr, true );
     }
 }
 

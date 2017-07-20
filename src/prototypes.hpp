@@ -177,7 +177,7 @@
             MAX_SERVER_COUNT = 19,
 
             //Count of possible Game Names we can use to initialize the server.
-            GAME_NAME_COUNT = 4,
+            GAME_NAME_COUNT = 3,
 
             //Maximum live-time for a UPNP PortForward to live.
             //30 Minutes in seconds.
@@ -188,6 +188,7 @@
             UPNP_TIME_OUT_MS = 1800000,
         };
 
+        enum Games{ WoS = 1, ToY = 2, W97 = 3, Invalid = 4 };
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
         enum Themes{ LIGHT = 0, DARK = 1 };
 

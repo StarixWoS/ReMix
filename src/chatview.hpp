@@ -13,14 +13,17 @@ class ChatView : public QDialog
     Q_OBJECT
 
     PacketForge* pktForge{ nullptr };
+    Games gameID{ Games::Invalid };
 
     public:
         explicit ChatView(QWidget *parent = 0);
         ~ChatView();
 
         void setTitle(QString name);
+        void setGameID(Games gID);
+        Games getGameID() const;
 
-        void parsePacket(QString& packet);
+        void parsePacket(QString& packet, QString alias = "");
         void parseChatEffect(QString packet);
         void insertChat(QString msg, QString color, bool newLine);
 

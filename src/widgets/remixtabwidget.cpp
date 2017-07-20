@@ -51,15 +51,14 @@ ReMixTabWidget::~ReMixTabWidget()
     }
 }
 
-void ReMixTabWidget::sendMultiServerMessage(QString msg, Player* plr,
-                                            bool toAll)
+void ReMixTabWidget::sendMultiServerMessage(QString msg)
 {
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
         server = servers[ i ];
         if ( server != nullptr )
-            server->sendServerMessage( msg, plr, toAll );
+            server->sendServerMessage( msg );
     }
 }
 
@@ -245,8 +244,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                     prompt = prompt.arg( instance->getPlayerCount() );
 
                     instance->sendServerMessage( "The admin is taking this "
-                                                 "server down...", nullptr,
-                                                 true );
+                                                 "server down..." );
 
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
@@ -273,7 +271,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                     {
                         instance->sendServerMessage( "The admin changed his"
                                                      " or her mind! (yay!)"
-                                                     "...", nullptr, true );
+                                                     "..." );
                     }
                 }
             }

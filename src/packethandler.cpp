@@ -40,7 +40,20 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
             if ( !plr->getNetworkMuted() )
             {
                 this->parseSRPacket( packet, plr );
-                chatView->parsePacket( packet );
+
+                if ( chatView->getGameID() != Games::Invalid )
+                {
+                    if ( chatView->getGameID() == Games::W97 )
+                    {
+                        //Handle Warpath Packets.
+                        chatView->parsePacket( packet, plr->getSernum_s() );
+                    }
+                    else if ( chatView->getGameID() != Games::Invalid )
+                    {
+                        //Handle WoS and Arcadia Packets.
+                        chatView->parsePacket( packet );
+                    }
+                }
             }
         }
     }

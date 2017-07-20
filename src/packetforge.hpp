@@ -9,9 +9,7 @@ class PacketForge
     QLibrary pktDecrypt{ "PacketForge.dll" };
 
     //Typedefs for imported functions from our PacketDecrypt Library.
-    typedef QString (*Encrypt)(QString);
     typedef QString (*Decrypt)(QString);
-    typedef bool (*CanSend)(QString, QString);
 
     //Function Pointers for imported functions from the PacketDecrypt Library.
     Decrypt decryptPkt;

@@ -103,11 +103,6 @@
         </item>
         <item>
          <property name="text">
-          <string>Rocket Club</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
           <string>Warpath</string>
          </property>
         </item>

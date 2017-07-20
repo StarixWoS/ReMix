@@ -325,13 +325,13 @@ bool ReMix::rejectCloseEvent()
                          .arg( serverUI->getPlayerCount() );
 
     serverUI->sendMultiServerMessage( "The admin is taking this server "
-                                       "down...", nullptr, true );
+                                       "down..." );
 
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
         exiting = false;
         serverUI->sendMultiServerMessage( "The admin changed his or her "
-                                           "mind! (yay!)...", nullptr, true );
+                                           "mind! (yay!)..." );
         return true;
     }
     return false;

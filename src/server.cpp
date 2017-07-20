@@ -21,6 +21,19 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     chatView = new ChatView( parent );
     chatView->setTitle( serverID );
 
+    Games gameID{ Games::Invalid };
+    QString gameName{ server->getGameName() };
+    if ( gameName.compare( "WoS", Qt::CaseInsensitive ) == 0 )
+        gameID = Games::WoS;
+    else if ( gameName.compare( "ToY", Qt::CaseInsensitive ) == 0 )
+        gameID = Games::ToY;
+    else if ( gameName.compare( "W97", Qt::CaseInsensitive ) == 0 )
+        gameID = Games::W97;
+    else
+        gameID = Games::Invalid;
+
+    chatView->setGameID( gameID );
+
     pktHandle = new PacketHandler( user, server, chatView, svrID );
 
     //Connect Objects.

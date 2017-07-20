@@ -48,14 +48,63 @@ void ChatView::setTitle(QString name)
         this->setWindowTitle( "Chat View: [ " % name % " ]" );
 }
 
-void ChatView::parsePacket(QString& packet)
+void ChatView::setGameID(Games gID)
 {
-    QString pkt{ pktForge->decryptPacket( packet ) };
-    if ( !pkt.isEmpty() )
+    gameID = gID;
+    if ( gameID == Games::W97 )
     {
-        if ( pkt.at( 3 ) == 'C' )
+        //Warpath, we can't send Master comments, disable chat interface.
+        ui->chatInput->setEnabled( false );
+        ui->chatInput->setText( "Unable to interact with Warpath Players!" );
+    }
+}
+
+Games ChatView::getGameID() const
+{
+    return gameID;
+}
+
+void ChatView::parsePacket(QString& packet, QString alias)
+{
+    QString pkt{ packet };
+    if ( this->getGameID() != Games::W97 )
+    {
+        //WoS and Arcadia distort Packets in the same manner.
+        pkt = pktForge->decryptPacket( pkt );
+        if ( !pkt.isEmpty() )
         {
-            this->parseChatEffect( pkt );
+            //WoS and Arcadia both use the opCode 'C' at position '3'
+            //in the packet to denote Chat packets.
+            if ( pkt.at( 3 ) == 'C' )
+            {
+                //Remove checksum from Arcadia chat packet.
+                if ( this->getGameID() == Games::ToY )
+                {
+                    //Arcadia Packets have a longer checksum than WoS packets.
+                    //Remove the extra characters.
+                    pkt = pkt.left( pkt.length() - 4 );
+                }
+                this->parseChatEffect( pkt );
+            }
+        }
+    }
+    else //Handle Warpath97 and Warpath 21st Century Chat.
+    {
+        pkt = pkt.trimmed();
+
+        //Warpath denotes Chat Packets with opCode 'D' at position '7'.
+        if ( pkt.at( 7 ) == 'D' )
+        {
+            //Remove the packet header.
+            pkt = pkt.mid( 8 );
+
+            //Remove the checksum.
+            pkt = pkt.left( pkt.length() - 2 );
+
+            this->insertChat( alias % ": ",
+                              "limegreen", true );
+            this->insertChat( pkt,
+                              "yellow", false );
         }
     }
 }
@@ -69,6 +118,7 @@ void ChatView::parseChatEffect(QString packet)
     qint32 code{ (fltrCode.at( 0 ).toLatin1() - 'A') & 0xFF };
     if ( code == 3 || code == 5 || code == 6 || code == 10 )
     {
+        //0 = Normal Chat.
         //1 = Level-Up and Dice Roll
         //3 = Learn Spell.
         //6 = Pet Command.
@@ -170,7 +220,13 @@ void ChatView::on_chatInput_returnPressed()
     this->insertChat( message,
                       "cyan", false );
 
-    message.prepend( "Owner: " );
+    if ( gameID == Games::W97 )
+    {
+        //TODO: Emulate a Warpath Chat packet.
+    }
+    else
+        message.prepend( "Owner: " );
+
     emit this->sendChat( message );
     ui->chatInput->clear();
 }

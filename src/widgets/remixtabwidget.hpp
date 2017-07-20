@@ -32,7 +32,7 @@ class ReMixTabWidget : public QTabWidget
         explicit ReMixTabWidget(QWidget *parent = 0);
         ~ReMixTabWidget();
 
-        void sendMultiServerMessage(QString msg, Player* plr, bool toAll);
+        void sendMultiServerMessage(QString msg);
         quint32 getPlayerCount();
         quint32 getServerCount();
 

@@ -149,7 +149,6 @@ public:
         gameName->insertItems(0, QStringList()
          << QApplication::translate("CreateInstance", "Well of Souls", 0)
          << QApplication::translate("CreateInstance", "Arcadia", 0)
-         << QApplication::translate("CreateInstance", "Rocket Club", 0)
          << QApplication::translate("CreateInstance", "Warpath", 0)
         );
         serverName->setText(QApplication::translate("CreateInstance", "AHitB ReMix Server", 0));

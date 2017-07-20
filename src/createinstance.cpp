@@ -8,7 +8,6 @@ const QString CreateInstance::gameNames[ GAME_NAME_COUNT ] =
 {
     "WOS",
     "TOY",
-    "RC",
     "W97"
 };
 
