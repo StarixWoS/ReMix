@@ -21,7 +21,8 @@ const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
     "chrules",
     "getcomments",
     "chsettings",
-    "vanish"
+    "vanish",
+    "version"
 };
 
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
@@ -382,6 +383,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
 //        case : //16+
 //        break;
+        case CMDS::VERSION: //17
+            {
+                QString ver{ "ReMix Version: [ 2.0.1 ]" };
+                if ( plr != nullptr )
+                    plr->sendMessage( ver );
+            }
+        break;
         default:
         break;
     }

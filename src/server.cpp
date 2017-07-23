@@ -139,6 +139,13 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->setSernum_i( Helper::serNumToHexStr( sernum )
                                      .toUInt( 0, 16 ) );
+        user->updateCallCount( Helper::serNumToHexStr( sernum ) );
+
+        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
+        plr->setAlias( alias );
+
+        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
+        plr->setPlayTime( age );
 
         qint32 index{ bio.indexOf( "d=", Qt::CaseInsensitive ) };
         QString dVar{ "" };
@@ -161,11 +168,11 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 2 ),
-                               Helper::getStrStr( bio, "HHMM", "=", "," ),
+                               age,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 3 ),
-                               Helper::getStrStr( bio, "alias", "=", "," ),
+                               alias,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 7 ),

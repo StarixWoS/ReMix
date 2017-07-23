@@ -8,7 +8,7 @@ const QString User::keys[ USER_KEY_COUNT ] =
 {
     "seen", "bio", "ip", "dv", "wv",
     "rank", "hash", "salt", "reason",
-    "banned"
+    "banned", "pings", "calls"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -39,14 +39,34 @@ User::User(QWidget* parent) :
     randDev = new RandDev();
 
     //Setup the ServerInfo TableView.
-    tblModel = new QStandardItemModel( 0, Cols::cCOLS, 0 );
-    tblModel->setHeaderData( Cols::cSERNUM, Qt::Horizontal, "SerNum" );
-    tblModel->setHeaderData( Cols::cSEEN, Qt::Horizontal, "Last Seen" );
-    tblModel->setHeaderData( Cols::cIP, Qt::Horizontal, "Last IP" );
-    tblModel->setHeaderData( Cols::cRANK, Qt::Horizontal, "Rank" );
-    tblModel->setHeaderData( Cols::cBANNED, Qt::Horizontal, "Banned" );
-    tblModel->setHeaderData( Cols::cREASON, Qt::Horizontal, "Ban Reason" );
-    tblModel->setHeaderData( Cols::cDATE, Qt::Horizontal, "Ban Date" );
+    tblModel = new QStandardItemModel( 0, UserColumns::cCOLS, 0 );
+    tblModel->setHeaderData( UserColumns::cSERNUM,
+                             Qt::Horizontal,
+                             "SerNum" );
+    tblModel->setHeaderData( UserColumns::cPINGS,
+                             Qt::Horizontal,
+                             "Pings" );
+    tblModel->setHeaderData( UserColumns::cCALLS,
+                             Qt::Horizontal,
+                             "Calls" );
+    tblModel->setHeaderData( UserColumns::cSEENDATE,
+                             Qt::Horizontal,
+                             "Last Seen" );
+    tblModel->setHeaderData( UserColumns::cIP,
+                             Qt::Horizontal,
+                             "Last IP" );
+    tblModel->setHeaderData( UserColumns::cRANK,
+                             Qt::Horizontal,
+                             "Rank" );
+    tblModel->setHeaderData( UserColumns::cBANNED,
+                             Qt::Horizontal,
+                             "Banned" );
+    tblModel->setHeaderData( UserColumns::cBANDATE,
+                             Qt::Horizontal,
+                             "Ban Date" );
+    tblModel->setHeaderData( UserColumns::cREASON,
+                             Qt::Horizontal,
+                             "Ban Reason" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -79,14 +99,14 @@ User::~User()
 
 //Public Functions
 void User::setData(const QString& key, const QString& subKey,
-                   QVariant& value)
+                   const QVariant& value)
 {
     userData->setValue( key % "/" % subKey, value );
 }
 
 QVariant User::getData(const QString& key, const QString& subKey)
 {
-    if ( subKey == keys[ Keys::kRANK ] )
+    if ( subKey == keys[ UserKeys::kRANK ] )
         return userData->value( key % "/" % subKey, 0 );
 
     return userData->value( key % "/" % subKey );
@@ -102,22 +122,22 @@ bool User::makeAdmin(QString& sernum, QString& pwd)
         QString hash( salt + pwd );
                 hash = Helper::hashPassword( hash );
 
-        if ( rank == Ranks::rUSER )
+        if ( rank == PlayerRanks::rUSER )
         {
-            userData->setValue( sernum % "/rank", Ranks::rGAMEMASTER );
+            setData( sernum, keys[ UserKeys::kRANK ], PlayerRanks::rGAMEMASTER );
             QModelIndex index = this->findModelIndex(
                                     Helper::serNumToIntStr( sernum ),
-                                    Cols::cSERNUM );
+                                    UserColumns::cSERNUM );
             if ( index.isValid() )
             {
                 this->updateRowData( index.row(),
-                                     Cols::cRANK,
-                                     QVariant( Ranks::rGAMEMASTER ) );
+                                     UserColumns::cRANK,
+                                     QVariant( PlayerRanks::rGAMEMASTER ) );
             }
         }
-        userData->setValue( sernum % "/hash", hash );
-        userData->setValue( sernum % "/salt", salt );
 
+        setData( sernum, keys[ UserKeys::kHASH ], hash );
+        setData( sernum, keys[ UserKeys::kSALT ], salt );
         return true;
     }
     return false;
@@ -125,13 +145,13 @@ bool User::makeAdmin(QString& sernum, QString& pwd)
 
 bool User::getIsAdmin(QString& sernum)
 {
-    return getData( sernum, keys[ Keys::kRANK ] )
+    return getData( sernum, keys[ UserKeys::kRANK ] )
               .toInt() >= 1;
 }
 
 bool User::getHasPassword(QString sernum)
 {
-    QString pwd{ getData( sernum, keys[ Keys::kHASH ] )
+    QString pwd{ getData( sernum, keys[ UserKeys::kHASH ] )
                     .toString() };
 
     return pwd.length() > 0;
@@ -139,9 +159,9 @@ bool User::getHasPassword(QString sernum)
 
 bool User::cmpAdminPwd(QString& sernum, QString& value)
 {
-    QString recSalt = getData( sernum, keys[ Keys::kSALT ] )
+    QString recSalt = getData( sernum, keys[ UserKeys::kSALT ] )
                          .toString();
-    QString recHash = getData( sernum, keys[ Keys::kHASH ] )
+    QString recHash = getData( sernum, keys[ UserKeys::kHASH ] )
                          .toString();
 
     QString hash{ recSalt + value };
@@ -152,21 +172,21 @@ bool User::cmpAdminPwd(QString& sernum, QString& value)
 
 qint32 User::getAdminRank(QString& sernum)
 {
-    return getData( sernum, keys[ Keys::kRANK ] )
+    return getData( sernum, keys[ UserKeys::kRANK ] )
               .toUInt();
 }
 
 void User::setAdminRank(QString& sernum, qint32 rank)
 {
     QVariant value{ rank };
-    setData( sernum, keys[ Keys::kRANK ], value );
+    setData( sernum, keys[ UserKeys::kRANK ], value );
 
     QModelIndex index = this->findModelIndex( sernum,
-                                              Cols::cSERNUM );
+                                              UserColumns::cSERNUM );
     if ( index.isValid() )
     {
         this->updateRowData( index.row(),
-                             Cols::cRANK,
+                             UserColumns::cRANK,
                              value );
     }
 }
@@ -192,21 +212,21 @@ void User::removeBan(QString& value, qint32 type)
                 sernum = sernums.at( i );
                 if ( sernum.compare( value ) == 0 )
                 {
-                    userData->remove( sernum % "/" % keys[ Keys::kBANNED ] );
-                    userData->remove( sernum % "/" % keys[ Keys::kREASON ] );
+                    userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
+                    userData->remove( sernum % "/" % keys[ UserKeys::kREASON ] );
                     break;
                 }
             }
             this->updateRowData( index.row(),
-                                 Cols::cBANNED,
+                                 UserColumns::cBANNED,
                                  QVariant( false ) );
 
             this->updateRowData( index.row(),
-                                 Cols::cREASON,
+                                 UserColumns::cREASON,
                                  QVariant( "" ) );
 
             this->updateRowData( index.row(),
-                                 Cols::cDATE,
+                                 UserColumns::cBANDATE,
                                  QVariant( 0 ) );
         }
     }
@@ -237,32 +257,29 @@ bool User::addBan(Player* admin, Player* target, QString& reason, bool remote)
     }
 
     quint64 date{ QDateTime::currentDateTime().toTime_t() };
-    userData->setValue( target->getSernumHex_s() % "/" % keys[ Keys::kBANNED ],
-                        date );
-
-    userData->setValue( target->getSernumHex_s() % "/" % keys[ Keys::kREASON ],
-                        msg );
+    setData( target->getSernumHex_s(), keys[ UserKeys::kBANNED ], date );
+    setData( target->getSernumHex_s(), keys[ UserKeys::kREASON ], msg );
 
     QModelIndex index = this->findModelIndex( target->getSernumHex_s(),
-                                              Cols::cSERNUM );
+                                              UserColumns::cSERNUM );
     if ( index.isValid() )
     {
         this->updateRowData( index.row(),
-                             Cols::cBANNED,
+                             UserColumns::cBANNED,
                              QVariant( date > 0 ) );
 
         this->updateRowData( index.row(),
-                             Cols::cREASON,
+                             UserColumns::cREASON,
                              QVariant( msg ) );
 
         this->updateRowData( index.row(),
-                             Cols::cDATE,
+                             UserColumns::cBANDATE,
                              QVariant( date ) );
     }
     return true;
 }
 
-bool User::getIsBanned(QString value, Types type)
+bool User::getIsBanned(QString value, BanTypes type)
 {
     if ( value.isEmpty() )
         return false;
@@ -279,29 +296,29 @@ bool User::getIsBanned(QString value, Types type)
         sernum = sernums.at( i );
         switch ( type )
         {
-            case Types::tSERNUM:
+            case BanTypes::tSERNUM:
             {
                 if ( sernum.compare( value, Qt::CaseInsensitive ) == 0 )
                     isValue = true;
             }
             break;
-            case Types::tIP:
+            case BanTypes::tIP:
             {
-                var = getData( sernum, keys[ Keys::kIP ] ).toString();
+                var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
                 if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
                     isValue = true;
             }
             break;
-            case Types::tDV:
+            case BanTypes::tDV:
             {
-                var = getData( sernum, keys[ Keys::kDV ] ).toString();
+                var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
                 if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
                     isValue = true;
             }
             break;
-            case Types::tWV:
+            case BanTypes::tWV:
             {
-                var = getData( sernum, keys[ Keys::kWV ] ).toString();
+                var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
                 if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
                     isValue = true;
             }
@@ -321,9 +338,25 @@ bool User::getIsBanned(QString value, Types type)
     }
 
     if ( isValue )
-        banned = getData( sernum, keys[ Keys::kBANNED ] ).toUInt() > 0;
+        banned = getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() > 0;
 
     return banned;
+}
+
+void User::updateCallCount(QString serNum)
+{
+    quint32 callCount{ getData( serNum, keys[ UserKeys::kCALLS ] )
+                          .toUInt() + 1 };
+    setData( serNum, keys[ UserKeys::kCALLS ], callCount );
+
+    QModelIndex index = this->findModelIndex( serNum,
+                                              UserColumns::cSERNUM );
+    if ( index.isValid() )
+    {
+        this->updateRowData( index.row(),
+                             UserColumns::cCALLS,
+                             callCount );
+    }
 }
 
 void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
@@ -333,44 +366,52 @@ void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
     if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
         sernum = Helper::serNumToHexStr( serNum, 8 );
 
-    userData->setValue( sernum % "/bio", bio.mid( 1 ) );
+    setData( sernum, keys[ UserKeys::kBIO ], bio.mid( 1 ) );
 
     QString ip_s{ ip.toString() };
-    userData->setValue( sernum % "/ip", ip_s );
-    userData->setValue( sernum % "/dv", dv );
-    userData->setValue( sernum % "/wv", wv );
+    setData( sernum, keys[ UserKeys::kIP ], ip_s );
+    setData( sernum, keys[ UserKeys::kDV ], dv );
+    setData( sernum, keys[ UserKeys::kWV ], wv );
+
+    quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] )
+                      .toUInt() + 1 };
+    setData( sernum, keys[ UserKeys::kPINGS ], pings );
 
     quint64 date{ QDateTime::currentDateTime().toTime_t() };
-    userData->setValue( sernum % "/seen", date );
+    setData( sernum, keys[ UserKeys::kSEEN ], date );
 
-    QModelIndex index = this->findModelIndex( sernum, Cols::cSERNUM );
+    QModelIndex index = this->findModelIndex( sernum, UserColumns::cSERNUM );
     if ( !index.isValid() )
     {
         quint32 row = tblModel->rowCount();
         tblModel->insertRow( row );
-        index = tblModel->index( row, Cols::cSERNUM );
+        index = tblModel->index( row, UserColumns::cSERNUM );
     }
 
     if ( index.isValid() )
     {
         this->updateRowData( index.row(),
-                             Cols::cSERNUM,
+                             UserColumns::cSERNUM,
                              QVariant( Helper::serNumToIntStr( sernum ) ) );
 
         this->updateRowData( index.row(),
-                             Cols::cIP,
+                             UserColumns::cIP,
                              QVariant( ip_s ) );
 
         this->updateRowData( index.row(),
-                             Cols::cSEEN,
+                             UserColumns::cPINGS,
+                             QVariant( pings ) );
+
+        this->updateRowData( index.row(),
+                             UserColumns::cSEENDATE,
                              QVariant( date ) );
     }
 }
 
 //Private Functions.
-QModelIndex User::findModelIndex(QString value, Cols col)
+QModelIndex User::findModelIndex(QString value, UserColumns col)
 {
-    if ( col == Cols::cSERNUM )
+    if ( col == UserColumns::cSERNUM )
         value = Helper::serNumToIntStr( value );
 
     QList<QStandardItem*> list = tblModel->findItems( value,
@@ -405,6 +446,8 @@ void User::loadUserInfo()
 
         quint64 banDate_i{ 0 };
         quint64 seen_i{ 0 };
+        quint32 pings_i{ 0 };
+        quint32 calls_i{ 0 };
 
         quint32 rank{ 0 };
         bool banned{ false };
@@ -414,11 +457,20 @@ void User::loadUserInfo()
         {
             sernum = sernums.at( i );
 
-            reason = userData->value( sernum % "/reason", "" ).toString();
-            banDate_i = userData->value( sernum % "/banned", 0 ).toUInt();
-            seen_i = userData->value( sernum % "/seen", 0 ).toUInt();
-            rank = userData->value( sernum % "/rank", 0 ).toUInt();
-            ip = userData->value( sernum % "/ip", "" ).toString();
+            reason = getData( sernum, keys[ UserKeys::kREASON ] )
+                        .toString();
+            banDate_i = getData( sernum, keys[ UserKeys::kBANNED ] )
+                           .toUInt();
+            pings_i = getData( sernum, keys[ UserKeys::kPINGS ] )
+                         .toUInt();
+            calls_i = getData( sernum, keys[ UserKeys::kCALLS ] )
+                         .toUInt();
+            seen_i = getData( sernum, keys[ UserKeys::kSEEN ] )
+                        .toUInt();
+            rank = getData( sernum, keys[ UserKeys::kRANK ] )
+                      .toUInt();
+            ip = getData( sernum, keys[ UserKeys::kIP ] )
+                    .toString();
 
             banned = banDate_i > 0;
 
@@ -429,29 +481,36 @@ void User::loadUserInfo()
             tblModel->setData( tblModel->index( row, 0 ),
                                Helper::serNumToIntStr( sernum ),
                                Qt::DisplayRole );
+            this->updateRowData( row,
+                                 UserColumns::cPINGS,
+                                 QVariant( pings_i ) );
 
             this->updateRowData( row,
-                                 Cols::cSEEN,
+                                 UserColumns::cCALLS,
+                                 QVariant( calls_i ) );
+
+            this->updateRowData( row,
+                                 UserColumns::cSEENDATE,
                                  QVariant( seen_i ) );
 
             this->updateRowData( row,
-                                 Cols::cIP,
+                                 UserColumns::cIP,
                                  QVariant( ip ) );
 
             this->updateRowData( row,
-                                 Cols::cRANK,
+                                 UserColumns::cRANK,
                                  QVariant( rank ) );
 
             this->updateRowData( row,
-                                 Cols::cBANNED,
+                                 UserColumns::cBANNED,
                                  QVariant( banned ) );
 
             this->updateRowData( row,
-                                 Cols::cREASON,
+                                 UserColumns::cREASON,
                                  QVariant( reason ) );
 
             this->updateRowData( row,
-                                 Cols::cDATE,
+                                 UserColumns::cBANDATE,
                                  QVariant( banDate_i ) );
         }
     }
@@ -463,8 +522,8 @@ void User::loadUserInfo()
 
 void User::updateRowData(quint32 row, quint32 col, QVariant data)
 {
-    if ( col == Cols::cSEEN
-      || col == Cols::cDATE )
+    if ( col == UserColumns::cSEENDATE
+      || col == UserColumns::cBANDATE )
     {
         quint64 date{ data.toUInt() };
         if ( date > 0 )
@@ -474,7 +533,7 @@ void User::updateRowData(quint32 row, quint32 col, QVariant data)
         }
         else
         {
-            if ( col == Cols::cSEEN )
+            if ( col == UserColumns::cSEENDATE )
                 data = "Never Seen";
             else
                 data = "";
@@ -483,7 +542,11 @@ void User::updateRowData(quint32 row, quint32 col, QVariant data)
 
     QModelIndex index = tblModel->index( row, col );
     if ( index.isValid() )
+    {
         tblModel->setData( index, data, Qt::DisplayRole );
+        if ( col == UserColumns::cBANDATE )
+            ui->userTable->resizeColumnToContents( UserColumns::cBANDATE );
+    }
 }
 
 //Private Slots.
@@ -495,18 +558,18 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
 
     sernum = tblModel->data(
                  tblModel->index(
-                     index.row(), Cols::cSERNUM ) ).toString();
+                     index.row(), UserColumns::cSERNUM ) ).toString();
     sernum = Helper::sanitizeSerNum( sernum );
 
     switch ( index.column() )
     {
-        case Cols::cRANK:
+        case UserColumns::cRANK:
             {
                 value = tblModel->data( index );
-                setData( sernum, keys[ Keys::kRANK ], value );
+                setData( sernum, keys[ UserKeys::kRANK ], value );
             }
         break;
-        case Cols::cBANNED:
+        case UserColumns::cBANNED:
             {
                 bool setReason{ false };
                 QString reason{ "" };
@@ -519,7 +582,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     date = QDateTime::fromTime_t( value.toUInt() )
                                 .toString( "ddd MMM dd HH:mm:ss yyyy" );
 
-                    reason = getData( sernum, keys[ Keys::kREASON ] )
+                    reason = getData( sernum, keys[ UserKeys::kREASON ] )
                                 .toString();
                     if ( reason.isEmpty() )
                     {
@@ -535,18 +598,18 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     value = "";
                 }
 
-                setData( sernum, keys[ Keys::kBANNED ], value );
+                setData( sernum, keys[ UserKeys::kBANNED ], value );
                 this->updateRowData( index.row(),
-                                     Cols::cDATE,
+                                     UserColumns::cBANDATE,
                                      value );
 
                 if ( setReason )
                 {
                     value = reason;
-                    setData( sernum, keys[ Keys::kREASON ], value );
+                    setData( sernum, keys[ UserKeys::kREASON ], value );
 
                     this->updateRowData( index.row(),
-                                         Cols::cREASON,
+                                         UserColumns::cREASON,
                                          value );
                 }
             }

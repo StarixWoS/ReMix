@@ -13,8 +13,6 @@ class UserSortProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
-    enum COLS{ SERNUM = 0, SEEN = 1, RANK = 3, BANDATE = 6 };
-
     public:
         UserSortProxyModel();
         ~UserSortProxyModel();

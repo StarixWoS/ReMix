@@ -17,11 +17,10 @@ class CmdHandler : public QObject
     static const QString commands[ ADMIN_COMMAND_COUNT ];
 
     public:
-        enum Ranks{ USER = 0, GMASTER = 1, COADMIN = 2, ADMIN = 3, OWNER = 4 };
-        enum CMDS{ BAN = 0, UNBAN = 1, KICK = 2, MUTE = 3, UNMUTE = 4, MSG = 5,
-                   LOGIN = 6, REGISTER = 7, SHUTDOWN = 8, RESTART = 9,
-                   MKADMIN = 10, RMADMIN = 11, CHADMIN = 12, CHRULES = 13,
-                   GETCOMMENTS = 14, CHSETTINGS = 15, VANISH = 16 };
+        enum Ranks{ USER = 0, GMASTER, COADMIN, ADMIN, OWNER = 4 };
+        enum CMDS{ BAN = 0, UNBAN, KICK, MUTE, UNMUTE, MSG, LOGIN, REGISTER,
+                   SHUTDOWN, RESTART,  MKADMIN, RMADMIN, CHADMIN, CHRULES,
+                   GETCOMMENTS, CHSETTINGS, VANISH, VERSION = 17 };
 
         explicit CmdHandler(QObject* parent = nullptr, ServerInfo* svr = nullptr,
                             User* uDlg = nullptr);

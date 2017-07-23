@@ -16,12 +16,7 @@ class User : public QDialog
     QStandardItemModel* tblModel{ nullptr };
     RandDev* randDev{ nullptr };
 
-    enum Cols{ cSERNUM = 0, cSEEN = 1, cIP = 2, cRANK = 3, cBANNED = 4,
-               cREASON = 5, cDATE = 6, cCOLS = cDATE };
-
     static const QString keys[ USER_KEY_COUNT ];
-    enum Keys{ kSEEN = 0, kBIO = 1, kIP = 2, kDV = 3, kWV = 4, kRANK = 5,
-               kHASH = 6, kSALT = 7, kREASON = 8, kBANNED = 9 };
 
     public:
         explicit User(QWidget* parent = nullptr);
@@ -29,12 +24,19 @@ class User : public QDialog
 
         static QSettings* userData;
 
-        enum Types{ tSERNUM = 0, tIP = 1, tDV = 2, tWV = 3 };
-        enum Ranks{ rUSER = 0, rGAMEMASTER = 1, rCOADMIN = 2, rADMIN = 3,
-                    rOWNER = 4 };
+        enum UserColumns{ cSERNUM = 0, cPINGS, cCALLS, cSEENDATE, cIP,
+                          cRANK, cBANNED, cBANDATE, cREASON, cCOLS = 9 };
+
+        enum PlayerRanks{ rUSER = 0, rGAMEMASTER, rCOADMIN, rADMIN,
+                          rOWNER = 4 };
+
+        enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
+                       kREASON, kBANNED, kPINGS, kCALLS = 11 };
+
+        enum BanTypes{ tSERNUM = 0, tIP, tDV, tWV = 3 };
 
         static void setData(const QString& key, const QString& subKey,
-                            QVariant& value);
+                            const QVariant& value);
         static QVariant getData(const QString& key, const QString& subKey);
 
         bool makeAdmin(QString& sernum, QString& pwd);
@@ -50,13 +52,14 @@ class User : public QDialog
         bool addBan(Player* admin, Player* target, QString& reason,
                     bool remote = false);
 
-        static bool getIsBanned(QString value, Types type);
+        static bool getIsBanned(QString value, BanTypes type);
 
+        void updateCallCount(QString serNum);
         void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
                     QString& wv, QString& bio);
 
     private:
-        QModelIndex findModelIndex(QString value, Cols col);
+        QModelIndex findModelIndex(QString value, UserColumns col);
         void loadUserInfo();
         void updateRowData(quint32 row, quint32 col, QVariant data);
 

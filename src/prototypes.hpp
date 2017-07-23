@@ -162,10 +162,10 @@
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            ADMIN_COMMAND_COUNT = 17,
+            ADMIN_COMMAND_COUNT = 18,
 
             //Count of Keys accessed via the User class.
-            USER_KEY_COUNT = 10,
+            USER_KEY_COUNT = 12,
 
             //Time interval for updating the server's Usage array.
             SERVER_USAGE_UPDATE = 600000,
