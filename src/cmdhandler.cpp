@@ -55,7 +55,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
     if ( plr->getIsAdmin() )
     {
         retn = false;
-        if ( plr->getGotAuthPwd() )
+        if ( plr->getAdminPwdReceived() )
             retn = true;
         else
             plr->sendMessage( unauth );
@@ -145,7 +145,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
                         if ( tmpPlr != nullptr )
                         {
                             if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                              && tmpPlr->getGotAuthPwd() )
+                              && tmpPlr->getAdminPwdReceived() )
                             {
                                 tmpPlr->sendMessage( message );
                             }
@@ -303,8 +303,10 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 if ( !argType.isEmpty() )
                 {
-                    if (( ( plr->getReqAuthPwd() || !plr->getGotAuthPwd() )
-                      || ( plr->getPwdRequested() && !plr->getEnteredPwd() ) ))
+                    if ( ( ( plr->getAdminPwdRequested()
+                       || !plr->getAdminPwdReceived() )
+                      || ( plr->getSvrPwdRequested()
+                       && !plr->getSvrPwdReceived() ) ) )
                     {
                         this->loginHandler( plr, argType );
                     }
@@ -316,7 +318,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case CMDS::REGISTER: //7
             {
                 if ( !argType.isEmpty()
-                  && plr->getReqNewAuthPwd() )
+                  && plr->getNewAdminPwdRequested() )
                 {
                     this->registerHandler( plr, argType );
                 }
@@ -548,15 +550,15 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
     bool disconnect{ false };
 
     QString pwd{ argType };
-    if ( plr->getPwdRequested()
-      && !plr->getEnteredPwd() )
+    if ( plr->getSvrPwdRequested()
+      && !plr->getSvrPwdReceived() )
     {
         if ( Settings::cmpServerPassword( pwd ) )
         {
             response = response.arg( valid );
 
-            plr->setPwdRequested( false );
-            plr->setEnteredPwd( true );
+            plr->setSvrPwdRequested( false );
+            plr->setSvrPwdReceived( true );
         }
         else
         {
@@ -565,8 +567,8 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         }
         response = response.arg( "Server" );
     }
-    else if ( !plr->getGotAuthPwd()
-           || plr->getReqAuthPwd() )
+    else if ( !plr->getAdminPwdReceived()
+           || plr->getAdminPwdRequested() )
     {
         QString sernum{ plr->getSernumHex_s() };
         if ( !pwd.isEmpty()
@@ -574,8 +576,8 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
         {
             response = response.arg( valid ).append( " Welcome!" );
 
-            plr->setReqAuthPwd( false );
-            plr->setGotAuthPwd( true );
+            plr->setAdminPwdRequested( false );
+            plr->setAdminPwdReceived( true );
 
             //Inform Other Users of this Remote-Admin's login if enabled.
             if ( Settings::getInformAdminLogin() )
@@ -591,7 +593,7 @@ void CmdHandler::loginHandler(Player* plr, QString& argType)
                     if ( tmpPlr != nullptr )
                     {
                         if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                          && tmpPlr->getGotAuthPwd() )
+                          && tmpPlr->getAdminPwdReceived() )
                         {
                             //Do not Inform our own Admin.. --Redundant..
                             if ( tmpPlr != plr )
@@ -629,9 +631,9 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
     QString sernum{ plr->getSernumHex_s() };
     bool registered{ false };
 
-    if ( !plr->getGotNewAuthPwd() )
+    if ( !plr->getNewAdminPwdReceived() )
     {
-        if (( plr->getReqNewAuthPwd()
+        if (( plr->getNewAdminPwdRequested()
            || plr->getIsAdmin() )
           && !user->getHasPassword( sernum ) )
         {
@@ -640,18 +642,18 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
             {
                 registered = true;
 
-                plr->setReqNewAuthPwd( false );
-                plr->setGotNewAuthPwd( true );
+                plr->setNewAdminPwdRequested( false );
+                plr->setNewAdminPwdReceived( true );
 
-                plr->setReqAuthPwd( false );
-                plr->setGotAuthPwd( true );
+                plr->setAdminPwdRequested( false );
+                plr->setAdminPwdReceived( true );
             }
             else
             {
                 response = fail;
 
-                plr->setReqNewAuthPwd( false );
-                plr->setGotNewAuthPwd( false );
+                plr->setNewAdminPwdRequested( false );
+                plr->setNewAdminPwdReceived( false );
             }
         }
     }
@@ -672,7 +674,7 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
             if ( tmpPlr != nullptr )
             {
                 if ( tmpPlr->getAdminRank() >= Ranks::GMASTER
-                  && tmpPlr->getGotAuthPwd() )
+                  && tmpPlr->getAdminPwdReceived() )
                 {
                     //Do not Inform our own Admin.. --Redundant..
                     if ( tmpPlr != plr )

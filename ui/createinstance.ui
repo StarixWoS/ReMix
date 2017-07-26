@@ -53,20 +53,14 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
+      <item row="3" column="0" colspan="3">
+       <widget class="QCheckBox" name="isPublic">
         <property name="text">
-         <string>Server Name:</string>
+         <string>Register as Public Server</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="4" column="0">
        <widget class="QPushButton" name="initializeServer">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -82,10 +76,17 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QCheckBox" name="isPublic">
+      <item row="0" column="1" colspan="2">
+       <widget class="QComboBox" name="servers">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Register as Public Server</string>
+         <string>Server Name:</string>
         </property>
        </widget>
       </item>
@@ -108,24 +109,7 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QLineEdit" name="serverName">
-        <property name="text">
-         <string>AHitB ReMix Server</string>
-        </property>
-        <property name="maxLength">
-         <number>32</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Previous Servers:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
+      <item row="4" column="2">
        <widget class="QPushButton" name="close">
         <property name="text">
          <string>Cancel</string>
@@ -135,10 +119,20 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QComboBox" name="oldServers"/>
+      <item row="2" column="1" colspan="2">
+       <widget class="QLineEdit" name="portNumber">
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="text">
+         <string>8888</string>
+        </property>
+        <property name="maxLength">
+         <number>5</number>
+        </property>
+       </widget>
       </item>
-      <item row="3" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="maximumSize">
          <size>
@@ -161,19 +155,6 @@
         </property>
         <property name="text">
          <string>Game:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QLineEdit" name="portNumber">
-        <property name="inputMethodHints">
-         <set>Qt::ImhNone</set>
-        </property>
-        <property name="text">
-         <string>8888</string>
-        </property>
-        <property name="maxLength">
-         <number>5</number>
         </property>
        </widget>
       </item>

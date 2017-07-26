@@ -126,7 +126,6 @@ class ServerInfo
         void setGameName(const QString& value);
 
         QHostInfo getHostInfo() const;
-        void setHostInfo(const QHostInfo& value);
 
         int getVersionID() const;
         void setVersionID(int value);

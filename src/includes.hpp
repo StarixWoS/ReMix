@@ -43,6 +43,7 @@
     #include <QSettings>
     #include <QDateTime>
     #include <QFileInfo>
+    #include <QCollator>
     #include <QLibrary>
     #include <QToolTip>
     #include <QProcess>

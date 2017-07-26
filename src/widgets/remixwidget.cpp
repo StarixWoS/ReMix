@@ -10,39 +10,32 @@ const QStringList ReMixWidget::cmdlArgs =
                   << "listen" << "name" << "fudge"
 };
 
-ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
+ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
 {
-    ui->setupUi(this);
-    serverID = svrID;
+    ui->setupUi( this );
+
+    server = svrInfo;
+    serverID = server->getName();
 
     //Setup our Random Device
     randDev = new RandDev();
 
     //Setup Objects.
-    contextMenu = new QMenu( this );
     motdWidget = new MOTDWidget( serverID );
     rules = new RulesWidget( serverID );
 
     settings = ReMix::getSettings();
     settings->addTabObjects( motdWidget, rules, serverID );
 
-    server = new ServerInfo( serverID );
     user = ReMix::getUser();
 
     plrWidget = new PlrListWidget( this, server, user );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
-    server->setServerID( Settings::getServerID( serverID ) );
-    server->setHostInfo( QHostInfo() );
-
-    //Load Data from our CommandLine Args.
-    if ( argList != nullptr )
-        this->parseCMDLArgs( argList );
-
-    ReMix::getSynRealData( server );
+    ui->isPublicServer->setChecked( server->getIsPublic() );
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
@@ -118,80 +111,6 @@ quint16 ReMixWidget::getPrivatePort() const
         return 0;
 
     return server->getPrivatePort();
-}
-
-void ReMixWidget::parseCMDLArgs(QStringList* argList)
-{
-    QString tmpArg{ "" };
-    QString arg{ "" };
-    QString tmp{ "" };
-
-    int argIndex{ -1 };
-    for ( int i = 0; i < argList->count(); ++i )
-    {
-        arg = argList->at( i );
-        tmpArg.clear();
-        tmp.clear();
-
-        argIndex = -1;
-        for ( int j = 0; j < cmdlArgs.count(); ++j )
-        {
-            if ( arg.contains( cmdlArgs.at( j ), Qt::CaseInsensitive ) )
-            {
-                tmpArg = cmdlArgs.at( j );
-                argIndex = j;
-                break;
-            }
-        }
-
-        if ( !tmpArg.isEmpty() )
-        {
-            switch ( argIndex )
-            {
-                case CMDLArgs::GAME:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setGameName( tmp );
-                break;
-                case CMDLArgs::MASTER:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setMasterInfoHost( tmp );
-                break;
-                case CMDLArgs::PUBLIC:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                    {
-                        server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
-                        server->setMasterPort(
-                                    static_cast<quint16>(
-                                        tmp.mid( tmp.indexOf( ':' ) + 1 )
-                                           .toInt() ) );
-                    }
-                    ui->isPublicServer->setChecked( true );
-                break;
-                case CMDLArgs::LISTEN:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setPrivatePort( tmp.toUShort() );
-
-                break;
-                case CMDLArgs::NAME:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setName( tmp );
-                break;
-                case CMDLArgs::FUDGE:
-                    server->setLogFiles( true );
-                break;
-                default:
-                    qDebug() << "Unknown Command Line Argument: " << tmp;
-                break;
-            }
-        }
-    }
-
-    ui->isPublicServer->setChecked( server->getIsPublic() );
 }
 
 void ReMixWidget::initUIUpdate()
@@ -384,12 +303,12 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
     if ( contextMenu == nullptr )
     {
         contextMenu = new QMenu( this );
-        if ( contextMenu != nullptr )
-        {
-            contextMenu->addMenu( "Test 1" );
-
-            contextMenu->addMenu( "Test 2" );
-        }
     }
-    contextMenu->popup( ui->networkStatus->mapToGlobal( pos ) );
+
+    if ( contextMenu != nullptr )
+    {
+        //Populate ContextMenu with IP Addresses which were manually
+        //blacklisted and removed from selection for use as the Private IP
+        //For a more user-friendly method of removing them from the preferences.
+    }
 }

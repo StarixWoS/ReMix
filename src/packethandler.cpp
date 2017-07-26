@@ -76,8 +76,8 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
     quint64 bOut{ 0 };
 
     //Only parse packets from Users that have entered the correct password.
-    if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
-      && ( plr->getGotAuthPwd() || !plr->getReqAuthPwd() ))
+    if (( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
+      && ( plr->getAdminPwdReceived() || !plr->getAdminPwdRequested() ))
     {
         bool isAuth{ false };
         bool send{ false };
@@ -94,8 +94,10 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                 tmpSoc = tmpPlr->getSocket();
                 if ( plr->getSocket() != tmpSoc )
                 {
-                    if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
-                      && ( tmpPlr->getGotAuthPwd() || !tmpPlr->getReqAuthPwd() ))
+                    if ( ( tmpPlr->getSvrPwdReceived()
+                       || !tmpPlr->getSvrPwdRequested() )
+                      && ( tmpPlr->getAdminPwdReceived()
+                       || !tmpPlr->getAdminPwdRequested() ))
                     {
                         isAuth = true;
                         send = false;

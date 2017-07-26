@@ -286,7 +286,7 @@ void ServerInfo::deletePlayer(int slot)
                                .arg( plr->getConnTime() / 60 )
                                .arg( plr->getBytesIn() )
                                .arg( plr->getPacketsIn() )
-                               .arg( plr->getAvgBaudIn() )
+                               .arg( plr->getAvgBaud( false ) )
                                .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
@@ -396,7 +396,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     {
         greeting.append( " Password required: Please reply with (/login *PASS)"
                          " or be disconnected." );
-        plr->setPwdRequested( true );
+        plr->setSvrPwdRequested( true );
     }
 
     if ( !greeting.isEmpty() )
@@ -532,11 +532,6 @@ void ServerInfo::setGameName(const QString& value)
 QHostInfo ServerInfo::getHostInfo() const
 {
     return hostInfo;
-}
-
-void ServerInfo::setHostInfo(const QHostInfo& value)
-{
-    hostInfo = value;
 }
 
 int ServerInfo::getVersionID() const

@@ -55,6 +55,7 @@ public:
         ReMixWidget->resize(856, 186);
         ReMixWidget->setMinimumSize(QSize(0, 0));
         ReMixWidget->setMouseTracking(true);
+        ReMixWidget->setContextMenuPolicy(Qt::CustomContextMenu);
         gridLayout = new QGridLayout(ReMixWidget);
         gridLayout->setSpacing(5);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));

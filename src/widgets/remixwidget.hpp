@@ -41,8 +41,7 @@ class ReMixWidget : public QWidget
 
     public:
         explicit ReMixWidget(QWidget* parent = nullptr,
-                             QStringList* argList = nullptr,
-                             QString svrID = "0" );
+                             ServerInfo* svrInfo = nullptr);
         ~ReMixWidget();
 
         void sendServerMessage(QString msg);
@@ -56,7 +55,6 @@ class ReMixWidget : public QWidget
         quint16 getPrivatePort() const;
 
     private:
-        void parseCMDLArgs(QStringList* argList);
         void initUIUpdate();
 
     private slots:

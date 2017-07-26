@@ -51,7 +51,7 @@ class ReMixTabWidget : public QTabWidget
     private slots:
         void tabCloseRequestedSlot(quint32 index);
         void currentChangedSlot(quint32 newTab);
-        void createServerAccepted();
+        void createServerAcceptedSlot(ServerInfo* server = nullptr);
 };
 
 #endif // REMIXTABWIDGET_H

@@ -46,6 +46,7 @@
     class QUdpSocket;
     class QTableView;
     class QTabWidget;
+    class QCollator;  //Requires Include within Class Headers.
     class QHostInfo;
     class QDateTime;
     class QFileInfo;

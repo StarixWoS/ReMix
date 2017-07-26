@@ -101,7 +101,7 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
         Helper::logToFile( log, comment, false, false );
     }
 
-    //Show the Dialog when a new comment is recieved.
+    //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )
         this->show();
 }

@@ -26,18 +26,18 @@ Player::Player()
                                     .arg( connTime % 60, 2, 10, QChar( '0' ) ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaudIn( this->getBytesIn() );
+                this->setAvgBaud( this->getBytesIn(), false );
                 model->setData( row->model()->index( row->row(), 5 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaudIn() )
+                                    .arg( this->getAvgBaud( false ) )
                                     .arg( this->getBytesIn() )
                                     .arg( this->getPacketsIn() ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaudOut( this->getBytesOut() );
+                this->setAvgBaud( this->getBytesOut(), true );
                 model->setData( row->model()->index( row->row(), 6 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaudOut() )
+                                    .arg( this->getAvgBaud( true ) )
                                     .arg( this->getBytesOut() )
                                     .arg( this->getPacketsOut() ),
                                 Qt::DisplayRole );
@@ -46,7 +46,7 @@ Player::Player()
                 //Otherwise, color as Red.
                 if ( this->getIsAdmin() )
                 {
-                    if ( this->getGotAuthPwd() )
+                    if ( this->getAdminPwdReceived() )
                     {
                         model->setData( row->model()->index( row->row(), 1 ),
                                         QBrush( QColor( "limegreen" ) ),
@@ -92,20 +92,20 @@ Player::Player()
           && this->getIsAdmin() )
         {
             if ( this->getSernum_i() != 0
-              && !this->getReqAuthPwd() )
+              && !this->getAdminPwdRequested() )
             {
                 if ( !User::getHasPassword( this->getSernumHex_s() )
-                  && !this->getReqNewAuthPwd() )
+                  && !this->getNewAdminPwdRequested() )
                 {
-                    if ( !this->getGotNewAuthPwd() )
-                        this->setReqNewAuthPwd( true );
+                    if ( !this->getNewAdminPwdReceived() )
+                        this->setNewAdminPwdRequested( true );
                 }
                 else if (( !Settings::getRequirePassword()
-                        || this->getEnteredPwd() )
-                       && !this->getReqNewAuthPwd() )
+                        || this->getSvrPwdReceived() )
+                       && !this->getNewAdminPwdRequested() )
                 {
-                    if ( !this->getGotAuthPwd() )
-                        emit sendRemoteAdminPwdReqSignal( this );
+                    if ( !this->getAdminPwdReceived() )
+                        emit newAdminPwdRequestedSignal( this );
                 }
             }
         }
@@ -373,14 +373,14 @@ void Player::setOutBuff(const QByteArray& value)
 }
 
 
-bool Player::getPwdRequested() const
+bool Player::getSvrPwdRequested() const
 {
-    return pwdRequested;
+    return svrPwdRequested;
 }
 
-void Player::setPwdRequested(bool value)
+void Player::setSvrPwdRequested(bool value)
 {
-    pwdRequested = value;
+    svrPwdRequested = value;
 }
 
 int Player::getSlotPos() const
@@ -416,14 +416,14 @@ void Player::setPublicPort(const quint32& value)
     publicPort = value;
 }
 
-bool Player::getEnteredPwd() const
+bool Player::getSvrPwdReceived() const
 {
-    return enteredPwd;
+    return svrPwdReceived;
 }
 
-void Player::setEnteredPwd(bool value)
+void Player::setSvrPwdReceived(bool value)
 {
-    enteredPwd = value;
+    svrPwdReceived = value;
 }
 
 quint64 Player::getFloodTime() const
@@ -469,24 +469,7 @@ quint64 Player::getBytesIn() const
 void Player::setBytesIn(const quint64& value)
 {
     bytesIn = value;
-    this->setAvgBaudIn( bytesIn );
-}
-
-quint64 Player::getAvgBaudIn() const
-{
-    return avgBaudIn;
-}
-
-void Player::setAvgBaudIn(const quint64& bIn)
-{
-    quint64 time = this->getConnTime();
-    quint64 baud{ 0 };
-
-    if ( bIn > 0 && time > 0 )
-        baud = 10 * bIn / time;
-
-    if ( baud > 0 )
-        avgBaudIn = baud;
+    this->setAvgBaud( bytesIn, false );
 }
 
 int Player::getPacketsOut() const
@@ -507,51 +490,60 @@ quint64 Player::getBytesOut() const
 void Player::setBytesOut(const quint64& value)
 {
     bytesOut = value;
+    this->setAvgBaud( bytesOut, true );
 }
 
-quint64 Player::getAvgBaudOut() const
+quint64 Player::getAvgBaud(bool out) const
 {
-    return avgBaudOut;
+    if ( out )
+        return avgBaudOut;
+    else
+        return avgBaudIn;
 }
 
-void Player::setAvgBaudOut(const quint64& bOut)
+void Player::setAvgBaud(const quint64& bytes, bool out)
 {
     quint64 time = this->getConnTime();
     quint64 baud{ 0 };
 
-    if ( bOut > 0 && time > 0 )
-        baud = 10 * bOut / time;
+    if ( bytes > 0 && time > 0 )
+        baud = 10 * bytes / time;
 
     if ( baud > 0 )
-        avgBaudOut = baud;
+    {
+        if ( out )
+            avgBaudOut = baud;
+        else
+            avgBaudIn = baud;
+    }
 }
 
 void Player::resetAdminAuth()
 {
-    this->setReqAuthPwd( false );
-    this->setGotAuthPwd( false );
-    this->setReqNewAuthPwd( false );
-    this->setGotNewAuthPwd( false );
+    this->setAdminPwdRequested( false );
+    this->setAdminPwdReceived( false );
+    this->setNewAdminPwdRequested( false );
+    this->setNewAdminPwdReceived( false );
 }
 
-bool Player::getReqAuthPwd() const
+bool Player::getAdminPwdRequested() const
 {
-    return reqAuthPwd;
+    return adminPwdRequested;
 }
 
-void Player::setReqAuthPwd(bool value)
+void Player::setAdminPwdRequested(bool value)
 {
-    reqAuthPwd = value;
+    adminPwdRequested = value;
 }
 
-bool Player::getGotAuthPwd() const
+bool Player::getAdminPwdReceived() const
 {
-    return gotAuthPwd;
+    return adminPwdReceived;
 }
 
-void Player::setGotAuthPwd(bool value)
+void Player::setAdminPwdReceived(bool value)
 {
-    gotAuthPwd = value;
+    adminPwdReceived = value;
 }
 
 bool Player::getIsAdmin()
@@ -576,26 +568,26 @@ void Player::setCmdAttempts(const qint32& value)
     cmdAttempts = value;
 }
 
-bool Player::getReqNewAuthPwd() const
+bool Player::getNewAdminPwdRequested() const
 {
-    return reqNewAuthPwd;
+    return newAdminPwdRequested;
 }
 
-void Player::setReqNewAuthPwd(bool value)
+void Player::setNewAdminPwdRequested(bool value)
 {
-    reqNewAuthPwd = value;
-    if ( reqNewAuthPwd )
-        emit sendRemoteAdminRegisterSignal( this );
+    newAdminPwdRequested = value;
+    if ( newAdminPwdRequested )
+        emit newRemoteAdminRegisterSignal( this );
 }
 
-bool Player::getGotNewAuthPwd() const
+bool Player::getNewAdminPwdReceived() const
 {
-    return gotNewAuthPwd;
+    return newAdminPwdReceived;
 }
 
-void Player::setGotNewAuthPwd(bool value)
+void Player::setNewAdminPwdReceived(bool value)
 {
-    gotNewAuthPwd = value;
+    newAdminPwdReceived = value;
 }
 
 bool Player::getDisconnected() const

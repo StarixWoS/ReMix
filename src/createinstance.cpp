@@ -16,6 +16,8 @@ CreateInstance::CreateInstance(QWidget *parent) :
     ui(new Ui::CreateInstance)
 {
     ui->setupUi(this);
+    collator.setNumericMode( true );
+    collator.setCaseSensitivity( Qt::CaseInsensitive );
 
     randDev = new RandDev();
     this->updateServerList( true );
@@ -31,18 +33,20 @@ CreateInstance::~CreateInstance()
 
 void CreateInstance::updateServerList(bool firstRun)
 {
-    ui->oldServers->clear();
+    ui->servers->clear();
+    ui->servers->addItem( "" );  //First item will always be blank.
 
-    QStringList oldServers{ Settings::prefs->childGroups() };
+    QStringList servers{ Settings::prefs->childGroups() };
+    QStringList validServers;
 
     QString name{ "" };
     bool skip{ false };
 
     bool running{ false };
-    quint32 oldSvrCount{ 0 };
-    for ( int i = 0; i < oldServers.count(); ++i )
+    quint32 serverCount{ 0 };
+    for ( int i = 0; i < servers.count(); ++i )
     {
-        name = oldServers.at( i );
+        name = servers.at( i );
         for ( int i = 0; i < SETTINGS_KEY_COUNT; ++i )
         {
             if ( name.compare( Settings::keys[ i ],
@@ -65,56 +69,65 @@ void CreateInstance::updateServerList(bool firstRun)
 
         if ( !skip && !running )
         {
-            ui->oldServers->addItem( name );
-            ++oldSvrCount;
+            validServers.append( name );
+            //ui->servers->addItem( name );
+            ++serverCount;
         }
 
         skip = false;
         running = false;
     }
 
-    if ( oldSvrCount != 0 )
-        ui->oldServers->setEnabled( true );
+    if ( serverCount != 0 )
+    {
+        //Sort the server list before inserting them into the dropdown menu.
+        std::sort( validServers.begin(), validServers.end(),
+        [=](const QString &str1, const QString &str2)
+        {
+            return ( collator.compare( str1, str2 ) < 0 );
+        });
+        ui->servers->addItems( validServers );
+        ui->servers->setEnabled( true );
+    }
     else
-        ui->oldServers->setEnabled( true );
-}
-
-QString CreateInstance::getServerArgs() const
-{
-    return serverArgs;
-}
-
-QString CreateInstance::getServerName() const
-{
-    return ui->serverName->text();
-}
-
-void CreateInstance::setServerArgs(const QString& value)
-{
-    serverArgs = value;
+        ui->servers->setEnabled( true );
 }
 
 void CreateInstance::on_initializeServer_clicked()
 {
-    QString svrArgs{ "/Game=%1 /Listen=%2 /Name=%3 /fudge" };
-    QString svrName{ ui->serverName->text() };
-    QString svrPort{ ui->portNumber->text( ) };
-    QString gameName{ gameNames[ ui->gameName->currentIndex() ] };
+    QString svrName{ ui->servers->currentText() };
+    if ( !svrName.isEmpty() )
+    {
+        ServerInfo* server = new ServerInfo( svrName );
+        if ( server == nullptr )    //Failed to create the ServerInfo instance.
+            return;
 
-    svrArgs = svrArgs.arg( gameName )
-                     .arg( svrPort )
-                     .arg( svrName );
+        QString gameName{ gameNames[ ui->gameName->currentIndex() ] };
+        QString svrPort{ ui->portNumber->text( ) };
+        bool isPublic{ ui->isPublic->isChecked() };
 
-    bool isPublic{ ui->isPublic->isChecked() };
-    if ( isPublic )
-        svrArgs.append( " /Public" );
+        server->setServerID( Settings::getServerID( svrName ) );
+        server->setIsPublic( ui->isPublic->isChecked() );
+        server->setPrivatePort( svrPort.toUShort() );
+        server->setGameName( gameName );
+        server->setLogFiles( true );
+        server->setName( svrName );
 
-    Settings::setIsPublic( QVariant( isPublic ), svrName );
-    Settings::setPortNumber( QVariant( svrPort ), svrName );
-    Settings::setGameName( QVariant( gameName ), svrName );
+        ReMix::getSynRealData( server );
 
-    this->setServerArgs( svrArgs );
-    emit this->accept();
+        Settings::setIsPublic( QVariant( isPublic ), svrName );
+        Settings::setPortNumber( QVariant( svrPort ), svrName );
+        Settings::setGameName( QVariant( gameName ), svrName );
+
+        emit this->createServerAcceptedSignal( server );
+        emit this->accept();
+    }
+    else
+    {
+        QString title{ "Error:" };
+        QString message{ "Servers cannot be initialized without a name!" };
+        Helper::warningMessage( this, title, message );
+    }
 }
 
 void CreateInstance::on_close_clicked()
@@ -198,7 +211,6 @@ void CreateInstance::showEvent(QShowEvent* event)
     if ( event->type() == QEvent::Show )
     {
         ui->gameName->setCurrentIndex( 0 );
-        ui->serverName->setText( "AHitB ReMix Server" );
         ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
         ui->isPublic->setChecked( false );
         this->updateServerList( false );
@@ -206,13 +218,11 @@ void CreateInstance::showEvent(QShowEvent* event)
     event->accept();
 }
 
-void CreateInstance::on_oldServers_currentIndexChanged(int)
+void CreateInstance::on_servers_currentIndexChanged(int)
 {
-    QString svrName{ ui->oldServers->currentText() };
+    QString svrName{ ui->servers->currentText() };
     if ( !svrName.isEmpty() )
     {
-        ui->serverName->setText( svrName );
-
         QString gameName{ Settings::getGameName( svrName ) };
         if ( !gameName.isEmpty() )
         {
@@ -230,19 +240,19 @@ void CreateInstance::on_oldServers_currentIndexChanged(int)
             if ( notFound )
                 ui->gameName->setCurrentIndex( 0 );
         }
-
-        QString svrPort{ Settings::getPortNumber( svrName ) };
-        if ( !svrPort.isEmpty() )
-            ui->portNumber->setText( svrPort );
-        else
-            ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
-
-        bool isPublic{ Settings::getIsPublic( svrName ) };
-        if ( isPublic )
-            ui->isPublic->setChecked( isPublic );
-        else
-            ui->isPublic->setChecked( false );
     }
+
+    QString svrPort{ Settings::getPortNumber( svrName ) };
+    if ( !svrPort.isEmpty() )
+        ui->portNumber->setText( svrPort );
+    else
+        ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
+
+    bool isPublic{ Settings::getIsPublic( svrName ) };
+    if ( isPublic )
+        ui->isPublic->setChecked( isPublic );
+    else
+        ui->isPublic->setChecked( false );
 }
 
 void CreateInstance::on_portNumber_textChanged(const QString &arg1)
@@ -264,4 +274,11 @@ void CreateInstance::on_portNumber_textChanged(const QString &arg1)
         port = this->genPort();
     }
     ui->portNumber->setText( Helper::intToStr( port ) );
+}
+
+void CreateInstance::on_servers_currentTextChanged(const QString &arg1)
+{
+    int index{ ui->servers->findText( arg1 ) };
+    if ( index >= 0 )
+        ui->servers->setCurrentIndex( index );
 }

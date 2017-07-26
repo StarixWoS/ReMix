@@ -41,18 +41,18 @@ class Player : public QObject
     qint32 targetSerNum{ 0 };
     int targetType{ 0 };
 
-    bool pwdRequested{ false };
-    bool enteredPwd{ false };
+    bool svrPwdRequested{ false };
+    bool svrPwdReceived{ false };
     int slotPos{ -1 };
 
-    bool reqAuthPwd{ false };
-    bool gotAuthPwd{ false };
+    bool adminPwdRequested{ false };
+    bool adminPwdReceived{ false };
     qint32 adminRank{ -1 };
 
     qint32 cmdAttempts{ 0 };  //Max limit is 3 attempts before auto-banning.
 
-    bool reqNewAuthPwd{ false };
-    bool gotNewAuthPwd{ false };
+    bool newAdminPwdRequested{ false };
+    bool newAdminPwdReceived{ false };
 
     QElapsedTimer floodTimer;
     int packetFloodCount{ 0 };
@@ -124,8 +124,8 @@ class Player : public QObject
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
-        bool getPwdRequested() const;
-        void setPwdRequested(bool value);
+        bool getSvrPwdRequested() const;
+        void setSvrPwdRequested(bool value);
 
         int getSlotPos() const;
         void setSlotPos(int value);
@@ -136,8 +136,8 @@ class Player : public QObject
         quint32 getPublicPort() const;
         void setPublicPort(const quint32& value);
 
-        bool getEnteredPwd() const;
-        void setEnteredPwd(bool value);
+        bool getSvrPwdReceived() const;
+        void setSvrPwdReceived(bool value);
 
         quint64 getFloodTime() const;
         void restartFloodTimer();
@@ -151,25 +151,22 @@ class Player : public QObject
         quint64 getBytesIn() const;
         void setBytesIn(const quint64& value);
 
-        quint64 getAvgBaudIn() const;
-        void setAvgBaudIn(const quint64& bIn);
-
         int getPacketsOut() const;
         void setPacketsOut(int value);
 
         quint64 getBytesOut() const;
         void setBytesOut(const quint64& value);
 
-        quint64 getAvgBaudOut() const;
-        void setAvgBaudOut(const quint64& bOut);
+        quint64 getAvgBaud(bool out) const;
+        void setAvgBaud(const quint64& bytes, bool out);
 
         void resetAdminAuth();
 
-        bool getReqAuthPwd() const;
-        void setReqAuthPwd(bool value);
+        bool getAdminPwdRequested() const;
+        void setAdminPwdRequested(bool value);
 
-        bool getGotAuthPwd() const;
-        void setGotAuthPwd(bool value);
+        bool getAdminPwdReceived() const;
+        void setAdminPwdReceived(bool value);
 
         bool getIsAdmin();
         qint32 getAdminRank();
@@ -177,11 +174,11 @@ class Player : public QObject
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);
 
-        bool getReqNewAuthPwd() const;
-        void setReqNewAuthPwd(bool value);
+        bool getNewAdminPwdRequested() const;
+        void setNewAdminPwdRequested(bool value);
 
-        bool getGotNewAuthPwd() const;
-        void setGotNewAuthPwd(bool value);
+        bool getNewAdminPwdReceived() const;
+        void setNewAdminPwdReceived(bool value);
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
@@ -199,12 +196,12 @@ class Player : public QObject
         QString getWVar() const;
         void setWVar(const QString& value);
 
-            ServerInfo* getServerInfo() const;
-            void setServerInfo(ServerInfo* value);
+        ServerInfo* getServerInfo() const;
+        void setServerInfo(ServerInfo* value);
 
     signals:
-            void sendRemoteAdminPwdReqSignal(Player* plr);
-            void sendRemoteAdminRegisterSignal(Player* plr);
+            void newAdminPwdRequestedSignal(Player* plr);
+            void newRemoteAdminRegisterSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

@@ -58,7 +58,30 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     [=](QString msg)
     {
         if ( !msg.isEmpty() )
-            server->sendMasterMessage( msg, nullptr, true );
+        {
+            if ( !msg.startsWith( "Owner", Qt::CaseInsensitive ) )
+            {
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    Player* plr = server->getPlayer( i );
+                    if ( plr != nullptr )
+                    {
+                        QTcpSocket* tmpSoc{ plr->getSocket() };
+                        if ( tmpSoc != nullptr  )
+                        {
+                            quint64 bOut = tmpSoc->write( msg.toLatin1(),
+                                                          msg.length() );
+
+                            plr->setBytesOut( plr->getBytesOut() + bOut );
+                            server->setBytesOut( server->getBytesOut() + bOut );
+                        }
+                    }
+                }
+            }
+            else
+                server->sendMasterMessage( msg, nullptr, true );
+
+        }
     });
 
     //Ensure all possible User slots are fillable.
@@ -276,10 +299,10 @@ void Server::newConnectionSlot()
 
     //Connect to our Password Request Signal. This signal is
     //turned on or off by enabling or disabling Admin Auth requirements.
-    QObject::connect( plr, &Player::sendRemoteAdminPwdReqSignal,
-                      this, &Server::sendRemoteAdminPwdReqSlot );
-    QObject::connect( plr, &Player::sendRemoteAdminRegisterSignal,
-                      this, &Server::sendRemoteAdminRegisterSlot );
+    QObject::connect( plr, &Player::newAdminPwdRequestedSignal,
+                      this, &Server::newRemotePwdRequestedSlot );
+    QObject::connect( plr, &Player::newRemoteAdminRegisterSignal,
+                      this, &Server::newRemoteAdminRegisterSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, peer,
@@ -416,7 +439,7 @@ void Server::setupPublicServer(bool value)
     }
 }
 
-void Server::sendRemoteAdminPwdReqSlot(Player* plr)
+void Server::newRemotePwdRequestedSlot(Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -429,12 +452,12 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
     if ( Settings::getReqAdminAuth()
       && plr->getIsAdmin() )
     {
-        plr->setReqAuthPwd( true );
+        plr->setAdminPwdRequested( true );
         plr->sendMessage( msg );
     }
 }
 
-void Server::sendRemoteAdminRegisterSlot(Player* plr)
+void Server::newRemoteAdminRegisterSlot(Player* plr)
 {
     if ( plr == nullptr )
         return;

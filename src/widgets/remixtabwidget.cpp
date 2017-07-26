@@ -13,8 +13,8 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 {
     user = ReMix::getUser();
     createDialog = this->getCreateDialog( this );
-    QObject::connect( createDialog, &CreateInstance::accepted,
-                      this, &ReMixTabWidget::createServerAccepted );
+    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal,
+                      this, &ReMixTabWidget::createServerAcceptedSlot );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -294,17 +294,12 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
     this->setPrevTabIndex( newTab );
 }
 
-void ReMixTabWidget::createServerAccepted()
+void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 {
-    QStringList svrArgs = createDialog->getServerArgs().split( "/" );
-    QString serverName{ createDialog->getServerName() };
-    if ( svrArgs.isEmpty() )
-    {
-        svrArgs << "/game=WoS"
-                << "/fudge"
-                << "/name=Well of Lost Souls ReMix";
-    }
+    if ( server == nullptr )
+        return;
 
+    QString serverName{ server->getName() };
     QString title{ "Unable to Initialize Server:" };
     QString prompt{ "You are unable to initialize two servers with the same"
                     " name!" };
@@ -334,7 +329,7 @@ void ReMixTabWidget::createServerAccepted()
     if ( serverID <= MAX_SERVER_COUNT )
     {
         instanceCount += 1;
-        servers[ serverID ] = new ReMixWidget( this, &svrArgs, serverName );
+        servers[ serverID ] = new ReMixWidget( this, server );
         this->insertTab( serverID, servers[ serverID ], serverName );
 
         Settings::setServerRunning( QVariant( true ), serverName );

@@ -50,8 +50,8 @@ class Server : public QTcpServer
         void userDisconnected(QTcpSocket* socket);
 
     public slots:
-        void sendRemoteAdminPwdReqSlot(Player* plr);
-        void sendRemoteAdminRegisterSlot(Player* plr);
+        void newRemotePwdRequestedSlot(Player* plr);
+        void newRemoteAdminRegisterSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();
