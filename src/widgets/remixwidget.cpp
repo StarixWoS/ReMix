@@ -35,18 +35,14 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
+    //Setup Networking Objects.
+    tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
+                            serverID );
+
     ui->isPublicServer->setChecked( server->getIsPublic() );
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
-
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
     defaultPalette = parent->palette();
 }
 
@@ -55,7 +51,7 @@ ReMixWidget::~ReMixWidget()
     server->sendMasterInfo( true );
 
     if ( ui->isPublicServer->isChecked() )
-        tcpServer->removeUPNPForward();
+        server->setupUPNP( true );
 
     tcpServer->close();
     tcpServer->deleteLater();
@@ -158,7 +154,7 @@ void ReMixWidget::initUIUpdate()
 
         //Update other Info as well.
         QString msg{ "Toggle \"Public Servers\" when ready!" };
-        if ( server->getIsSetUp() )
+        if ( server->getIsPublic() )
         {
             msg = QString( "Listening for incoming calls "
                            "to: <a href=\"%1\"><span style=\" text-decoration: "
@@ -166,37 +162,35 @@ void ReMixWidget::initUIUpdate()
                       .arg( server->getPrivateIP() )
                       .arg( server->getPrivatePort() );
 
-            if ( server->getIsPublic() )
+            if ( server->getSentUDPCheckin() )
             {
-                if ( server->getSentUDPCheckin() )
+                if ( server->getMasterUDPResponse() )
                 {
-                    if ( server->getMasterUDPResponse() )
-                    {
-                        QString msg2 = QString( " ( Port forward from: %1:%2 ) "
-                                                "( Ping: %3 ms, "
-                                                "Avg: %4 ms, "
-                                                "Trend: %5 ms )" )
-                                           .arg( server->getPublicIP() )
-                                           .arg( server->getPublicPort() )
-                                           .arg( server->getMasterPing() )
-                                           .arg( server->getMasterPingAvg() )
-                                           .arg( server->getMasterPingTrend() );
-                        msg.append( msg2 );
-                    }
-                    else
-                    {
-                        msg = { "Sent UDP check-in to Master. "
-                                "Waiting for response..." };
+                    QString msg2 = QString( " ( Port forward from: %1:%2 ) "
+                                            "( Ping: %3 ms, "
+                                            "Avg: %4 ms, "
+                                            "Trend: %5 ms )" )
+                                       .arg( server->getPublicIP() )
+                                       .arg( server->getPublicPort() )
+                                       .arg( server->getMasterPing() )
+                                       .arg( server->getMasterPingAvg() )
+                                       .arg( server->getMasterPingTrend() );
+                    msg.append( msg2 );
+                }
+                else
+                {
+                    msg = { "Sent UDP check-in to Master. "
+                            "Waiting for response..." };
 
-                        if ( server->getMasterTimedOut() )
-                        {
-                            msg = "No UDP response received from master server."
-                                  " Perhaps we are behind a UDP-blocking"
-                                  " firewall?";
-                        }
+                    if ( server->getMasterTimedOut() )
+                    {
+                        msg = "No UDP response received from master server."
+                              " Perhaps we are behind a UDP-blocking"
+                              " firewall?";
                     }
                 }
             }
+
             //Validate the server's IP Address is still valid.
             //If it is now invalid, restart the network sockets.
             if ( Settings::getIsInvalidIPAddress( server->getPrivateIP() ) )
@@ -258,26 +252,9 @@ void ReMixWidget::on_isPublicServer_toggled(bool)
                                 serverID );
     }
 
-    if ( ui->isPublicServer->isChecked() )
-    {
-        //Prepare the Server's Private IP.
-        tcpServer->setupServerInfo();
+    server->setTcpServer( tcpServer );
+    server->setIsPublic( ui->isPublicServer->isChecked() );
 
-        //Setup a connection with the Master Server.
-        tcpServer->setupPublicServer( true );
-        Settings::setIsPublic( QVariant( true ), this->getServerID() );
-
-        //Tell the server to use a UPNP Port Forward.
-        tcpServer->setupUPNPForward();
-    }
-    else
-    {   //Disconnect from the Master Server if applicable.
-        tcpServer->setupPublicServer( false );
-        Settings::setIsPublic( QVariant( false ), this->getServerID() );
-
-        //Remove the UPNP Port Forward if applicable.
-        tcpServer->removeUPNPForward();
-    }
 }
 
 void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
@@ -311,4 +288,5 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
         //blacklisted and removed from selection for use as the Private IP
         //For a more user-friendly method of removing them from the preferences.
     }
+    //contextMenu->popup( this->mapToGlobal( pos ) );
 }

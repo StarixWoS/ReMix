@@ -24,9 +24,9 @@ class Server : public QTcpServer
     ChatView* chatView{ nullptr };
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
-    UPNP* upnp{ nullptr };
 
     QString serverID{ "" };
+
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
                User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr,
@@ -34,10 +34,6 @@ class Server : public QTcpServer
         ~Server();
 
         void setupServerInfo();
-        void setupUPNPForward();
-        void removeUPNPForward();
-        void setupPublicServer(bool value);
-
         void updatePlayerTable(Player* plr, QHostAddress peerAddr,
                                quint16 port);
         QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,

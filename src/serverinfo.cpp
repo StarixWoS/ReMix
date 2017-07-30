@@ -39,18 +39,12 @@ ServerInfo::ServerInfo(QString svrID)
         this->setMasterTimedOut( true );
     });
 
-    //Every 2 Seconds we will attempt to Obtain Master Info.
-    //This will be set to 300000 (5-Minutes) once Master info is obtained.
-    masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
     QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
     [=]()
     {
         this->sendMasterInfo();
         if ( !masterTimeOut.isActive() )
-        {
-            masterCheckIn.stop();
             masterTimeOut.start();
-        }
     });
 
     //Updates the Server's Server Usage array every 10 minutes.
@@ -96,6 +90,55 @@ ServerInfo::~ServerInfo()
         this->deletePlayer( i );
     }
     upTimer.disconnect();
+}
+
+void ServerInfo::setupInfo()
+{
+    QHostAddress addr{ Helper::getPrivateIP() };
+    this->initMasterSocket( addr, this->getPrivatePort() );
+
+    if ( !this->getIsSetUp() )
+    {
+        this->setPrivateIP( addr.toString() );
+        this->setIsSetUp( true );
+    }
+}
+
+void ServerInfo::setupUPNP(bool isDisable)
+{
+    if ( upnp == nullptr )
+        upnp = UPNP::getUpnp( QHostAddress( this->getPrivateIP() ) );
+
+    if ( !isDisable )
+    {
+        bool tunneled = UPNP::getTunneled();
+        if ( !tunneled )
+        {
+            QObject::connect( upnp, &UPNP::success, upnp,
+            [=]()
+            {
+                upnp->checkPortForward( "TCP", this->getPrivatePort() );
+                upnp->checkPortForward( "UDP", this->getPrivatePort() );
+                upnp->disconnect();
+            });
+            upnp->makeTunnel( this->getPrivatePort(), this->getPublicPort() );
+        }
+        else
+        {
+            upnp->checkPortForward( "TCP", this->getPrivatePort() );
+            upnp->checkPortForward( "UDP", this->getPrivatePort() );
+        }
+    }
+    else
+    {
+        //Add a delay of one second after each removal command.
+        //This is to ensure the command is sent.
+        upnp->removePortForward( "TCP", this->getPrivatePort() );
+        Helper::delay( 1 );
+
+        upnp->removePortForward( "UDP", this->getPrivatePort() );
+        Helper::delay( 1 );
+    }
 }
 
 QString ServerInfo::getMasterInfoHost() const
@@ -225,9 +268,6 @@ void ServerInfo::sendMasterInfo(bool disconnect)
     {
         if ( this->getIsSetUp() )
         {
-            //Store the Master Server Check-In time.
-            this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
-
             response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
                          "port=%7,info=%8,name=%9" };
             response = response.arg( this->getVersionID() )
@@ -245,6 +285,9 @@ void ServerInfo::sendMasterInfo(bool disconnect)
     if ( !response.isEmpty()
       && this->getIsSetUp() )
     {
+        //Store the Master Server Check-In time.
+        this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
+
         this->sendUDPData( addr, port, response );
         this->setSentUDPCheckIn( true );
     }
@@ -571,7 +614,33 @@ bool ServerInfo::getIsPublic() const
 
 void ServerInfo::setIsPublic(bool value)
 {
+    if ( value )
+    {
+        //Tell the server to use a UPNP Port Forward.
+        this->setupUPNP( false );
+
+        if ( !this->getIsSetUp() )
+            this->setupInfo();
+
+        this->setMasterUDPResponse( false );
+        this->startMasterCheckIn();
+
+        Server* server{ this->getTcpServer() };
+        if ( server != nullptr )
+            server->setupServerInfo();
+    }
+    else
+    {
+        //Disconnect from the Master Server if applicable.
+        this->setupUPNP( true );
+
+        this->stopMasterCheckIn();
+        this->sendMasterInfo( true );
+        this->setMasterUDPResponse( false );
+    }
+
     isPublic = value;
+    Settings::setIsPublic( QVariant( value ), this->getServerID() );
 }
 
 bool ServerInfo::getIsMaster() const
@@ -820,6 +889,12 @@ void ServerInfo::setMasterTimedOut(bool value)
 
 void ServerInfo::startMasterCheckIn()
 {
+    if ( !masterCheckIn.isActive() )
+    {
+        //Every 2 Seconds we will attempt to Obtain Master Info.
+        //This will be set to 300000 (5-Minutes) once Master info is obtained.
+        masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
+    }
     masterCheckIn.start();
 }
 
@@ -911,4 +986,14 @@ quint32 ServerInfo::getUsageDays() const
 quint32 ServerInfo::getUsageMins() const
 {
     return usageMins;
+}
+
+Server* ServerInfo::getTcpServer() const
+{
+    return tcpServer;
+}
+
+void ServerInfo::setTcpServer(Server* value)
+{
+    tcpServer = value;
 }

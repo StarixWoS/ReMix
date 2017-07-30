@@ -217,63 +217,11 @@ ChatView* Server::getChatView() const
 
 void Server::setupServerInfo()
 {
-    if ( !server->getIsSetUp() )
-    {
-        QHostAddress addr{ Helper::getPrivateIP() };
-        server->setPrivateIP( addr.toString() );
+    if ( this->isListening() )
+        this->close();
 
-        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
-        server->initMasterSocket( addr, server->getPrivatePort() );
-
-        if ( this->isListening() )
-            this->close();
-
-        this->listen( addr, server->getPrivatePort() );
-
-        server->setIsSetUp( true );
-        if ( server->getIsPublic() && this->isListening() )
-            server->sendMasterInfo();
-    }
-}
-
-void Server::setupUPNPForward()
-{
-    if ( upnp == nullptr )
-    {
-        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
-    }
-
-    bool tunneled = UPNP::getTunneled();
-    if ( !tunneled )
-    {
-        QObject::connect( upnp, &UPNP::success, upnp,
-        [=]()
-        {
-            upnp->checkPortForward( "TCP", server->getPrivatePort() );
-            upnp->checkPortForward( "UDP", server->getPrivatePort() );
-            upnp->disconnect();
-        });
-        upnp->makeTunnel( server->getPrivatePort(), server->getPublicPort() );
-    }
-    else
-    {
-        upnp->checkPortForward( "TCP", server->getPrivatePort() );
-        upnp->checkPortForward( "UDP", server->getPrivatePort() );
-    }
-}
-
-void Server::removeUPNPForward()
-{
-    if ( upnp != nullptr )
-    {
-        //Add a delay of one second after each removal command.
-        //This is to ensure the command is sent.
-        upnp->removePortForward( "TCP", server->getPrivatePort() );
-        Helper::delay( 1 );
-
-        upnp->removePortForward( "UDP", server->getPrivatePort() );
-        Helper::delay( 1 );
-    }
+    this->listen( QHostAddress( server->getPrivateIP() ),
+                  server->getPrivatePort() );
 }
 
 void Server::newConnectionSlot()
@@ -417,25 +365,6 @@ void Server::readyReadUDPSlot()
         pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
         if ( socket->hasPendingDatagrams() )
             emit socket->readyRead();
-    }
-}
-
-void Server::setupPublicServer(bool value)
-{
-    if ( value != server->getIsPublic() )
-    {
-        if ( !server->getIsPublic() )
-        {
-            server->startMasterCheckIn();
-            server->sendMasterInfo( false );
-            server->setMasterUDPResponse( false );
-        }
-        else
-        {
-            server->stopMasterCheckIn();
-            server->sendMasterInfo( true );
-        }
-        server->setIsPublic( value );
     }
 }
 

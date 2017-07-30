@@ -10,6 +10,9 @@
 class ServerInfo
 {
     QUdpSocket* masterSocket{ nullptr };
+    Server* tcpServer{ nullptr };
+    UPNP* upnp{ nullptr };
+
     QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
 
     QTimer upTimer;
@@ -88,6 +91,9 @@ class ServerInfo
     public:
         ServerInfo(QString svrID = "0");
         ~ServerInfo();
+
+        void setupInfo();
+        void setupUPNP(bool isDisable = false);
 
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
 
@@ -236,6 +242,9 @@ class ServerInfo
         quint32 getUsageHours() const;
         quint32 getUsageDays() const;
         quint32 getUsageMins() const;
+
+        Server* getTcpServer() const;
+        void setTcpServer(Server* value);
 };
 
 #endif // SERVERINFO_HPP

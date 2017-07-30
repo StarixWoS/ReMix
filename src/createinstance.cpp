@@ -106,14 +106,13 @@ void CreateInstance::on_initializeServer_clicked()
         QString svrPort{ ui->portNumber->text( ) };
         bool isPublic{ ui->isPublic->isChecked() };
 
+        ReMix::getSynRealData( server );
         server->setServerID( Settings::getServerID( svrName ) );
-        server->setIsPublic( ui->isPublic->isChecked() );
         server->setPrivatePort( svrPort.toUShort() );
         server->setGameName( gameName );
         server->setLogFiles( true );
         server->setName( svrName );
-
-        ReMix::getSynRealData( server );
+        server->setIsPublic( ui->isPublic->isChecked() );
 
         Settings::setIsPublic( QVariant( isPublic ), svrName );
         Settings::setPortNumber( QVariant( svrPort ), svrName );
