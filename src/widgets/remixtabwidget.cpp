@@ -40,7 +40,7 @@ ReMixTabWidget::~ReMixTabWidget()
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
         {
             Settings::setServerRunning( QVariant( false ),
@@ -56,7 +56,7 @@ void ReMixTabWidget::sendMultiServerMessage(QString msg)
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
             server->sendServerMessage( msg );
     }
@@ -69,7 +69,7 @@ quint32 ReMixTabWidget::getPlayerCount()
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
             playerCount += server->getPlayerCount();
     }
@@ -83,7 +83,7 @@ quint32 ReMixTabWidget::getServerCount()
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
             ++serverCount;
     }
@@ -126,6 +126,7 @@ CreateInstance* ReMixTabWidget::getCreateDialog(QWidget* parent)
     return createDialog;
 }
 
+#include <QLabel>
 void ReMixTabWidget::createTabButtons()
 {
     newTabButton = new QToolButton( this );
@@ -233,9 +234,10 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                                   "User(s) connected to it.\r\n\r\nAre you "
                                   "certain?" );
 
-        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+        for ( int i = 0; (i < MAX_SERVER_COUNT)
+                      || (i < serverMap.size()); ++i )
         {
-            instance = servers[ i ];
+            instance = serverMap.value( i );
             if ( instance != nullptr )
             {
                 if ( widget == instance )
@@ -252,15 +254,17 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                         Settings::setServerRunning( QVariant( false ),
                                                     instance->getServerName() );
 
+                        serverMap.remove( i );
+                        this->removeTab( index );
+
                         //Last Server instance. Close ReMix.
                         instanceCount -= 1;
                         if ( instanceCount == 0 )
-                        {
                             createDialog->show();
-                        }
-
-                        servers[ i ] = nullptr;
-                        this->removeTab( index );
+                        else if ( instanceCount == 1 )
+                            this->setCurrentIndex( 0 );
+                        else
+                            this->setCurrentIndex( index - 1 );
 
                         instance->close();
                         instance->deleteLater();
@@ -285,7 +289,7 @@ void ReMixTabWidget::currentChangedSlot(quint32 newTab)
     if ( instanceCount == 0 )
         return;
 
-    ReMixWidget* server{ servers[ newTab ] };
+    ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
     {
         ReMix::updateTitleBars( server->getServerID(),
@@ -309,7 +313,7 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
         serverID = MAX_SERVER_COUNT + 1;
-        instance = servers[ i ];
+        instance = serverMap.value( i );
         if ( instance == nullptr )
         {
             serverID = i;
@@ -329,8 +333,11 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
     if ( serverID <= MAX_SERVER_COUNT )
     {
         instanceCount += 1;
-        servers[ serverID ] = new ReMixWidget( this, server );
-        this->insertTab( serverID, servers[ serverID ], serverName );
+        serverMap.insert( serverID, new ReMixWidget( this, server ) );
+        this->insertTab( serverMap.size() - 1,
+                         serverMap.value( serverID ),
+                         serverName );
+        this->setCurrentIndex( serverID );
 
         Settings::setServerRunning( QVariant( true ), serverName );
     }

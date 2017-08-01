@@ -66,6 +66,10 @@ Games ChatView::getGameID() const
 
 void ChatView::parsePacket(QString& packet, QString alias)
 {
+    //We were unable to load our PacketForge library, return.
+    if ( pktForge == nullptr )
+        return;
+
     QString pkt{ packet };
     if ( this->getGameID() != Games::W97 )
     {

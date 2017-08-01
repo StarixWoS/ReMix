@@ -7,6 +7,7 @@
 //Required Qt Includes..
 #include <QTabWidget>
 #include <QObject>
+#include <QMap>
 
 class ReMixTabWidget : public QTabWidget
 {
@@ -22,7 +23,7 @@ class ReMixTabWidget : public QTabWidget
     QToolButton* chatButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
-    ReMixWidget* servers[ MAX_SERVER_COUNT ]{ nullptr };
+    QMap<int, ReMixWidget*> serverMap;
     User* user{ nullptr };
 
     quint32 prevTabIndex{ 0 };
