@@ -11,6 +11,9 @@ QPalette ReMixTabWidget::customPalette;
 ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     : QTabWidget(parent)
 {
+    //Allow ServerInstance Tabs to be swapped and moved.
+    this->setMovable( true );
+
     user = ReMix::getUser();
     createDialog = this->getCreateDialog( this );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal,
@@ -29,6 +32,18 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( this, &QTabWidget::currentChanged,
                       this, &ReMixTabWidget::currentChangedSlot );
 
+    //Refresh the server instance's ServerID when the Tabs are moved.
+    QObject::connect( this->tabBar(), &QTabBar::tabMoved, [=](int from, int to)
+    {
+        ReMixWidget* tabA{ serverMap.take( from) };
+        ReMixWidget* tabB{ serverMap.take( to ) };
+
+        if ( tabA != nullptr )
+            serverMap.insert( to, tabA );
+
+        if ( tabB != nullptr )
+            serverMap.insert( from, tabB );
+    });
     defaultPalette = this->palette();
 }
 
