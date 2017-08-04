@@ -640,7 +640,7 @@ void ServerInfo::setIsPublic(bool value)
     }
 
     isPublic = value;
-    Settings::setIsPublic( QVariant( value ), this->getServerID() );
+    Settings::setIsPublic( QVariant( value ), this->getName() );
 }
 
 bool ServerInfo::getIsMaster() const
