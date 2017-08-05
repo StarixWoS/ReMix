@@ -34,10 +34,7 @@ class ReMixWidget : public QWidget
 
     QString serverID{ "" };
 
-    enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
-                   FUDGE = 5 };
     enum Themes{ LIGHT = 0, DARK = 1 };
-    static const QStringList cmdlArgs;
 
     public:
         explicit ReMixWidget(QWidget* parent = nullptr,

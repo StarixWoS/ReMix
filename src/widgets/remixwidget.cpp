@@ -3,13 +3,6 @@
 #include "remixwidget.hpp"
 #include "ui_remixwidget.h"
 
-//Initialize our accepted Commandline Argument List.
-const QStringList ReMixWidget::cmdlArgs =
-{
-    QStringList() << "game" << "master" << "public"
-                  << "listen" << "name" << "fudge"
-};
-
 ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)

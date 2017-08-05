@@ -407,8 +407,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
              .arg( arg2 )
              .arg( message );
 
-    if ( retn && canUseCommands )
-        plr->sendMessage( msg );
+    //The command was a Message, do not send command information to
+    //online Users.
+    if ( argIndex != CMDS::MSG )
+    {
+        if ( retn && canUseCommands )
+            plr->sendMessage( msg );
+    }
 
     if ( logMsg )
     {
