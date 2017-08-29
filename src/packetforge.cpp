@@ -28,6 +28,10 @@ PacketForge* PacketForge::getInstance()
 
 QString PacketForge::decryptPacket(QString packet)
 {
+    //Player positioning packets, return an empty string.
+    if ( packet.startsWith( ":SR?" ) || packet.startsWith( ":SR!" ) )
+        return QString( "" );
+
     if ( decryptPkt )
     {
         return decryptPkt( packet );
@@ -39,7 +43,8 @@ bool PacketForge::validateSerNum(QString packet, QString sernum)
 {
     QString pkt{ this->decryptPacket( packet ) };
 
-    //The packet is empty, mark as a valid comparison.
+    //The packet is empty or is a positioning packet,
+    //mark as a valid comparison.
     if ( pkt.isEmpty() )
         return true;
 

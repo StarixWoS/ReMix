@@ -32,13 +32,6 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
     this->detectFlooding( plr );
     if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
     {
-        if ( !pktForge->validateSerNum( packet, soulID ) )
-        {
-            //Ban?
-            plr->setNetworkMuted( true );
-            return;
-        }
-
         if ( !!this->checkBannedInfo( plr ) )
         {
             //Prevent Users from Impersonating the Server Admin.
@@ -51,6 +44,13 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
 
             if ( !plr->getNetworkMuted() )
             {
+                if ( !pktForge->validateSerNum( packet, soulID ) )
+                {
+                    //Ban?
+                    plr->setNetworkMuted( true );
+                    return;
+                }
+
                 this->parseSRPacket( packet, plr );
 
                 if ( chatView->getGameID() != Games::Invalid )
