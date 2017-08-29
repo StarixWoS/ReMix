@@ -645,6 +645,18 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         }
     }
 
+    if ( id == 1 || this->getSernum_i() == 1 )
+    {
+
+        QString masterIP{ server->getMasterIP() };
+        QString socketIP{ this->getPublicIP() };
+        if ( !masterIP.compare( socketIP, Qt::CaseInsensitive ) == 0 )
+        {
+            //Ban IP?
+            this->setNetworkMuted( true );
+        }
+    }
+
     if ( this->getDisconnected()
       && server != nullptr )
     {

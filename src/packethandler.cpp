@@ -4,6 +4,7 @@
 
 PacketHandler::PacketHandler(User* usr, ServerInfo* svr, ChatView* chat, QString svrID)
 {
+    pktForge = PacketForge::getInstance();
     serverID = svrID;
     chatView = chat;
     server = svr;
@@ -24,9 +25,20 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
     if ( plr == nullptr )
         return;
 
+    QString soulID{ plr->getSernumHex_s() };
+    if ( soulID.isEmpty() )
+        return;
+
     this->detectFlooding( plr );
     if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
     {
+        if ( !pktForge->validateSerNum( packet, soulID ) )
+        {
+            //Ban?
+            plr->setNetworkMuted( true );
+            return;
+        }
+
         if ( !!this->checkBannedInfo( plr ) )
         {
             //Prevent Users from Impersonating the Server Admin.

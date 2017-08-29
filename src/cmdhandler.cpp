@@ -387,7 +387,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case CMDS::VERSION: //17
             {
-                QString ver{ "ReMix Version: [ 2.0.1 ]" };
+                QString ver{ "ReMix Version: [ 2.1.0 ]" };
                 if ( plr != nullptr )
                     plr->sendMessage( ver );
             }

@@ -22,6 +22,7 @@ class PacketForge
 
         //Wrappers for our imported functions.
         QString decryptPacket(QString packet);
+        bool validateSerNum(QString packet, QString sernum);
 };
 
 #endif // PACKETFORGE_HPP

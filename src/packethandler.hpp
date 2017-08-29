@@ -12,6 +12,7 @@ class PacketHandler : public QObject
 {
     Q_OBJECT
 
+    PacketForge* pktForge{ nullptr };
     CmdHandler* cmdHandle{ nullptr };
     ServerInfo* server{ nullptr };
     ChatView* chatView{ nullptr };

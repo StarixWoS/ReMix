@@ -41,6 +41,8 @@ class ReMixWidget : public QWidget
                              ServerInfo* svrInfo = nullptr);
         ~ReMixWidget();
 
+        ServerInfo* getServerInfo();
+
         void sendServerMessage(QString msg);
         qint32 getPlayerCount();
         QString getServerName() const;
