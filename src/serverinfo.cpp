@@ -119,7 +119,6 @@ void ServerInfo::setupUPNP(bool isDisable)
             {
                 upnp->checkPortForward( "TCP", this->getPrivatePort() );
                 upnp->checkPortForward( "UDP", this->getPrivatePort() );
-                upnp->disconnect();
             });
             upnp->makeTunnel( this->getPrivatePort(), this->getPublicPort() );
         }
@@ -192,7 +191,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
         return;
 
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
-                      "//ReMix[ 2.1.1 ]" };
+                      "//ReMix[ 2.1.2 ]" };
 
     response = response.arg( this->getName() );
     if ( !this->getGameInfo().isEmpty() )
@@ -616,11 +615,11 @@ void ServerInfo::setIsPublic(bool value)
 {
     if ( value )
     {
-        //Tell the server to use a UPNP Port Forward.
-        this->setupUPNP( false );
-
         if ( !this->getIsSetUp() )
             this->setupInfo();
+
+        //Tell the server to use a UPNP Port Forward.
+        this->setupUPNP( false );
 
         this->setMasterUDPResponse( false );
         this->startMasterCheckIn();

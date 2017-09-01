@@ -39,7 +39,7 @@ QString PacketForge::decryptPacket(QString packet)
     return QString( "" );
 }
 
-bool PacketForge::validateSerNum(QString packet, QString sernum)
+bool PacketForge::validateSerNum(Player* plr, QString packet)
 {
     QString pkt{ this->decryptPacket( packet ) };
 
@@ -49,8 +49,22 @@ bool PacketForge::validateSerNum(QString packet, QString sernum)
         return true;
 
     QString srcSerNum = pkt.left( 12 ).mid( 4 );
-    if ( srcSerNum.compare( sernum, Qt::CaseInsensitive ) == 0 )
+    //Unable to extract a SerNum from the incoming packet,
+    //mark as valid.
+    if ( srcSerNum.isEmpty() )
         return true;
+
+    if ( srcSerNum.compare( plr->getSernumHex_s(), Qt::CaseInsensitive ) == 0 )
+        return true;
+
+    QString msg{ "Automatic Network Mute of [ %1 ] due to a "
+                 "SerNum Missmatch; Tried sending [ %2 ] as "
+                 "[ %3 ] while connected as [ %4 ]." };
+            msg = msg.arg( plr->getSernum_s() )
+                     .arg( pkt )
+                     .arg( srcSerNum )
+                     .arg( plr->getSernumHex_s() );
+    plr->setNetworkMuted( true, msg );
 
     return false;
 }

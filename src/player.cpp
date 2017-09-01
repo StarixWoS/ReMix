@@ -614,8 +614,13 @@ bool Player::getNetworkMuted() const
     return networkMuted;
 }
 
-void Player::setNetworkMuted(bool value)
+void Player::setNetworkMuted(bool value, QString& msg)
 {
+    QString log{ "logs/muteLog.txt" };
+    if ( !msg.isEmpty() )
+    {
+        Helper::logToFile( log, msg, true, true );
+    }
     networkMuted = value;
 }
 
@@ -650,10 +655,16 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
 
         QString masterIP{ server->getMasterIP() };
         QString socketIP{ this->getPublicIP() };
-        if ( !masterIP.compare( socketIP, Qt::CaseInsensitive ) == 0 )
+        if ( !( masterIP.compare( socketIP, Qt::CaseInsensitive ) == 0 ) )
         {
             //Ban IP?
-            this->setNetworkMuted( true );
+            QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
+                         "usage of <[ Soul 1 ][ %1 ]> while connecting from an "
+                         "improper IP Address." };
+                    msg = msg.arg( this->getSernum_s() )
+                             .arg( socketIP )
+                             .arg( masterIP );
+            this->setNetworkMuted( true, msg );
         }
     }
 

@@ -25,10 +25,6 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
     if ( plr == nullptr )
         return;
 
-    QString soulID{ plr->getSernumHex_s() };
-    if ( soulID.isEmpty() )
-        return;
-
     this->detectFlooding( plr );
     if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
     {
@@ -44,12 +40,8 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
 
             if ( !plr->getNetworkMuted() )
             {
-                if ( !pktForge->validateSerNum( packet, soulID ) )
-                {
-                    //Ban?
-                    plr->setNetworkMuted( true );
+                if ( !pktForge->validateSerNum( plr, packet ) )
                     return;
-                }
 
                 this->parseSRPacket( packet, plr );
 

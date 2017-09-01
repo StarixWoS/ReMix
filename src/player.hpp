@@ -186,7 +186,7 @@ class Player : public QObject
         void setDisconnected(bool value);
 
         bool getNetworkMuted() const;
-        void setNetworkMuted(bool value);
+        void setNetworkMuted(bool value, QString& msg);
 
         void validateSerNum(ServerInfo* server, quint32 id);
 

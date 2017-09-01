@@ -272,7 +272,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( !arg1.isEmpty()
                   && canUseCommands )
                 {
-                    this->muteHandler( arg1, argIndex, all );
+                    this->muteHandler( plr, arg1, argIndex, message, all );
                 }
                 retn = true;
             }
@@ -387,7 +387,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case CMDS::VERSION: //17
             {
-                QString ver{ "ReMix Version: [ 2.1.1 ]" };
+                QString ver{ "ReMix Version: [ 2.1.2 ]" };
                 if ( plr != nullptr )
                     plr->sendMessage( ver );
             }
@@ -500,8 +500,12 @@ void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
     }
 }
 
-void CmdHandler::muteHandler(QString& arg1, qint32 argIndex, bool all)
+void CmdHandler::muteHandler(Player* plr, QString& arg1, qint32 argIndex,
+                             QString& message, bool all)
 {
+    QString msg{ "Remote-Admin [ %1 ] %2 [ %3 ]'s Network. "
+                 "Reason: [ %4 ]." };
+
     Player* tmpPlr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -512,10 +516,19 @@ void CmdHandler::muteHandler(QString& arg1, qint32 argIndex, bool all)
               || tmpPlr->getSernum_s() == arg1
               || all )
             {
+                msg = msg.arg( plr->getSernum_s() )
+                          .arg( argIndex == CMDS::MUTE
+                              ? "Muted"
+                              : "Un-Muted" )
+                          .arg( arg1 )
+                          .arg( message.isEmpty()
+                              ? "No Reason!"
+                              : message );
+
                 if ( argIndex == CMDS::MUTE )
-                    tmpPlr->setNetworkMuted( true );
+                    tmpPlr->setNetworkMuted( true, msg );
                 else
-                    tmpPlr->setNetworkMuted( false );
+                    tmpPlr->setNetworkMuted( false, msg );
             }
         }
     }

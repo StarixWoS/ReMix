@@ -36,7 +36,8 @@ class CmdHandler : public QObject
 
         void unBanhandler(QString& argType, QString& arg1);
         void kickHandler(QString& arg1, QString& message, bool all);
-        void muteHandler(QString& arg1, qint32 argIndex, bool all);
+        void muteHandler(Player* plr, QString& arg1, qint32 argIndex,
+                         QString& message, bool all);
         void msgHandler(QString& arg1, QString& message, bool all);
 
         void loginHandler(Player* plr, QString& argType);

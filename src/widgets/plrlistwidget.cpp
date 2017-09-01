@@ -192,7 +192,12 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         prompt = prompt.arg( menuTarget->getSernum_s() );
 
         if ( Helper::confirmAction( this, title, prompt ) )
-            menuTarget->setNetworkMuted( mute );
+        {
+            QString msg{ "Manual %1 of [ %2 ] by Server Owner." };
+                    msg = msg.arg( mute ? "Mute" : "UnMute" )
+                             .arg( menuTarget->getSernum_s() );
+            menuTarget->setNetworkMuted( mute, msg );
+        }
     }
     menuTarget = nullptr;
 }
