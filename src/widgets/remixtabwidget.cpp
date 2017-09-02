@@ -49,7 +49,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
 ReMixTabWidget::~ReMixTabWidget()
 {
-    chatButton->deleteLater();
+    nightModeButton->deleteLater();
     newTabButton->deleteLater();
 
     ReMixWidget* server{ nullptr };
@@ -153,16 +153,25 @@ void ReMixTabWidget::createTabButtons()
     QObject::connect( newTabButton, &QToolButton::clicked,
                       this, &ReMixTabWidget::createServer );
 
-//    chatButton = new QToolButton( this );
-//    chatButton->setCursor( Qt::ArrowCursor );
-//    chatButton->setText( "Show Chat" );
+    nightModeButton = new QToolButton( this );
+    nightModeButton->setCursor( Qt::ArrowCursor );
+    nightModeButton->setText( "Night Mode" );
 
-//    this->setCornerWidget( chatButton, Qt::TopRightCorner );
-//    QObject::connect( chatButton, &QToolButton::clicked, chatButton,
-//    [=]()
-//    {
+    this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
+    QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
+    {
+        qint32 type{ 1 };
+        if ( nightMode )
+        {
+            nightModeButton->setText( "Night Mode" );
+            type = 0;
+        }
+        else
+            nightModeButton->setText( "Normal Mode" );
 
-//    } );
+        this->applyThemes( type );
+        nightMode = !nightMode;
+    } );
 }
 
 void ReMixTabWidget::createServer()
