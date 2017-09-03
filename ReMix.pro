@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-VERSION = 2.1.4
+VERSION = 2.1.6 # major.minor.patch
+
 QT += core \
       gui \
       widgets \
@@ -35,8 +36,13 @@ CONFIG(release, debug|release) {
     OBJECTS_DIR = "./build-$$QT_VERSION/debug/obj"
 }
 
-ICON = "./resources/ReMix.ico"
-win32:RC_FILE += "./resources/ReMix.rc"
+DEFINES += REMIX_VERSION=\\\"$${VERSION}\\\"
+win32:QMAKE_TARGET_COMPANY = AHitB
+win32:QMAKE_TARGET_PRODUCT = ReMix-$${VERSION}
+win32:QMAKE_TARGET_DESCRIPTION = "A replacement for the synthetic-reality Mix Game Server!"
+
+win32:RC_ICONS += "./resources/ReMix.ico"
+else:ICON += "./resources/ReMix.ico"
 
 SOURCES += src/tblview/usersortproxymodel.cpp\
            src/tblview/plrsortproxymodel.cpp \
@@ -114,3 +120,5 @@ FORMS += ui/widgets/settingswidget.ui \
          ui/user.ui
 
 RESOURCES += resources/icons.qrc
+
+DISTFILES +=

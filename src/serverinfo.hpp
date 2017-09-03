@@ -107,7 +107,6 @@ class ServerInfo
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
         int getQItemSlot(QStandardItem* index);
-        int getIPAddrSlot(QString ip);
 
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);

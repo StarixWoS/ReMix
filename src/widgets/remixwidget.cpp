@@ -33,6 +33,10 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
                             serverID );
     server->setTcpServer( tcpServer );
 
+    //Initialize the TCP Server if we're starting as a public instance.
+    if ( server->getIsPublic() )
+        tcpServer->setupServerInfo();
+
     ui->isPublicServer->setChecked( server->getIsPublic() );
 
     //Create Timer Lambda to update our UI.

@@ -362,7 +362,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
                          serverMap.value( serverID ),
                          serverName );
         this->setCurrentIndex( serverID );
-
         Settings::setServerRunning( QVariant( true ), serverName );
     }
 }

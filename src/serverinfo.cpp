@@ -400,21 +400,6 @@ int ServerInfo::getQItemSlot(QStandardItem* index)
     return slot;
 }
 
-int ServerInfo::getIPAddrSlot(QString ip)
-{
-    int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        if ( players[ i ] != nullptr
-          && players[ i ]->getPublicIP() == ip )
-        {
-            slot = i;
-            break;
-        }
-    }
-    return slot;
-}
-
 void ServerInfo::sendServerRules(Player* plr)
 {
     QTcpSocket* soc{ nullptr };
@@ -621,6 +606,12 @@ bool ServerInfo::getIsPublic() const
 
 void ServerInfo::setIsPublic(bool value)
 {
+    isPublic = value;
+    Settings::setIsPublic( QVariant( value ), this->getName() );
+
+    this->setMasterUDPResponse( false );
+    this->setSentUDPCheckIn( false );
+
     if ( value )
     {
         if ( !this->getIsSetUp() )
@@ -629,7 +620,6 @@ void ServerInfo::setIsPublic(bool value)
         //Tell the server to use a UPNP Port Forward.
         this->setupUPNP( false );
 
-        this->setMasterUDPResponse( false );
         this->startMasterCheckIn();
 
         Server* server{ this->getTcpServer() };
@@ -639,15 +629,10 @@ void ServerInfo::setIsPublic(bool value)
     else
     {
         //Disconnect from the Master Server if applicable.
-        this->setupUPNP( true );
-
         this->stopMasterCheckIn();
         this->sendMasterInfo( true );
-        this->setMasterUDPResponse( false );
+        this->setupUPNP( true );
     }
-
-    isPublic = value;
-    Settings::setIsPublic( QVariant( value ), this->getName() );
 }
 
 bool ServerInfo::getIsMaster() const
@@ -886,12 +871,10 @@ void ServerInfo::setMasterTimedOut(bool value)
 
 void ServerInfo::startMasterCheckIn()
 {
-    if ( !masterCheckIn.isActive() )
-    {
-        //Every 2 Seconds we will attempt to Obtain Master Info.
-        //This will be set to 300000 (5-Minutes) once Master info is obtained.
-        masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
-    }
+    //Every 2 Seconds we will attempt to Obtain Master Info.
+    //This will be set to 300000 (5-Minutes) once Master info is obtained.
+
+    masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
     masterCheckIn.start();
 }
 
