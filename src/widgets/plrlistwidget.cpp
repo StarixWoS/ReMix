@@ -230,12 +230,15 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                 server->setIpDc( server->getIpDc() + 1 );
             }
 
-            QString log{ "logs/DCLog.txt" };
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                    logMsg = logMsg.arg( reason )
-                                   .arg( menuTarget->getSernum_s() )
-                                   .arg( menuTarget->getBioData() );
-            Helper::logToFile( log, logMsg, true, true );
+            if ( Settings::getLogFiles() )
+            {
+                QString log{ "logs/DCLog.txt" };
+                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                logMsg = logMsg.arg( reason )
+                         .arg( menuTarget->getSernum_s() )
+                         .arg( menuTarget->getBioData() );
+                Helper::logToFile( log, logMsg, true, true );
+            }
         }
     }
     menuTarget = nullptr;
@@ -269,12 +272,15 @@ void PlrListWidget::on_actionBANISHUser_triggered()
                 server->setIpDc( server->getIpDc() + 1 );
             }
 
-            QString log{ "logs/BanLog.txt" };
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                    logMsg = logMsg.arg( reason )
-                                   .arg( menuTarget->getSernum_s() )
-                                   .arg( menuTarget->getBioData() );
-            Helper::logToFile( log, logMsg, true, true );
+            if ( Settings::getLogFiles() )
+            {
+                QString log{ "logs/BanLog.txt" };
+                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                        logMsg = logMsg.arg( reason )
+                                       .arg( menuTarget->getSernum_s() )
+                                       .arg( menuTarget->getBioData() );
+                Helper::logToFile( log, logMsg, true, true );
+            }
         }
     }
     menuTarget = nullptr;

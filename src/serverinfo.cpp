@@ -106,8 +106,15 @@ void ServerInfo::setupInfo()
 
 void ServerInfo::setupUPNP(bool isDisable)
 {
+    QHostAddress localIP{ QHostAddress( this->getPrivateIP() ) };
     if ( upnp == nullptr )
-        upnp = UPNP::getUpnp( QHostAddress( this->getPrivateIP() ) );
+    {
+        //We are not able to UPNP forward for a MultiCast IP Address.
+        if ( localIP == QHostAddress::AnyIPv4 )
+            return;
+
+        upnp = UPNP::getUpnp( localIP );
+    }
 
     if ( !isDisable )
     {
@@ -191,7 +198,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
         return;
 
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
-                      "//ReMix[ 2.1.3 ]" };
+                      "//ReMix[ 2.1.4 ]" };
 
     response = response.arg( this->getName() );
     if ( !this->getGameInfo().isEmpty() )
@@ -316,7 +323,7 @@ void ServerInfo::deletePlayer(int slot)
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
     {
-        if ( this->getLogFiles() )
+        if ( Settings::getLogFiles() )
         {
             QString log{ QDate::currentDate()
                           .toString( "logs/UsageLog.txt" ) };
@@ -833,16 +840,6 @@ quint64 ServerInfo::getBaudIn() const
 quint64 ServerInfo::getBaudOut() const
 {
     return baudOut;
-}
-
-bool ServerInfo::getLogFiles() const
-{
-    return logFiles;
-}
-
-void ServerInfo::setLogFiles(bool value)
-{
-    logFiles = value;
 }
 
 bool ServerInfo::getSentUDPCheckin() const

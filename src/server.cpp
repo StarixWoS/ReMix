@@ -221,7 +221,7 @@ void Server::setupServerInfo()
         this->close();
 
     this->listen( QHostAddress( server->getPrivateIP() ),
-                  server->getPrivatePort() );
+                                server->getPrivatePort() );
 }
 
 void Server::newConnectionSlot()

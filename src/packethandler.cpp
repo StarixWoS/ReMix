@@ -284,7 +284,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                                .arg( ipAddr.toString() )
                                                .arg( port )
                                                .arg( data );
-                                logMsg = true;
+                                logMsg = Settings::getLogFiles();
                             }
                             else
                             {
@@ -318,7 +318,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                        .arg( ipAddr.toString() )
                        .arg( port )
                        .arg( data );
-        logMsg = true;
+        logMsg = Settings::getLogFiles();
     }
 
     if ( logMsg )

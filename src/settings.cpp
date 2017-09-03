@@ -36,7 +36,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "worldDir",
     "portNumber",
     "isPublic",
-    "gameName"
+    "gameName",
+    "logFiles"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -306,6 +307,19 @@ bool Settings::getLogComments()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::LogComments ] )
+              .toBool();
+}
+
+void Settings::setLogFiles(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::LogFiles ], value );
+}
+
+bool Settings::getLogFiles()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::LogFiles ] )
               .toBool();
 }
 

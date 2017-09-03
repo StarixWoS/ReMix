@@ -421,8 +421,11 @@ QHostAddress Helper::getPrivateIP()
     for ( int i = 0; i < ipList.size(); ++i )
     {
         QString tmp = ipList.at( i ).toString();
+        //Remove localhost addresses.
         if ( ipList.at( i ) != QHostAddress::LocalHost
+          //Remove any ipv6 addresses.
           && ipList.at( i ).toIPv4Address()
+          //Remove any addresses the User manually marked invalid.
           && !Settings::getIsInvalidIPAddress( tmp )
           //Remove Windows generated APIPA addresses.
           && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
@@ -432,5 +435,10 @@ QHostAddress Helper::getPrivateIP()
             break;
         }
     }
+
+    //Null ip address was selected, default to '0.0.0.0'.
+    if ( ipAddress.isNull() )
+        ipAddress = QHostAddress::AnyIPv4;
+
     return ipAddress;
 }

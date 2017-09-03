@@ -180,7 +180,7 @@ void CmdHandler::parseMix6Command(Player *plr, QString &packet)
 
 bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 {
-    bool logMsg{ true };
+    bool logMsg{ Settings::getLogFiles() };
     bool retn{ false };
     bool all{ false };
 
@@ -387,7 +387,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case CMDS::VERSION: //17
             {
-                QString ver{ "ReMix Version: [ 2.1.3 ]" };
+                QString ver{ "ReMix Version: [ 2.1.4 ]" };
                 if ( plr != nullptr )
                     plr->sendMessage( ver );
             }

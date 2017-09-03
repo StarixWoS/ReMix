@@ -110,7 +110,6 @@ void CreateInstance::on_initializeServer_clicked()
         server->setServerID( Settings::getServerID( svrName ) );
         server->setPrivatePort( svrPort.toUShort() );
         server->setGameName( gameName );
-        server->setLogFiles( true );
 
         Settings::setPortNumber( QVariant( svrPort ), svrName );
         Settings::setGameName( QVariant( gameName ), svrName );

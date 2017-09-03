@@ -85,8 +85,6 @@ class ServerInfo
     quint64 bytesOut{ 0 };
     quint64 baudOut{ 0 };
 
-    bool logFiles{ false };
-
     QString serverTabID{ "" };
     public:
         ServerInfo(QString svrID = "0");
@@ -199,9 +197,6 @@ class ServerInfo
         void setBaudIO(const quint64& bytes, quint64& baud);
         quint64 getBaudIn() const;
         quint64 getBaudOut() const;
-
-        bool getLogFiles() const;
-        void setLogFiles(bool value);
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(QHostAddress& addr, quint16 port);

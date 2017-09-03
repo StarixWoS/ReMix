@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 2.1.3
+VERSION = 2.1.4
 QT += core \
       gui \
       widgets \
@@ -21,14 +21,14 @@ CONFIG += strict_c++ c++14
 
 CONFIG(release, debug|release) {
     QMAKE_CXXFLAGS += -std=c++14 -s
-    TARGET = "../bin/ReMix-Release-Qt$$QT_VERSION"
+    TARGET = "../bin/ReMix-$$VERSION-Release-Qt$$QT_VERSION"
     DESTDIR = "./build-$$QT_VERSION/release"
     RCC_DIR = "./build-$$QT_VERSION/release/rcc"
     MOC_DIR = "./build-$$QT_VERSION/release/moc"
     OBJECTS_DIR = "./build-$$QT_VERSION/release/obj"
 } else {
     QMAKE_CXXFLAGS += -std=c++14 -Wall
-    TARGET = "../bin/ReMix-Debug-Qt$$QT_VERSION"
+    TARGET = "../bin/ReMix-$$VERSION-Debug-Qt$$QT_VERSION"
     DESTDIR = "./build-$$QT_VERSION/debug"
     RCC_DIR = "./build-$$QT_VERSION/debug/rcc"
     MOC_DIR = "./build-$$QT_VERSION/debug/moc"

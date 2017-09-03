@@ -60,7 +60,7 @@ class ReMixWidget : public QWidget
         void on_openSettings_clicked();
         void on_openUserComments_clicked();
         void on_openUserInfo_clicked();
-        void on_isPublicServer_toggled(bool);
+        void on_isPublicServer_toggled(bool value);
 
         void on_networkStatus_linkActivated(const QString &link);
         void on_networkStatus_customContextMenuRequested(const QPoint &pos);

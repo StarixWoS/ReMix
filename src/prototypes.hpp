@@ -157,7 +157,7 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 22,
+            SETTINGS_SUBKEY_COUNT = 23,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,

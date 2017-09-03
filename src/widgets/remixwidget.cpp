@@ -31,6 +31,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     //Setup Networking Objects.
     tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
                             serverID );
+    server->setTcpServer( tcpServer );
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
 
@@ -236,18 +237,11 @@ void ReMixWidget::on_openChatView_clicked()
     }
 }
 
-void ReMixWidget::on_isPublicServer_toggled(bool)
+void ReMixWidget::on_isPublicServer_toggled(bool value)
 {
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
-    server->setTcpServer( tcpServer );
-    server->setIsPublic( ui->isPublicServer->isChecked() );
-
+    //Prevent the Server class from re-initializing the ServerInfo.
+    if ( value != server->getIsPublic() )
+        server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
 void ReMixWidget::on_networkStatus_linkActivated(const QString &link)

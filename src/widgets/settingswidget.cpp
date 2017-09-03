@@ -53,6 +53,9 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
                            Settings::getSaveWindowPositions() );
 
+    this->setCheckedState( Toggles::LOGFILES,
+                           Settings::getLogFiles() );
+
     QString dir{ Settings::getWorldDir() };
     QString rowText{ "World Dir: [ %1 ]" };
             rowText = rowText.arg( dir );
@@ -111,7 +114,7 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
 
     switch ( row )
     {
-        case Toggles::REQPWD:
+        case Toggles::REQPWD: //0
             {
                 QString pwd{ Settings::getPassword() };
 
@@ -174,46 +177,49 @@ void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
                 pwdCheckState = state.toBool();
             }
         break;
-        case Toggles::REQADMINPWD:
+        case Toggles::REQADMINPWD: //1
             Settings::setReqAdminAuth( state );
         break;
-        case Toggles::ALLOWDUPEDIP:
+        case Toggles::ALLOWDUPEDIP: //2
             Settings::setAllowDupedIP( state );
         break;
-        case Toggles::BANDUPEDIP:
+        case Toggles::BANDUPEDIP: //3
             Settings::setBanDupedIP( state );
         break;
-        case Toggles::BANHACKERS:
+        case Toggles::BANHACKERS: //4
             Settings::setBanHackers( state );
         break;
-        case Toggles::REQSERNUM:
+        case Toggles::REQSERNUM: //5
             Settings::setReqSernums( state );
         break;
-        case Toggles::DISCONNECTIDLES:
+        case Toggles::DISCONNECTIDLES: //6
             Settings::setDisconnectIdles( state );
         break;
-        case Toggles::ALLOWSSV:
+        case Toggles::ALLOWSSV: //7
             Settings::setAllowSSV( state );
         break;
-        case Toggles::LOGCOMMENTS:
+        case Toggles::LOGCOMMENTS: //8
             Settings::setLogComments( state );
         break;
-        case Toggles::FWDCOMMENTS:
+        case Toggles::FWDCOMMENTS: //9
             Settings::setFwdComments( state );
         break;
-        case Toggles::ECHOCOMMENTS:
+        case Toggles::ECHOCOMMENTS: //10
             Settings::setEchoComments( state );
         break;
-        case Toggles::INFORMADMINLOGIN:
+        case Toggles::INFORMADMINLOGIN: //11
             Settings::setInformAdminLogin( state );
         break;
-        case Toggles::MINIMIZETOTRAY:
+        case Toggles::MINIMIZETOTRAY: //12
             Settings::setMinimizeToTray( state );
         break;
-        case Toggles::SAVEWINDOWPOSITIONS:
+        case Toggles::SAVEWINDOWPOSITIONS: //13
             Settings::setSaveWindowPositions( state );
         break;
-        case Toggles::WORLDDIR:
+        case Toggles::LOGFILES: //14
+            Settings::setLogFiles( state );
+        break;
+        case Toggles::WORLDDIR: //15
             {
                 QString directory{ Settings::getWorldDir() };
                 QString rowText{ "World Dir: [ %1 ]" };

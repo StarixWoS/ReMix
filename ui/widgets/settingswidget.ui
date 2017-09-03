@@ -148,6 +148,11 @@
        <string>14</string>
       </property>
      </row>
+     <row>
+      <property name="text">
+       <string>15</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>Options: ( Double-click to enable or disable )</string>
@@ -266,6 +271,14 @@
       </property>
      </item>
      <item row="14" column="0">
+      <property name="text">
+       <string>Enable Logging Files</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="15" column="0">
       <property name="text">
        <string>World Directory</string>
       </property>
