@@ -32,6 +32,11 @@ ReMix::ReMix(QWidget *parent) :
     serverUI = ReMixTabWidget::getTabInstance( this );
     ui->frame->layout()->addWidget( serverUI );
 
+    //Update the window title to reflect the current version.
+    QString title{ "ReMix[ %1 ]:" };
+            title = title.arg( QString( REMIX_VERSION ) );
+    this->setWindowTitle( title );
+
     //Initialize our Tray Icon if available.
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
         this->initSysTray();
@@ -84,8 +89,9 @@ void ReMix::updateTitleBars(QString serverName, quint16 port)
     {
         settings->updateTabBar( serverName );
     }
-    QString title{ "ReMix: %1 [ %2 ]" };
-            title = title.arg( serverName )
+    QString title{ "ReMix[ %1 ]: %2 [ %3 ]" };
+            title = title.arg( QString( REMIX_VERSION ) )
+                         .arg( serverName )
                          .arg( port );
     ReMix::getInstance()->setWindowTitle( title );
 }

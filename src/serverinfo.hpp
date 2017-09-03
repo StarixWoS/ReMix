@@ -86,6 +86,7 @@ class ServerInfo
     quint64 baudOut{ 0 };
 
     QString serverTabID{ "" };
+
     public:
         ServerInfo(QString svrID = "0");
         ~ServerInfo();

@@ -198,7 +198,7 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
         return;
 
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
-                      "//ReMix[ 2.1.4 ]" };
+                      "//ReMix[ %7 ]" };
 
     response = response.arg( this->getName() );
     if ( !this->getGameInfo().isEmpty() )
@@ -215,7 +215,8 @@ void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
                        .arg( this->getServerID() )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
-                       .arg( usage );
+                       .arg( usage )
+                       .arg( QString( REMIX_VERSION ) );
 
     if ( !response.isEmpty() )
         this->sendUDPData( addr, port, response );

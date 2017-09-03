@@ -114,6 +114,10 @@
     #ifndef REMIX_GLOBALS
         #define REMIX_GLOBALS
 
+        #ifndef REMIX_VERSION
+            #define REMIX_VERSION "2.1.5"
+        #endif
+
         enum Globals
         {
             //Anything above PACKET_FLOOD_LIMIT (2000MS)
