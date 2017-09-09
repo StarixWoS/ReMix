@@ -21,6 +21,6 @@ void RandDev::setInitialized(bool value)
 
 void RandDev::initializeDevice()
 {
-    randDevice.seed( QDateTime::currentMSecsSinceEpoch() );
+    randDevice.seed( static_cast<uint>( QDateTime::currentMSecsSinceEpoch() ) );
     setInitialized( true );
 }

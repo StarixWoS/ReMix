@@ -60,7 +60,7 @@ ServerInfo::ServerInfo(QString svrID)
 
         quint32 usageCap{ 0 };
         quint32 code{ 0 };
-        for ( int i = 0; i < SERVER_USAGE_48_HOURS; ++i )
+        for ( uint i = 0; i < SERVER_USAGE_48_HOURS; ++i )
         {
             code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
             usageCap = ( SERVER_USAGE_48_HOURS - 1 ) - i;
@@ -275,8 +275,8 @@ void ServerInfo::sendMasterInfo(bool disconnect)
     {
         if ( this->getIsSetUp() )
         {
-            response = { "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
-                         "port=%7,info=%8,name=%9" };
+            response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
+                       "port=%7,info=%8,name=%9";
             response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
                                .arg( this->getGameId() )
@@ -410,7 +410,7 @@ void ServerInfo::sendServerRules(Player* plr)
     if ( soc == nullptr )
         return;
 
-    quint64 bOut{ 0 };
+    qint64 bOut{ 0 };
     QString rules{ ":SR$%1\r\n" };
             rules = rules.arg( Rules::getRuleSet( serverTabID ) );
 
@@ -449,7 +449,7 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
     if ( plr != nullptr )
         soc = plr->getSocket();
 
-    quint64 bOut{ 0 };
+    qint64 bOut{ 0 };
     if ( toAll )
     {
         bOut = this->sendToAllConnected( msg );
@@ -487,11 +487,11 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         this->setBytesOut( this->getBytesOut() + bOut );
 }
 
-quint64 ServerInfo::sendToAllConnected(QString packet)
+qint64 ServerInfo::sendToAllConnected(QString packet)
 {
     Player* tmpPlr{ nullptr };
-    quint64 tmpBOut{ 0 };
-    quint64 bOut{ 0 };
+    qint64 tmpBOut{ 0 };
+    qint64 bOut{ 0 };
 
     QTcpSocket* tmpSoc{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -584,7 +584,7 @@ quint16 ServerInfo::getMasterPort() const
     return masterPort;
 }
 
-void ServerInfo::setMasterPort(int value)
+void ServerInfo::setMasterPort(quint16 value)
 {
     masterPort = value;
 }
@@ -790,40 +790,39 @@ void ServerInfo::setIpDc(const quint32& value)
     ipDc = value;
 }
 
-quint64 ServerInfo::getBytesIn() const
+qint64 ServerInfo::getBytesIn() const
 {
     return bytesIn;
 }
 
-void ServerInfo::setBytesIn(const quint64& value)
+void ServerInfo::setBytesIn(const qint64& value)
 {
     bytesIn = value;
 }
 
-quint64 ServerInfo::getBytesOut() const
+qint64 ServerInfo::getBytesOut() const
 {
     return bytesOut;
 }
 
-void ServerInfo::setBytesOut(const quint64& value)
+void ServerInfo::setBytesOut(const qint64& value)
 {
     bytesOut = value;
 }
 
-void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
+void ServerInfo::setBaudIO(const qint64& bytes, qint64& baud)
 {
-    quint64 time = baudTime.elapsed();
-
+    qint64 time = baudTime.elapsed();
     if ( bytes > 0 && time > 0 )
         baud = 10000 * bytes / time;
 }
 
-quint64 ServerInfo::getBaudIn() const
+qint64 ServerInfo::getBaudIn() const
 {
     return baudIn;
 }
 
-quint64 ServerInfo::getBaudOut() const
+qint64 ServerInfo::getBaudOut() const
 {
     return baudOut;
 }
@@ -883,22 +882,22 @@ void ServerInfo::stopMasterCheckIn()
     masterCheckIn.stop();
 }
 
-quint64 ServerInfo::getMasterPingSendTime() const
+qint64 ServerInfo::getMasterPingSendTime() const
 {
     return masterPingSendTime;
 }
 
-void ServerInfo::setMasterPingSendTime(const quint64& value)
+void ServerInfo::setMasterPingSendTime(const qint64& value)
 {
     masterPingSendTime = value;
 }
 
-quint64 ServerInfo::getMasterPingRespTime() const
+qint64 ServerInfo::getMasterPingRespTime() const
 {
     return masterPingRespTime;
 }
 
-void ServerInfo::setMasterPingRespTime(const quint64& value)
+void ServerInfo::setMasterPingRespTime(const qint64& value)
 {
     masterPingRespTime = value;
     //Store the Master Server's Response Count.
@@ -929,17 +928,17 @@ void ServerInfo::setMasterPingAvg(const double& value)
     masterPingAvg += value;
 }
 
-quint32 ServerInfo::getMasterPingCount() const
+qint32 ServerInfo::getMasterPingCount() const
 {
     return masterPingCount;
 }
 
-void ServerInfo::setMasterPingCount(const quint32& value)
+void ServerInfo::setMasterPingCount(const qint32& value)
 {
     masterPingCount = value;
 }
 
-quint32 ServerInfo::getMasterPing() const
+double ServerInfo::getMasterPing() const
 {
     return masterPing;
 }

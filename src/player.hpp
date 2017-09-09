@@ -31,7 +31,7 @@ class Player : public QObject
 
     bool hasSernum{ false };
 
-    quint32 sernum_i{ 0 };
+    qint32 sernum_i{ 0 };
     QString sernum_s{ "" };
     QString sernumHex_s{ "" };
 
@@ -58,15 +58,15 @@ class Player : public QObject
     int packetFloodCount{ 0 };
 
     int packetsIn{ 0 };
-    quint64 bytesIn{ 0 };
-    quint32 avgBaudIn{ 0 };
+    qint64 bytesIn{ 0 };
+    qint64 avgBaudIn{ 0 };
 
     int packetsOut{ 0 };
-    quint64 bytesOut{ 0 };
-    quint32 avgBaudOut{ 0 };
+    qint64 bytesOut{ 0 };
+    qint64 avgBaudOut{ 0 };
 
     QTimer connTimer;
-    quint64 connTime{ 0 };
+    qint64 connTime{ 0 };
     QElapsedTimer idleTime;
 
     QTimer killTimer;
@@ -91,8 +91,8 @@ class Player : public QObject
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
-        quint32 getSernum_i() const;
-        void setSernum_i(quint32 value);
+        qint32 getSernum_i() const;
+        void setSernum_i(qint32 value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);
@@ -100,14 +100,14 @@ class Player : public QObject
         QString getSernumHex_s() const;
         void setSernumHex_s(const QString& value);
 
-        quint32 getTargetScene() const;
-        void setTargetScene(quint32 value);
+        qint32 getTargetScene() const;
+        void setTargetScene(qint32 value);
 
-        quint32 getSceneHost() const;
-        void setSceneHost(quint32 value);
+        qint32 getSceneHost() const;
+        void setSceneHost(qint32 value);
 
-        quint32 getTargetSerNum() const;
-        void setTargetSerNum(quint32 value);
+        qint32 getTargetSerNum() const;
+        void setTargetSerNum(qint32 value);
 
         int getTargetType() const;
         void setTargetType(int value);
@@ -139,7 +139,7 @@ class Player : public QObject
         bool getSvrPwdReceived() const;
         void setSvrPwdReceived(bool value);
 
-        quint64 getFloodTime() const;
+        qint64 getFloodTime() const;
         void restartFloodTimer();
 
         int getPacketFloodCount() const;
@@ -148,17 +148,17 @@ class Player : public QObject
         int getPacketsIn() const;
         void setPacketsIn(int value, int incr);
 
-        quint64 getBytesIn() const;
-        void setBytesIn(const quint64& value);
+        qint64 getBytesIn() const;
+        void setBytesIn(const qint64& value);
 
         int getPacketsOut() const;
         void setPacketsOut(int value);
 
-        quint64 getBytesOut() const;
-        void setBytesOut(const quint64& value);
+        qint64 getBytesOut() const;
+        void setBytesOut(const qint64& value);
 
-        quint64 getAvgBaud(bool out) const;
-        void setAvgBaud(const quint64& bytes, bool out);
+        qint64 getAvgBaud(bool out) const;
+        void setAvgBaud(const qint64& bytes, bool out);
 
         void resetAdminAuth();
 
@@ -188,7 +188,7 @@ class Player : public QObject
         bool getNetworkMuted() const;
         void setNetworkMuted(bool value, QString& msg);
 
-        void validateSerNum(ServerInfo* server, quint32 id);
+        void validateSerNum(ServerInfo* server, qint32 id);
 
         QString getDVar() const;
         void setDVar(const QString& value);

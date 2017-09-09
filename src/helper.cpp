@@ -4,7 +4,7 @@
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
-                                        int width, quint32 height)
+                                        int width, int height)
 {
     QInputDialog* dialog = new QInputDialog( parent );
                   dialog->setInputMode( mode );
@@ -31,14 +31,14 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
                    .toUpper();
 }
 
-quint32 Helper::strToInt(QString str, int base)
+qint32 Helper::strToInt(QString str, int base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };
 
-    int val = str.toUInt( &ok, base );
+    qint32 val = str.toInt( &ok, base );
     if ( !ok && !base16 )
-        val = str.toUInt( &ok, 16 );
+        val = str.toInt( &ok, 16 );
 
     if ( !ok )
         val = -1;
@@ -179,10 +179,8 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 QString Helper::serNumToIntStr(QString sernum)
 {
     qint32 sernum_i{ sernum.toInt( 0, 16 ) };
-    if ( sernum_i <= 0 )
-        sernum_i = sernum.toUInt( 0, 16 );
-
     QString retn{ "" };
+
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
         retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
@@ -196,11 +194,11 @@ QString Helper::serNumToIntStr(QString sernum)
     return retn;
 }
 
-quint32 Helper::serNumtoInt(QString& sernum)
+qint32 Helper::serNumtoInt(QString& sernum)
 {
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         sernum_i = strToInt( sernum, 16 );
     else
@@ -221,7 +219,7 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp,
     {
         if ( timeStamp )
         {
-            quint64 date = QDateTime::currentDateTime().toTime_t();
+            uint date = QDateTime::currentDateTime().toTime_t();
             text.prepend( QDateTime::fromTime_t( date )
                                .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
         }

@@ -61,7 +61,7 @@ class User : public QDialog
     private:
         QModelIndex findModelIndex(QString value, UserColumns col);
         void loadUserInfo();
-        void updateRowData(quint32 row, quint32 col, QVariant data);
+        void updateRowData(qint32 row, qint32 col, QVariant data);
 
     private slots:
         void updateDataValue(const QModelIndex& index,

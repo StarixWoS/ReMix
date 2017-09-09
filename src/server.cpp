@@ -69,8 +69,8 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
                         QTcpSocket* tmpSoc{ plr->getSocket() };
                         if ( tmpSoc != nullptr  )
                         {
-                            quint64 bOut = tmpSoc->write( msg.toLatin1(),
-                                                          msg.length() );
+                            qint64 bOut = tmpSoc->write( msg.toLatin1(),
+                                                         msg.length() );
 
                             plr->setBytesOut( plr->getBytesOut() + bOut );
                             server->setBytesOut( server->getBytesOut() + bOut );
@@ -161,7 +161,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->setSernum_i( Helper::serNumToHexStr( sernum )
-                                     .toUInt( 0, 16 ) );
+                                     .toInt( 0, 16 ) );
         user->updateCallCount( Helper::serNumToHexStr( sernum ) );
 
         QString alias = Helper::getStrStr( bio, "alias", "=", "," );
@@ -282,7 +282,7 @@ void Server::userReadyRead(QTcpSocket* socket)
         return;
 
     QByteArray data = plr->getOutBuff();
-    quint64 bIn = data.length();
+    qint64 bIn = data.length();
 
     data.append( socket->readAll() );
     server->setBytesIn( server->getBytesIn() + (data.length() - bIn) );
@@ -358,7 +358,7 @@ void Server::readyReadUDPSlot()
         QHostAddress senderAddr{};
         quint16 senderPort{ 0 };
 
-        data.resize( socket->pendingDatagramSize() );
+        data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
         socket->readDatagram( data.data(), data.size(),
                               &senderAddr, &senderPort );
 

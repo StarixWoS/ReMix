@@ -5,7 +5,11 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
+#include <QElapsedTimer>
+#include <QHostInfo>
+#include <QVariant>
 #include <QObject>
+#include <QTimer>
 
 class ServerInfo
 {
@@ -49,9 +53,9 @@ class ServerInfo
     QTimer masterTimeOut;
     bool masterTimedOut{ false };
 
-    quint64 masterPingSendTime{ 0 };
-    quint64 masterPingRespTime{ 0 };
-    quint32 masterPingCount{ 0 };
+    qint64 masterPingSendTime{ 0 };
+    qint64 masterPingRespTime{ 0 };
+    qint32 masterPingCount{ 0 };
     double masterPingTrend{ 80 };
     double masterPingAvg{ 0 };
     double masterPing{ 0 };
@@ -79,11 +83,11 @@ class ServerInfo
     quint32 ipDc{ 0 };
 
     QElapsedTimer baudTime;
-    quint64 bytesIn{ 0 };
-    quint64 baudIn{ 0 };
+    qint64 bytesIn{ 0 };
+    qint64 baudIn{ 0 };
 
-    quint64 bytesOut{ 0 };
-    quint64 baudOut{ 0 };
+    qint64 bytesOut{ 0 };
+    qint64 baudOut{ 0 };
 
     QString serverTabID{ "" };
 
@@ -112,7 +116,7 @@ class ServerInfo
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(QString packet, Player* plr = nullptr,
                                bool toAll = false);
-        quint64 sendToAllConnected(QString packet);
+        qint64 sendToAllConnected(QString packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -135,7 +139,7 @@ class ServerInfo
         void setVersionID(int value);
 
         quint16 getMasterPort() const;
-        void setMasterPort(int value);
+        void setMasterPort(quint16 value);
 
         QString getMasterIP() const;
         void setMasterIP(const QString& value);
@@ -188,15 +192,15 @@ class ServerInfo
         quint32 getIpDc() const;
         void setIpDc(const quint32& value);
 
-        quint64 getBytesIn() const;
-        void setBytesIn(const quint64& value);
+        qint64 getBytesIn() const;
+        void setBytesIn(const qint64& value);
 
-        quint64 getBytesOut() const;
-        void setBytesOut(const quint64& value);
+        qint64 getBytesOut() const;
+        void setBytesOut(const qint64& value);
 
-        void setBaudIO(const quint64& bytes, quint64& baud);
-        quint64 getBaudIn() const;
-        quint64 getBaudOut() const;
+        void setBaudIO(const qint64& bytes, qint64& baud);
+        qint64 getBaudIn() const;
+        qint64 getBaudOut() const;
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(QHostAddress& addr, quint16 port);
@@ -216,11 +220,11 @@ class ServerInfo
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        quint64 getMasterPingSendTime() const;
-        void setMasterPingSendTime(const quint64& value);
+        qint64 getMasterPingSendTime() const;
+        void setMasterPingSendTime(const qint64& value);
 
-        quint64 getMasterPingRespTime() const;
-        void setMasterPingRespTime(const quint64& value);
+        qint64 getMasterPingRespTime() const;
+        void setMasterPingRespTime(const qint64& value);
 
         double getMasterPingTrend() const;
         void setMasterPingTrend(double value);
@@ -228,10 +232,10 @@ class ServerInfo
         double getMasterPingAvg() const;
         void setMasterPingAvg(const double& value);
 
-        quint32 getMasterPingCount() const;
-        void setMasterPingCount(const quint32& value);
+        qint32 getMasterPingCount() const;
+        void setMasterPingCount(const qint32& value);
 
-        quint32 getMasterPing() const;
+        double getMasterPing() const;
         void setMasterPing();
 
         quint32 getUsageHours() const;

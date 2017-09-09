@@ -227,12 +227,12 @@ void Player::setServerInfo(ServerInfo* value)
     serverInfo = value;
 }
 
-quint32 Player::getSernum_i() const
+qint32 Player::getSernum_i() const
 {
     return sernum_i;
 }
 
-void Player::setSernum_i(quint32 value)
+void Player::setSernum_i(qint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
@@ -292,32 +292,32 @@ void Player::setSernumHex_s(const QString& value)
     sernumHex_s = value;
 }
 
-quint32 Player::getTargetScene() const
+qint32 Player::getTargetScene() const
 {
     return targetHost;
 }
 
-void Player::setTargetScene(quint32 value)
+void Player::setTargetScene(qint32 value)
 {
     targetHost = value;
 }
 
-quint32 Player::getSceneHost() const
+qint32 Player::getSceneHost() const
 {
     return sceneHost;
 }
 
-void Player::setSceneHost(quint32 value)
+void Player::setSceneHost(qint32 value)
 {
     sceneHost = value;
 }
 
-quint32 Player::getTargetSerNum() const
+qint32 Player::getTargetSerNum() const
 {
     return targetSerNum;
 }
 
-void Player::setTargetSerNum(quint32 value)
+void Player::setTargetSerNum(qint32 value)
 {
     targetSerNum = value;
 }
@@ -426,7 +426,7 @@ void Player::setSvrPwdReceived(bool value)
     svrPwdReceived = value;
 }
 
-quint64 Player::getFloodTime() const
+qint64 Player::getFloodTime() const
 {
     return floodTimer.elapsed();
 }
@@ -461,12 +461,12 @@ void Player::setPacketsIn(int value, int incr)
     this->setPacketFloodCount( this->getPacketFloodCount() + incr );
 }
 
-quint64 Player::getBytesIn() const
+qint64 Player::getBytesIn() const
 {
     return bytesIn;
 }
 
-void Player::setBytesIn(const quint64& value)
+void Player::setBytesIn(const qint64& value)
 {
     bytesIn = value;
     this->setAvgBaud( bytesIn, false );
@@ -482,18 +482,18 @@ void Player::setPacketsOut(int value)
     packetsOut = value;
 }
 
-quint64 Player::getBytesOut() const
+qint64 Player::getBytesOut() const
 {
     return bytesOut;
 }
 
-void Player::setBytesOut(const quint64& value)
+void Player::setBytesOut(const qint64& value)
 {
     bytesOut = value;
     this->setAvgBaud( bytesOut, true );
 }
 
-quint64 Player::getAvgBaud(bool out) const
+qint64 Player::getAvgBaud(bool out) const
 {
     if ( out )
         return avgBaudOut;
@@ -501,10 +501,10 @@ quint64 Player::getAvgBaud(bool out) const
         return avgBaudIn;
 }
 
-void Player::setAvgBaud(const quint64& bytes, bool out)
+void Player::setAvgBaud(const qint64& bytes, bool out)
 {
-    quint64 time = this->getConnTime();
-    quint64 baud{ 0 };
+    qint64 time = this->getConnTime();
+    qint64 baud{ 0 };
 
     if ( bytes > 0 && time > 0 )
         baud = 10 * bytes / time;
@@ -627,7 +627,7 @@ void Player::setNetworkMuted(bool value, QString& msg)
     networkMuted = value;
 }
 
-void Player::validateSerNum(ServerInfo* server, quint32 id)
+void Player::validateSerNum(ServerInfo* server, qint32 id)
 {
     if (( this->getSernum_i() != id
        && id > 0 )

@@ -18,95 +18,123 @@ CppApplication
     //destinationDirectory: "libDir/"
     name: "ReMix-" + ReMixVersionDisplay + "-" + qbs.buildVariant
 
-    cpp.includePaths: ["resources", "ui", "ui/widgets", "src", "src/tblview", "src/widgets"]
+    cpp.includePaths: ["resources", "ui", "ui/widgets",
+                       "src", "src/tblview", "src/widgets"]
 
     cpp.defines: ["RC_VERSION=" + ReMixVersion.replace(/\./g, ",") + ",0",
                   "RC_VERSION_STRING=" + ReMixVersionDisplay,
-                  "REMIX_VERSION=" + "\"" + ReMixVersionDisplay + "\"",].concat( base )
+                  "REMIX_VERSION=" + "\"" + ReMixVersionDisplay + "\"",]
+            .concat( base )
 
     cpp.cxxLanguageVersion: "c++14"
-    cpp.debugInformation: false
-    cpp.optimization: "fast"
-    cpp.cxxFlags: "-s"
+    cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
+    cpp.optimization: qbs.buildVariant == "debug" ? "small" : "fast"
+    cpp.cxxFlags: ["-Os", "-s",]
 
-    files: [
-        "src/prototypes.hpp",
-        "src/includes.hpp",
-        "src/tblview/usersortproxymodel.cpp",
-        "src/tblview/usersortproxymodel.hpp",
-        "src/tblview/plrsortproxymodel.cpp",
-        "src/tblview/plrsortproxymodel.hpp",
-        "src/tblview/tbleventfilter.cpp",
-        "src/tblview/tbleventfilter.hpp",
-        "src/widgets/settingswidget.cpp",
-        "src/widgets/settingswidget.hpp",
-        "src/widgets/remixtabwidget.cpp",
-        "src/widgets/remixtabwidget.hpp",
-        "src/widgets/plrlistwidget.cpp",
-        "src/widgets/plrlistwidget.hpp",
-        "src/widgets/userdelegate.cpp",
-        "src/widgets/userdelegate.hpp",
-        "src/widgets/remixwidget.cpp",
-        "src/widgets/remixwidget.hpp",
-        "src/widgets/ruleswidget.cpp",
-        "src/widgets/ruleswidget.hpp",
-        "src/widgets/motdwidget.cpp",
-        "src/widgets/motdwidget.hpp",
-        "src/createinstance.cpp",
-        "src/createinstance.hpp",
-        "src/appeventfilter.cpp",
-        "src/appeventfilter.hpp",
-        "src/packethandler.cpp",
-        "src/packethandler.hpp",
-        "src/packetforge.cpp",
-        "src/packetforge.hpp",
-        "src/selectworld.cpp",
-        "src/selectworld.hpp",
-        "src/cmdhandler.cpp",
-        "src/cmdhandler.hpp",
-        "src/serverinfo.cpp",
-        "src/serverinfo.hpp",
-        "src/chatview.cpp",
-        "src/chatview.hpp",
-        "src/comments.cpp",
-        "src/comments.hpp",
-        "src/settings.cpp",
-        "src/settings.hpp",
-        "src/randdev.cpp",
-        "src/randdev.hpp",
-        "src/sendmsg.cpp",
-        "src/sendmsg.hpp",
-        "src/server.cpp",
-        "src/server.hpp",
-        "src/player.cpp",
-        "src/player.hpp",
-        "src/helper.cpp",
-        "src/helper.hpp",
-        "src/rules.cpp",
-        "src/rules.hpp",
-        "src/remix.cpp",
-        "src/remix.hpp",
-        "src/user.cpp",
-        "src/user.hpp",
-        "src/upnp.cpp",
-        "src/upnp.hpp",
-        "src/main.cpp",
+    Group
+    {
+        name: "HPP"
 
-        "ui/widgets/settingswidget.ui",
-        "ui/widgets/plrlistwidget.ui",
-        "ui/widgets/remixwidget.ui",
-        "ui/widgets/ruleswidget.ui",
-        "ui/widgets/motdwidget.ui",
-        "ui/createinstance.ui",
-        "ui/selectworld.ui",
-        "ui/chatview.ui",
-        "ui/comments.ui",
-        "ui/settings.ui",
-        "ui/sendmsg.ui",
-        "ui/remix.ui",
-        "ui/user.ui",
+        fileTags: ["hpp"]
+        files: [ "src/tblview/usersortproxymodel.hpp",
+                 "src/tblview/plrsortproxymodel.hpp",
+                 "src/tblview/tbleventfilter.hpp",
+                 "src/widgets/settingswidget.hpp",
+                 "src/widgets/remixtabwidget.hpp",
+                 "src/widgets/plrlistwidget.hpp",
+                 "src/widgets/userdelegate.hpp",
+                 "src/widgets/remixwidget.hpp",
+                 "src/widgets/ruleswidget.hpp",
+                 "src/widgets/motdwidget.hpp",
+                 "src/createinstance.hpp",
+                 "src/appeventfilter.hpp",
+                 "src/packethandler.hpp",
+                 "src/packetforge.hpp",
+                 "src/selectworld.hpp",
+                 "src/cmdhandler.hpp",
+                 "src/serverinfo.hpp",
+                 "src/prototypes.hpp",
+                 "src/includes.hpp",
+                 "src/chatview.hpp",
+                 "src/comments.hpp",
+                 "src/settings.hpp",
+                 "src/randdev.hpp",
+                 "src/sendmsg.hpp",
+                 "src/server.hpp",
+                 "src/player.hpp",
+                 "src/helper.hpp",
+                 "src/rules.hpp",
+                 "src/remix.hpp",
+                 "src/user.hpp",
+                 "src/upnp.hpp",
+                ]
+    }
 
-        "resources/icons.qrc",
-        "resources/ReMix.rc",
-    ]
+    Group
+    {
+        name: "CPP"
+
+        fileTags: ["cpp"]
+        files: [ "src/tblview/usersortproxymodel.cpp",
+                 "src/tblview/plrsortproxymodel.cpp",
+                 "src/tblview/tbleventfilter.cpp",
+                 "src/widgets/settingswidget.cpp",
+                 "src/widgets/remixtabwidget.cpp",
+                 "src/widgets/plrlistwidget.cpp",
+                 "src/widgets/userdelegate.cpp",
+                 "src/widgets/remixwidget.cpp",
+                 "src/widgets/ruleswidget.cpp",
+                 "src/widgets/motdwidget.cpp",
+                 "src/createinstance.cpp",
+                 "src/appeventfilter.cpp",
+                 "src/packethandler.cpp",
+                 "src/packetforge.cpp",
+                 "src/selectworld.cpp",
+                 "src/cmdhandler.cpp",
+                 "src/serverinfo.cpp",
+                 "src/chatview.cpp",
+                 "src/comments.cpp",
+                 "src/settings.cpp",
+                 "src/randdev.cpp",
+                 "src/sendmsg.cpp",
+                 "src/server.cpp",
+                 "src/player.cpp",
+                 "src/helper.cpp",
+                 "src/rules.cpp",
+                 "src/remix.cpp",
+                 "src/user.cpp",
+                 "src/upnp.cpp",
+                 "src/main.cpp",
+                ]
+    }
+
+    Group
+    {
+        name: "UI"
+
+        fileTags: ["ui"]
+        files: [
+            "ui/widgets/settingswidget.ui",
+            "ui/widgets/plrlistwidget.ui",
+            "ui/widgets/remixwidget.ui",
+            "ui/widgets/ruleswidget.ui",
+            "ui/widgets/motdwidget.ui",
+            "ui/createinstance.ui",
+            "ui/selectworld.ui",
+            "ui/chatview.ui",
+            "ui/comments.ui",
+            "ui/settings.ui",
+            "ui/sendmsg.ui",
+            "ui/remix.ui",
+            "ui/user.ui",
+        ]
+    }
+
+    Group
+    {
+        name: "RC"
+        files: [ "resources/icons.qrc",
+                 "resources/ReMix.rc",
+                ]
+    }
 }

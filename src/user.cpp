@@ -165,7 +165,7 @@ bool User::cmpAdminPwd(QString& sernum, QString& value)
 qint32 User::getAdminRank(QString& sernum)
 {
     return getData( sernum, keys[ UserKeys::kRANK ] )
-              .toUInt();
+              .toInt();
 }
 
 void User::setAdminRank(QString& sernum, qint32 rank)
@@ -375,7 +375,7 @@ void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
     QModelIndex index = this->findModelIndex( sernum, UserColumns::cSERNUM );
     if ( !index.isValid() )
     {
-        quint32 row = tblModel->rowCount();
+        qint32 row = tblModel->rowCount();
         tblModel->insertRow( row );
         index = tblModel->index( row, UserColumns::cSERNUM );
     }
@@ -512,12 +512,12 @@ void User::loadUserInfo()
     ui->userTable->resizeColumnsToContents();
 }
 
-void User::updateRowData(quint32 row, quint32 col, QVariant data)
+void User::updateRowData(qint32 row, qint32 col, QVariant data)
 {
     if ( col == UserColumns::cSEENDATE
       || col == UserColumns::cBANDATE )
     {
-        quint64 date{ data.toUInt() };
+        uint date{ data.toUInt() };
         if ( date > 0 )
         {
             data = QDateTime::fromTime_t( date )

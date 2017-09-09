@@ -119,7 +119,7 @@ void UPNP::getUdp()
         quint16 senderPort;
         QString sport;
 
-        datagram.resize( udpSocket->pendingDatagramSize() );
+        datagram.resize( static_cast<int>( udpSocket->pendingDatagramSize() ) );
         udpSocket->readDatagram( datagram.data(),
                                  datagram.size(),
                                  &sender,

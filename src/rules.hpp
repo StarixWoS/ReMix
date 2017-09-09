@@ -3,6 +3,9 @@
 
 #include "prototypes.hpp"
 
+//Required Qt includes.
+#include <QObject>
+
 class Rules
 {
     public:

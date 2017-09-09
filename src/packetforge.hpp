@@ -3,10 +3,13 @@
 
 #include "prototypes.hpp"
 
+//Required Qt Includes.
+#include <QLibrary>
+
 class PacketForge
 {
     static PacketForge* forge;
-    QLibrary pktDecrypt{ "PacketForge.dll" };
+    QLibrary pktDecrypt;
 
     //Typedefs for imported functions from our PacketDecrypt Library.
     typedef QString (*Decrypt)(QString);

@@ -5,6 +5,7 @@
 PacketForge* PacketForge::forge{ nullptr };
 PacketForge::PacketForge()
 {
+    pktDecrypt.setFileName( "PacketForge.dll" );
     if ( pktDecrypt.load() )
     {
         decryptPkt = (Decrypt)pktDecrypt.resolve( "decryptPacket" );
