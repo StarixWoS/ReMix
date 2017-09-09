@@ -30,16 +30,6 @@ SelectWorld::SelectWorld(QWidget *parent, QStringList) :
 //    worldModel = new QStringListModel();
 //    worldModel->setStringList( worldList );
 
-    //Remove the "Help" button from the window title bars.
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
 }
 
 SelectWorld::~SelectWorld()

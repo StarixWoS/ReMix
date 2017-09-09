@@ -20,14 +20,6 @@ User::User(QWidget* parent) :
     ui(new Ui::User)
 {
     ui->setupUi(this);
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
 
     if ( Settings::getSaveWindowPositions() )
     {

@@ -4,10 +4,14 @@
 
 #include <QApplication>
 
-int main(int argc, char *argv[])
+int main(int argc, char *[])
 {
-    QApplication a(argc, argv);
+    QApplication a(argc, 0);
                  a.setQuitOnLastWindowClosed( false );
+
+    //Remove the "Help" button from the window title bars
+    //with an eventfilter at the QApplication level.
+    a.installEventFilter( new AppEventFilter() );
 
 #ifndef Q_OS_WIN
     qApp->setFont( QFont( "Lucida Grande", 8 ) );

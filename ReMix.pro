@@ -72,7 +72,8 @@ SOURCES += src/tblview/usersortproxymodel.cpp\
            src/remix.cpp \
            src/user.cpp \
            src/upnp.cpp \
-           src/main.cpp
+           src/main.cpp \
+    src/appeventfilter.cpp
 
 HEADERS += src/tblview/usersortproxymodel.hpp\
            src/tblview/plrsortproxymodel.hpp \
@@ -103,7 +104,8 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/rules.hpp \
            src/remix.hpp \
            src/user.hpp \
-           src/upnp.hpp
+           src/upnp.hpp \
+    src/appeventfilter.hpp
 
 FORMS += ui/widgets/settingswidget.ui \
          ui/widgets/plrlistwidget.ui \

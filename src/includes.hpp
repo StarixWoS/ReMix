@@ -85,6 +85,7 @@
 
     //GUI and Data Storage Clases.
     #include "createinstance.hpp"
+    #include "appeventfilter.hpp"
     #include "packethandler.hpp"
     #include "packetforge.hpp"
     #include "serverinfo.hpp"

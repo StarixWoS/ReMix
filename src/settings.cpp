@@ -50,15 +50,6 @@ Settings::Settings(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
     //Setup Objects.
     tabWidget = new QTabWidget( this );
     if ( tabWidget != nullptr )

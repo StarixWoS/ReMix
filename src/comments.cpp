@@ -9,16 +9,6 @@ Comments::Comments(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //Remove the "Help" button from the window title bars.
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(

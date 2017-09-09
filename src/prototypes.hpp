@@ -94,6 +94,7 @@
 
     //GUI and Data Storage Classes.
     class CreateInstance;
+    class AppEventFilter;
     class PacketHandler;
     class SelectWorld;
     class PacketForge;

@@ -12,15 +12,6 @@ SendMsg::SendMsg(QString serNum, QWidget *parent) :
     QString title{ "Admin Message: [ %1 ]" };
     this->setWindowTitle( title.arg( serNum ) );
 
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
