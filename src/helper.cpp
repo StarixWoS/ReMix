@@ -178,7 +178,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString retn{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )

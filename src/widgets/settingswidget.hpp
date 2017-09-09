@@ -30,7 +30,7 @@ class SettingsWidget : public QWidget
         void setCheckedState(Toggles option, bool val);
 
     private:
-        void toggleSettings(quint32 row, Qt::CheckState value);
+        void toggleSettings(qint32 row, Qt::CheckState value);
 
     private slots:
         void on_settingsView_doubleClicked(const QModelIndex &index);

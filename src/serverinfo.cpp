@@ -59,7 +59,7 @@ ServerInfo::ServerInfo(QString svrID)
         usageMins = 0;
 
         quint32 usageCap{ 0 };
-        quint32 code{ 0 };
+        qint32 code{ 0 };
         for ( uint i = 0; i < SERVER_USAGE_48_HOURS; ++i )
         {
             code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
@@ -655,12 +655,12 @@ void ServerInfo::setServerID(QString value)
     serverID = value;
 }
 
-quint32 ServerInfo::getPlayerCount() const
+qint32 ServerInfo::getPlayerCount() const
 {
     return playerCount;
 }
 
-void ServerInfo::setPlayerCount(quint32 value)
+void ServerInfo::setPlayerCount(qint32 value)
 {
     if ( value <= 0 )
     {
@@ -863,7 +863,10 @@ void ServerInfo::setMasterTimedOut(bool value)
 {
     masterTimedOut = value;
     if ( masterTimedOut )
+    {
         this->setMasterUDPResponse( false );
+        this->setMasterPingFailCount( this->getMasterPingFailCount() + 1 );
+    }
     else
        masterTimeOut.stop();
 }
@@ -928,6 +931,16 @@ void ServerInfo::setMasterPingAvg(const double& value)
     masterPingAvg += value;
 }
 
+qint32 ServerInfo::getMasterPingFailCount() const
+{
+    return masterPingFailCount;
+}
+
+void ServerInfo::setMasterPingFailCount(const qint32& value)
+{
+    masterPingFailCount = value;
+}
+
 qint32 ServerInfo::getMasterPingCount() const
 {
     return masterPingCount;
@@ -952,17 +965,17 @@ void ServerInfo::setMasterPing()
     this->setMasterPingTrend( masterPing );
 }
 
-quint32 ServerInfo::getUsageHours() const
+qint32 ServerInfo::getUsageHours() const
 {
     return usageHours;
 }
 
-quint32 ServerInfo::getUsageDays() const
+qint32 ServerInfo::getUsageDays() const
 {
     return usageDays;
 }
 
-quint32 ServerInfo::getUsageMins() const
+qint32 ServerInfo::getUsageMins() const
 {
     return usageMins;
 }

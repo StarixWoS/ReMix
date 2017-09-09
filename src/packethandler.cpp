@@ -106,7 +106,7 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                         isAuth = true;
                         send = false;
 
-                        qint32 trgScene{ plr->getTargetScene() };
+                        quint32 trgScene{ plr->getTargetScene() };
                         if ( plr->getTargetType() == Player::ALL )
                         {
                             send = true;
@@ -495,14 +495,14 @@ void PacketHandler::readMIX0(QString& packet, Player* plr)
     QString sernum = packet.mid( 2 ).left( 8 );
 
     //Send the next Packet to the Scene's Host.
-    plr->setTargetScene( sernum.toInt( 0, 16 ) );
+    plr->setTargetScene( sernum.toUInt( 0, 16 ) );
     plr->setTargetType( Player::SCENE );
 }
 
 void PacketHandler::readMIX1(QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
-    plr->setSceneHost( sernum.toInt( 0, 16 ) );
+    plr->setSceneHost( sernum.toUInt( 0, 16 ) );
 }
 
 void PacketHandler::readMIX2(QString&, Player* plr)
@@ -515,7 +515,7 @@ void PacketHandler::readMIX3(QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->validateSerNum( server, sernum.toInt( 0, 16 ) );
+    plr->validateSerNum( server, sernum.toUInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 
@@ -523,7 +523,7 @@ void PacketHandler::readMIX4(QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->setTargetSerNum( sernum.toInt( 0, 16 ) );
+    plr->setTargetSerNum( sernum.toUInt( 0, 16 ) );
     plr->setTargetType( Player::PLAYER );
 }
 
@@ -546,7 +546,7 @@ void PacketHandler::readMIX7(QString& packet, Player* plr)
     packet = packet.left( packet.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, packet.toInt( 0, 16 ) );
+    plr->validateSerNum( server, packet.toUInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 

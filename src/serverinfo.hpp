@@ -31,16 +31,16 @@ class ServerInfo
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
+    qint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
     quint32 usageCounter{ 0 };
 
-    quint32 usageHours{ 0 };
-    quint32 usageDays{ 0 };
-    quint32 usageMins{ 0 };
+    qint32 usageHours{ 0 };
+    qint32 usageDays{ 0 };
+    qint32 usageMins{ 0 };
 
     QTimer usageUpdate;
 
-    quint32 playerCount{ 0 };
+    qint32 playerCount{ 0 };
     QString serverID{ "" };
 
     bool isMaster{ false };
@@ -53,9 +53,11 @@ class ServerInfo
     QTimer masterTimeOut;
     bool masterTimedOut{ false };
 
+    qint32 masterPingFailCount{ 0 };
+    qint32 masterPingCount{ 0 };
+
     qint64 masterPingSendTime{ 0 };
     qint64 masterPingRespTime{ 0 };
-    qint32 masterPingCount{ 0 };
     double masterPingTrend{ 80 };
     double masterPingAvg{ 0 };
     double masterPing{ 0 };
@@ -153,8 +155,8 @@ class ServerInfo
         QString getServerID() const;
         void setServerID(QString value);
 
-        quint32 getPlayerCount() const;
-        void setPlayerCount(quint32 value);
+        qint32 getPlayerCount() const;
+        void setPlayerCount(qint32 value);
 
         quint16 getPublicPort() const;
         void setPublicPort(quint16 value);
@@ -232,15 +234,18 @@ class ServerInfo
         double getMasterPingAvg() const;
         void setMasterPingAvg(const double& value);
 
+        qint32 getMasterPingFailCount() const;
+        void setMasterPingFailCount(const qint32& value);
+
         qint32 getMasterPingCount() const;
         void setMasterPingCount(const qint32& value);
 
         double getMasterPing() const;
         void setMasterPing();
 
-        quint32 getUsageHours() const;
-        quint32 getUsageDays() const;
-        quint32 getUsageMins() const;
+        qint32 getUsageHours() const;
+        qint32 getUsageDays() const;
+        qint32 getUsageMins() const;
 
         Server* getTcpServer() const;
         void setTcpServer(Server* value);

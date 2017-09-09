@@ -105,7 +105,7 @@ void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex &index)
     this->toggleSettings( row, val );
 }
 
-void SettingsWidget::toggleSettings(quint32 row, Qt::CheckState value)
+void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
 {
     QVariant state = value == Qt::Checked;
 

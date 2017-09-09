@@ -26,7 +26,7 @@ class ReMixTabWidget : public QTabWidget
     QMap<int, ReMixWidget*> serverMap;
     User* user{ nullptr };
 
-    quint32 prevTabIndex{ 0 };
+    qint32 prevTabIndex{ 0 };
     bool nightMode{ false };
 
     public:
@@ -34,11 +34,11 @@ class ReMixTabWidget : public QTabWidget
         ~ReMixTabWidget();
 
         void sendMultiServerMessage(QString msg);
-        quint32 getPlayerCount();
+        qint32 getPlayerCount();
         quint32 getServerCount();
 
-        quint32 getPrevTabIndex() const;
-        void setPrevTabIndex(const quint32& value);
+        qint32 getPrevTabIndex() const;
+        void setPrevTabIndex(const qint32& value);
 
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
@@ -50,8 +50,8 @@ class ReMixTabWidget : public QTabWidget
         void applyThemes(qint32 type);
 
     private slots:
-        void tabCloseRequestedSlot(quint32 index);
-        void currentChangedSlot(quint32 newTab);
+        void tabCloseRequestedSlot(qint32 index);
+        void currentChangedSlot(qint32 newTab);
         void createServerAcceptedSlot(ServerInfo* server = nullptr);
 };
 

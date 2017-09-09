@@ -31,14 +31,14 @@ class Player : public QObject
 
     bool hasSernum{ false };
 
-    qint32 sernum_i{ 0 };
+    quint32 sernum_i{ 0 };
     QString sernum_s{ "" };
     QString sernumHex_s{ "" };
 
-    qint32 sceneHost{ 0 };
+    quint32 sceneHost{ 0 };
 
-    qint32 targetHost{ 0 };
-    qint32 targetSerNum{ 0 };
+    quint32 targetHost{ 0 };
+    quint32 targetSerNum{ 0 };
     int targetType{ 0 };
 
     bool svrPwdRequested{ false };
@@ -91,8 +91,8 @@ class Player : public QObject
         QTcpSocket* getSocket() const;
         void setSocket(QTcpSocket* value);
 
-        qint32 getSernum_i() const;
-        void setSernum_i(qint32 value);
+        quint32 getSernum_i() const;
+        void setSernum_i(quint32 value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);
@@ -100,14 +100,14 @@ class Player : public QObject
         QString getSernumHex_s() const;
         void setSernumHex_s(const QString& value);
 
-        qint32 getTargetScene() const;
-        void setTargetScene(qint32 value);
+        quint32 getTargetScene() const;
+        void setTargetScene(quint32 value);
 
-        qint32 getSceneHost() const;
-        void setSceneHost(qint32 value);
+        quint32 getSceneHost() const;
+        void setSceneHost(quint32 value);
 
-        qint32 getTargetSerNum() const;
-        void setTargetSerNum(qint32 value);
+        quint32 getTargetSerNum() const;
+        void setTargetSerNum(quint32 value);
 
         int getTargetType() const;
         void setTargetType(int value);
@@ -188,7 +188,7 @@ class Player : public QObject
         bool getNetworkMuted() const;
         void setNetworkMuted(bool value, QString& msg);
 
-        void validateSerNum(ServerInfo* server, qint32 id);
+        void validateSerNum(ServerInfo* server, quint32 id);
 
         QString getDVar() const;
         void setDVar(const QString& value);

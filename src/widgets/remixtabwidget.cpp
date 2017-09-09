@@ -77,9 +77,9 @@ void ReMixTabWidget::sendMultiServerMessage(QString msg)
     }
 }
 
-quint32 ReMixTabWidget::getPlayerCount()
+qint32 ReMixTabWidget::getPlayerCount()
 {
-    quint32 playerCount{ 0 };
+    qint32 playerCount{ 0 };
 
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
@@ -105,12 +105,12 @@ quint32 ReMixTabWidget::getServerCount()
     return serverCount;
 }
 
-quint32 ReMixTabWidget::getPrevTabIndex() const
+qint32 ReMixTabWidget::getPrevTabIndex() const
 {
     return prevTabIndex;
 }
 
-void ReMixTabWidget::setPrevTabIndex(const quint32& value)
+void ReMixTabWidget::setPrevTabIndex(const qint32& value)
 {
     prevTabIndex = value;
 }
@@ -245,7 +245,7 @@ void ReMixTabWidget::applyThemes(qint32 type)
     qApp->setPalette( customPalette );
 }
 
-void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
+void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)
 {
     QWidget* widget = this->widget( index );
     if ( widget != nullptr )
@@ -307,7 +307,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
     }
 }
 
-void ReMixTabWidget::currentChangedSlot(quint32 newTab)
+void ReMixTabWidget::currentChangedSlot(qint32 newTab)
 {
     //Make sure there are valid Servers to access.
     if ( instanceCount == 0 )
@@ -332,7 +332,7 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
     QString prompt{ "You are unable to initialize two servers with the same"
                     " name!" };
 
-    quint32 serverID{ 0 };
+    qint32 serverID{ 0 };
     ReMixWidget* instance{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {

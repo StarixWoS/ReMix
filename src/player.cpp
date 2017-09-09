@@ -227,12 +227,12 @@ void Player::setServerInfo(ServerInfo* value)
     serverInfo = value;
 }
 
-qint32 Player::getSernum_i() const
+quint32 Player::getSernum_i() const
 {
     return sernum_i;
 }
 
-void Player::setSernum_i(qint32 value)
+void Player::setSernum_i(quint32 value)
 {
     //The User has no serNum, and we require a serNum;
     //forcibly remove the User from the server.
@@ -292,32 +292,32 @@ void Player::setSernumHex_s(const QString& value)
     sernumHex_s = value;
 }
 
-qint32 Player::getTargetScene() const
+quint32 Player::getTargetScene() const
 {
     return targetHost;
 }
 
-void Player::setTargetScene(qint32 value)
+void Player::setTargetScene(quint32 value)
 {
     targetHost = value;
 }
 
-qint32 Player::getSceneHost() const
+quint32 Player::getSceneHost() const
 {
     return sceneHost;
 }
 
-void Player::setSceneHost(qint32 value)
+void Player::setSceneHost(quint32 value)
 {
     sceneHost = value;
 }
 
-qint32 Player::getTargetSerNum() const
+quint32 Player::getTargetSerNum() const
 {
     return targetSerNum;
 }
 
-void Player::setTargetSerNum(qint32 value)
+void Player::setTargetSerNum(quint32 value)
 {
     targetSerNum = value;
 }
@@ -627,7 +627,7 @@ void Player::setNetworkMuted(bool value, QString& msg)
     networkMuted = value;
 }
 
-void Player::validateSerNum(ServerInfo* server, qint32 id)
+void Player::validateSerNum(ServerInfo* server, quint32 id)
 {
     if (( this->getSernum_i() != id
        && id > 0 )

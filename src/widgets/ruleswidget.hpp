@@ -35,7 +35,7 @@ class RulesWidget : public QWidget
         void setSelectedWorld(QString worldName, bool state);
 
     private:
-        void toggleRules(quint32 row, Qt::CheckState value);
+        void toggleRules(qint32 row, Qt::CheckState value);
 
     private slots:
         void on_rulesView_doubleClicked(const QModelIndex &index);

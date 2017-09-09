@@ -135,7 +135,7 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex &index)
     this->toggleRules( row, val );
 }
 
-void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
+void RulesWidget::toggleRules(qint32 row, Qt::CheckState value)
 {
     QVariant state_v = value == Qt::Checked;
     bool state_b{ state_v.toBool() };
@@ -148,7 +148,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
     QString title{ "" };
 
     bool removeKey{ false };
-    quint32 key{ row };
+    qint32 key{ row };
 
     QString rowText{ "" };
 

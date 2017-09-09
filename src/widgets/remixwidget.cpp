@@ -164,21 +164,30 @@ void ReMixWidget::initUIUpdate()
             {
                 if ( server->getMasterUDPResponse() )
                 {
-                    QString msg2 = QString( " ( Port forward from: %1:%2 ) "
+                    QString msg2{ " ( Port forward from: %1:%2 ) "
                                             "( Ping: %3 ms, "
                                             "Avg: %4 ms, "
-                                            "Trend: %5 ms )" )
-                                       .arg( server->getPublicIP() )
+                                            "Trend: %5 ms )" };
+                            msg2 = msg2.arg( server->getPublicIP() )
                                        .arg( server->getPublicPort() )
                                        .arg( server->getMasterPing() )
                                        .arg( server->getMasterPingAvg() )
                                        .arg( server->getMasterPingTrend() );
                     msg.append( msg2 );
+
+                    qint32 fails{ server->getMasterPingFailCount() };
+                    if ( fails >= 1 )
+                    {
+                        QString msg3{ " ( Dropped: %1 ) " };
+                                msg3 = msg3.arg( fails );
+
+                        msg.append( msg3 );
+                    }
                 }
                 else
                 {
-                    msg = { "Sent UDP check-in to Master. "
-                            "Waiting for response..." };
+                    msg = "Sent UDP check-in to Master. "
+                          "Waiting for response...";
 
                     if ( server->getMasterTimedOut() )
                     {
@@ -266,7 +275,7 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
     }
 }
 
-void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
+void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
 {
     if ( contextMenu == nullptr )
     {

@@ -3,10 +3,10 @@ import qbs
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: '2.1.7'
+    property string ReMixVersionDisplay: '2.1.8'
     property string ReMixVersionMajor: '2'
     property string ReMixVersionMinor: '1'
-    property string ReMixVersionPatch: '7'
+    property string ReMixVersionPatch: '8'
     property string ReMixVersion: ReMixVersionMajor + '.'
                                 + ReMixVersionMinor + '.'
                                 + ReMixVersionPatch

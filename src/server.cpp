@@ -161,7 +161,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->setSernum_i( Helper::serNumToHexStr( sernum )
-                                     .toInt( 0, 16 ) );
+                                     .toUInt( 0, 16 ) );
         user->updateCallCount( Helper::serNumToHexStr( sernum ) );
 
         QString alias = Helper::getStrStr( bio, "alias", "=", "," );
