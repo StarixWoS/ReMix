@@ -53,6 +53,8 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
             {
                 this->setTabText( index, response );
                 tabA->renameServer( response );
+
+                emit this->currentChanged( index );
             }
         }
     });

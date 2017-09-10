@@ -73,10 +73,10 @@ void ReMixWidget::renameServer(QString newName)
 {
     if ( !newName.isEmpty() )
     {
+        settings->copyServerSettings( server, newName );
         motdWidget->setServerName( newName );
         rules->setServerName( newName );
 
-        settings->copyServerSettings( server, newName );
         server->setName( newName );
     }
 }
