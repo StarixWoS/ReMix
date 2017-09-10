@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 2.1.9 # major.minor.patch
+VERSION = 2.1.10 # major.minor.patch
 
 QT += core \
       gui \
@@ -89,7 +89,6 @@ HEADERS += src/tblview/usersortproxymodel.hpp\
            src/packethandler.hpp \
            src/packetforge.hpp \
            src/selectworld.hpp \
-           src/themechange.hpp \
            src/cmdhandler.hpp \
            src/serverinfo.hpp \
            src/prototypes.hpp \

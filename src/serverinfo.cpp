@@ -106,15 +106,9 @@ void ServerInfo::setupInfo()
 
 void ServerInfo::setupUPNP(bool isDisable)
 {
-    QHostAddress localIP{ QHostAddress( this->getPrivateIP() ) };
+    upnp = UPNP::getUpnp();
     if ( upnp == nullptr )
-    {
-        //We are not able to UPNP forward for a MultiCast IP Address.
-        if ( localIP == QHostAddress::AnyIPv4 )
-            return;
-
-        upnp = UPNP::getUpnp( localIP );
-    }
+        return;
 
     if ( !isDisable )
     {
@@ -140,10 +134,7 @@ void ServerInfo::setupUPNP(bool isDisable)
         //Add a delay of one second after each removal command.
         //This is to ensure the command is sent.
         upnp->removePortForward( "TCP", this->getPrivatePort() );
-        Helper::delay( 1 );
-
         upnp->removePortForward( "UDP", this->getPrivatePort() );
-        Helper::delay( 1 );
     }
 }
 

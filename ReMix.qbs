@@ -3,10 +3,10 @@ import qbs
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: '2.1.9'
+    property string ReMixVersionDisplay: '2.1.10'
     property string ReMixVersionMajor: '2'
     property string ReMixVersionMinor: '1'
-    property string ReMixVersionPatch: '9'
+    property string ReMixVersionPatch: '10'
     property string ReMixVersion: ReMixVersionMajor + '.'
                                 + ReMixVersionMinor + '.'
                                 + ReMixVersionPatch
@@ -30,6 +30,8 @@ CppApplication
     cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
     cpp.optimization: qbs.buildVariant == "debug" ? "small" : "fast"
     cpp.cxxFlags: ["-Os", "-s",]
+
+    destinationDirectory: "../" + qbs.buildVariant
 
     Group
     {

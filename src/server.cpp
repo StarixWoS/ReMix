@@ -50,7 +50,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
     [=]()
     {
-        server->setIsSetUp( false );
+        server->setIsPublic( true );
         this->setupServerInfo();
     });
 

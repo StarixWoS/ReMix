@@ -182,10 +182,10 @@
             GAME_NAME_COUNT = 3,
 
             //Maximum live-time for a UPNP PortForward to live.
-            //30 Minutes in seconds.
-            UPNP_TIME_OUT_S = 1800,
+            //1 Hour in seconds.
+            UPNP_TIME_OUT_S = 3600,
 
-            //Maximum live-time for a UPNP PortForward to live.
+            //Maximum idle-time for a UPNP PortForward exist without refreshing.
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
         };

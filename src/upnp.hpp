@@ -30,6 +30,7 @@ class UPNP : public QObject
         QNetworkAddressEntry localAddress;
         QHostAddress externalAddress;
         QHostAddress gateway;
+        QHostAddress localIP;
         QUrl gatewayCtrlUrl;
 
         QString rtrSchema{ "urn:schemas-upnp-org:service:WANIPConnection:1" };
@@ -39,7 +40,7 @@ class UPNP : public QObject
         int externalPort{ 0 };
 
     public:
-        explicit UPNP(QHostAddress localip, QObject* parent = 0);
+        explicit UPNP(QObject* parent = 0);
         ~UPNP();
 
     public:
@@ -49,7 +50,7 @@ class UPNP : public QObject
         void addPortForward(QString protocol, qint32 port);
         void removePortForward(QString protocol, qint32 port);
 
-        static UPNP* getUpnp(QHostAddress localip);
+        static UPNP* getUpnp();
 
         static bool getTunneled();
         static void setTunneled(bool value);
