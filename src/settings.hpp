@@ -35,7 +35,7 @@ class Settings : public QDialog
                       ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles = 22 };
+                      GameName, LogFiles, DarkMode = 23 };
 
         enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
@@ -89,6 +89,9 @@ class Settings : public QDialog
 
         static void setLogFiles(QVariant& value);
         static bool getLogFiles();
+
+        static void setDarkMode(QVariant& value);
+        static bool getDarkMode();
 
         static void setFwdComments(QVariant& value);
         static bool getFwdComments();

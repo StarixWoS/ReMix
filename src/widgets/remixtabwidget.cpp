@@ -5,8 +5,6 @@
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance;
 qint32 ReMixTabWidget::instanceCount;
-QPalette ReMixTabWidget::defaultPalette;
-QPalette ReMixTabWidget::customPalette;
 
 ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     : QTabWidget(parent)
@@ -44,7 +42,6 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
         if ( tabB != nullptr )
             serverMap.insert( from, tabB );
     });
-    defaultPalette = this->palette();
 }
 
 ReMixTabWidget::~ReMixTabWidget()
@@ -141,7 +138,6 @@ CreateInstance* ReMixTabWidget::getCreateDialog(QWidget* parent)
     return createDialog;
 }
 
-#include <QLabel>
 void ReMixTabWidget::createTabButtons()
 {
     newTabButton = new QToolButton( this );
@@ -155,21 +151,34 @@ void ReMixTabWidget::createTabButtons()
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
-    nightModeButton->setText( "Night Mode" );
+
+    if ( Settings::getDarkMode() )
+    {
+        nightModeButton->setText( "Normal Mode" );
+        nightMode = !nightMode;
+    }
+    else
+        nightModeButton->setText( "Night Mode" );
 
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
     QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
     {
-        qint32 type{ 1 };
-        if ( nightMode )
+        QVariant type{ false };
+        if ( !nightMode )
         {
-            nightModeButton->setText( "Night Mode" );
-            type = 0;
+            nightModeButton->setText( "Normal Mode" );
+            type = true;
         }
         else
-            nightModeButton->setText( "Normal Mode" );
+            nightModeButton->setText( "Night Mode" );
 
-        this->applyThemes( type );
+        QString title{ "Restart Required:" };
+        QString msg{ "The theme change will take effect after "
+                     "a restart." };
+
+        Helper::warningMessage( this, title, msg );
+        Settings::setDarkMode( type );
+
         nightMode = !nightMode;
     } );
 }
@@ -183,66 +192,6 @@ void ReMixTabWidget::createServer()
         createDialog->hide();
     else
         createDialog->show();
-}
-
-void ReMixTabWidget::applyThemes(qint32 type)
-{
-    customPalette = defaultPalette;
-    if ( type == Themes::DARK )
-    {
-        //Activated Color Roles
-        customPalette.setColor( QPalette::All, QPalette::WindowText,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Text,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Base,
-                          QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Window,
-                          QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Shadow,
-                          QColor( 105, 105, 105 ) );
-        customPalette.setColor( QPalette::All, QPalette::Midlight,
-                          QColor( 227, 227, 227 ) );
-        customPalette.setColor( QPalette::All, QPalette::Button,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::All, QPalette::Light,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::Dark,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::All, QPalette::Mid,
-                          QColor( 160, 160, 160 ) );
-        customPalette.setColor( QPalette::All, QPalette::BrightText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::ButtonText,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::HighlightedText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::Link,
-                          QColor( 0, 122, 144 ) );
-        customPalette.setColor( QPalette::All, QPalette::LinkVisited,
-                          QColor( 165, 122, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::AlternateBase,
-                          QColor( 81, 81, 81 ) );
-        customPalette.setColor( QPalette::All, QPalette::ToolTipText,
-                          QColor( 231, 231, 231 ) );
-
-        //Disabled Color Roles
-        customPalette.setColor( QPalette::Disabled, QPalette::Button,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::WindowText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Text,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Base,
-                          QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Window,
-                          QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Shadow,
-                          QColor( 0, 0, 0 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Midlight,
-                          QColor( 247, 247, 247 ) );
-    }
-    qApp->setPalette( customPalette );
 }
 
 void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)

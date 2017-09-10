@@ -8,7 +8,8 @@ PacketForge::PacketForge()
     pktDecrypt.setFileName( "PacketForge.dll" );
     if ( pktDecrypt.load() )
     {
-        decryptPkt = (Decrypt)pktDecrypt.resolve( "decryptPacket" );
+        decryptPkt = reinterpret_cast<Decrypt>(
+                            pktDecrypt.resolve( "decryptPacket" ) );
     }
     else
         qDebug() << pktDecrypt.errorString();

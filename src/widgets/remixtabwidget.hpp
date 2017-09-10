@@ -17,9 +17,6 @@ class ReMixTabWidget : public QTabWidget
     static ReMixTabWidget* tabInstance;
     static qint32 instanceCount;
 
-    static QPalette defaultPalette;
-    static QPalette customPalette;
-
     QToolButton* nightModeButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
@@ -47,7 +44,6 @@ class ReMixTabWidget : public QTabWidget
     private:
         void createTabButtons();
         void createServer();
-        void applyThemes(qint32 type);
 
     private slots:
         void tabCloseRequestedSlot(qint32 index);

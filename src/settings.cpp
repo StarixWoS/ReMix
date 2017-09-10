@@ -37,7 +37,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "portNumber",
     "isPublic",
     "gameName",
-    "logFiles"
+    "logFiles",
+    "darkMode",
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -311,7 +312,20 @@ bool Settings::getLogFiles()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::LogFiles ] )
-              .toBool();
+            .toBool();
+}
+
+void Settings::setDarkMode(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::DarkMode ], value );
+}
+
+bool Settings::getDarkMode()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::DarkMode ] )
+            .toBool();
 }
 
 void Settings::setFwdComments(QVariant& value)

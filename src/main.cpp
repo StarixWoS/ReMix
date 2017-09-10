@@ -1,5 +1,6 @@
 
 #include "includes.hpp"
+#include "themechange.hpp"
 #include "remix.hpp"
 
 #include <QApplication>
@@ -21,6 +22,9 @@ int main(int argc, char *[])
 
     qApp->font().setFixedPitch( true );
     qApp->setStyle( QStyleFactory::create( "Fusion" ) );
+
+    if ( Settings::getDarkMode() )
+        ThemeChange::applyTheme( Themes::DARK );
 
     ReMix w;
     w.show();
