@@ -3,11 +3,9 @@
 #include "server.hpp"
 
 Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
-               QStandardItemModel* plrView, QString svrID)
+               QStandardItemModel* plrView)
     : QTcpServer(parent)
 {
-    serverID = svrID;
-
     //Setup Objects.
     mother = parent;
     server = svr;
@@ -16,10 +14,10 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    serverComments->setTitle( serverID );
+    serverComments->setTitle( svr->getName() );
 
     chatView = new ChatView( parent );
-    chatView->setTitle( serverID );
+    chatView->setTitle( svr->getName() );
 
     Games gameID{ Games::Invalid };
     QString gameName{ server->getGameName() };
@@ -34,7 +32,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     chatView->setGameID( gameID );
 
-    pktHandle = new PacketHandler( user, server, chatView, svrID );
+    pktHandle = new PacketHandler( user, server, chatView );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,

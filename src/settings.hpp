@@ -15,8 +15,8 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    QHash<QString, MOTDWidget*> msgWidgets;
-    QHash<QString, RulesWidget*> ruleWidgets;
+    QHash<ServerInfo*, MOTDWidget*> msgWidgets;
+    QHash<ServerInfo*, RulesWidget*> ruleWidgets;
 
     SettingsWidget* settings;
     QTabWidget* tabWidget{ nullptr };
@@ -26,9 +26,10 @@ class Settings : public QDialog
         ~Settings();
 
         void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                           QString& svrID);
-        void remTabObjects(QString& svrID);
-        void updateTabBar(QString& svrID);
+                           ServerInfo* server);
+        void remTabObjects(ServerInfo* server);
+        void updateTabBar(ServerInfo* server);
+        void copyServerSettings(ServerInfo* server, QString newName);
 
         enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
                       AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,

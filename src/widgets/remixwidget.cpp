@@ -10,17 +10,19 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     ui->setupUi( this );
 
     server = svrInfo;
-    serverID = server->getName();
 
     //Setup our Random Device
     randDev = new RandDev();
 
     //Setup Objects.
-    motdWidget = new MOTDWidget( serverID );
-    rules = new RulesWidget( serverID );
+    motdWidget = new MOTDWidget();
+    motdWidget->setServerName( server->getName() );
+
+    rules = new RulesWidget();
+    rules->setServerName( server->getName() );
 
     settings = ReMix::getSettings();
-    settings->addTabObjects( motdWidget, rules, serverID );
+    settings->addTabObjects( motdWidget, rules, server );
 
     user = ReMix::getUser();
 
@@ -29,8 +31,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
     //Setup Networking Objects.
-    tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                            serverID );
+    tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
     server->setTcpServer( tcpServer );
 
     //Initialize the TCP Server if we're starting as a public instance.
@@ -56,11 +57,28 @@ ReMixWidget::~ReMixWidget()
 
     plrWidget->deleteLater();
 
-    settings->remTabObjects( serverID );
+    settings->remTabObjects( server );
 
     delete randDev;
     delete server;
     delete ui;
+}
+
+ServerInfo* ReMixWidget::getServerInfo()
+{
+    return server;
+}
+
+void ReMixWidget::renameServer(QString newName)
+{
+    if ( !newName.isEmpty() )
+    {
+        motdWidget->setServerName( newName );
+        rules->setServerName( newName );
+
+        settings->copyServerSettings( server, newName );
+        server->setName( newName );
+    }
 }
 
 void ReMixWidget::sendServerMessage(QString msg)
@@ -92,11 +110,6 @@ Settings* ReMixWidget::getSettings() const
 Server* ReMixWidget::getTcpServer() const
 {
     return tcpServer;
-}
-
-QString& ReMixWidget::getServerID()
-{
-    return serverID;
 }
 
 quint16 ReMixWidget::getPrivatePort() const

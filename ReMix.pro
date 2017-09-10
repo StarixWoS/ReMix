@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-VERSION = 2.1.10 # major.minor.patch
+VERSION = 2.1.11 # major.minor.patch
 
 QT += core \
       gui \

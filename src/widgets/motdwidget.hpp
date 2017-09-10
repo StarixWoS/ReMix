@@ -15,12 +15,14 @@ class MOTDWidget : public QWidget
 {
     Q_OBJECT
 
+    QString serverName{ "" };
     QTimer motdUpdate;
-    QString serverID{ "" };
 
     public:
-        explicit MOTDWidget(QString svrID = "0");
+        explicit MOTDWidget();
         ~MOTDWidget();
+
+        void setServerName(QString name);
 
     private slots:
         void on_motdEdit_textChanged();

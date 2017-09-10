@@ -30,10 +30,37 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( this, &QTabWidget::currentChanged,
                       this, &ReMixTabWidget::currentChangedSlot );
 
+    QObject::connect( this, &QTabWidget::tabBarDoubleClicked, [=](int index)
+    {
+        ReMixWidget* tabA{ serverMap.value( index ) };
+        if ( tabA != nullptr )
+        {
+            QString title{ "Rename Server: [ %1 ]" };
+                    title = title.arg( tabA->getServerName() );
+            QString message{ "Please enter the new name you wish "
+                             "to use for this server!" };
+
+            QString response{ Helper::getTextResponse( this, title, message,
+                                                       nullptr, 0 ) };
+
+            if ( response.isEmpty() )
+            {
+                title = "Error:";
+                message = "The Server name can not be empty!";
+                Helper::warningMessage( this, title, message );
+            }
+            else
+            {
+                this->setTabText( index, response );
+                tabA->renameServer( response );
+            }
+        }
+    });
+
     //Refresh the server instance's ServerID when the Tabs are moved.
     QObject::connect( this->tabBar(), &QTabBar::tabMoved, [=](int from, int to)
     {
-        ReMixWidget* tabA{ serverMap.take( from) };
+        ReMixWidget* tabA{ serverMap.take( from ) };
         ReMixWidget* tabB{ serverMap.take( to ) };
 
         if ( tabA != nullptr )
@@ -265,8 +292,7 @@ void ReMixTabWidget::currentChangedSlot(qint32 newTab)
     ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
     {
-        ReMix::updateTitleBars( server->getServerID(),
-                                server->getPrivatePort() );
+        ReMix::updateTitleBars( server->getServerInfo() );
     }
     this->setPrevTabIndex( newTab );
 }

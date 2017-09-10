@@ -25,12 +25,9 @@ class Server : public QTcpServer
     ServerInfo* server{ nullptr };
     User* user{ nullptr };
 
-    QString serverID{ "" };
-
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr,
-               QString svrID = "0");
+               User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr);
         ~Server();
 
         void setupServerInfo();

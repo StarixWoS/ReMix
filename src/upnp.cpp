@@ -58,8 +58,8 @@ UPNP::UPNP(QObject* parent )
             {
                 if ( port != 0 )
                 {
-                    this->checkPortForward( "TCP", port );
-                    this->checkPortForward( "UDP", port );
+                    this->addPortForward( "TCP", port );
+                    this->addPortForward( "UDP", port );
                 }
             }
         });

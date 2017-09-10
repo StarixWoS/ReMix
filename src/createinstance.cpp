@@ -98,7 +98,7 @@ void CreateInstance::on_initializeServer_clicked()
     QString svrName{ ui->servers->currentText() };
     if ( !svrName.isEmpty() )
     {
-        ServerInfo* server = new ServerInfo( svrName );
+        ServerInfo* server = new ServerInfo();
         if ( server == nullptr )    //Failed to create the ServerInfo instance.
             return;
 

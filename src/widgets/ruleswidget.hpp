@@ -25,12 +25,13 @@ class RulesWidget : public QWidget
     bool maxAFKCheckState{ false };
     bool worldCheckState{ false };
     bool urlCheckState{ false };
-    QString serverID{ "" };
+    QString serverName{ "" };
 
     public:
-        explicit RulesWidget(QString svrID = "0");
+        explicit RulesWidget();
         ~RulesWidget();
 
+        void setServerName(QString name);
         void setCheckedState(Toggles option, bool val);
         void setSelectedWorld(QString worldName, bool state);
 

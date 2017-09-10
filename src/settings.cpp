@@ -91,25 +91,25 @@ Settings::~Settings()
 }
 
 void Settings::addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                             QString& svrID)
+                             ServerInfo* server)
 {
     if ( msgWidget != nullptr )
-        msgWidgets.insert( svrID, msgWidget );
+        msgWidgets.insert( server, msgWidget );
 
     if ( ruleWidget != nullptr )
-        ruleWidgets.insert( svrID, ruleWidget );
+        ruleWidgets.insert( server, ruleWidget );
 }
 
-void Settings::remTabObjects(QString& svrID)
+void Settings::remTabObjects(ServerInfo* server)
 {
-    MOTDWidget* msgWidget{ msgWidgets.take( svrID ) };
+    MOTDWidget* msgWidget{ msgWidgets.take( server ) };
     if ( msgWidget != nullptr )
     {
         msgWidget->setParent( nullptr );
         msgWidget->deleteLater();
     }
 
-    RulesWidget* ruleWidget{ ruleWidgets.take( svrID ) };
+    RulesWidget* ruleWidget{ ruleWidgets.take( server ) };
     if ( ruleWidget != nullptr )
     {
         ruleWidget->setParent( nullptr );
@@ -117,19 +117,93 @@ void Settings::remTabObjects(QString& svrID)
     }
 }
 
-void Settings::updateTabBar(QString& svrID)
+void Settings::updateTabBar(ServerInfo* server)
 {
     qint32 index{ tabWidget->currentIndex() };
     tabWidget->clear();
     if ( settings == nullptr )
         settings = new SettingsWidget( this );
 
-    this->setWindowTitle( "[ " % svrID % " ] Settings:");
+    this->setWindowTitle( "[ " % server->getName() % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
-    tabWidget->insertTab( 1, ruleWidgets.value( svrID ), "Rules" );
-    tabWidget->insertTab( 2, msgWidgets.value( svrID ), "MotD" );
+    tabWidget->insertTab( 1, ruleWidgets.value( server ), "Rules" );
+    tabWidget->insertTab( 2, msgWidgets.value( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
+}
+
+void Settings::copyServerSettings(ServerInfo* server, QString newName)
+{
+    QString oldName{ server->getName() };
+    QString value_s;
+    QVariant value;
+    if ( oldName != newName )
+    {
+        //Copy Rules.
+        Rules::setMaxPlayers( Rules::getMaxPlayers( oldName ), newName );
+        Rules::setMaxAFK( Rules::getMaxAFK( oldName ), newName );
+
+        value_s = Rules::getWorldName( oldName );
+                  Rules::setWorldName( value_s, newName );
+
+        value_s = Rules::getURLAddress( oldName );
+                  Rules::setURLAddress( value_s, newName );
+
+        value_s = Rules::getMinVersion( oldName );
+                  Rules::setMinVersion( value_s, newName );
+
+        value = Rules::getNoEavesdropping( oldName );
+                Rules::setNoEavesdropping( value, newName );
+
+        value = Rules::getReportLadder( oldName );
+                Rules::setReportLadder( value, newName );
+
+        value = Rules::getNoMigrating( oldName );
+                Rules::setNoMigrating( value, newName );
+
+        value = Rules::getNoCheating( oldName );
+                Rules::setNoCheating( value, newName );
+
+        value = Rules::getArenaPKing( oldName );
+                Rules::setArenaPKing( value, newName );
+
+        value = Rules::getNoCursing( oldName );
+                Rules::setNoCursing( value, newName );
+
+        value = Rules::getNoModding( oldName );
+                Rules::setNoModding( value, newName );
+
+        value = Rules::getAllPKing( oldName );
+                Rules::setAllPKing( value, newName );
+
+        value = Rules::getNoPKing( oldName );
+                Rules::setNoPKing( value, newName );
+
+        value = Rules::getNoPets( oldName );
+                Rules::setNoPets( value, newName );
+
+        //Copy other Settings.
+        value = getServerRunning( oldName );
+                setServerRunning( value, newName );
+
+        value = getMOTDMessage( oldName );
+                setMOTDMessage( value, newName );
+
+        value = getPortNumber( oldName );
+                setPortNumber( value, newName );
+
+        value = getServerID( oldName );
+                setServerID( value, newName );
+
+        value = getIsPublic( oldName );
+                setIsPublic( value, newName );
+
+        value = getGameName( oldName );
+                setGameName( value, newName );
+
+        prefs->remove( oldName );
+        prefs->sync();
+    }
 }
 
 //Static-Free Functions.

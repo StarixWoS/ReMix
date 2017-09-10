@@ -20,11 +20,8 @@ class PacketHandler : public QObject
 
     QTimer masterCheckIn;
 
-    QString serverID{ "" };
-
     public:
-        PacketHandler(User* usr, ServerInfo* svr, ChatView* chat,
-                      QString svrID = "0");
+        PacketHandler(User* usr, ServerInfo* svr, ChatView* chat);
         ~PacketHandler();
 
         void startMasterCheckIn();

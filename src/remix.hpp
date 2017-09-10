@@ -41,7 +41,7 @@ class ReMix : public QMainWindow
         static ReMix* getInstance();
         static void setInstance(ReMix* value);
 
-        static void updateTitleBars(QString serverName, quint16 port);
+        static void updateTitleBars(ServerInfo* server);
         static Settings* getSettings();
         static User* getUser();
 

@@ -32,8 +32,6 @@ class ReMixWidget : public QWidget
     QPalette defaultPalette;
     bool nightMode{ false };
 
-    QString serverID{ "" };
-
     enum Themes{ LIGHT = 0, DARK = 1 };
 
     public:
@@ -42,6 +40,7 @@ class ReMixWidget : public QWidget
         ~ReMixWidget();
 
         ServerInfo* getServerInfo();
+        void renameServer(QString newName);
 
         void sendServerMessage(QString msg);
         qint32 getPlayerCount();
@@ -50,7 +49,6 @@ class ReMixWidget : public QWidget
         Settings* getSettings() const;
         Server* getTcpServer() const;
 
-        QString& getServerID();
         quint16 getPrivatePort() const;
 
     private:

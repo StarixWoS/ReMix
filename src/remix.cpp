@@ -83,16 +83,16 @@ void ReMix::setInstance(ReMix* value)
     instance = value;
 }
 
-void ReMix::updateTitleBars(QString serverName, quint16 port)
+void ReMix::updateTitleBars(ServerInfo* server)
 {
     if ( settings != nullptr )
     {
-        settings->updateTabBar( serverName );
+        settings->updateTabBar( server );
     }
     QString title{ "ReMix[ %1 ]: %2 [ %3 ]" };
             title = title.arg( QString( REMIX_VERSION ) )
-                         .arg( serverName )
-                         .arg( port );
+                         .arg( server->getName() )
+                         .arg( server->getPrivatePort() );
     ReMix::getInstance()->setWindowTitle( title );
 }
 

@@ -2,10 +2,9 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr, ChatView* chat, QString svrID)
+PacketHandler::PacketHandler(User* usr, ServerInfo* svr, ChatView* chat)
 {
     pktForge = PacketForge::getInstance();
-    serverID = svrID;
     chatView = chat;
     server = svr;
     user = usr;
