@@ -12,18 +12,15 @@ class User : public QDialog
 {
     Q_OBJECT
 
-    QSortFilterProxyModel* tblProxy{ nullptr };
-    QStandardItemModel* tblModel{ nullptr };
-    RandDev* randDev{ nullptr };
+    static QSortFilterProxyModel* tblProxy;
+    static QStandardItemModel* tblModel;
+    static QSettings* userData;
+    static RandDev* randDev;
+    static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];
 
     public:
-        explicit User(QWidget* parent = nullptr);
-        ~User();
-
-        static QSettings* userData;
-
         enum UserColumns{ cSERNUM = 0, cPINGS, cCALLS, cSEENDATE, cIP,
                           cRANK, cBANNED, cBANDATE, cREASON, cCOLS = 9 };
 
@@ -35,28 +32,37 @@ class User : public QDialog
 
         enum BanTypes{ tSERNUM = 0, tIP, tDV, tWV = 3 };
 
+        explicit User(QWidget* parent = nullptr);
+        ~User();
+
+        static User* getInstance();
+        static void setInstance(User* value);
+
+        static QSettings* getUserData();
+        static void setUserData(QSettings* value);
+
         static void setData(const QString& key, const QString& subKey,
                             const QVariant& value);
         static QVariant getData(const QString& key, const QString& subKey);
 
-        bool makeAdmin(QString& sernum, QString& pwd);
+        static bool makeAdmin(QString& sernum, QString& pwd);
 
         static bool getIsAdmin(QString& sernum);
         static bool getHasPassword(QString sernum);
         static bool cmpAdminPwd(QString& sernum, QString& value);
 
         static qint32 getAdminRank(QString& sernum);
-        void setAdminRank(QString& sernum, qint32 rank);
+        static void setAdminRank(QString& sernum, qint32 rank);
 
-        void removeBan(QString& value, qint32 type);
-        bool addBan(Player* admin, Player* target, QString& reason,
-                    bool remote = false);
+        static void removeBan(QString& value, qint32 type);
+        static bool addBan(Player* admin, Player* target, QString& reason,
+                           bool remote = false);
 
         static bool getIsBanned(QString value, BanTypes type);
 
-        void updateCallCount(QString serNum);
-        void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
-                    QString& wv, QString& bio);
+        static void updateCallCount(QString serNum);
+        static void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
+                           QString& wv, QString& bio);
 
     private:
         QModelIndex findModelIndex(QString value, UserColumns col);

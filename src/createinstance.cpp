@@ -105,7 +105,7 @@ void CreateInstance::on_initializeServer_clicked()
         QString gameName{ gameNames[ ui->gameName->currentIndex() ] };
         QString svrPort{ ui->portNumber->text( ) };
 
-        ReMix::getSynRealData( server );
+        Helper::getSynRealData( server );
         server->setName( svrName );
         server->setServerID( Settings::getServerID( svrName ) );
         server->setPrivatePort( svrPort.toUShort() );

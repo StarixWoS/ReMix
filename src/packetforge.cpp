@@ -2,7 +2,7 @@
 #include "includes.hpp"
 #include "packetforge.hpp"
 
-PacketForge* PacketForge::forge{ nullptr };
+PacketForge* PacketForge::instance{ nullptr };
 PacketForge::PacketForge()
 {
     pktDecrypt.setFileName( "PacketForge.dll" );
@@ -10,6 +10,7 @@ PacketForge::PacketForge()
     {
         decryptPkt = reinterpret_cast<Decrypt>(
                             pktDecrypt.resolve( "decryptPacket" ) );
+        initialized = true;
     }
     else
         qDebug() << pktDecrypt.errorString();
@@ -21,11 +22,10 @@ PacketForge::~PacketForge()
 
 PacketForge* PacketForge::getInstance()
 {
-    if ( forge == nullptr )
-    {
-        forge = new PacketForge();
-    }
-    return forge;
+    if ( instance == nullptr )
+        instance = new PacketForge();
+
+    return instance;
 }
 
 QString PacketForge::decryptPacket(QString packet)
@@ -34,7 +34,7 @@ QString PacketForge::decryptPacket(QString packet)
     if ( packet.startsWith( ":SR?" ) || packet.startsWith( ":SR!" ) )
         return QString( "" );
 
-    if ( decryptPkt )
+    if ( initialized )
     {
         return decryptPkt( packet );
     }

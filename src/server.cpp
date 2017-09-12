@@ -2,7 +2,7 @@
 #include "includes.hpp"
 #include "server.hpp"
 
-Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
+Server::Server(QWidget* parent, ServerInfo* svr,
                QStandardItemModel* plrView)
     : QTcpServer(parent)
 {
@@ -10,7 +10,6 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     mother = parent;
     server = svr;
     plrViewModel = plrView;
-    user = usr;
 
     //Setup Objects.
     serverComments = new Comments( parent );
@@ -32,7 +31,7 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
 
     chatView->setGameID( gameID );
 
-    pktHandle = new PacketHandler( user, server, chatView );
+    pktHandle = new PacketHandler( server, chatView );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -160,7 +159,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->setSernum_i( Helper::serNumToHexStr( sernum )
                                      .toUInt( 0, 16 ) );
-        user->updateCallCount( Helper::serNumToHexStr( sernum ) );
+        User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
         QString alias = Helper::getStrStr( bio, "alias", "=", "," );
         plr->setAlias( alias );

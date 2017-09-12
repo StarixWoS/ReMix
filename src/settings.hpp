@@ -15,21 +15,24 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    QHash<ServerInfo*, MOTDWidget*> msgWidgets;
-    QHash<ServerInfo*, RulesWidget*> ruleWidgets;
-
-    SettingsWidget* settings;
-    QTabWidget* tabWidget{ nullptr };
+    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
+    static QHash<ServerInfo*, MOTDWidget*> msgWidgets;
+    static SettingsWidget* settings;
+    static QTabWidget* tabWidget;
+    static Settings* instance;
 
     public:
         explicit Settings(QWidget *parent = 0);
         ~Settings();
 
-        void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                           ServerInfo* server);
-        void remTabObjects(ServerInfo* server);
-        void updateTabBar(ServerInfo* server);
-        void copyServerSettings(ServerInfo* server, QString newName);
+        static Settings* getInstance();
+        static void setInstance(Settings* value);
+
+        static void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
+                                  ServerInfo* server);
+        static void remTabObjects(ServerInfo* server);
+        static void updateTabBar(ServerInfo* server);
+        static void copyServerSettings(ServerInfo* server, QString newName);
 
         enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
                       AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,

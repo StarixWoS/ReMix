@@ -16,12 +16,11 @@ class PacketHandler : public QObject
     CmdHandler* cmdHandle{ nullptr };
     ServerInfo* server{ nullptr };
     ChatView* chatView{ nullptr };
-    User* user{ nullptr };
 
     QTimer masterCheckIn;
 
     public:
-        PacketHandler(User* usr, ServerInfo* svr, ChatView* chat);
+        PacketHandler(ServerInfo* svr, ChatView* chat);
         ~PacketHandler();
 
         void startMasterCheckIn();

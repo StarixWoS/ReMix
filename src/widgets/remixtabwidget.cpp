@@ -12,7 +12,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     //Allow ServerInstance Tabs to be swapped and moved.
     this->setMovable( true );
 
-    user = ReMix::getUser();
+    user = User::getInstance();
     createDialog = this->getCreateDialog( this );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal,
                       this, &ReMixTabWidget::createServerAcceptedSlot );

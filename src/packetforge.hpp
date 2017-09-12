@@ -8,7 +8,8 @@
 
 class PacketForge
 {
-    static PacketForge* forge;
+    static PacketForge* instance;
+    bool initialized{ false };
     QLibrary pktDecrypt;
 
     //Typedefs for imported functions from our PacketDecrypt Library.

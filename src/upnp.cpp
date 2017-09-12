@@ -67,7 +67,6 @@ UPNP::UPNP(QObject* parent )
         if ( Settings::getLogFiles() )
         {
             QString msg{ "Creating UPNP Object." };
-            msg = msg.arg( localIP.toString() );
             Helper::logToFile( upnpLog, msg, true, true );
         }
     }

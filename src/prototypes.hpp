@@ -76,9 +76,6 @@
 #ifndef REMIX_PROTOTYPES_HPP
     #define REMIX_PROTOTYPES_HPP
 
-    namespace Helper
-    {}
-
     //Table-View Classes.
     class UserSortProxyModel;
     class PlrSortProxyModel;
@@ -107,6 +104,7 @@
     class SendMsg;
     class Player;
     class Server;
+    class Helper;
     class Rules;
     class ReMix;
     class User;

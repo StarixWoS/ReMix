@@ -23,11 +23,10 @@ class Server : public QTcpServer
     PacketHandler* pktHandle{ nullptr };
     ChatView* chatView{ nullptr };
     ServerInfo* server{ nullptr };
-    User* user{ nullptr };
 
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr);
+               QStandardItemModel* plrView = nullptr);
         ~Server();
 
         void setupServerInfo();

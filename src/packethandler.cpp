@@ -2,14 +2,13 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr, ChatView* chat)
+PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 {
     pktForge = PacketForge::getInstance();
     chatView = chat;
     server = svr;
-    user = usr;
 
-    cmdHandle = new CmdHandler( this, server, user );
+    cmdHandle = new CmdHandler( this, server );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
 }
@@ -290,7 +289,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                 server->sendServerInfo( ipAddr, port );
                                 bioHash->insert( ipAddr, udp.mid( 1 ) );
                             }
-                            user->logBIO( sernum, ipAddr, dVar, wVar, data );
+                            User::logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
                         server->setUserPings( server->getUserPings() + 1 );
                     }
@@ -373,7 +372,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( plr->getBioData() );
 
                     if ( Settings::getBanDupedIP() )
-                        user->addBan( nullptr, plr, reason );
+                        User::addBan( nullptr, plr, reason );
 
                     if ( plr != nullptr )
                     {
@@ -475,7 +474,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                    .arg( plr->getBioData() );
                     Helper::logToFile( log, logMsg, true, true );
 
-                    user->addBan( nullptr, plr, logMsg );
+                    User::addBan( nullptr, plr, logMsg );
                 }
                 plr->setDisconnected( true );
                 server->setPktDc( server->getPktDc() + 1 );

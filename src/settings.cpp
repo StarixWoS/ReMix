@@ -42,6 +42,12 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
+QHash<ServerInfo*, RulesWidget*> Settings::ruleWidgets;
+QHash<ServerInfo*, MOTDWidget*> Settings::msgWidgets;
+SettingsWidget* Settings::settings;
+QTabWidget* Settings::tabWidget;
+Settings* Settings::instance;
+
 QSettings* Settings::prefs{ new QSettings( "preferences.ini",
                                            QSettings::IniFormat ) };
 
@@ -87,7 +93,23 @@ Settings::~Settings()
     tabWidget->deleteLater();
     settings->deleteLater();
 
+    instance->close();
+    instance->deleteLater();
+
     delete ui;
+}
+
+Settings*Settings::getInstance()
+{
+    if ( instance == nullptr )
+        instance = new Settings( nullptr );
+
+    return instance;
+}
+
+void Settings::setInstance(Settings* value)
+{
+    instance = value;
 }
 
 void Settings::addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
@@ -120,11 +142,12 @@ void Settings::remTabObjects(ServerInfo* server)
 void Settings::updateTabBar(ServerInfo* server)
 {
     qint32 index{ tabWidget->currentIndex() };
+
     tabWidget->clear();
     if ( settings == nullptr )
-        settings = new SettingsWidget( this );
+        settings = new SettingsWidget( nullptr );
 
-    this->setWindowTitle( "[ " % server->getName() % " ] Settings:");
+    getInstance()->setWindowTitle( "[ " % server->getName() % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
     tabWidget->insertTab( 1, ruleWidgets.value( server ), "Rules" );
     tabWidget->insertTab( 2, msgWidgets.value( server ), "MotD" );

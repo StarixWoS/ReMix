@@ -3,9 +3,7 @@
 #include "remix.hpp"
 #include "ui_remix.h"
 
-Settings* ReMix::settings;
 ReMix* ReMix::instance;
-User* ReMix::user;
 
 ReMix::ReMix(QWidget *parent) :
     QMainWindow(parent),
@@ -26,8 +24,8 @@ ReMix::ReMix(QWidget *parent) :
     }
 
     //Setup Objects.
-    settings = new Settings( this );
-    user = new User( this );
+    Settings::setInstance( new Settings( this ) );
+    User::setInstance( new User( this ) );
 
     serverUI = ReMixTabWidget::getTabInstance( this );
     ui->frame->layout()->addWidget( serverUI );
@@ -57,14 +55,11 @@ ReMix::~ReMix()
     if ( trayMenu != nullptr )
         trayMenu->deleteLater();
 
-    user->close();
-    user->deleteLater();
+    Settings::getInstance()->deleteLater();
+    User::getInstance()->deleteLater();
 
     serverUI->close();
     serverUI->deleteLater();
-
-    settings->close();
-    settings->deleteLater();
 
     instance->close();
     instance->deleteLater();
@@ -85,31 +80,15 @@ void ReMix::setInstance(ReMix* value)
 
 void ReMix::updateTitleBars(ServerInfo* server)
 {
+    Settings* settings = Settings::getInstance();
     if ( settings != nullptr )
-    {
         settings->updateTabBar( server );
-    }
+
     QString title{ "ReMix[ %1 ]: %2 [ %3 ]" };
             title = title.arg( QString( REMIX_VERSION ) )
                          .arg( server->getName() )
                          .arg( server->getPrivatePort() );
     ReMix::getInstance()->setWindowTitle( title );
-}
-
-Settings* ReMix::getSettings()
-{
-    if ( settings == nullptr )
-        settings = new Settings( );
-
-    return settings;
-}
-
-User* ReMix::getUser()
-{
-    if ( user == nullptr )
-        user = new User( );
-
-    return user;
 }
 
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
@@ -192,89 +171,6 @@ void ReMix::initSysTray()
     }
 }
 #endif
-
-void ReMix::getSynRealData(ServerInfo* svr)
-{
-    if ( svr == nullptr )
-        return;
-
-    QFileInfo synRealFile( "synReal.ini" );
-
-    bool downloadFile = true;
-    if ( synRealFile.exists() )
-    {
-        qint64 curTime = static_cast<qint64>(
-                             QDateTime::currentDateTime()
-                                  .toMSecsSinceEpoch() / 1000 );
-        qint64 modTime = static_cast<qint64>(
-                             synRealFile.lastModified()
-                                  .toMSecsSinceEpoch() / 1000 );
-
-        //Check if the file is 48 hours old and set our bool.
-        downloadFile = ( curTime - modTime >= 172800 );
-    }
-
-    //The file was older than 48 hours or did not exist. Request a fresh copy.
-    if ( downloadFile )
-    {
-        QTcpSocket* socket = new QTcpSocket;
-        QUrl url( svr->getMasterInfoHost() );
-
-        socket->connectToHost( url.host(), 80 );
-        QObject::connect( socket, &QTcpSocket::connected, socket,
-        [=]()
-        {
-            socket->write( QString( "GET %1\r\n" )
-                               .arg( svr->getMasterInfoHost() )
-                                             .toLatin1() );
-        });
-
-        QObject::connect( socket, &QTcpSocket::readyRead, socket,
-        [=]()
-        {
-            QFile synreal( "synReal.ini" );
-            if ( synreal.open( QIODevice::WriteOnly ) )
-            {
-                socket->waitForReadyRead();
-                synreal.write( socket->readAll() );
-            }
-
-            synreal.close();
-
-            QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( svr->getGameName()
-                                        % "/master" ).toString();
-            int index = str.indexOf( ":" );
-            if ( index > 0 )
-            {
-                svr->setMasterIP( str.left( index ) );
-                svr->setMasterPort(
-                            static_cast<quint16>(
-                                str.mid( index + 1 ).toInt() ) );
-            }
-        });
-
-        QObject::connect( socket, &QTcpSocket::disconnected,
-                          socket, &QTcpSocket::deleteLater );
-    }
-    else
-    {
-        QSettings settings( "synReal.ini", QSettings::IniFormat );
-        QString str = settings.value( svr->getGameName()
-                                    % "/master" ).toString();
-        if ( !str.isEmpty() )
-        {
-            int index = str.indexOf( ":" );
-            if ( index > 0 )
-            {
-                svr->setMasterIP( str.left( index ) );
-                svr->setMasterPort(
-                            static_cast<quint16>(
-                                str.mid( index + 1 ).toInt() ) );
-            }
-        }
-    }
-}
 
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)

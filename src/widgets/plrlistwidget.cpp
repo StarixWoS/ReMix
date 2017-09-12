@@ -3,14 +3,13 @@
 #include "plrlistwidget.hpp"
 #include "ui_plrlistwidget.h"
 
-PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr, User* usr) :
+PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr) :
     QWidget(parent),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
 
     server = svr;
-    user = usr;
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
@@ -146,7 +145,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            user->setAdminRank( sernum, User::rGAMEMASTER );
+            User::setAdminRank( sernum, User::rGAMEMASTER );
             menuTarget->setNewAdminPwdRequested( true );
         }
     }
@@ -159,7 +158,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            user->setAdminRank( sernum, User::rUSER );
+            User::setAdminRank( sernum, User::rUSER );
             send = true;
         }
     }
@@ -264,7 +263,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( reason );
 
-            user->addBan( nullptr, menuTarget, reason );
+            User::addBan( nullptr, menuTarget, reason );
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
             {

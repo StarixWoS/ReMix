@@ -21,17 +21,14 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     rules = new RulesWidget();
     rules->setServerName( server->getName() );
 
-    settings = ReMix::getSettings();
-    settings->addTabObjects( motdWidget, rules, server );
+    Settings::addTabObjects( motdWidget, rules, server );
 
-    user = ReMix::getUser();
-
-    plrWidget = new PlrListWidget( this, server, user );
+    plrWidget = new PlrListWidget( this, server );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
     //Setup Networking Objects.
-    tcpServer = new Server( this, server, user, plrWidget->getPlrModel() );
+    tcpServer = new Server( this, server, plrWidget->getPlrModel() );
     server->setTcpServer( tcpServer );
 
     //Initialize the TCP Server if we're starting as a public instance.
@@ -57,7 +54,7 @@ ReMixWidget::~ReMixWidget()
 
     plrWidget->deleteLater();
 
-    settings->remTabObjects( server );
+    Settings::remTabObjects( server );
 
     delete randDev;
     delete server;
@@ -73,7 +70,7 @@ void ReMixWidget::renameServer(QString newName)
 {
     if ( !newName.isEmpty() )
     {
-        settings->copyServerSettings( server, newName );
+        Settings::copyServerSettings( server, newName );
         motdWidget->setServerName( newName );
         rules->setServerName( newName );
 
@@ -100,11 +97,6 @@ qint32 ReMixWidget::getPlayerCount()
 QString ReMixWidget::getServerName() const
 {
     return server->getName();
-}
-
-Settings* ReMixWidget::getSettings() const
-{
-    return settings;
 }
 
 Server* ReMixWidget::getTcpServer() const
@@ -225,14 +217,19 @@ void ReMixWidget::initUIUpdate()
 
 void ReMixWidget::on_openUserInfo_clicked()
 {
-    if ( user->isVisible() )
-        user->hide();
-    else
-        user->show();
+    User* user = User::getInstance();
+    if ( user != nullptr )
+    {
+        if ( user->isVisible() )
+            user->hide();
+        else
+            user->show();
+    }
 }
 
 void ReMixWidget::on_openSettings_clicked()
 {
+    Settings* settings = Settings::getInstance();
     if ( settings->isVisible() )
         settings->hide();
     else

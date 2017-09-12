@@ -25,14 +25,11 @@ const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =
     "version"
 };
 
-CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr,
-                       User* uDlg)
+CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     : QObject(parent)
 {
     //Setup our Random Device
     randDev = new RandDev();
-
-    user = uDlg;
     server = svr;
 }
 
@@ -79,7 +76,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr)
                            .arg( plr->getPublicPort() )
                            .arg( plr->getBioData() );
 
-            user->addBan( nullptr, plr, reason );
+            User::addBan( nullptr, plr, reason );
 
             plr->setDisconnected( true );
             server->setIpDc( server->getIpDc() + 1 );
@@ -457,7 +454,7 @@ void CmdHandler::banhandler(Player* plr, QString& arg1, QString& message,
                 if ( !reason.isEmpty() )
                     tmpPlr->sendMessage( reason );
 
-                user->addBan( plr, tmpPlr, message, true );
+                User::addBan( plr, tmpPlr, message, true );
                 tmpPlr->setDisconnected( true );
             }
         }
@@ -469,9 +466,9 @@ void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
-        user->removeBan( arg1, 2 );
+        User::removeBan( arg1, 2 );
     else
-        user->removeBan( sernum, 0 );
+        User::removeBan( sernum, 0 );
 }
 
 void CmdHandler::kickHandler(QString& arg1, QString& message, bool all)
@@ -654,10 +651,10 @@ void CmdHandler::registerHandler(Player* plr, QString& argType)
     {
         if (( plr->getNewAdminPwdRequested()
            || plr->getIsAdmin() )
-          && !user->getHasPassword( sernum ) )
+          && !User::getHasPassword( sernum ) )
         {
             response = success;
-            if ( user->makeAdmin( sernum, argType ) )
+            if ( User::makeAdmin( sernum, argType ) )
             {
                 registered = true;
 

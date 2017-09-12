@@ -338,13 +338,14 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
 
 bool Helper::validateSalt(QString& salt)
 {
-    QStringList groups = User::userData->childGroups();
+    QSettings* userData = User::getUserData();
+    QStringList groups = userData->childGroups();
     QString j{ "" };
 
     for ( int i = 0; i < groups.count(); ++i )
     {
-        j =  User::userData->value( groups.at( i ) % "/salt" )
-                       .toString();
+        j =  userData->value( groups.at( i ) % "/salt" )
+                         .toString();
 
         if ( j == salt )
             return false;
@@ -439,4 +440,87 @@ QHostAddress Helper::getPrivateIP()
         ipAddress = QHostAddress::AnyIPv4;
 
     return ipAddress;
+}
+
+void Helper::getSynRealData(ServerInfo* svr)
+{
+    if ( svr == nullptr )
+        return;
+
+    QFileInfo synRealFile( "synReal.ini" );
+
+    bool downloadFile = true;
+    if ( synRealFile.exists() )
+    {
+        qint64 curTime = static_cast<qint64>(
+                             QDateTime::currentDateTime()
+                                  .toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>(
+                             synRealFile.lastModified()
+                                  .toMSecsSinceEpoch() / 1000 );
+
+        //Check if the file is 48 hours old and set our bool.
+        downloadFile = ( curTime - modTime >= 172800 );
+    }
+
+    //The file was older than 48 hours or did not exist. Request a fresh copy.
+    if ( downloadFile )
+    {
+        QTcpSocket* socket = new QTcpSocket;
+        QUrl url( svr->getMasterInfoHost() );
+
+        socket->connectToHost( url.host(), 80 );
+        QObject::connect( socket, &QTcpSocket::connected, socket,
+        [=]()
+        {
+            socket->write( QString( "GET %1\r\n" )
+                               .arg( svr->getMasterInfoHost() )
+                                             .toLatin1() );
+        });
+
+        QObject::connect( socket, &QTcpSocket::readyRead, socket,
+        [=]()
+        {
+            QFile synreal( "synReal.ini" );
+            if ( synreal.open( QIODevice::WriteOnly ) )
+            {
+                socket->waitForReadyRead();
+                synreal.write( socket->readAll() );
+            }
+
+            synreal.close();
+
+            QSettings settings( "synReal.ini", QSettings::IniFormat );
+            QString str = settings.value( svr->getGameName()
+                                        % "/master" ).toString();
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                svr->setMasterIP( str.left( index ) );
+                svr->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
+            }
+        });
+
+        QObject::connect( socket, &QTcpSocket::disconnected,
+                          socket, &QTcpSocket::deleteLater );
+    }
+    else
+    {
+        QSettings settings( "synReal.ini", QSettings::IniFormat );
+        QString str = settings.value( svr->getGameName()
+                                    % "/master" ).toString();
+        if ( !str.isEmpty() )
+        {
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                svr->setMasterIP( str.left( index ) );
+                svr->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
+            }
+        }
+    }
 }

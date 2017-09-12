@@ -22,10 +22,8 @@ class ReMixWidget : public QWidget
 
     Server* tcpServer{ nullptr };
     RandDev* randDev{ nullptr };
-    Settings* settings{ nullptr };
 
     ServerInfo* server{ nullptr };
-    User* user{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
@@ -46,7 +44,6 @@ class ReMixWidget : public QWidget
         qint32 getPlayerCount();
         QString getServerName() const;
 
-        Settings* getSettings() const;
         Server* getTcpServer() const;
 
         quint16 getPrivatePort() const;
