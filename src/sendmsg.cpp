@@ -70,6 +70,8 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
         return false;
 
     QKeyEvent* key = static_cast<QKeyEvent*>( event );
+    bool accept{ false };
+
     if ( key != nullptr
       && key->type() == QEvent::KeyPress )
     {
@@ -80,7 +82,7 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
                     this->close();
                     event->accept();
                 }
-                return true;
+                accept = true;
             break;
             case Qt::Key_Enter:
             case Qt::Key_Return:
@@ -88,12 +90,16 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
                     emit ui->sendMsg->clicked();
                     event->accept();
                 }
-                return true;
+                accept = true;
             break;
             default:
                 event->ignore();
             break;
         }
     }
+
+    if ( accept )
+        return accept;
+
     return QObject::eventFilter( obj, event );
 }

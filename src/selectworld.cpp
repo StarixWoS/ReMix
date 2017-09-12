@@ -26,10 +26,6 @@ SelectWorld::SelectWorld(QWidget *parent, QStringList) :
 
         ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
     });
-
-//    worldModel = new QStringListModel();
-//    worldModel->setStringList( worldList );
-
 }
 
 SelectWorld::~SelectWorld()

@@ -12,13 +12,13 @@ ServerInfo::ServerInfo()
     }
 
     baudTime.start();
-    upTimer.start( 500 ); //Refresh the UI ever .5 seconds.
+    upTimer.start( UI_UPDATE_TIME );
 
     QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
     [=]()
     {
         upTime.setValue( upTime.toDouble() + 0.5 );
-        if ( baudTime.elapsed() > 5000 )
+        if ( baudTime.elapsed() > BAUD_UPDATE_TIME )
         {
             this->setBaudIO( this->getBytesIn(), baudIn );
             this->setBytesIn( 0 );
@@ -105,7 +105,7 @@ void ServerInfo::setupInfo()
 
 void ServerInfo::setupUPNP(bool isDisable)
 {
-    upnp = UPNP::getUpnp();
+    upnp = UPNP::getInstance();
     if ( upnp == nullptr )
         return;
 
@@ -117,15 +117,16 @@ void ServerInfo::setupUPNP(bool isDisable)
             QObject::connect( upnp, &UPNP::success, upnp,
             [=]()
             {
-                upnp->checkPortForward( "TCP", this->getPrivatePort() );
-                upnp->checkPortForward( "UDP", this->getPrivatePort() );
+                upnp->addPortForward( "TCP", this->getPrivatePort() );
+                upnp->addPortForward( "UDP", this->getPrivatePort() );
+                upnp->disconnect();
             });
-            upnp->makeTunnel( this->getPrivatePort(), this->getPublicPort() );
+            upnp->makeTunnel();
         }
         else
         {
-            upnp->checkPortForward( "TCP", this->getPrivatePort() );
-            upnp->checkPortForward( "UDP", this->getPrivatePort() );
+            upnp->addPortForward( "TCP", this->getPrivatePort() );
+            upnp->addPortForward( "UDP", this->getPrivatePort() );
         }
     }
     else
@@ -457,24 +458,10 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
             && soc != nullptr )
            && !toAll )
     {
-        //Iterate over all Player objects.
-        //And check if our Player object exists.
-        //This is to prevent a Crash related to sending messages
-        //to a disconnected User.
-
-//        Player* tmpPlr{ nullptr };
-//        for ( int i = 0; i < MAX_PLAYERS; ++i )
-//        {
-//            tmpPlr = this->getPlayer( i );
-//            if ( plr == tmpPlr )
-//            {
-                bOut = soc->write( msg.toLatin1(),
-                                   msg.length() );
-                plr->setPacketsOut( plr->getPacketsOut() + 1 );
-                plr->setBytesOut( plr->getBytesOut() + bOut );
-//                break;
-//            }
-//        }
+        bOut = soc->write( msg.toLatin1(),
+                           msg.length() );
+        plr->setPacketsOut( plr->getPacketsOut() + 1 );
+        plr->setBytesOut( plr->getBytesOut() + bOut );
     }
 
     if ( bOut >= 1 )

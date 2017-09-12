@@ -77,7 +77,6 @@ Server::Server(QWidget* parent, ServerInfo* svr,
             }
             else
                 server->sendMasterMessage( msg, nullptr, true );
-
         }
     });
 

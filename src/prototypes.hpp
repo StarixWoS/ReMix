@@ -186,6 +186,14 @@
             //Maximum idle-time for a UPNP PortForward exist without refreshing.
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
+
+            //Maximum time before the Baud information
+            //must be displayed to the User. 5 seconds in milliseconds.
+            BAUD_UPDATE_TIME = 5000,
+
+            //Maximum wait time before the Server's UI is updated.
+            //0.5 seconds in milliseconds.
+            UI_UPDATE_TIME = 500,
         };
 
         enum Games{ WoS = 1, ToY = 2, W97 = 3, Invalid = 4 };
