@@ -3,7 +3,7 @@ import qbs
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (qbs.getEnv("CI")) return '1.3.3.7'; else return '2.1.16'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return '1.3.3.7'; else return '2.1.16'; }
     property string ReMixVersionMajor: '2'
     property string ReMixVersionMinor: '1'
     property string ReMixVersionPatch: '16'
