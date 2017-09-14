@@ -1,4 +1,5 @@
 import qbs
+import qbs.Environment
 
 CppApplication
 {
