@@ -4,13 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return '1.3.3.7'; else return '2.1.16'; }
-    property string ReMixVersionMajor: '2'
-    property string ReMixVersionMinor: '1'
-    property string ReMixVersionPatch: '16'
-    property string ReMixVersion: ReMixVersionMajor + '.'
-                                + ReMixVersionMinor + '.'
-                                + ReMixVersionPatch
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_BUILD_VERSION"); else return '2.1.16'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_BUILD_VERSION"); else return '2.1.16'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
