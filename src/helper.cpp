@@ -524,3 +524,8 @@ void Helper::getSynRealData(ServerInfo* svr)
         }
     }
 }
+
+bool Helper::cmpStr(QString strA, QString strB)
+{
+    return ( strA.compare( strB, Qt::CaseInsensitive ) == 0 );
+}

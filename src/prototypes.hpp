@@ -187,6 +187,9 @@
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
 
+            //Count of currently accepted UPNP Schemas
+            UPNP_SCHEMA_COUNT = 6,
+
             //Maximum time before the Baud information
             //must be displayed to the User. 5 seconds in milliseconds.
             BAUD_UPDATE_TIME = 5000,

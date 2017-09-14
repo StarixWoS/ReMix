@@ -15,6 +15,7 @@ class UPNP : public QObject
     Q_OBJECT
 
     public:
+        static QString schemas[ UPNP_SCHEMA_COUNT ];
         static QVector<qint32> ports;
         static bool tunneled;
         static UPNP* upnp;

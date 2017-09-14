@@ -2,11 +2,16 @@
 #include "includes.hpp"
 #include "themechange.hpp"
 #include "remix.hpp"
+#include "runguard.hpp"
 
 #include <QApplication>
 
 int main(int argc, char *[])
 {
+    RunGuard guard( "ReMix_Game_Server" );
+    if ( !guard.tryToRun() )
+        return 0;
+
     QApplication a(argc, 0);
                  a.setQuitOnLastWindowClosed( false );
 

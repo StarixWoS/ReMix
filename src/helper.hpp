@@ -62,6 +62,8 @@ class Helper
 
         static QHostAddress getPrivateIP();
         static void getSynRealData(ServerInfo* svr);
+
+        static bool cmpStr( QString strA, QString strB );
 };
 
 #endif // PREFERENCES_HPP

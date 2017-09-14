@@ -3,27 +3,31 @@ import qbs
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: '2.1.13'
+    property string ReMixVersionDisplay: '2.1.15'
     property string ReMixVersionMajor: '2'
     property string ReMixVersionMinor: '1'
-    property string ReMixVersionPatch: '13'
+    property string ReMixVersionPatch: '15'
     property string ReMixVersion: ReMixVersionMajor + '.'
                                 + ReMixVersionMinor + '.'
                                 + ReMixVersionPatch
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
-        submodules: ["core", "gui", "widgets", "network", "concurrent",] }
+        submodules: [ "core", "gui", "widgets", "network", "concurrent",
+                    ] }
 
     //destinationDirectory: "libDir/"
     name: "ReMix-" + ReMixVersionDisplay + "-" + qbs.buildVariant
 
-    cpp.includePaths: ["resources", "ui", "ui/widgets",
-                       "src", "src/tblview", "src/widgets"]
+    cpp.includePaths: [ "resources", "ui", "ui/widgets",
+                        "src", "src/tblview", "src/widgets",
+                      ]
 
-    cpp.defines: ["RC_VERSION=" + ReMixVersion.replace(/\./g, ",") + ",0",
-                  "RC_VERSION_STRING=" + ReMixVersionDisplay,
-                  "REMIX_VERSION=" + "\"" + ReMixVersionDisplay + "\"",]
+    cpp.defines: [ "RC_VERSION=" + ReMixVersion.replace(/\./g, ",") + ",0",
+                   "RC_VERSION_STRING=" + ReMixVersionDisplay,
+                   "REMIX_VERSION=" + "\"" + ReMixVersionDisplay + "\"",
+                   "QSU_SHARED"
+                 ]
             .concat( base )
 
     cpp.cxxLanguageVersion: "c++14"
@@ -61,6 +65,7 @@ CppApplication
                  "src/chatview.hpp",
                  "src/comments.hpp",
                  "src/settings.hpp",
+                 "src/runguard.hpp",
                  "src/randdev.hpp",
                  "src/sendmsg.hpp",
                  "src/server.hpp",
@@ -99,6 +104,7 @@ CppApplication
             "src/chatview.cpp",
             "src/comments.cpp",
             "src/settings.cpp",
+            "src/runguard.cpp",
             "src/randdev.cpp",
             "src/sendmsg.cpp",
             "src/server.cpp",
