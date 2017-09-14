@@ -97,7 +97,7 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
         return;
     }
 
-    qint32 colIndex{ packet.indexOf( ": " ) };
+    qint32 colIndex{ Helper::getStrIndex( packet, ": " ) };
     QString alias = packet.left( colIndex ).mid( 10 );
 
     QString msg{ packet.mid( colIndex + 2 ) };
@@ -106,15 +106,14 @@ void CmdHandler::parseMix5Command(Player* plr, QString& packet)
     if ( !alias.isEmpty()
       && !msg.isEmpty() )
     {
-        if ( msg.startsWith( "/" ) )
+        if ( Helper::strStartsWithStr( msg, "/" ) )
         {
-            if ( msg.startsWith( "/cmd " ) )
+            if ( Helper::strStartsWithStr( msg, "/cmd " ) )
             {
-                msg = msg.mid( msg.indexOf( "/cmd ", 0,
-                                            Qt::CaseInsensitive ) + 4 );
+                msg = msg.mid( Helper::getStrIndex( msg, "/cmd " ) + 4 );
             }
             else
-                msg = msg.mid( msg.indexOf( "/", 0 ) + 1 );
+                msg = msg.mid( Helper::getStrIndex( msg, "/" ) + 1 );
 
             if ( !msg.isEmpty() )
                 this->parseCommandImpl( plr, msg );
@@ -163,7 +162,7 @@ void CmdHandler::parseMix6Command(Player *plr, QString &packet)
     if ( plr != nullptr
       && !packet.isEmpty() )
     {
-        qint32 colIndex{ packet.indexOf( ": /cmd ", Qt::CaseInsensitive ) };
+        qint32 colIndex{ Helper::getStrIndex( packet, ": /cmd " ) };
         if ( colIndex >= 0 )
             cmd = cmd.mid( colIndex + 7 );
         else
@@ -193,13 +192,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     qint32 argIndex{ -1 };
     for ( int i = 0; i < ADMIN_COMMAND_COUNT; ++i )
     {
-        if ( commands[ i ].compare( cmd, Qt::CaseInsensitive ) == 0 )
+        if ( Helper::cmpStrings( commands[ i ], cmd ) )
             argIndex = i;
     }
 
     if ( !argType.isEmpty() )
     {
-        if ( argType.compare( "all", Qt::CaseInsensitive ) == 0 )
+
+        if ( Helper::cmpStrings( argType, "all" ) )
         {
             if ( plr->getAdminRank() >= Ranks::ADMIN
               || argIndex == CMDS::MSG )
@@ -209,7 +209,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             else    //Invalid Rank. Give generic response.
                 return false;
         }
-        else if ( argType.compare( "SOUL", Qt::CaseInsensitive ) == 0 )
+        else if ( Helper::cmpStrings( argType, "SOUL" ) )
         {
             if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
                 arg1.prepend( "SOUL " );
@@ -218,13 +218,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     //Correctly handle "all" command reason/message.
     QString message{ "" };
-    if ( argType.compare( "all", Qt::CaseInsensitive ) == 0
+    if ( Helper::cmpStrings( argType, "all" )
       && !arg1.isEmpty() )
     {
-        message = packet.mid( packet.indexOf( arg1 ) );
+        message = packet.mid( Helper::getStrIndex( packet, arg1 ) );
     }
     else if ( !arg2.isEmpty() )
-            message = packet.mid( packet.indexOf( arg2 ) );
+            message = packet.mid( Helper::getStrIndex( packet, arg2 ) );
 
     bool canUseCommands{ false };
     switch ( argIndex )
@@ -465,7 +465,7 @@ void CmdHandler::banhandler(Player* plr, QString& arg1, QString& message,
 void CmdHandler::unBanhandler(QString& argType, QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
-    if ( argType.compare( "ip", Qt::CaseInsensitive ) == 0 )
+    if ( Helper::cmpStrings( argType, "ip" ) )
         User::removeBan( arg1, 2 );
     else
         User::removeBan( sernum, 0 );

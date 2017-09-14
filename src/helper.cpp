@@ -62,7 +62,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     {
         if ( !indStr.isEmpty() )
         {
-            index = str.indexOf( indStr, 0, Qt::CaseInsensitive );
+            index = getStrIndex( str,indStr );
             if ( index >= 0 )   //-1 if str didn't contain indStr.
             {
                 if ( !mid.isEmpty() )
@@ -80,7 +80,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
 
             if ( !mid.isEmpty() )
             {
-                index = tmp.indexOf( mid, 0, Qt::CaseInsensitive );
+                index = getStrIndex( tmp, mid );
                 if ( index >= 0 )   //-1 if str didn't contain mid.
                 {
                     //Append the lookup string's length if it's greater than 1
@@ -93,7 +93,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
 
             if ( !left.isEmpty() )
             {
-                index = tmp.indexOf( left, 0, Qt::CaseInsensitive );
+                index = getStrIndex( tmp, left );
                 if ( index >= 0 )   //-1 if str didn't contain left.
                     tmp = tmp.left( index );
             }
@@ -117,13 +117,13 @@ void Helper::stripNewlines(QString& string)
 
 void Helper::stripSerNumHeader(QString& sernum)
 {
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    if ( strContainsStr( sernum, "SOUL" ) )
     {
         sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
                        .trimmed();
     }
 
-    if ( sernum.contains( "WP", Qt::CaseInsensitive ) )
+    if ( strContainsStr( sernum, "WP" ) )
     {
         sernum = sernum.remove( "WP", Qt::CaseInsensitive )
                        .trimmed();
@@ -186,7 +186,7 @@ QString Helper::serNumToIntStr(QString sernum)
     else
         retn = QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
 
-    if ( !retn.startsWith( "SOUL", Qt::CaseInsensitive )
+    if ( !strStartsWithStr( retn, "SOUL" )
       && retn.length() > 8 )
     {
         retn = retn.mid( retn.length() - 8 );
@@ -427,7 +427,7 @@ QHostAddress Helper::getPrivateIP()
           //Remove any addresses the User manually marked invalid.
           && !Settings::getIsInvalidIPAddress( tmp )
           //Remove Windows generated APIPA addresses.
-          && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
+          && !strStartsWithStr( tmp, "169" ) )
         {
             //Use first non-local IP address.
             ipAddress = ipList.at(i).toString();
@@ -525,7 +525,26 @@ void Helper::getSynRealData(ServerInfo* svr)
     }
 }
 
-bool Helper::cmpStr(QString strA, QString strB)
+bool Helper::strStartsWithStr(const QString& strA, const QString& strB)
 {
+    //Returns true if strA starts with strB.
+    return strA.startsWith( strB, Qt::CaseInsensitive );
+}
+
+bool Helper::strContainsStr(const QString& strA, const QString& strB)
+{
+    //Returns true if strA contains strB.
+    return strA.contains( strB, Qt::CaseInsensitive );
+}
+
+bool Helper::cmpStrings(const QString& strA, const QString& strB)
+{
+    //Returns true if strA is equal to strB.
     return ( strA.compare( strB, Qt::CaseInsensitive ) == 0 );
+}
+
+qint32 Helper::getStrIndex(const QString& strA, const QString& strB)
+{
+    //Returns the position of strB within strA.
+    return strA.indexOf( strB, 0, Qt::CaseInsensitive );
 }

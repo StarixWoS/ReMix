@@ -155,7 +155,7 @@ void UPNP::getUdp()
                 }
             }
 
-            int index = vs.indexOf( "Location", 0, Qt::CaseInsensitive );
+            int index = Helper::getStrIndex( vs, "Location" );
             if ( index != -1 )
             {
                 vs.remove( 0, index + 10 );
@@ -206,7 +206,7 @@ void UPNP::getUdp()
                                      reader.readNext();
                     while ( !reader.atEnd() )
                     {
-                        if ( Helper::cmpStr( reader.name().toString(),
+                        if ( Helper::cmpStrings( reader.name().toString(),
                                              "serviceType" ) )
                         {
                             rtrSchema = reader.readElementText();
@@ -222,7 +222,7 @@ void UPNP::getUdp()
                                 }
 
                                 validSchema = false;
-                                if ( Helper::cmpStr( rtrSchema, schema ) )
+                                if ( Helper::cmpStrings( rtrSchema, schema ) )
                                 {
                                     validSchema = true;
                                     break;
@@ -232,13 +232,13 @@ void UPNP::getUdp()
                             if ( validSchema )
                             {
                                 while ( ( !reader.atEnd() )
-                                     && ( !Helper::cmpStr( reader.name().toString(),
+                                     && ( !Helper::cmpStrings( reader.name().toString(),
                                                            "controlUrl" ) ) )
                                 {
                                     reader.readNext();
                                 }
 
-                                if ( Helper::cmpStr( reader.name().toString(),
+                                if ( Helper::cmpStrings( reader.name().toString(),
                                                      "controlUrl" ) )
                                 {
                                     gatewayCtrlUrl = QString( "http://%1:%2%3" )
@@ -324,23 +324,23 @@ void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 p
     [=]()
     {
         QString reply = httpReply->readAll();
-        if ( !reply.contains( "UPnPError", Qt::CaseInsensitive ) )
+        if ( !Helper::strContainsStr( reply, "UPnPError" ) )
         {
-            if ( reply.contains( "<NewExternalIPAddress>", Qt::CaseInsensitive ) )
+            if ( Helper::strContainsStr( reply, "NewExternalIPAddress" ) )
                 this->extractExternalIP( reply );
 
-            if ( reply.contains( "DeletePortMappingResponse", Qt::CaseInsensitive ) )
+            if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {
                 emit this->removedPortForward( port, protocol );
             }
 
-            if ( reply.contains( "AddPortMappingResponse", Qt::CaseInsensitive ) )
+            if ( Helper::strContainsStr( reply, "AddPortMappingResponse" ) )
             {
                 emit this->addedPortForward( port, protocol );
                 refreshTunnel->start();
             }
 
-            if ( reply.contains( "GetSpecificPortMappingEntryResponse", Qt::CaseInsensitive ) )
+            if ( Helper::strContainsStr(reply,"GetSpecificPortMappingEntryResponse" ) )
             {
                 //The port is valid, but we didn't add it.
                 //Add the port to be refreshed.
@@ -365,7 +365,7 @@ void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 p
             //lieu of a "NoSuchEntryInArray"
             //reply to a "GetSpecificPortMapping" request.
             //Try and add port forwards if our response holds this value.
-            if ( reply.contains( "Invalid Args", Qt::CaseInsensitive ) )
+            if ( Helper::strContainsStr( reply, "Invalid Args" ) )
                 this->addPortForward( protocol, port );
             else
                 this->extractError( reply, port, protocol );
@@ -379,22 +379,22 @@ void UPNP::extractError( QString message, qint32 port, QString protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( Helper::cmpStr( reader.name().toString(), "errorDescription" ) )
+    while ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
         reader.readNext();
     }
 
-    if ( Helper::cmpStr( reader.name().toString(), "errorDescription" ) )
+    if ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
         QString elementText{ reader.readElementText() };
-        if ( (Helper::cmpStr( elementText, "NoSuchEntryInArray" ))
-          || (Helper::cmpStr( elementText, "Invalid Args" ) ))
+        if ( (Helper::cmpStrings( elementText, "NoSuchEntryInArray" ))
+          || (Helper::cmpStrings( elementText, "Invalid Args" ) ))
         {
             this->addPortForward( protocol, port );
             emit this->checkedPortForward( port, protocol );
         }
 
-        if ( Helper::cmpStr( reader.readElementText(), "errorDescription" ) )
+        if ( Helper::cmpStrings( reader.readElementText(), "errorDescription" ) )
         {
             this->addPortForward( protocol, port );
             emit this->checkedPortForward( port, protocol );
@@ -417,12 +417,12 @@ void UPNP::extractExternalIP( QString message )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( Helper::cmpStr( reader.name().toString(), "NewExternalIPAddress" ) )
+    while ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
     {
         reader.readNext();
     }
 
-    if ( Helper::cmpStr( reader.name().toString(), "NewExternalIPAddress" ) )
+    if ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
         externalAddress = QHostAddress( reader.readElementText() );
 }
 

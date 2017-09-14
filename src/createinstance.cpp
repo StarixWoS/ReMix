@@ -49,8 +49,7 @@ void CreateInstance::updateServerList(bool firstRun)
         name = servers.at( i );
         for ( int i = 0; i < SETTINGS_KEY_COUNT; ++i )
         {
-            if ( name.compare( Settings::keys[ i ],
-                               Qt::CaseInsensitive ) == 0 )
+            if ( Helper::cmpStrings( name, Settings::keys[ i ] ) )
             {
                 skip = true;
             }
@@ -227,8 +226,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
             bool notFound{ true };
             for ( int i = 0; i < GAME_NAME_COUNT; ++i )
             {
-                if ( gameNames[ i ].compare( gameName,
-                                             Qt::CaseInsensitive ) == 0 )
+                if ( Helper::cmpStrings( gameNames[ i ], gameName ) )
                 {
                     ui->gameName->setCurrentIndex( i );
                     notFound = false;

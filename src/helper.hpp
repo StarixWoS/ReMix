@@ -63,7 +63,10 @@ class Helper
         static QHostAddress getPrivateIP();
         static void getSynRealData(ServerInfo* svr);
 
-        static bool cmpStr( QString strA, QString strB );
+        static bool strStartsWithStr(const QString& strA, const QString& strB);
+        static bool strContainsStr(const QString& strA, const QString& strB);
+        static bool cmpStrings(const QString& strA, const QString& strB );
+        static qint32 getStrIndex(const QString& strA, const QString& strB);
 };
 
 #endif // PREFERENCES_HPP

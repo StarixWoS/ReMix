@@ -199,9 +199,9 @@ void ChatView::insertChat(QString msg, QString color, bool newLine)
 void ChatView::on_chatInput_returnPressed()
 {
     QString message{ ui->chatInput->text() };
-    if ( message.startsWith( "/" ) )
+    if ( Helper::strStartsWithStr( message, "/" ) )
     {
-        if ( message.compare( "/clear", Qt::CaseInsensitive ) == 0 )
+        if ( Helper::cmpStrings( message, "/clear" ) )
         {
             ui->chatView->clear();
             ui->chatInput->clear();

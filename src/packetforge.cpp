@@ -31,12 +31,13 @@ PacketForge* PacketForge::getInstance()
 QString PacketForge::decryptPacket(QString packet)
 {
     //Player positioning packets, return an empty string.
-    if ( packet.startsWith( ":SR?" ) || packet.startsWith( ":SR!" ) )
-        return QString( "" );
-
-    if ( initialized )
+    if ( !Helper::strStartsWithStr( packet, ":SR?" )
+      || !Helper::strStartsWithStr( packet, ":SR!" ) )
     {
-        return decryptPkt( packet );
+        if ( initialized )
+        {
+            return decryptPkt( packet );
+        }
     }
     return QString( "" );
 }
@@ -56,7 +57,7 @@ bool PacketForge::validateSerNum(Player* plr, QString packet)
     if ( srcSerNum.isEmpty() )
         return true;
 
-    if ( srcSerNum.compare( plr->getSernumHex_s(), Qt::CaseInsensitive ) == 0 )
+    if ( Helper::cmpStrings( srcSerNum, plr->getSernumHex_s() ) )
         return true;
 
     QString msg{ "Automatic Network Mute of [ %1 ] due to a "

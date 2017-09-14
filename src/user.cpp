@@ -233,7 +233,7 @@ void User::removeBan(QString& value, qint32 type)
             for ( int i = 0; i < sernums.count(); ++i )
             {
                 sernum = sernums.at( i );
-                if ( sernum.compare( value ) == 0 )
+                if ( Helper::cmpStrings( sernum, value ) )
                 {
                     userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
                     userData->remove( sernum % "/" % keys[ UserKeys::kREASON ] );
@@ -322,28 +322,28 @@ bool User::getIsBanned(QString value, BanTypes type)
         {
             case BanTypes::tSERNUM:
             {
-                if ( sernum.compare( value, Qt::CaseInsensitive ) == 0 )
+                if ( Helper::cmpStrings( sernum, value ) )
                     isValue = true;
             }
             break;
             case BanTypes::tIP:
             {
                 var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
-                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
             }
             break;
             case BanTypes::tDV:
             {
                 var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
-                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
             }
             break;
             case BanTypes::tWV:
             {
                 var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
-                if ( var.compare( value, Qt::CaseInsensitive ) == 0 )
+                if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
             }
             break;
@@ -390,7 +390,7 @@ void User::logBIO(QString& serNum, QHostAddress& ip, QString& dv,
 {
     User* user = User::getInstance();
     QString sernum{ serNum };
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    if ( Helper::strContainsStr( sernum, "SOUL" ) )
         sernum = Helper::serNumToHexStr( serNum, 8 );
 
     setData( sernum, keys[ UserKeys::kBIO ], bio.mid( 1 ) );

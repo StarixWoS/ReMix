@@ -242,9 +242,10 @@ void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
                                     QFileDialog::DontResolveSymlinks );
 
                     state = false;
-                    if ( directory.contains( "worlds", Qt::CaseInsensitive ) )
+                    if ( Helper::strContainsStr( directory, "worlds" ) )
                     {
-                        if ( directory.endsWith( "/worlds" ) )
+                        if ( directory.endsWith( "/worlds",
+                                                 Qt::CaseInsensitive ) )
                         {
                             state = true;
                             ui->settingsView->item( Toggles::WORLDDIR, 0 )->

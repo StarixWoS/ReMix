@@ -24,16 +24,16 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
         return;
 
     this->detectFlooding( plr );
-    if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
+    if ( Helper::strStartsWithStr( packet, ":SR" ) )
     {
         if ( !!this->checkBannedInfo( plr ) )
         {
             //Prevent Users from Impersonating the Server Admin.
-            if ( packet.startsWith( ":SR@", Qt::CaseInsensitive ) )
+            if ( Helper::strStartsWithStr( packet, ":SR@" ) )
                 return;
 
             //Prevent Users from changing the Server's rules.
-            if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
+            if ( Helper::strStartsWithStr( packet, ":SR$" ) )
                 return;
 
             if ( !plr->getNetworkMuted() )
@@ -60,7 +60,7 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
         }
     }
 
-    if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
+    if ( Helper::strStartsWithStr( packet, ":MIX" ) )
         this->parseMIXPacket( packet, plr );
 }
 
@@ -249,19 +249,19 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                 break;
                 case 'P':   //Store the Player information into a struct.
                     {
-                        index = data.indexOf( "d=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "d=" );
                         if ( index >= 0 )
                             dVar = data.mid( index + 2 ).left( 8 );
 
-                        index = data.indexOf( "w=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "w=" );
                         if ( index >= 0 )
                             wVar = data.mid( index + 2 ).left( 8 );
 
-                        index = data.indexOf( "sernum=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "sernum=" );
                         if ( index >= 0 )
                         {
                             sernum = data.mid( index + 7 );
-                            index = sernum.indexOf( "," );
+                            index = Helper::getStrIndex( sernum, "," );
                             if ( index >= 0 )
                             {
                                 sernum = sernum.left( index );
@@ -561,8 +561,7 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
         QStringList vars = packet.split( ',' );
         QString val{ "" };
 
-        if ( Settings::getAllowSSV()
-          && !vars.contains( "Admin", Qt::CaseInsensitive ))
+        if ( Settings::getAllowSSV() )
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                            QSettings::IniFormat );
@@ -595,8 +594,7 @@ void PacketHandler::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    if ( Settings::getAllowSSV()
-      && !vars.contains( "Admin", Qt::CaseInsensitive ))
+    if ( Settings::getAllowSSV() )
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                        QSettings::IniFormat );

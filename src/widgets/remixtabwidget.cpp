@@ -322,8 +322,7 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
         }
         else
         {
-            if ( instance->getServerName().compare(
-                 serverName, Qt::CaseInsensitive ) == 0 )
+            if ( Helper::cmpStrings( instance->getServerName(), serverName ) )
             {
                 Helper::warningMessage( this, title, prompt );
                 break;

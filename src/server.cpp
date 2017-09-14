@@ -20,11 +20,11 @@ Server::Server(QWidget* parent, ServerInfo* svr,
 
     Games gameID{ Games::Invalid };
     QString gameName{ server->getGameName() };
-    if ( gameName.compare( "WoS", Qt::CaseInsensitive ) == 0 )
+    if ( Helper::cmpStrings( gameName, "WoS" ) )
         gameID = Games::WoS;
-    else if ( gameName.compare( "ToY", Qt::CaseInsensitive ) == 0 )
+    else if ( Helper::cmpStrings( gameName, "ToY" ) )
         gameID = Games::ToY;
-    else if ( gameName.compare( "W97", Qt::CaseInsensitive ) == 0 )
+    else if ( Helper::cmpStrings( gameName, "W97" ) )
         gameID = Games::W97;
     else
         gameID = Games::Invalid;
@@ -56,7 +56,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     {
         if ( !msg.isEmpty() )
         {
-            if ( !msg.startsWith( "Owner", Qt::CaseInsensitive ) )
+            if ( !Helper::strStartsWithStr( msg, "Owner" ) )
             {
                 for ( int i = 0; i < MAX_PLAYERS; ++i )
                 {
@@ -166,7 +166,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
         QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
         plr->setPlayTime( age );
 
-        qint32 index{ bio.indexOf( "d=", Qt::CaseInsensitive ) };
+        qint32 index{ Helper::getStrIndex( bio, "d=" ) };
         QString dVar{ "" };
         QString wVar{ "" };
         if ( index >= 0 )
@@ -175,7 +175,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
             plr->setDVar( dVar );
         }
 
-        index = bio.indexOf( "w=", Qt::CaseInsensitive );
+        index = Helper::getStrIndex( bio, "w=" );
         if ( index >= 0 )
         {
             wVar = bio.mid( index + 2 ).left( 8 );

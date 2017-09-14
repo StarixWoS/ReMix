@@ -658,7 +658,7 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
 
         QString masterIP{ server->getMasterIP() };
         QString socketIP{ this->getPublicIP() };
-        if ( !( masterIP.compare( socketIP, Qt::CaseInsensitive ) == 0 ) )
+        if ( !Helper::cmpStrings( masterIP, socketIP ) )
         {
             //Ban IP?
             QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
