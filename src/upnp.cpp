@@ -2,15 +2,30 @@
 #include "upnp.hpp"
 #include "includes.hpp"
 
+QString UPNP::schemas[ UPNP_SCHEMA_COUNT ]
+{
+    "urn:schemas-upnp-org:device:InternetGatewayDevice:2",
+    "urn:schemas-upnp-org:service:WANIPConnection:2",
+    "urn:schemas-upnp-org:device:InternetGatewayDevice:1",
+    "urn:schemas-upnp-org:service:WANIPConnection:1",
+    "urn:schemas-upnp-org:service:WANPPPConnection:1",
+    "upnp:rootdevice",
+};
+
 QVector<qint32> UPNP::ports;
 bool UPNP::tunneled{ false };
 UPNP* UPNP::upnp{ nullptr };
+QString UPNP::upnpLog{ "logs/upnpLog.txt" };
 
-UPNP* UPNP::getUpnp(QHostAddress localip )
+UPNP* UPNP::getInstance()
 {
     if ( upnp == nullptr )
+        upnp = new UPNP();
+
+    if ( Settings::getLogFiles() )
     {
-        upnp = new UPNP( localip );
+        QString msg{ "Getting UPNP Object." };
+        Helper::logToFile( upnpLog, msg, true, true );
     }
     return upnp;
 }
@@ -25,36 +40,49 @@ void UPNP::setTunneled(bool value)
     tunneled = value;
 }
 
-UPNP::UPNP(QHostAddress localip, QObject* parent )
+UPNP::UPNP(QObject* parent )
     : QObject( parent )
 {
-    localAddress.setIp( localip );
-    localAddress.setBroadcast( QHostAddress::Broadcast );
+    localIP = QHostAddress( Helper::getPrivateIP() );
 
-    httpSocket = new QNetworkAccessManager();
-    udpSocket = new QUdpSocket();
-    timer = new QTimer( this );
-
-    udpSocket->bind( localAddress.ip(), 0 );
-
-    //When the UPNP Tunnel is initialized, begin refreshing the Tunnel
-    //every 30 minutes as it time's out.
-    refreshTunnel = new QTimer( this );
-    refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
-    QObject::connect( refreshTunnel, &QTimer::timeout, [=]()
+    //We have a broadcast IP address. We are unable to port forward.
+    if ( localIP != QHostAddress::AnyIPv4 )
     {
-        for (  qint32 port : ports )
-        {
-            if ( port != 0 )
-            {
-                this->checkPortForward( "TCP", port );
-                this->checkPortForward( "UDP", port );
-            }
+        localAddress.setIp( localIP );
+        localAddress.setBroadcast( QHostAddress::Broadcast );
 
-            //Delay the next Port refresh by 5 seconds.
-            Helper::delay( 5 );
+        httpSocket = new QNetworkAccessManager();
+        udpSocket = new QUdpSocket();
+        udpSocket->bind( localAddress.ip(), 0 );
+
+        //When the UPNP Tunnel is initialized, begin refreshing the Tunnel
+        //every 30 minutes as it time's out.
+        refreshTunnel = new QTimer( this );
+        refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
+        QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
+                          [=]()
+        {
+            for (  qint32 port : ports )
+            {
+                if ( port != 0 )
+                {
+                    this->addPortForward( "TCP", port );
+                    this->addPortForward( "UDP", port );
+                }
+            }
+        });
+
+        if ( Settings::getLogFiles() )
+        {
+            QString msg{ "Creating UPNP Object." };
+            Helper::logToFile( upnpLog, msg, true, true );
         }
-    });
+    }
+    else    //Delete our object at the next oppertunity.
+    {
+        this->disconnect();
+        this->deleteLater();
+    }
 }
 
 UPNP::~UPNP()
@@ -65,20 +93,14 @@ UPNP::~UPNP()
     udpSocket->disconnect();
     udpSocket->deleteLater();
 
-    timer->disconnect();
-    timer->deleteLater();
+    upnp = nullptr;
 }
 
-void UPNP::makeTunnel( int internal, int external )
+void UPNP::makeTunnel()
 {
     QObject::connect( udpSocket, &QUdpSocket::readyRead,
                       this, &UPNP::getUdp );
 
-    QObject::connect( timer, &QTimer::timeout,
-                      this, &UPNP::timeExpired );
-
-    externalPort = external;
-    internalPort = internal;
     QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
                                 "HOST:239.255.255.250:1900\r\n"
                                 "ST:urn:schemas-upnp-org:device:Internet"
@@ -90,8 +112,13 @@ void UPNP::makeTunnel( int internal, int external )
                               discover.size(),
                               localAddress.broadcast(),
                               1900 );
-    timer->start( 1000 );
-    this->setTunneled( true );
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Sent UDP Query Response [ %1 ]." };
+                logMsg = logMsg.arg( discover.trimmed() );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }
 
 void UPNP::getUdp()
@@ -104,7 +131,9 @@ void UPNP::getUdp()
         quint16 senderPort;
         QString sport;
 
-        datagram.resize( udpSocket->pendingDatagramSize() );
+        QString logMsg{ "" };
+
+        datagram.resize( static_cast<int>( udpSocket->pendingDatagramSize() ) );
         udpSocket->readDatagram( datagram.data(),
                                  datagram.size(),
                                  &sender,
@@ -113,11 +142,20 @@ void UPNP::getUdp()
         QHostAddress st_addr( sender.toIPv4Address() );
         if ( st_addr != localAddress.ip() )
         {
-            timer->stop();
             gateway = st_addr;
 
             vs = datagram.data();
-            int index = vs.indexOf( "LOCATION: " );
+            if ( !vs.isEmpty() )
+            {
+                if ( Settings::getLogFiles() )
+                {
+                    logMsg = "Got UDP Query Response [ %1 ].";
+                    logMsg = logMsg.arg( vs.trimmed() );
+                    Helper::logToFile( upnpLog, logMsg, true, true );
+                }
+            }
+
+            int index = Helper::getStrIndex( vs, "Location" );
             if ( index != -1 )
             {
                 vs.remove( 0, index + 10 );
@@ -149,9 +187,12 @@ void UPNP::getUdp()
 
                 ctrlPort = sport;
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished,
-                                  [=](QNetworkReply *reply)
+                                  httpSocket,
+                [=](QNetworkReply *reply)
                 {
                     QString response = reply->readAll();
+                    QString logMsg{ "" };
+
                     int i = 0;
                     while ( i < response.size() )
                     {
@@ -165,24 +206,53 @@ void UPNP::getUdp()
                                      reader.readNext();
                     while ( !reader.atEnd() )
                     {
-                        if ( reader.name().toString() == QString( "serviceType" ) )
+                        if ( Helper::cmpStrings( reader.name().toString(),
+                                             "serviceType" ) )
                         {
                             rtrSchema = reader.readElementText();
-                            if ( rtrSchema == QString( "urn:schemas-upnp-org:service:WANIPConnection:1" )
-                              || rtrSchema == QString( "urn:schemas-upnp-org:service:WANPPPConnection:1" ) )
+                            bool validSchema{ false };
+                            for ( auto schema : schemas )
+                            {
+                                if ( Settings::getLogFiles() )
+                                {
+                                    logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
+                                    logMsg = logMsg.arg( rtrSchema )
+                                                   .arg( schema );
+                                    Helper::logToFile( upnpLog, logMsg, true, true );
+                                }
+
+                                validSchema = false;
+                                if ( Helper::cmpStrings( rtrSchema, schema ) )
+                                {
+                                    validSchema = true;
+                                    break;
+                                }
+                            }
+
+                            if ( validSchema )
                             {
                                 while ( ( !reader.atEnd() )
-                                     && ( reader.name().toString() != "controlURL" ) )
+                                     && ( !Helper::cmpStrings( reader.name().toString(),
+                                                           "controlUrl" ) ) )
                                 {
                                     reader.readNext();
                                 }
 
-                                if ( reader.name().toString() == "controlURL" )
+                                if ( Helper::cmpStrings( reader.name().toString(),
+                                                     "controlUrl" ) )
                                 {
                                     gatewayCtrlUrl = QString( "http://%1:%2%3" )
                                                          .arg( gateway.toString() )
                                                          .arg( ctrlPort )
                                                          .arg( reader.readElementText() );
+
+                                    if ( Settings::getLogFiles() )
+                                    {
+                                        logMsg = "Got ControlURL[ %1 ].";
+                                        logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
+                                        Helper::logToFile( upnpLog, logMsg, true, true );
+                                    }
+                                    this->setTunneled( true );
                                     emit this->success();
                                     break;
                                 }
@@ -197,6 +267,14 @@ void UPNP::getUdp()
 
                     httpSocket->disconnect();
                 });
+
+                if ( Settings::getLogFiles() )
+                {
+                    logMsg = "Requesting Service Information from [ %1 ].";
+                    logMsg = logMsg.arg( vs );
+                    Helper::logToFile( upnpLog, logMsg, true, true );
+                }
+
                 httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
                 udpSocket->close();
             }
@@ -204,14 +282,6 @@ void UPNP::getUdp()
     }
 }
 
-void UPNP::timeExpired()
-{
-    udpSocket->disconnect();
-    timer->disconnect();
-
-    timer->stop();
-    emit this->error( "Time expired!" );
-}
 
 void UPNP::getExternalIP()
 {
@@ -223,6 +293,13 @@ void UPNP::getExternalIP()
 
     message = message.arg( rtrSchema );
     this->postSOAP( "GetExternalIPAddress", message, "" );
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Getting ExternalIP." };
+                logMsg = logMsg.arg( message );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }
 
 void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 port)
@@ -243,28 +320,55 @@ void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 p
                     req.setRawHeader( QByteArray( "Host" ), host.toLatin1() );
 
     QNetworkReply* httpReply = httpSocket->post( req, message.toLatin1() );
-    QObject::connect( httpReply, &QNetworkReply::readyRead, [=]()
+    QObject::connect( httpReply, &QNetworkReply::readyRead, httpReply,
+    [=]()
     {
         QString reply = httpReply->readAll();
-        if ( !reply.contains( "UPnPError" ) )
+        if ( !Helper::strContainsStr( reply, "UPnPError" ) )
         {
-            if ( reply.contains( "<NewExternalIPAddress>" ) )
+            if ( Helper::strContainsStr( reply, "NewExternalIPAddress" ) )
                 this->extractExternalIP( reply );
 
-            if ( reply.contains( "DeletePortMappingResponse" ) )
+            if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {
                 emit this->removedPortForward( port, protocol );
             }
 
-            if ( reply.contains( "AddPortMappingResponse" ) )
+            if ( Helper::strContainsStr( reply, "AddPortMappingResponse" ) )
             {
                 emit this->addedPortForward( port, protocol );
                 refreshTunnel->start();
             }
+
+            if ( Helper::strContainsStr(reply,"GetSpecificPortMappingEntryResponse" ) )
+            {
+                //The port is valid, but we didn't add it.
+                //Add the port to be refreshed.
+                if ( !ports.contains( port ) )
+                {
+                    ports.append( port );
+                }
+            }
+
+            if ( Settings::getLogFiles() )
+            {
+                QString logMsg{ "Got Reply from  Action[ %1 ] for Port[ %2:%3 ]" };
+                        logMsg = logMsg.arg( action )
+                                       .arg( protocol )
+                                       .arg( port );
+                Helper::logToFile( upnpLog, logMsg, true, true );
+            }
         }
         else
         {
-            this->extractError( reply, port, protocol );
+            //Some modems and routers incorrectly announce "Invalid Args" in
+            //lieu of a "NoSuchEntryInArray"
+            //reply to a "GetSpecificPortMapping" request.
+            //Try and add port forwards if our response holds this value.
+            if ( Helper::strContainsStr( reply, "Invalid Args" ) )
+                this->addPortForward( protocol, port );
+            else
+                this->extractError( reply, port, protocol );
         }
         httpReply->disconnect();
         httpReply->deleteLater();
@@ -275,14 +379,22 @@ void UPNP::extractError( QString message, qint32 port, QString protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( reader.name().toString() != QString( "errorDescription" ) )
+    while ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
         reader.readNext();
     }
 
-    if ( reader.name().toString() == QString( "errorDescription" ) )
+    if ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
-        if ( reader.readElementText() == QString( "NoSuchEntryInArray" ) )
+        QString elementText{ reader.readElementText() };
+        if ( (Helper::cmpStrings( elementText, "NoSuchEntryInArray" ))
+          || (Helper::cmpStrings( elementText, "Invalid Args" ) ))
+        {
+            this->addPortForward( protocol, port );
+            emit this->checkedPortForward( port, protocol );
+        }
+
+        if ( Helper::cmpStrings( reader.readElementText(), "errorDescription" ) )
         {
             this->addPortForward( protocol, port );
             emit this->checkedPortForward( port, protocol );
@@ -290,18 +402,27 @@ void UPNP::extractError( QString message, qint32 port, QString protocol )
         else
             emit this->error( reader.readElementText() );
     }
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
+                logMsg = logMsg.arg( protocol )
+                               .arg( port )
+                               .arg( message );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }
 
 void UPNP::extractExternalIP( QString message )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( reader.name().toString() != QString( "NewExternalIPAddress" ) )
+    while ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
     {
         reader.readNext();
     }
 
-    if ( reader.name().toString() == QString( "NewExternalIPAddress" ) )
+    if ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
         externalAddress = QHostAddress( reader.readElementText() );
 }
 
@@ -320,6 +441,14 @@ void UPNP::checkPortForward(QString protocol, qint32 port)
                      .arg( protocol );
 
     this->postSOAP( "GetSpecificPortMappingEntry", message, protocol, port );
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Checking Port[ %1:%2 ]." };
+                logMsg = logMsg.arg( protocol )
+                               .arg( port );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }
 
 void UPNP::addPortForward(QString protocol, qint32 port)
@@ -351,6 +480,14 @@ void UPNP::addPortForward(QString protocol, qint32 port)
                      .arg( QString::number( UPNP_TIME_OUT_S ) );
 
     this->postSOAP( "AddPortMapping", message, protocol, port );
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Adding Port[ %1:%2 ]." };
+                logMsg = logMsg.arg( protocol )
+                               .arg( port );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }
 
 void UPNP::removePortForward(QString protocol, qint32 port)
@@ -371,4 +508,12 @@ void UPNP::removePortForward(QString protocol, qint32 port)
 
     if ( ports.contains( port ) )
         ports.remove( ports.indexOf( port ) );
+
+    if ( Settings::getLogFiles() )
+    {
+        QString logMsg{ "Removing Port[ %1:%2 ]." };
+        logMsg = logMsg.arg( protocol )
+                       .arg( port );
+        Helper::logToFile( upnpLog, logMsg, true, true );
+    }
 }

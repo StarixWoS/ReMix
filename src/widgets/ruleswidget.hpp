@@ -25,17 +25,18 @@ class RulesWidget : public QWidget
     bool maxAFKCheckState{ false };
     bool worldCheckState{ false };
     bool urlCheckState{ false };
-    QString serverID{ "" };
+    QString serverName{ "" };
 
     public:
-        explicit RulesWidget(QString svrID = "0");
+        explicit RulesWidget();
         ~RulesWidget();
 
+        void setServerName(QString name);
         void setCheckedState(Toggles option, bool val);
         void setSelectedWorld(QString worldName, bool state);
 
     private:
-        void toggleRules(quint32 row, Qt::CheckState value);
+        void toggleRules(qint32 row, Qt::CheckState value);
 
     private slots:
         void on_rulesView_doubleClicked(const QModelIndex &index);

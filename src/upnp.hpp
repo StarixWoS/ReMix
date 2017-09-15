@@ -15,39 +15,39 @@ class UPNP : public QObject
     Q_OBJECT
 
     public:
+        static QString schemas[ UPNP_SCHEMA_COUNT ];
         static QVector<qint32> ports;
         static bool tunneled;
         static UPNP* upnp;
+
+        static QString upnpLog;
 
     private:
         QNetworkAccessManager* httpSocket;
         QUdpSocket* udpSocket;
         QTimer* refreshTunnel;
-        QTimer* timer;
 
         QNetworkAddressEntry localAddress;
         QHostAddress externalAddress;
         QHostAddress gateway;
+        QHostAddress localIP;
         QUrl gatewayCtrlUrl;
 
         QString rtrSchema{ "urn:schemas-upnp-org:service:WANIPConnection:1" };
         QString ctrlPort{ "" };
 
-        int internalPort{ 0 };
-        int externalPort{ 0 };
-
     public:
-        explicit UPNP(QHostAddress localip, QObject* parent = 0);
+        explicit UPNP(QObject* parent = 0);
         ~UPNP();
 
     public:
-        void makeTunnel(int internal, int external);
+        void makeTunnel();
 
         void checkPortForward(QString protocol, qint32 port);
         void addPortForward(QString protocol, qint32 port);
         void removePortForward(QString protocol, qint32 port);
 
-        static UPNP* getUpnp(QHostAddress localip);
+        static UPNP* getInstance();
 
         static bool getTunneled();
         static void setTunneled(bool value);
@@ -60,7 +60,6 @@ class UPNP : public QObject
 
     private slots:
         void getUdp();
-        void timeExpired();
 
     signals:
         void removedPortForward(qint32 port, QString protocol);

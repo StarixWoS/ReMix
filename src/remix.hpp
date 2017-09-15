@@ -16,9 +16,7 @@ class ReMix : public QMainWindow
 {
     Q_OBJECT
 
-    static Settings* settings;
     static ReMix* instance;
-    static User* user;
 
     QSystemTrayIcon* trayObject{ nullptr };
     ReMixTabWidget* serverUI{ nullptr };
@@ -41,10 +39,7 @@ class ReMix : public QMainWindow
         static ReMix* getInstance();
         static void setInstance(ReMix* value);
 
-        static void updateTitleBars(QString serverName, quint16 port);
-        static Settings* getSettings();
-        static User* getUser();
-
+        static void updateTitleBars(ServerInfo* server);
         static void getSynRealData(ServerInfo* svr);
         static QPalette& setupPalette(qint32 type);
         static QPalette& getPalette(qint32 type);

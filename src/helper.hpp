@@ -4,49 +4,69 @@
 
 #include "prototypes.hpp"
 
-namespace Helper
+//Required Qt Includes.
+#include <QInputDialog>
+#include <QtCore>
+
+class Helper
 {
-    QInputDialog* createInputDialog(QWidget* parent, QString& label,
-                                    QInputDialog::InputMode mode, int width,
-                                    quint32 height);
+    public:
+        static QInputDialog* createInputDialog(QWidget* parent, QString& label,
+                                               QInputDialog::InputMode mode,
+                                               int width, int height);
 
-    template<typename T>
-    QString intToStr(T val, int base = 10, int fill = 0, QChar filler = '0')
-    {
-        return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
-    }
+        template<typename T>
+        static QString intToStr(T val, int base = 10, int fill = 0,
+                                QChar filler = '0')
+        {
+            return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
+        }
 
-    QString intSToStr(QString val, int base = 16, int fill = 0,
-                      QChar filler = '0');
-    quint32 strToInt(QString str, int base = 16);
+        static QString intSToStr(QString val, int base = 16, int fill = 0,
+                                 QChar filler = '0');
+        static qint32 strToInt(QString str, int base = 16);
 
-    QString getStrStr(const QString& str, QString indStr, QString mid,
-                      QString left);
-    void stripNewlines(QString& string);
-    void stripSerNumHeader(QString& sernum);
-    QString sanitizeSerNum(const QString& value);
-    QString serNumToHexStr(QString sernum, int fillAmt = 8);
-    QString serNumToIntStr(QString sernum);
-    quint32 serNumtoInt(QString& sernum);
+        static QString getStrStr(const QString& str, QString indStr,
+                                 QString mid, QString left);
 
-    void logToFile(QString& file, QString& text, bool timeStamp = false,
-                   bool newLine = false);
+        static void stripNewlines(QString& string);
+        static void stripSerNumHeader(QString& sernum);
+        static QString sanitizeSerNum(const QString& value);
+        static QString serNumToHexStr(QString sernum, int fillAmt = 8);
+        static QString serNumToIntStr(QString sernum);
+        static qint32 serNumtoInt(QString& sernum);
 
-    bool confirmAction(QWidget* parent, QString& title, QString& prompt);
-    qint32 warningMessage(QWidget* parent, QString& title, QString& prompt );
+        static void logToFile(QString& file, QString& text,
+                              bool timeStamp = false, bool newLine = false);
 
-    QString getTextResponse(QWidget* parent, QString& title, QString& prompt,
-                            bool* ok, int type = 0);
+        static bool confirmAction(QWidget* parent, QString& title,
+                                  QString& prompt);
 
-    QString getBanishReason(QWidget* parent = nullptr);
-    QString getDisconnectReason(QWidget* parent = nullptr);
+        static qint32 warningMessage(QWidget* parent, QString& title,
+                                     QString& prompt );
 
-    QString hashPassword(QString& password);
-    QString genPwdSalt(RandDev* randGen, qint32 length = SALT_LENGTH);
-    bool validateSalt(QString& salt);
+        static QString getTextResponse(QWidget* parent, QString& title,
+                                       QString& prompt, bool* ok, int type = 0);
 
-    bool naturalSort(QString left, QString right, bool &result);
-    void delay(qint32 time);
-}
+        static QString getBanishReason(QWidget* parent = nullptr);
+        static QString getDisconnectReason(QWidget* parent = nullptr);
+
+        static QString hashPassword(QString& password);
+        static QString genPwdSalt(RandDev* randGen,
+                                  qint32 length = SALT_LENGTH);
+
+        static bool validateSalt(QString& salt);
+
+        static bool naturalSort(QString left, QString right, bool &result);
+        static void delay(qint32 time);
+
+        static QHostAddress getPrivateIP();
+        static void getSynRealData(ServerInfo* svr);
+
+        static bool strStartsWithStr(const QString& strA, const QString& strB);
+        static bool strContainsStr(const QString& strA, const QString& strB);
+        static bool cmpStrings(const QString& strA, const QString& strB );
+        static qint32 getStrIndex(const QString& strA, const QString& strB);
+};
 
 #endif // PREFERENCES_HPP

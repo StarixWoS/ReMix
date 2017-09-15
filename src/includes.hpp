@@ -43,6 +43,8 @@
     #include <QSettings>
     #include <QDateTime>
     #include <QFileInfo>
+    #include <QCollator>
+    #include <QLibrary>
     #include <QToolTip>
     #include <QProcess>
     #include <QtEndian>
@@ -62,11 +64,6 @@
     #include <QDir>
     #include <QUrl>
 
-    #ifdef DECRYPT_PACKET_PLUGIN
-        #include <QCoreApplication>
-        #include <QPluginLoader>
-    #endif // DECRYPT_PACKET_PLUGIN
-
 #endif // QT_INCLUDES_HPP
 
 #ifndef REMIX_INCLUDES_HPP
@@ -79,18 +76,21 @@
 
     //Widget GUI Classes.
     #include "widgets/settingswidget.hpp"
-    #include "widgets/messageswidget.hpp"
     #include "widgets/remixtabwidget.hpp"
     #include "widgets/plrlistwidget.hpp"
     #include "widgets/userdelegate.hpp"
     #include "widgets/remixwidget.hpp"
     #include "widgets/ruleswidget.hpp"
+    #include "widgets/motdwidget.hpp"
 
     //GUI and Data Storage Clases.
     #include "createinstance.hpp"
+    #include "appeventfilter.hpp"
     #include "packethandler.hpp"
+    #include "packetforge.hpp"
     #include "serverinfo.hpp"
     #include "cmdhandler.hpp"
+    #include "chatview.hpp"
     #include "settings.hpp"
     #include "comments.hpp"
     #include "randdev.hpp"
@@ -102,9 +102,5 @@
     #include "remix.hpp"
     #include "user.hpp"
     #include "upnp.hpp"
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        #include "packetdecryptinterface.hpp"
-    #endif // DECRYPT_PACKET_PLUGIN
 
 #endif // REMIX_INCLUDES_HPP

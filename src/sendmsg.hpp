@@ -14,19 +14,21 @@ namespace Ui {
 class SendMsg : public QDialog
 {
     Q_OBJECT
-    ServerInfo* server{ nullptr };
-    Player* target{ nullptr };
 
     public:
-        explicit SendMsg(QWidget *parent = nullptr, ServerInfo* svr = nullptr,
-                         Player* trg = nullptr);
+        explicit SendMsg(QString serNum, QWidget *parent = nullptr);
         ~SendMsg();
+
+        bool sendToAll();
 
     private:
         bool eventFilter(QObject* obj, QEvent* event);
 
     private slots:
         void on_sendMsg_clicked();
+
+    signals:
+        void forwardMessage(QString);
 
     private:
         Ui::SendMsg *ui;

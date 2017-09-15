@@ -14,8 +14,10 @@ class Player : public QObject
     Q_OBJECT
 
     QStandardItem* tableRow{ nullptr };
-
+    ServerInfo* serverInfo{ nullptr };
+    SendMsg* messageDialog{ nullptr };
     QTcpSocket* socket{ nullptr };
+
     QString publicIP{ "" };
     quint32 publicPort{ 0 };
 
@@ -33,38 +35,38 @@ class Player : public QObject
     QString sernum_s{ "" };
     QString sernumHex_s{ "" };
 
-    qint32 sceneHost{ 0 };
+    quint32 sceneHost{ 0 };
 
-    qint32 targetHost{ 0 };
-    qint32 targetSerNum{ 0 };
+    quint32 targetHost{ 0 };
+    quint32 targetSerNum{ 0 };
     int targetType{ 0 };
 
-    bool pwdRequested{ false };
-    bool enteredPwd{ false };
+    bool svrPwdRequested{ false };
+    bool svrPwdReceived{ false };
     int slotPos{ -1 };
 
-    bool reqAuthPwd{ false };
-    bool gotAuthPwd{ false };
+    bool adminPwdRequested{ false };
+    bool adminPwdReceived{ false };
     qint32 adminRank{ -1 };
 
     qint32 cmdAttempts{ 0 };  //Max limit is 3 attempts before auto-banning.
 
-    bool reqNewAuthPwd{ false };
-    bool gotNewAuthPwd{ false };
+    bool newAdminPwdRequested{ false };
+    bool newAdminPwdReceived{ false };
 
     QElapsedTimer floodTimer;
     int packetFloodCount{ 0 };
 
     int packetsIn{ 0 };
-    quint64 bytesIn{ 0 };
-    quint32 avgBaudIn{ 0 };
+    qint64 bytesIn{ 0 };
+    qint64 avgBaudIn{ 0 };
 
     int packetsOut{ 0 };
-    quint64 bytesOut{ 0 };
-    quint32 avgBaudOut{ 0 };
+    qint64 bytesOut{ 0 };
+    qint64 avgBaudOut{ 0 };
 
     QTimer connTimer;
-    quint64 connTime{ 0 };
+    qint64 connTime{ 0 };
     QElapsedTimer idleTime;
 
     QTimer killTimer;
@@ -72,14 +74,11 @@ class Player : public QObject
 
     bool networkMuted{ false };
 
-    #ifdef DECRYPT_PACKET_PLUGIN
-        QString gameInfo{ "" };
-        bool hasWorldInfo{ false };
-    #endif
-
     public:
         explicit Player();
         ~Player();
+
+        void sendMessage(QString msg = "", bool toAll = false);
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
 
@@ -125,8 +124,8 @@ class Player : public QObject
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
-        bool getPwdRequested() const;
-        void setPwdRequested(bool value);
+        bool getSvrPwdRequested() const;
+        void setSvrPwdRequested(bool value);
 
         int getSlotPos() const;
         void setSlotPos(int value);
@@ -137,10 +136,10 @@ class Player : public QObject
         quint32 getPublicPort() const;
         void setPublicPort(const quint32& value);
 
-        bool getEnteredPwd() const;
-        void setEnteredPwd(bool value);
+        bool getSvrPwdReceived() const;
+        void setSvrPwdReceived(bool value);
 
-        quint64 getFloodTime() const;
+        qint64 getFloodTime() const;
         void restartFloodTimer();
 
         int getPacketFloodCount() const;
@@ -149,28 +148,25 @@ class Player : public QObject
         int getPacketsIn() const;
         void setPacketsIn(int value, int incr);
 
-        quint64 getBytesIn() const;
-        void setBytesIn(const quint64& value);
-
-        quint64 getAvgBaudIn() const;
-        void setAvgBaudIn(const quint64& bIn);
+        qint64 getBytesIn() const;
+        void setBytesIn(const qint64& value);
 
         int getPacketsOut() const;
         void setPacketsOut(int value);
 
-        quint64 getBytesOut() const;
-        void setBytesOut(const quint64& value);
+        qint64 getBytesOut() const;
+        void setBytesOut(const qint64& value);
 
-        quint64 getAvgBaudOut() const;
-        void setAvgBaudOut(const quint64& bOut);
+        qint64 getAvgBaud(bool out) const;
+        void setAvgBaud(const qint64& bytes, bool out);
 
         void resetAdminAuth();
 
-        bool getReqAuthPwd() const;
-        void setReqAuthPwd(bool value);
+        bool getAdminPwdRequested() const;
+        void setAdminPwdRequested(bool value);
 
-        bool getGotAuthPwd() const;
-        void setGotAuthPwd(bool value);
+        bool getAdminPwdReceived() const;
+        void setAdminPwdReceived(bool value);
 
         bool getIsAdmin();
         qint32 getAdminRank();
@@ -178,11 +174,11 @@ class Player : public QObject
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);
 
-        bool getReqNewAuthPwd() const;
-        void setReqNewAuthPwd(bool value);
+        bool getNewAdminPwdRequested() const;
+        void setNewAdminPwdRequested(bool value);
 
-        bool getGotNewAuthPwd() const;
-        void setGotNewAuthPwd(bool value);
+        bool getNewAdminPwdReceived() const;
+        void setNewAdminPwdReceived(bool value);
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
@@ -190,7 +186,7 @@ class Player : public QObject
         void setDisconnected(bool value);
 
         bool getNetworkMuted() const;
-        void setNetworkMuted(bool value);
+        void setNetworkMuted(bool value, QString& msg);
 
         void validateSerNum(ServerInfo* server, quint32 id);
 
@@ -200,17 +196,12 @@ class Player : public QObject
         QString getWVar() const;
         void setWVar(const QString& value);
 
-        #ifdef DECRYPT_PACKET_PLUGIN
-            QString getGameInfo() const;
-            void setGameInfo(const QString& value);
-
-            bool getHasGameInfo() const;
-            void setHasGameInfo(bool value);
-        #endif
+        ServerInfo* getServerInfo() const;
+        void setServerInfo(ServerInfo* value);
 
     signals:
-        void sendRemoteAdminPwdReqSignal(Player* plr);
-        void sendRemoteAdminRegisterSignal(Player* plr);
+            void newAdminPwdRequestedSignal(Player* plr);
+            void newRemoteAdminRegisterSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

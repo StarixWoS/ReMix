@@ -17,7 +17,8 @@ SelectWorld::SelectWorld(QWidget *parent, QStringList) :
                       model->setRootPath( Settings::getWorldDir() );
                       model->setReadOnly( true );
 
-    QObject::connect( model, &QFileSystemModel::directoryLoaded, [=]()
+    QObject::connect( model, &QFileSystemModel::directoryLoaded, model,
+    [=]()
     {
         ui->worldViewer->setModel( model );
         for (int i = 1; i < model->columnCount(); ++i)
@@ -25,20 +26,6 @@ SelectWorld::SelectWorld(QWidget *parent, QStringList) :
 
         ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
     });
-
-//    worldModel = new QStringListModel();
-//    worldModel->setStringList( worldList );
-
-    //Remove the "Help" button from the window title bars.
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
 }
 
 SelectWorld::~SelectWorld()

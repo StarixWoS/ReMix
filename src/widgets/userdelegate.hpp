@@ -11,8 +11,6 @@
 class UserDelegate : public QItemDelegate
 {
     Q_OBJECT
-    enum PropColumn{ SERNUM = 0, SEEN = 1, IP = 2, RANK = 3, BANNED = 4,
-                     REASON = 5, DATE = 6 };
 
     public:
         UserDelegate(QObject* parent  =0);

@@ -5,85 +5,88 @@
 
 #include "selectworld.hpp"
 
-RulesWidget::RulesWidget(QString svrID) :
+RulesWidget::RulesWidget() :
     ui(new Ui::RulesWidget)
 {
     ui->setupUi(this);
-    serverID = svrID;
-
-    QString rowText{ "" };
-
-    //Load Rules from file.
-    worldCheckState = !Rules::getWorldName( serverID ).isEmpty();
-    this->setCheckedState( Toggles::world,
-                           worldCheckState );
-
-    rowText = "World Name: [ %1 ]";
-    rowText = rowText.arg( Rules::getWorldName( serverID ) );
-    ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
-
-    urlCheckState = !Rules::getURLAddress( serverID ).isEmpty();
-    this->setCheckedState( Toggles::url, urlCheckState );
-
-    rowText = "Server Home: [ %1 ]";
-    rowText = rowText.arg( Rules::getURLAddress( serverID ) );
-    ui->rulesView->item( Toggles::url, 0 )->setText( rowText );
-
-    this->setCheckedState( Toggles::allPK,
-                           Rules::getAllPKing( serverID ) );
-
-    maxPlayersCheckState = !Rules::getRequireMaxPlayers( serverID );
-    this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
-
-    rowText = "Max Players: [ %1 ]";
-    rowText = rowText.arg( Rules::getMaxPlayers( serverID ) );
-    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText );
-
-    maxAFKCheckState = !Rules::getRequireMaxAFK( serverID );
-    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
-
-    rowText = "Max AFK: [ %1 ] Minutes";
-    rowText = rowText.arg( Rules::getMaxAFK( serverID ) );
-    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText );
-
-    minVersionCheckState = !Rules::getMinVersion( serverID ).isEmpty();
-    this->setCheckedState( Toggles::minV, minVersionCheckState );
-
-    rowText = "Min Version: [ %1 ]";
-    rowText = rowText.arg( Rules::getMinVersion( serverID ) );
-    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText );
-
-    this->setCheckedState( Toggles::ladder,
-                           Rules::getReportLadder( serverID ) );
-
-    this->setCheckedState( Toggles::noBleep,
-                           Rules::getNoCursing( serverID ));
-
-    this->setCheckedState( Toggles::noCheat,
-                           Rules::getNoCheating( serverID ) );
-
-    this->setCheckedState( Toggles::noEavesdrop,
-                           Rules::getNoEavesdropping( serverID ) );
-
-    this->setCheckedState( Toggles::noMigrate,
-                           Rules::getNoMigrating( serverID ) );
-
-    this->setCheckedState( Toggles::noMod,
-                           Rules::getNoModding( serverID ) );
-
-    this->setCheckedState( Toggles::noPets,
-                           Rules::getNoPets( serverID ) );
-
-    this->setCheckedState( Toggles::noPK,
-                           Rules::getNoPKing( serverID ) );
-
-    this->setCheckedState( Toggles::arenaPK,
-                           Rules::getArenaPKing( serverID ) );
 }
 
 RulesWidget::~RulesWidget()
 {
     delete ui;
+}
+
+void RulesWidget::setServerName(QString name)
+{
+    //Load Rules from file.
+    QString rowText{ "" };
+    worldCheckState = !Rules::getWorldName( name ).isEmpty();
+    this->setCheckedState( Toggles::world,
+                           worldCheckState );
+
+    rowText = "World Name: [ %1 ]";
+    rowText = rowText.arg( Rules::getWorldName( name ) );
+    ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
+
+    urlCheckState = !Rules::getURLAddress( name ).isEmpty();
+    this->setCheckedState( Toggles::url, urlCheckState );
+
+    rowText = "Server Home: [ %1 ]";
+    rowText = rowText.arg( Rules::getURLAddress( name ) );
+    ui->rulesView->item( Toggles::url, 0 )->setText( rowText );
+
+    this->setCheckedState( Toggles::allPK,
+                           Rules::getAllPKing( name ) );
+
+    maxPlayersCheckState = !Rules::getRequireMaxPlayers( name );
+    this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
+
+    rowText = "Max Players: [ %1 ]";
+    rowText = rowText.arg( Rules::getMaxPlayers( name ) );
+    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText );
+
+    maxAFKCheckState = !Rules::getRequireMaxAFK( name );
+    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
+
+    rowText = "Max AFK: [ %1 ] Minutes";
+    rowText = rowText.arg( Rules::getMaxAFK( name ) );
+    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText );
+
+    minVersionCheckState = !Rules::getMinVersion( name ).isEmpty();
+    this->setCheckedState( Toggles::minV, minVersionCheckState );
+
+    rowText = "Min Version: [ %1 ]";
+    rowText = rowText.arg( Rules::getMinVersion( name ) );
+    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText );
+
+    this->setCheckedState( Toggles::ladder,
+                           Rules::getReportLadder( name ) );
+
+    this->setCheckedState( Toggles::noBleep,
+                           Rules::getNoCursing( name ));
+
+    this->setCheckedState( Toggles::noCheat,
+                           Rules::getNoCheating( name ) );
+
+    this->setCheckedState( Toggles::noEavesdrop,
+                           Rules::getNoEavesdropping( name ) );
+
+    this->setCheckedState( Toggles::noMigrate,
+                           Rules::getNoMigrating( name ) );
+
+    this->setCheckedState( Toggles::noMod,
+                           Rules::getNoModding( name ) );
+
+    this->setCheckedState( Toggles::noPets,
+                           Rules::getNoPets( name ) );
+
+    this->setCheckedState( Toggles::noPK,
+                           Rules::getNoPKing( name ) );
+
+    this->setCheckedState( Toggles::arenaPK,
+                           Rules::getArenaPKing( name ) );
+
+    serverName = name;
 }
 
 void RulesWidget::setCheckedState(Toggles option, bool val)
@@ -107,7 +110,7 @@ void RulesWidget::setSelectedWorld(QString worldName, bool state)
                                                            ? Qt::Checked
                                                            : Qt::Unchecked );
 
-    Rules::setWorldName( worldName, serverID );
+    Rules::setWorldName( worldName, serverName );
 }
 
 void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem *item)
@@ -135,20 +138,20 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex &index)
     this->toggleRules( row, val );
 }
 
-void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
+void RulesWidget::toggleRules(qint32 row, Qt::CheckState value)
 {
     QVariant state_v = value == Qt::Checked;
     bool state_b{ state_v.toBool() };
 
     QSettings rules( "preferences.ini", QSettings::IniFormat );
-              rules.beginGroup( serverID % "/" %
+              rules.beginGroup( serverName % "/" %
                                 Settings::keys[ Settings::Rules ] );
 
     QString prompt{ "" };
     QString title{ "" };
 
     bool removeKey{ false };
-    quint32 key{ row };
+    qint32 key{ row };
 
     QString rowText{ "" };
 
@@ -156,7 +159,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
     {
         case Toggles::world:
             {
-                QString world{ Rules::getWorldName( serverID ) };
+                QString world{ Rules::getWorldName( serverName ) };
                 bool ok{ false };
 
                 if ( state_b != worldCheckState )
@@ -193,7 +196,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                     }
                     else
                     {
-                        if (( Rules::getRequireWorld( serverID )
+                        if (( Rules::getRequireWorld( serverName )
                           || !worldCheckState )
                           && state_b )
                         {
@@ -215,7 +218,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             else
                                 this->setSelectedWorld( world, state_v.toBool() );
                         }
-                        else if ( !Rules::getRequireWorld( serverID )
+                        else if ( !Rules::getRequireWorld( serverName )
                                && !world.isEmpty() )
                         {
                             title = "Remove World:";
@@ -238,12 +241,12 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
         break;
         case Toggles::url:
             {
-                QString url{ Rules::getURLAddress( serverID ) };
+                QString url{ Rules::getURLAddress( serverName ) };
                 bool ok{ false };
 
                 if ( state_b != urlCheckState )
                 {
-                    if (( Rules::getRequireURL( serverID )
+                    if (( Rules::getRequireURL( serverName )
                        || !urlCheckState )
                       && state_b )
                     {
@@ -263,9 +266,9 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             state_v = false;
                         }
                         else
-                            Rules::setURLAddress( url, serverID );
+                            Rules::setURLAddress( url, serverName );
                     }
-                    else if ( !Rules::getRequireURL( serverID )
+                    else if ( !Rules::getRequireURL( serverName )
                            && !url.isEmpty() )
                     {
                         title = "Remove URL:";
@@ -282,7 +285,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                     }
                 }
                 rowText = "Server Home: [ %1 ]";
-                rowText = rowText.arg( Rules::getURLAddress( serverID ) );
+                rowText = rowText.arg( Rules::getURLAddress( serverName ) );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 urlCheckState = state_v.toBool();
@@ -292,16 +295,16 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setAllPKing( state_v, serverID );
+                Rules::setAllPKing( state_v, serverName );
         break;
         case Toggles::maxP:
             {
-                quint32 maxPlrs{ Rules::getMaxPlayers( serverID ) };
+                quint32 maxPlrs{ Rules::getMaxPlayers( serverName ) };
                 bool ok{ false };
 
                 if ( state_b != maxPlayersCheckState )
                 {
-                    if (( Rules::getRequireMaxPlayers( serverID )
+                    if (( Rules::getRequireMaxPlayers( serverName )
                        || !maxPlayersCheckState )
                       && state_b )
                     {
@@ -322,9 +325,9 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             state_v = false;
                         }
                         else
-                            Rules::setMaxPlayers( maxPlrs, serverID );
+                            Rules::setMaxPlayers( maxPlrs, serverName );
                     }
-                    else if ( !Rules::getRequireMaxPlayers( serverID )
+                    else if ( !Rules::getRequireMaxPlayers( serverName )
                            && maxPlrs != 0 )
                     {
                         title = "Remove Max-Players:";
@@ -342,7 +345,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                     }
                 }
                 rowText = "Max Players: [ %1 ]";
-                rowText = rowText.arg( Rules::getMaxPlayers( serverID ) );
+                rowText = rowText.arg( Rules::getMaxPlayers( serverName ) );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 maxPlayersCheckState = state_v.toBool();
@@ -350,12 +353,12 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
         break;
         case Toggles::maxAFK:
             {
-                quint32 maxAFK{ Rules::getMaxAFK( serverID ) };
+                quint32 maxAFK{ Rules::getMaxAFK( serverName ) };
                 bool ok{ false };
 
                 if ( state_b != maxAFKCheckState )
                 {
-                    if (( Rules::getRequireMaxAFK( serverID )
+                    if (( Rules::getRequireMaxAFK( serverName )
                        || !maxAFKCheckState )
                       && state_b )
                     {
@@ -376,9 +379,9 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             state_v = false;
                         }
                         else
-                            Rules::setMaxAFK( maxAFK, serverID );
+                            Rules::setMaxAFK( maxAFK, serverName );
                     }
-                    else if ( !Rules::getRequireMaxAFK( serverID )
+                    else if ( !Rules::getRequireMaxAFK( serverName )
                            || maxAFK == 0 )
                     {
                         title = "Remove Max-AFK:";
@@ -396,7 +399,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                     }
                 }
                 rowText = "Max AFK: [ %1 ] Minutes";
-                rowText = rowText.arg( Rules::getMaxAFK( serverID ) );
+                rowText = rowText.arg( Rules::getMaxAFK( serverName ) );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 maxAFKCheckState = state_v.toBool();
@@ -404,12 +407,12 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
         break;
         case Toggles::minV:
             {
-                QString version{ Rules::getMinVersion( serverID ) };
+                QString version{ Rules::getMinVersion( serverName ) };
                 bool ok{ false };
 
                 if ( state_b != minVersionCheckState )
                 {
-                    if (( Rules::getRequireMinVersion( serverID )
+                    if (( Rules::getRequireMinVersion( serverName )
                        || !minVersionCheckState)
                       && state_b )
                     {
@@ -429,9 +432,9 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                             state_v = false;
                         }
                         else
-                            Rules::setMinVersion( version, serverID );
+                            Rules::setMinVersion( version, serverName );
                     }
-                    else if ( !Rules::getRequireMinVersion( serverID )
+                    else if ( !Rules::getRequireMinVersion( serverName )
                            && !version.isEmpty() )
                     {
                         title = "Remove Min-Version:";
@@ -448,7 +451,7 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
                     }
                 }
                 rowText = "Min Version: [ %1 ]";
-                rowText = rowText.arg( Rules::getMinVersion( serverID ) );
+                rowText = rowText.arg( Rules::getMinVersion( serverName ) );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 minVersionCheckState = state_v.toBool();
@@ -458,55 +461,55 @@ void RulesWidget::toggleRules(quint32 row, Qt::CheckState value)
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setReportLadder( state_v, serverID );
+                Rules::setReportLadder( state_v, serverName );
         break;
         case Toggles::noBleep:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoCursing( state_v, serverID );
+                Rules::setNoCursing( state_v, serverName );
         break;
         case Toggles::noCheat:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoCheating( state_v, serverID );
+                Rules::setNoCheating( state_v, serverName );
         break;
         case Toggles::noEavesdrop:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoEavesdropping( state_v, serverID );
+                Rules::setNoEavesdropping( state_v, serverName );
         break;
         case Toggles::noMigrate:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoMigrating( state_v, serverID );
+                Rules::setNoMigrating( state_v, serverName );
         break;
         case Toggles::noMod:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoModding( state_v, serverID );
+                Rules::setNoModding( state_v, serverName );
         break;
         case Toggles::noPets:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoPets( state_v, serverID );
+                Rules::setNoPets( state_v, serverName );
         break;
         case Toggles::noPK:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setNoPKing( state_v, serverID );
+                Rules::setNoPKing( state_v, serverName );
         break;
         case Toggles::arenaPK:
             if ( !state_b )
                 removeKey = true;
             else
-                Rules::setArenaPKing( state_v, serverID );
+                Rules::setArenaPKing( state_v, serverName );
          break;
         default:
             qDebug() << "Unknown Rule, doing nothing!";

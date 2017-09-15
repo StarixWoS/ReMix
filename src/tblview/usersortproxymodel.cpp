@@ -28,8 +28,8 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
 
-        if ( column == COLS::SEEN
-          || column == COLS::BANDATE )
+        if ( column == User::cSEENDATE
+          || column == User::cBANDATE )
         {
             vlStr = QString::number(
                         QDateTime::fromString( vlStr,
@@ -41,7 +41,7 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
                                                "ddd MMM dd HH:mm:ss yyyy" )
                              .toTime_t() );
         }
-        else if ( column == COLS::SERNUM )
+        else if ( column == User::cSERNUM )
         {
             if ( !vlStr.contains( "SOUL" ) )
                 vlStr = Helper::intSToStr( vlStr, 10 );

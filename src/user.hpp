@@ -12,53 +12,62 @@ class User : public QDialog
 {
     Q_OBJECT
 
-    QSortFilterProxyModel* tblProxy{ nullptr };
-    QStandardItemModel* tblModel{ nullptr };
-    RandDev* randDev{ nullptr };
-
-    enum Cols{ cSERNUM = 0, cSEEN = 1, cIP = 2, cRANK = 3, cBANNED = 4,
-               cREASON = 5, cDATE = 6, cCOLS = cDATE };
+    static QSortFilterProxyModel* tblProxy;
+    static QStandardItemModel* tblModel;
+    static QSettings* userData;
+    static RandDev* randDev;
+    static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];
-    enum Keys{ kSEEN = 0, kBIO = 1, kIP = 2, kDV = 3, kWV = 4, kRANK = 5,
-               kHASH = 6, kSALT = 7, kREASON = 8, kBANNED = 9 };
 
     public:
+        enum UserColumns{ cSERNUM = 0, cPINGS, cCALLS, cSEENDATE, cIP,
+                          cRANK, cBANNED, cBANDATE, cREASON, cCOLS = 9 };
+
+        enum PlayerRanks{ rUSER = 0, rGAMEMASTER, rCOADMIN, rADMIN,
+                          rOWNER = 4 };
+
+        enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
+                       kREASON, kBANNED, kPINGS, kCALLS = 11 };
+
+        enum BanTypes{ tSERNUM = 0, tIP, tDV, tWV = 3 };
+
         explicit User(QWidget* parent = nullptr);
         ~User();
 
-        static QSettings* userData;
+        static User* getInstance();
+        static void setInstance(User* value);
 
-        enum Types{ tSERNUM = 0, tIP = 1, tDV = 2, tWV = 3 };
-        enum Ranks{ rUSER = 0, rGAMEMASTER = 1, rCOADMIN = 2, rADMIN = 3,
-                    rOWNER = 4 };
+        static QSettings* getUserData();
+        static void setUserData(QSettings* value);
 
         static void setData(const QString& key, const QString& subKey,
-                            QVariant& value);
+                            const QVariant& value);
         static QVariant getData(const QString& key, const QString& subKey);
 
-        bool makeAdmin(QString& sernum, QString& pwd);
+        static bool makeAdmin(QString& sernum, QString& pwd);
 
         static bool getIsAdmin(QString& sernum);
         static bool getHasPassword(QString sernum);
         static bool cmpAdminPwd(QString& sernum, QString& value);
 
         static qint32 getAdminRank(QString& sernum);
-        void setAdminRank(QString& sernum, qint32 rank);
+        static void setAdminRank(QString& sernum, qint32 rank);
 
-        void removeBan(QString& value, qint32 type);
-        bool addBan(Player* admin, Player* target, QString& reason,
-                    bool remote = false);
+        static void removeBan(QString& value, qint32 type);
+        static bool addBan(Player* admin, Player* target, QString& reason,
+                           bool remote = false);
 
-        static bool getIsBanned(QString value, Types type);
+        static bool getIsBanned(QString value, BanTypes type);
 
-        void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
-                    QString& wv, QString& bio);
+        static void updateCallCount(QString serNum);
+        static void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
+                           QString& wv, QString& bio);
 
     private:
-        QModelIndex findModelIndex(QString value, Cols col);
+        QModelIndex findModelIndex(QString value, UserColumns col);
         void loadUserInfo();
-        void updateRowData(quint32 row, quint32 col, QVariant data);
+        void updateRowData(qint32 row, qint32 col, QVariant data);
 
     private slots:
         void updateDataValue(const QModelIndex& index,

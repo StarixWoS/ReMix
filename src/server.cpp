@@ -2,21 +2,36 @@
 #include "includes.hpp"
 #include "server.hpp"
 
-Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
-               QStandardItemModel* plrView, QString svrID)
+Server::Server(QWidget* parent, ServerInfo* svr,
+               QStandardItemModel* plrView)
     : QTcpServer(parent)
 {
-    serverID = svrID;
-
     //Setup Objects.
     mother = parent;
     server = svr;
     plrViewModel = plrView;
-    user = usr;
 
     //Setup Objects.
     serverComments = new Comments( parent );
-    pktHandle = new PacketHandler( user, server, svrID );
+    serverComments->setTitle( svr->getName() );
+
+    chatView = new ChatView( parent );
+    chatView->setTitle( svr->getName() );
+
+    Games gameID{ Games::Invalid };
+    QString gameName{ server->getGameName() };
+    if ( Helper::cmpStrings( gameName, "WoS" ) )
+        gameID = Games::WoS;
+    else if ( Helper::cmpStrings( gameName, "ToY" ) )
+        gameID = Games::ToY;
+    else if ( Helper::cmpStrings( gameName, "W97" ) )
+        gameID = Games::W97;
+    else
+        gameID = Games::Invalid;
+
+    chatView->setGameID( gameID );
+
+    pktHandle = new PacketHandler( server, chatView );
 
     //Connect Objects.
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
@@ -28,10 +43,41 @@ Server::Server(QWidget* parent, ServerInfo* svr, User* usr,
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
-    QObject::connect( dynamic_cast<ReMixWidget*>( mother ), &ReMixWidget::reValidateServerIP, [=]()
+    ReMixWidget* widget = dynamic_cast<ReMixWidget*>( mother );
+    QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
+    [=]()
     {
-        server->setIsSetUp( false );
+        server->setIsPublic( true );
         this->setupServerInfo();
+    });
+
+    QObject::connect( chatView, &ChatView::sendChat, chatView,
+    [=](QString msg)
+    {
+        if ( !msg.isEmpty() )
+        {
+            if ( !Helper::strStartsWithStr( msg, "Owner" ) )
+            {
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    Player* plr = server->getPlayer( i );
+                    if ( plr != nullptr )
+                    {
+                        QTcpSocket* tmpSoc{ plr->getSocket() };
+                        if ( tmpSoc != nullptr  )
+                        {
+                            qint64 bOut = tmpSoc->write( msg.toLatin1(),
+                                                         msg.length() );
+
+                            plr->setBytesOut( plr->getBytesOut() + bOut );
+                            server->setBytesOut( server->getBytesOut() + bOut );
+                        }
+                    }
+                }
+            }
+            else
+                server->sendMasterMessage( msg, nullptr, true );
+        }
     });
 
     //Ensure all possible User slots are fillable.
@@ -45,6 +91,9 @@ Server::~Server()
 
     serverComments->close();
     serverComments->deleteLater();
+
+    chatView->close();
+    chatView->deleteLater();
 
     bioHash.clear();
 }
@@ -109,8 +158,15 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->setSernum_i( Helper::serNumToHexStr( sernum )
                                      .toUInt( 0, 16 ) );
+        User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
-        qint32 index{ bio.indexOf( "d=", Qt::CaseInsensitive ) };
+        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
+        plr->setAlias( alias );
+
+        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
+        plr->setPlayTime( age );
+
+        qint32 index{ Helper::getStrIndex( bio, "d=" ) };
         QString dVar{ "" };
         QString wVar{ "" };
         if ( index >= 0 )
@@ -119,7 +175,7 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
             plr->setDVar( dVar );
         }
 
-        index = bio.indexOf( "w=", Qt::CaseInsensitive );
+        index = Helper::getStrIndex( bio, "w=" );
         if ( index >= 0 )
         {
             wVar = bio.mid( index + 2 ).left( 8 );
@@ -131,11 +187,11 @@ QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 2 ),
-                               Helper::getStrStr( bio, "HHMM", "=", "," ),
+                               age,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 3 ),
-                               Helper::getStrStr( bio, "alias", "=", "," ),
+                               alias,
                                Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 7 ),
@@ -150,81 +206,18 @@ Comments* Server::getServerComments() const
     return serverComments;
 }
 
+ChatView* Server::getChatView() const
+{
+    return chatView;
+}
+
 void Server::setupServerInfo()
 {
-    if ( !server->getIsSetUp() )
-    {
-        server->setPrivateIP( QHostAddress( QHostAddress::LocalHost )
-                                   .toString() );
+    if ( this->isListening() )
+        this->close();
 
-        QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
-        for ( int i = 0; i < ipList.size(); ++i )
-        {
-            QString tmp = ipList.at( i ).toString();
-            if ( ipList.at( i ) != QHostAddress::LocalHost
-              && ipList.at( i ).toIPv4Address()
-              && !Settings::getIsInvalidIPAddress( tmp )
-              //Remove Windows generated APIPA addresses.
-              && !tmp.startsWith( "169", Qt::CaseInsensitive ) )
-            {
-                //Use first non-local IP address.
-                server->setPrivateIP( ipList.at(i).toString() );
-                upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
-                break;
-            }
-        }
-
-        QHostAddress addr{ server->getPrivateIP() };
-        server->initMasterSocket( addr, server->getPrivatePort() );
-
-        if ( this->isListening() )
-            this->close();
-
-        this->listen( addr, server->getPrivatePort() );
-
-        server->setIsSetUp( true );
-        if ( server->getIsPublic() && this->isListening() )
-            server->sendMasterInfo();
-    }
-}
-
-void Server::setupUPNPForward()
-{
-    if ( upnp == nullptr )
-    {
-        upnp = UPNP::getUpnp( QHostAddress( server->getPrivateIP() ) );
-    }
-
-    bool tunneled = UPNP::getTunneled();
-    if ( tunneled != true )
-    {
-        QObject::connect( upnp, &UPNP::success, [=]()
-        {
-            upnp->checkPortForward( "TCP", server->getPrivatePort() );
-            upnp->checkPortForward( "UDP", server->getPrivatePort() );
-            upnp->disconnect();
-        });
-        upnp->makeTunnel( server->getPrivatePort(), server->getPublicPort() );
-    }
-    else
-    {
-        upnp->checkPortForward( "TCP", server->getPrivatePort() );
-        upnp->checkPortForward( "UDP", server->getPrivatePort() );
-    }
-}
-
-void Server::removeUPNPForward()
-{
-    if ( upnp != nullptr )
-    {
-        //Add a delay of one second after each removal command.
-        //This is to ensure the command is sent.
-        upnp->removePortForward( "TCP", server->getPrivatePort() );
-        Helper::delay( 1 );
-
-        upnp->removePortForward( "UDP", server->getPrivatePort() );
-        Helper::delay( 1 );
-    }
+    this->listen( QHostAddress( server->getPrivateIP() ),
+                                server->getPrivatePort() );
 }
 
 void Server::newConnectionSlot()
@@ -245,28 +238,36 @@ void Server::newConnectionSlot()
     //We've created a new Player, assign it's Socket.
     plr->setSocket( peer );
 
+    //Set the Player's reference to the ServerInfo class.
+    plr->setServerInfo( server );
+
     //Connect to our Password Request Signal. This signal is
     //turned on or off by enabling or disabling Admin Auth requirements.
-    QObject::connect( plr, &Player::sendRemoteAdminPwdReqSignal,
-                      this, &Server::sendRemoteAdminPwdReqSlot );
-    QObject::connect( plr, &Player::sendRemoteAdminRegisterSignal,
-                      this, &Server::sendRemoteAdminRegisterSlot );
+    QObject::connect( plr, &Player::newAdminPwdRequestedSignal,
+                      this, &Server::newRemotePwdRequestedSlot );
+    QObject::connect( plr, &Player::newRemoteAdminRegisterSignal,
+                      this, &Server::newRemoteAdminRegisterSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
-    QObject::connect( peer, &QTcpSocket::disconnected,
-                      this, &Server::userDisconnectedSlot );
+    QObject::connect( peer, &QTcpSocket::disconnected, peer,
+    [=]()
+    {
+        this->userDisconnected( peer );
+    });
 
     //Connect the pending Connection to a ReadyRead lambda.
-    QObject::connect( peer, &QTcpSocket::readyRead,
-                      this, &Server::userReadyReadSlot );
+    QObject::connect( peer, &QTcpSocket::readyRead, peer,
+    [=]()
+    {
+        this->userReadyRead( peer );
+    });
 
     server->sendServerGreeting( plr );
     this->updatePlayerTable( plr, peer->peerAddress(), peer->peerPort() );
 }
 
-void Server::userReadyReadSlot()
+void Server::userReadyRead(QTcpSocket* socket)
 {
-    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
     if ( socket == nullptr )
         return;
 
@@ -277,7 +278,7 @@ void Server::userReadyReadSlot()
         return;
 
     QByteArray data = plr->getOutBuff();
-    quint64 bIn = data.length();
+    qint64 bIn = data.length();
 
     data.append( socket->readAll() );
     server->setBytesIn( server->getBytesIn() + (data.length() - bIn) );
@@ -311,9 +312,8 @@ void Server::userReadyReadSlot()
     }
 }
 
-void Server::userDisconnectedSlot()
+void Server::userDisconnected(QTcpSocket* socket)
 {
-    QTcpSocket* socket{ dynamic_cast<QTcpSocket*>( QObject::sender() ) };
     if ( socket == nullptr )
         return;
 
@@ -354,7 +354,7 @@ void Server::readyReadUDPSlot()
         QHostAddress senderAddr{};
         quint16 senderPort{ 0 };
 
-        data.resize( socket->pendingDatagramSize() );
+        data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
         socket->readDatagram( data.data(), data.size(),
                               &senderAddr, &senderPort );
 
@@ -364,26 +364,7 @@ void Server::readyReadUDPSlot()
     }
 }
 
-void Server::setupPublicServer(bool value)
-{
-    if ( value != server->getIsPublic() )
-    {
-        if ( !server->getIsPublic() )
-        {
-            server->startMasterCheckIn();
-            server->sendMasterInfo( false );
-            server->setMasterUDPResponse( false );
-        }
-        else
-        {
-            server->stopMasterCheckIn();
-            server->sendMasterInfo( true );
-        }
-        server->setIsPublic( value );
-    }
-}
-
-void Server::sendRemoteAdminPwdReqSlot(Player* plr)
+void Server::newRemotePwdRequestedSlot(Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -396,12 +377,12 @@ void Server::sendRemoteAdminPwdReqSlot(Player* plr)
     if ( Settings::getReqAdminAuth()
       && plr->getIsAdmin() )
     {
-        plr->setReqAuthPwd( true );
-        server->sendMasterMessage( msg, plr, false );
+        plr->setAdminPwdRequested( true );
+        plr->sendMessage( msg );
     }
 }
 
-void Server::sendRemoteAdminRegisterSlot(Player* plr)
+void Server::newRemoteAdminRegisterSlot(Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -412,5 +393,5 @@ void Server::sendRemoteAdminRegisterSlot(Player* plr)
                  "Admins will not have access to this information." };
 
     if ( plr->getIsAdmin() )
-        server->sendMasterMessage( msg, plr, false );
+        plr->sendMessage( msg );
 }

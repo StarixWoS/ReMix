@@ -3,57 +3,42 @@
 #include "remixwidget.hpp"
 #include "ui_remixwidget.h"
 
-//Initialize our accepted Commandline Argument List.
-const QStringList ReMixWidget::cmdlArgs =
-{
-    QStringList() << "game" << "master" << "public"
-                  << "listen" << "name" << "fudge"
-};
-
-ReMixWidget::ReMixWidget(QWidget* parent, QStringList* argList, QString svrID) :
+ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QWidget(parent),
     ui(new Ui::ReMixWidget)
 {
-    ui->setupUi(this);
-    serverID = svrID;
+    ui->setupUi( this );
+
+    server = svrInfo;
 
     //Setup our Random Device
     randDev = new RandDev();
 
     //Setup Objects.
-    contextMenu = new QMenu( this );
-    messages = new MessagesWidget( serverID );
-    rules = new RulesWidget( serverID );
+    motdWidget = new MOTDWidget();
+    motdWidget->setServerName( server->getName() );
 
-    settings = ReMix::getSettings();
-    settings->addTabObjects( messages, rules, serverID );
+    rules = new RulesWidget();
+    rules->setServerName( server->getName() );
 
-    server = new ServerInfo( serverID );
-    user = ReMix::getUser();
+    Settings::addTabObjects( motdWidget, rules, server );
 
-    plrWidget = new PlrListWidget( this, server, user );
+    plrWidget = new PlrListWidget( this, server );
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
-    server->setServerID( Settings::getServerID( serverID ) );
-    server->setHostInfo( QHostInfo() );
+    //Setup Networking Objects.
+    tcpServer = new Server( this, server, plrWidget->getPlrModel() );
+    server->setTcpServer( tcpServer );
 
-    //Load Data from our CommandLine Args.
-    if ( argList != nullptr )
-        this->parseCMDLArgs( argList );
+    //Initialize the TCP Server if we're starting as a public instance.
+    if ( server->getIsPublic() )
+        tcpServer->setupServerInfo();
 
-    ReMix::getSynRealData( server );
+    ui->isPublicServer->setChecked( server->getIsPublic() );
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
-
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
     defaultPalette = parent->palette();
 }
 
@@ -61,27 +46,44 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
-    if ( ui->useUPNP->isChecked() )
-    {
-        tcpServer->removeUPNPForward();
-    }
+    if ( ui->isPublicServer->isChecked() )
+        server->setupUPNP( true );
 
     tcpServer->close();
     tcpServer->deleteLater();
 
     plrWidget->deleteLater();
 
-    settings->remTabObjects( serverID );
+    Settings::remTabObjects( server );
 
     delete randDev;
     delete server;
     delete ui;
 }
 
-void ReMixWidget::sendServerMessage(QString msg, Player* plr, bool toAll)
+ServerInfo* ReMixWidget::getServerInfo()
+{
+    return server;
+}
+
+void ReMixWidget::renameServer(QString newName)
+{
+    if ( !newName.isEmpty() )
+    {
+        Settings::copyServerSettings( server, newName );
+        motdWidget->setServerName( newName );
+        rules->setServerName( newName );
+
+        server->setName( newName );
+    }
+}
+
+void ReMixWidget::sendServerMessage(QString msg)
 {
     if ( server != nullptr )
-        server->sendMasterMessage( msg, plr,toAll );
+    {
+        server->sendMasterMessage( msg, nullptr, true );
+    }
 }
 
 qint32 ReMixWidget::getPlayerCount()
@@ -97,19 +99,9 @@ QString ReMixWidget::getServerName() const
     return server->getName();
 }
 
-Settings* ReMixWidget::getSettings() const
-{
-    return settings;
-}
-
 Server* ReMixWidget::getTcpServer() const
 {
     return tcpServer;
-}
-
-QString& ReMixWidget::getServerID()
-{
-    return serverID;
 }
 
 quint16 ReMixWidget::getPrivatePort() const
@@ -120,92 +112,12 @@ quint16 ReMixWidget::getPrivatePort() const
     return server->getPrivatePort();
 }
 
-void ReMixWidget::parseCMDLArgs(QStringList* argList)
-{
-    QString tmpArg{ "" };
-    QString arg{ "" };
-    QString tmp{ "" };
-
-    int argIndex{ -1 };
-    for ( int i = 0; i < argList->count(); ++i )
-    {
-        arg = argList->at( i );
-        tmpArg.clear();
-        tmp.clear();
-
-        argIndex = -1;
-        for ( int j = 0; j < cmdlArgs.count(); ++j )
-        {
-            if ( arg.contains( cmdlArgs.at( j ), Qt::CaseInsensitive ) )
-            {
-                tmpArg = cmdlArgs.at( j );
-                argIndex = j;
-                break;
-            }
-        }
-
-        if ( !tmpArg.isEmpty() )
-        {
-            switch ( argIndex )
-            {
-                case CMDLArgs::GAME:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setGameName( tmp );
-                break;
-                case CMDLArgs::MASTER:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setMasterInfoHost( tmp );
-                break;
-                case CMDLArgs::PUBLIC:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                    {
-                        server->setMasterIP( tmp.left( tmp.indexOf( ':' ) ) );
-                        server->setMasterPort(
-                                    static_cast<quint16>(
-                                        tmp.mid( tmp.indexOf( ':' ) + 1 )
-                                           .toInt() ) );
-                    }
-                    ui->isPublicServer->setChecked( true );
-                break;
-                case CMDLArgs::LISTEN:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setPrivatePort( tmp.toUShort() );
-
-                    emit ui->enableNetworking->clicked();
-                break;
-                case CMDLArgs::NAME:
-                    tmp = Helper::getStrStr( arg, tmpArg, "=", "" );
-                    if ( !tmp.isEmpty() )
-                        server->setName( tmp );
-                break;
-                case CMDLArgs::FUDGE:
-                    server->setLogFiles( true );
-                break;
-                case CMDLArgs::RELOAD:
-                    emit reloadOldServersSignal();
-                break;
-                default:
-                    qDebug() << "Unknown Command Line Argument: " << tmp;
-                break;
-            }
-        }
-    }
-
-    ui->serverPort->setText(
-                Helper::intToStr(
-                    server->getPrivatePort(), 10 ) );
-
-    ui->isPublicServer->setChecked( server->getIsPublic() );
-}
-
 void ReMixWidget::initUIUpdate()
 {
     //Create and Connect Lamda Objects
-    QObject::connect( server->getUpTimer(), &QTimer::timeout, [=]()
+    QObject::connect( server->getUpTimer(), &QTimer::timeout,
+                      server->getUpTimer(),
+    [=]()
     {
         quint64 time = server->getUpTime();
 
@@ -244,9 +156,8 @@ void ReMixWidget::initUIUpdate()
                         .arg( server->getBaudOut() ) );
 
         //Update other Info as well.
-        QString msg{ "Select Port Number and press \"Accept Calls\" "
-                     "when ready!" };
-        if ( server->getIsSetUp() )
+        QString msg{ "Toggle \"Public Servers\" when ready!" };
+        if ( server->getIsPublic() )
         {
             msg = QString( "Listening for incoming calls "
                            "to: <a href=\"%1\"><span style=\" text-decoration: "
@@ -254,37 +165,44 @@ void ReMixWidget::initUIUpdate()
                       .arg( server->getPrivateIP() )
                       .arg( server->getPrivatePort() );
 
-            if ( server->getIsPublic() )
+            if ( server->getSentUDPCheckin() )
             {
-                if ( server->getSentUDPCheckin() )
+                if ( server->getMasterUDPResponse() )
                 {
-                    if ( server->getMasterUDPResponse() )
-                    {
-                        QString msg2 = QString( " ( Port forward from: %1:%2 ) "
-                                                "( Ping: %3 ms, "
-                                                "Avg: %4 ms, "
-                                                "Trend: %5 ms )" )
-                                           .arg( server->getPublicIP() )
-                                           .arg( server->getPublicPort() )
-                                           .arg( server->getMasterPing() )
-                                           .arg( server->getMasterPingAvg() )
-                                           .arg( server->getMasterPingTrend() );
-                        msg.append( msg2 );
-                    }
-                    else
-                    {
-                        msg = { "Sent UDP check-in to Master. "
-                                "Waiting for response..." };
+                    QString msg2{ " ( Port forward from: %1:%2 ) "
+                                            "( Ping: %3 ms, "
+                                            "Avg: %4 ms, "
+                                            "Trend: %5 ms )" };
+                            msg2 = msg2.arg( server->getPublicIP() )
+                                       .arg( server->getPublicPort() )
+                                       .arg( server->getMasterPing() )
+                                       .arg( server->getMasterPingAvg() )
+                                       .arg( server->getMasterPingTrend() );
+                    msg.append( msg2 );
 
-                        if ( server->getMasterTimedOut() )
-                        {
-                            msg = "No UDP response received from master server."
-                                  " Perhaps we are behind a UDP-blocking"
-                                  " firewall?";
-                        }
+                    qint32 fails{ server->getMasterPingFailCount() };
+                    if ( fails >= 1 )
+                    {
+                        QString msg3{ " ( Dropped: %1 ) " };
+                                msg3 = msg3.arg( fails );
+
+                        msg.append( msg3 );
+                    }
+                }
+                else
+                {
+                    msg = "Sent UDP check-in to Master. "
+                          "Waiting for response...";
+
+                    if ( server->getMasterTimedOut() )
+                    {
+                        msg = "No UDP response received from master server."
+                              " Perhaps we are behind a UDP-blocking"
+                              " firewall?";
                     }
                 }
             }
+
             //Validate the server's IP Address is still valid.
             //If it is now invalid, restart the network sockets.
             if ( Settings::getIsInvalidIPAddress( server->getPrivateIP() ) )
@@ -297,30 +215,21 @@ void ReMixWidget::initUIUpdate()
     });
 }
 
-void ReMixWidget::on_enableNetworking_clicked()
-{
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
-    ui->enableNetworking->setEnabled( false );
-    ui->serverPort->setEnabled( false );
-    tcpServer->setupServerInfo();
-}
-
 void ReMixWidget::on_openUserInfo_clicked()
 {
-    if ( user->isVisible() )
-        user->hide();
-    else
-        user->show();
+    User* user = User::getInstance();
+    if ( user != nullptr )
+    {
+        if ( user->isVisible() )
+            user->hide();
+        else
+            user->show();
+    }
 }
 
 void ReMixWidget::on_openSettings_clicked()
 {
+    Settings* settings = Settings::getInstance();
     if ( settings->isVisible() )
         settings->hide();
     else
@@ -339,54 +248,23 @@ void ReMixWidget::on_openUserComments_clicked()
     }
 }
 
-void ReMixWidget::on_serverPort_textChanged(const QString &arg1)
+void ReMixWidget::on_openChatView_clicked()
 {
-    quint16 val = arg1.toInt();
-    if ( val < std::numeric_limits<quint16>::min()
-      || val > std::numeric_limits<quint16>::max() )
+    ChatView* viewer{ tcpServer->getChatView() };
+    if ( viewer != nullptr )
     {
-        val = 0;
-    }
-
-    //Generate a Valid Port Number.
-    if ( val == 0 )
-        val = randDev->genRandNum( 10000, 65535 );
-
-    if ( val != server->getPrivatePort() )
-    {
-        server->setPrivatePort( val );
-        ui->serverPort->setText( Helper::intToStr( val ) );
+        if ( viewer->isVisible() )
+            viewer->hide();
+        else
+            viewer->show();
     }
 }
 
-void ReMixWidget::on_isPublicServer_toggled(bool)
+void ReMixWidget::on_isPublicServer_toggled(bool value)
 {
-    //Setup Networking Objects.
-    if ( tcpServer == nullptr )
-    {
-        tcpServer = new Server( this, server, user, plrWidget->getPlrModel(),
-                                serverID );
-    }
-
-    if ( ui->isPublicServer->isChecked() )
-    {   //Setup a connection with the Master Server.
-        tcpServer->setupPublicServer( true );
-        Settings::setIsPublic( QVariant( true ), this->getServerID() );
-    }
-    else
-    {   //Disconnect from the Master Server if applicable.
-        tcpServer->setupPublicServer( false );
-        Settings::setIsPublic( QVariant( false ), this->getServerID() );
-    }
-}
-
-void ReMixWidget::on_useUPNP_toggled(bool)
-{
-    //Tell the server to use a UPNP Port Forward.
-    if ( ui->useUPNP->isChecked() )
-        tcpServer->setupUPNPForward();
-    else   //Remove the UPNP Port Forward if applicable.
-        tcpServer->removeUPNPForward();
+    //Prevent the Server class from re-initializing the ServerInfo.
+    if ( value != server->getIsPublic() )
+        server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
 void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
@@ -407,18 +285,18 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
     }
 }
 
-void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint &pos)
+void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
 {
     if ( contextMenu == nullptr )
     {
         contextMenu = new QMenu( this );
-        if ( contextMenu != nullptr )
-        {
-            contextMenu->addMenu( "Test 1" );
-
-            contextMenu->addMenu( "Test 2" );
-        }
     }
-    qDebug() << pos;
-    contextMenu->popup( ui->networkStatus->mapToGlobal( pos ) );
+
+    if ( contextMenu != nullptr )
+    {
+        //Populate ContextMenu with IP Addresses which were manually
+        //blacklisted and removed from selection for use as the Private IP
+        //For a more user-friendly method of removing them from the preferences.
+    }
+    //contextMenu->popup( this->mapToGlobal( pos ) );
 }

@@ -5,16 +5,17 @@
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance;
 qint32 ReMixTabWidget::instanceCount;
-QPalette ReMixTabWidget::defaultPalette;
-QPalette ReMixTabWidget::customPalette;
 
 ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     : QTabWidget(parent)
 {
-    user = ReMix::getUser();
+    //Allow ServerInstance Tabs to be swapped and moved.
+    this->setMovable( true );
+
+    user = User::getInstance();
     createDialog = this->getCreateDialog( this );
-    QObject::connect( createDialog, &CreateInstance::accepted,
-                      this, &ReMixTabWidget::createServerAccepted );
+    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal,
+                      this, &ReMixTabWidget::createServerAcceptedSlot );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -29,7 +30,47 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( this, &QTabWidget::currentChanged,
                       this, &ReMixTabWidget::currentChangedSlot );
 
-    defaultPalette = this->palette();
+    QObject::connect( this, &QTabWidget::tabBarDoubleClicked, [=](int index)
+    {
+        ReMixWidget* tabA{ serverMap.value( index ) };
+        if ( tabA != nullptr )
+        {
+            QString title{ "Rename Server: [ %1 ]" };
+                    title = title.arg( tabA->getServerName() );
+            QString message{ "Please enter the new name you wish "
+                             "to use for this server!" };
+
+            QString response{ Helper::getTextResponse( this, title, message,
+                                                       nullptr, 0 ) };
+
+            if ( response.isEmpty() )
+            {
+                title = "Error:";
+                message = "The Server name can not be empty!";
+                Helper::warningMessage( this, title, message );
+            }
+            else
+            {
+                this->setTabText( index, response );
+                tabA->renameServer( response );
+
+                emit this->currentChanged( index );
+            }
+        }
+    });
+
+    //Refresh the server instance's ServerID when the Tabs are moved.
+    QObject::connect( this->tabBar(), &QTabBar::tabMoved, [=](int from, int to)
+    {
+        ReMixWidget* tabA{ serverMap.take( from ) };
+        ReMixWidget* tabB{ serverMap.take( to ) };
+
+        if ( tabA != nullptr )
+            serverMap.insert( to, tabA );
+
+        if ( tabB != nullptr )
+            serverMap.insert( from, tabB );
+    });
 }
 
 ReMixTabWidget::~ReMixTabWidget()
@@ -40,7 +81,7 @@ ReMixTabWidget::~ReMixTabWidget()
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
         {
             Settings::setServerRunning( QVariant( false ),
@@ -51,26 +92,25 @@ ReMixTabWidget::~ReMixTabWidget()
     }
 }
 
-void ReMixTabWidget::sendMultiServerMessage(QString msg, Player* plr,
-                                            bool toAll)
+void ReMixTabWidget::sendMultiServerMessage(QString msg)
 {
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
-            server->sendServerMessage( msg, plr, toAll );
+            server->sendServerMessage( msg );
     }
 }
 
-quint32 ReMixTabWidget::getPlayerCount()
+qint32 ReMixTabWidget::getPlayerCount()
 {
-    quint32 playerCount{ 0 };
+    qint32 playerCount{ 0 };
 
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
             playerCount += server->getPlayerCount();
     }
@@ -84,19 +124,19 @@ quint32 ReMixTabWidget::getServerCount()
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
-        server = servers[ i ];
+        server = serverMap.value( i );
         if ( server != nullptr )
             ++serverCount;
     }
     return serverCount;
 }
 
-quint32 ReMixTabWidget::getPrevTabIndex() const
+qint32 ReMixTabWidget::getPrevTabIndex() const
 {
     return prevTabIndex;
 }
 
-void ReMixTabWidget::setPrevTabIndex(const quint32& value)
+void ReMixTabWidget::setPrevTabIndex(const qint32& value)
 {
     prevTabIndex = value;
 }
@@ -140,21 +180,34 @@ void ReMixTabWidget::createTabButtons()
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
-    nightModeButton->setText( "Night Mode" );
+
+    if ( Settings::getDarkMode() )
+    {
+        nightModeButton->setText( "Normal Mode" );
+        nightMode = !nightMode;
+    }
+    else
+        nightModeButton->setText( "Night Mode" );
 
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
     QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
     {
-        qint32 type{ 1 };
-        if ( nightMode )
+        QVariant type{ false };
+        if ( !nightMode )
         {
-            nightModeButton->setText( "Night Mode" );
-            type = 0;
+            nightModeButton->setText( "Normal Mode" );
+            type = true;
         }
         else
-            nightModeButton->setText( "Normal Mode" );
+            nightModeButton->setText( "Night Mode" );
 
-        this->applyThemes( type );
+        QString title{ "Restart Required:" };
+        QString msg{ "The theme change will take effect after "
+                     "a restart." };
+
+        Helper::warningMessage( this, title, msg );
+        Settings::setDarkMode( type );
+
         nightMode = !nightMode;
     } );
 }
@@ -170,67 +223,7 @@ void ReMixTabWidget::createServer()
         createDialog->show();
 }
 
-void ReMixTabWidget::applyThemes(qint32 type)
-{
-    customPalette = defaultPalette;
-    if ( type == Themes::DARK )
-    {
-        //Activated Color Roles
-        customPalette.setColor( QPalette::All, QPalette::WindowText,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Text,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Base,
-                          QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Window,
-                          QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Shadow,
-                          QColor( 105, 105, 105 ) );
-        customPalette.setColor( QPalette::All, QPalette::Midlight,
-                          QColor( 227, 227, 227 ) );
-        customPalette.setColor( QPalette::All, QPalette::Button,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::All, QPalette::Light,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::Dark,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::All, QPalette::Mid,
-                          QColor( 160, 160, 160 ) );
-        customPalette.setColor( QPalette::All, QPalette::BrightText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::ButtonText,
-                          QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::HighlightedText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::Link,
-                          QColor( 0, 122, 144 ) );
-        customPalette.setColor( QPalette::All, QPalette::LinkVisited,
-                          QColor( 165, 122, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::AlternateBase,
-                          QColor( 81, 81, 81 ) );
-        customPalette.setColor( QPalette::All, QPalette::ToolTipText,
-                          QColor( 231, 231, 231 ) );
-
-        //Disabled Color Roles
-        customPalette.setColor( QPalette::Disabled, QPalette::Button,
-                          QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::WindowText,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Text,
-                          QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Base,
-                          QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Window,
-                          QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Shadow,
-                          QColor( 0, 0, 0 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Midlight,
-                          QColor( 247, 247, 247 ) );
-    }
-    qApp->setPalette( customPalette );
-}
-
-void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
+void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)
 {
     QWidget* widget = this->widget( index );
     if ( widget != nullptr )
@@ -243,9 +236,10 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                                   "User(s) connected to it.\r\n\r\nAre you "
                                   "certain?" );
 
-        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+        for ( int i = 0; (i < MAX_SERVER_COUNT)
+                      || (i < serverMap.size()); ++i )
         {
-            instance = servers[ i ];
+            instance = serverMap.value( i );
             if ( instance != nullptr )
             {
                 if ( widget == instance )
@@ -254,8 +248,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                     prompt = prompt.arg( instance->getPlayerCount() );
 
                     instance->sendServerMessage( "The admin is taking this "
-                                                 "server down...", nullptr,
-                                                 true );
+                                                 "server down..." );
 
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
@@ -263,15 +256,17 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                         Settings::setServerRunning( QVariant( false ),
                                                     instance->getServerName() );
 
+                        serverMap.remove( i );
+                        this->removeTab( index );
+
                         //Last Server instance. Close ReMix.
                         instanceCount -= 1;
                         if ( instanceCount == 0 )
-                        {
                             createDialog->show();
-                        }
-
-                        servers[ i ] = nullptr;
-                        this->removeTab( index );
+                        else if ( instanceCount == 1 )
+                            this->setCurrentIndex( 0 );
+                        else
+                            this->setCurrentIndex( index - 1 );
 
                         instance->close();
                         instance->deleteLater();
@@ -282,7 +277,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
                     {
                         instance->sendServerMessage( "The admin changed his"
                                                      " or her mind! (yay!)"
-                                                     "...", nullptr, true );
+                                                     "..." );
                     }
                 }
             }
@@ -290,42 +285,36 @@ void ReMixTabWidget::tabCloseRequestedSlot(quint32 index)
     }
 }
 
-void ReMixTabWidget::currentChangedSlot(quint32 newTab)
+void ReMixTabWidget::currentChangedSlot(qint32 newTab)
 {
     //Make sure there are valid Servers to access.
     if ( instanceCount == 0 )
         return;
 
-    ReMixWidget* server{ servers[ newTab ] };
+    ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
     {
-        ReMix::updateTitleBars( server->getServerID(),
-                                server->getPrivatePort() );
+        ReMix::updateTitleBars( server->getServerInfo() );
     }
     this->setPrevTabIndex( newTab );
 }
 
-void ReMixTabWidget::createServerAccepted()
+void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 {
-    QStringList svrArgs = createDialog->getServerArgs().split( "/" );
-    QString serverName{ createDialog->getServerName() };
-    if ( svrArgs.isEmpty() )
-    {
-        svrArgs << "/game=WoS"
-                << "/fudge"
-                << "/name=Well of Lost Souls ReMix";
-    }
+    if ( server == nullptr )
+        return;
 
+    QString serverName{ server->getName() };
     QString title{ "Unable to Initialize Server:" };
     QString prompt{ "You are unable to initialize two servers with the same"
                     " name!" };
 
-    quint32 serverID{ 0 };
+    qint32 serverID{ 0 };
     ReMixWidget* instance{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
         serverID = MAX_SERVER_COUNT + 1;
-        instance = servers[ i ];
+        instance = serverMap.value( i );
         if ( instance == nullptr )
         {
             serverID = i;
@@ -333,8 +322,7 @@ void ReMixTabWidget::createServerAccepted()
         }
         else
         {
-            if ( instance->getServerName().compare(
-                 serverName, Qt::CaseInsensitive ) == 0 )
+            if ( Helper::cmpStrings( instance->getServerName(), serverName ) )
             {
                 Helper::warningMessage( this, title, prompt );
                 break;
@@ -345,9 +333,11 @@ void ReMixTabWidget::createServerAccepted()
     if ( serverID <= MAX_SERVER_COUNT )
     {
         instanceCount += 1;
-        servers[ serverID ] = new ReMixWidget( this, &svrArgs, serverName );
-        this->insertTab( serverID, servers[ serverID ], serverName );
-
+        serverMap.insert( serverID, new ReMixWidget( this, server ) );
+        this->insertTab( serverMap.size() - 1,
+                         serverMap.value( serverID ),
+                         serverName );
+        this->setCurrentIndex( serverID );
         Settings::setServerRunning( QVariant( true ), serverName );
     }
 }

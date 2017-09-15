@@ -3,14 +3,13 @@
 #include "plrlistwidget.hpp"
 #include "ui_plrlistwidget.h"
 
-PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr, User* usr) :
+PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr) :
     QWidget(parent),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
 
     server = svr;
-    user = usr;
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
@@ -116,9 +115,10 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
 
 void PlrListWidget::on_actionSendMessage_triggered()
 {
-    SendMsg* adminMsg = new SendMsg( this, server, menuTarget );
-             adminMsg->exec();
-    adminMsg->deleteLater();
+    if ( menuTarget != nullptr )
+    {
+        menuTarget->sendMessage();
+    }
     menuTarget = nullptr;
 }
 
@@ -145,8 +145,8 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            user->setAdminRank( sernum, User::rGAMEMASTER );
-            menuTarget->setReqNewAuthPwd( true );
+            User::setAdminRank( sernum, User::rGAMEMASTER );
+            menuTarget->setNewAdminPwdRequested( true );
         }
     }
     else
@@ -158,13 +158,13 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            user->setAdminRank( sernum, User::rUSER );
+            User::setAdminRank( sernum, User::rUSER );
             send = true;
         }
     }
 
     if ( send )
-        server->sendMasterMessage( revoke, menuTarget, false );
+        menuTarget->sendMessage( revoke );
 
     menuTarget = nullptr;
 }
@@ -191,7 +191,12 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         prompt = prompt.arg( menuTarget->getSernum_s() );
 
         if ( Helper::confirmAction( this, title, prompt ) )
-            menuTarget->setNetworkMuted( mute );
+        {
+            QString msg{ "Manual %1 of [ %2 ] by Server Owner." };
+                    msg = msg.arg( mute ? "Mute" : "UnMute" )
+                             .arg( menuTarget->getSernum_s() );
+            menuTarget->setNetworkMuted( mute, msg );
+        }
     }
     menuTarget = nullptr;
 }
@@ -216,20 +221,23 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
         {
             reason = reason.arg( Helper::getDisconnectReason( this ) );
             inform = inform.arg( reason );
-            server->sendMasterMessage( inform, menuTarget, false );
 
+            menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
             {
                 menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
 
-            QString log{ "logs/DCLog.txt" };
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                    logMsg = logMsg.arg( reason )
-                                   .arg( menuTarget->getSernum_s() )
-                                   .arg( menuTarget->getBioData() );
-            Helper::logToFile( log, logMsg, true, true );
+            if ( Settings::getLogFiles() )
+            {
+                QString log{ "logs/DCLog.txt" };
+                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                logMsg = logMsg.arg( reason )
+                         .arg( menuTarget->getSernum_s() )
+                         .arg( menuTarget->getBioData() );
+                Helper::logToFile( log, logMsg, true, true );
+            }
         }
     }
     menuTarget = nullptr;
@@ -255,21 +263,23 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             reason = reason.arg( Helper::getBanishReason( this ) );
             inform = inform.arg( reason );
 
-            server->sendMasterMessage( inform, menuTarget, false );
-            user->addBan( nullptr, menuTarget, reason );
-
+            User::addBan( nullptr, menuTarget, reason );
+            menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
             {
                 menuTarget->setDisconnected( true );
                 server->setIpDc( server->getIpDc() + 1 );
             }
 
-            QString log{ "logs/BanLog.txt" };
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                    logMsg = logMsg.arg( reason )
-                                   .arg( menuTarget->getSernum_s() )
-                                   .arg( menuTarget->getBioData() );
-            Helper::logToFile( log, logMsg, true, true );
+            if ( Settings::getLogFiles() )
+            {
+                QString log{ "logs/BanLog.txt" };
+                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                        logMsg = logMsg.arg( reason )
+                                       .arg( menuTarget->getSernum_s() )
+                                       .arg( menuTarget->getBioData() );
+                Helper::logToFile( log, logMsg, true, true );
+            }
         }
     }
     menuTarget = nullptr;

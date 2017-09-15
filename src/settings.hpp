@@ -15,32 +15,33 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    QHash<QString, MessagesWidget*> msgWidgets;
-    QHash<QString, RulesWidget*> ruleWidgets;
-
-    SettingsWidget* settings;
-    QTabWidget* tabWidget{ nullptr };
+    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
+    static QHash<ServerInfo*, MOTDWidget*> msgWidgets;
+    static SettingsWidget* settings;
+    static QTabWidget* tabWidget;
+    static Settings* instance;
 
     public:
         explicit Settings(QWidget *parent = 0);
         ~Settings();
 
-        void addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
-                           QString& svrID);
-        void remTabObjects(QString& svrID);
-        void updateTabBar(QString& svrID);
+        static Settings* getInstance();
+        static void setInstance(Settings* value);
 
-        enum SubKeys{ Extension = 0, Password = 1, AutoBan = 2, AllowIdle = 3,
-                      ReqSerNum = 4, AllowDupe = 5, AllowSSV = 6, BanDupes = 7,
-                      ReqPassword = 8, MOTD = 9, BanishMsg = 10,
-                      ReqAdminAuth = 11, LogComments = 12, FwdComments = 13,
-                      InformAdminLogin = 14, EchoComments = 15,
-                      MinimizeToTray = 16, SaveWindowPositions = 17,
-                      IsRunning = 18, WorldDir = 19, PortNumber = 20,
-                      IsPublic = 21, GameName = 22 };
+        static void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
+                                  ServerInfo* server);
+        static void remTabObjects(ServerInfo* server);
+        static void updateTabBar(ServerInfo* server);
+        static void copyServerSettings(ServerInfo* server, QString newName);
 
-        enum Keys{ Setting = 0, WrongIP = 1, Messages = 2, Positions = 3,
-                   Rules = 4 };
+        enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
+                      AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,
+                      ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
+                      EchoComments, MinimizeToTray, SaveWindowPositions,
+                      IsRunning, WorldDir, PortNumber, IsPublic,
+                      GameName, LogFiles, DarkMode = 23 };
+
+        enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
         static QSettings* prefs;
 
@@ -76,7 +77,7 @@ class Settings : public QDialog
         static bool getBanDupedIP();
 
         static void setBanHackers(QVariant& value);
-        static bool getBanHackers();
+        static bool getBanDeviants();
 
         static void setReqSernums(QVariant& value);
         static bool getReqSernums();
@@ -89,6 +90,12 @@ class Settings : public QDialog
 
         static void setLogComments(QVariant& value);
         static bool getLogComments();
+
+        static void setLogFiles(QVariant& value);
+        static bool getLogFiles();
+
+        static void setDarkMode(QVariant& value);
+        static bool getDarkMode();
 
         static void setFwdComments(QVariant& value);
         static bool getFwdComments();
@@ -113,9 +120,6 @@ class Settings : public QDialog
 
         static void setMOTDMessage(QVariant& value, QString& svrID);
         static QString getMOTDMessage(QString& svrID);
-
-        static void setBanishMesage(QVariant& value, QString& svrID);
-        static QString getBanishMesage(QString& svrID);
 
         static void setServerID(QVariant& value, QString& svrID);
         static QString getServerID(QString& svrID);

@@ -4,7 +4,7 @@
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
-                                        int width, quint32 height)
+                                        int width, int height)
 {
     QInputDialog* dialog = new QInputDialog( parent );
                   dialog->setInputMode( mode );
@@ -31,14 +31,14 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
                    .toUpper();
 }
 
-quint32 Helper::strToInt(QString str, int base)
+qint32 Helper::strToInt(QString str, int base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };
 
-    int val = str.toUInt( &ok, base );
+    qint32 val = str.toInt( &ok, base );
     if ( !ok && !base16 )
-        val = str.toUInt( &ok, 16 );
+        val = str.toInt( &ok, 16 );
 
     if ( !ok )
         val = -1;
@@ -62,7 +62,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
     {
         if ( !indStr.isEmpty() )
         {
-            index = str.indexOf( indStr, 0, Qt::CaseInsensitive );
+            index = getStrIndex( str,indStr );
             if ( index >= 0 )   //-1 if str didn't contain indStr.
             {
                 if ( !mid.isEmpty() )
@@ -80,7 +80,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
 
             if ( !mid.isEmpty() )
             {
-                index = tmp.indexOf( mid, 0, Qt::CaseInsensitive );
+                index = getStrIndex( tmp, mid );
                 if ( index >= 0 )   //-1 if str didn't contain mid.
                 {
                     //Append the lookup string's length if it's greater than 1
@@ -93,7 +93,7 @@ QString Helper::getStrStr(const QString& str, QString indStr,
 
             if ( !left.isEmpty() )
             {
-                index = tmp.indexOf( left, 0, Qt::CaseInsensitive );
+                index = getStrIndex( tmp, left );
                 if ( index >= 0 )   //-1 if str didn't contain left.
                     tmp = tmp.left( index );
             }
@@ -117,13 +117,13 @@ void Helper::stripNewlines(QString& string)
 
 void Helper::stripSerNumHeader(QString& sernum)
 {
-    if ( sernum.contains( "SOUL", Qt::CaseInsensitive ) )
+    if ( strContainsStr( sernum, "SOUL" ) )
     {
         sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
                        .trimmed();
     }
 
-    if ( sernum.contains( "WP", Qt::CaseInsensitive ) )
+    if ( strContainsStr( sernum, "WP" ) )
     {
         sernum = sernum.remove( "WP", Qt::CaseInsensitive )
                        .trimmed();
@@ -178,17 +178,15 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
-    if ( sernum_i <= 0 )
-        sernum_i = sernum.toUInt( 0, 16 );
-
+    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
     QString retn{ "" };
+
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
         retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
         retn = QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
 
-    if ( !retn.startsWith( "SOUL", Qt::CaseInsensitive )
+    if ( !strStartsWithStr( retn, "SOUL" )
       && retn.length() > 8 )
     {
         retn = retn.mid( retn.length() - 8 );
@@ -196,11 +194,11 @@ QString Helper::serNumToIntStr(QString sernum)
     return retn;
 }
 
-quint32 Helper::serNumtoInt(QString& sernum)
+qint32 Helper::serNumtoInt(QString& sernum)
 {
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         sernum_i = strToInt( sernum, 16 );
     else
@@ -221,7 +219,7 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp,
     {
         if ( timeStamp )
         {
-            quint64 date = QDateTime::currentDateTime().toTime_t();
+            uint date = QDateTime::currentDateTime().toTime_t();
             text.prepend( QDateTime::fromTime_t( date )
                                .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
         }
@@ -340,13 +338,14 @@ QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
 
 bool Helper::validateSalt(QString& salt)
 {
-    QStringList groups = User::userData->childGroups();
+    QSettings* userData = User::getUserData();
+    QStringList groups = userData->childGroups();
     QString j{ "" };
 
     for ( int i = 0; i < groups.count(); ++i )
     {
-        j =  User::userData->value( groups.at( i ) % "/salt" )
-                       .toString();
+        j =  userData->value( groups.at( i ) % "/salt" )
+                         .toString();
 
         if ( j == salt )
             return false;
@@ -409,4 +408,143 @@ void Helper::delay(qint32 time)
     {
         QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
     }
+}
+
+QHostAddress Helper::getPrivateIP()
+{
+    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+
+    //Default to our localhost address if nothing valid is found.
+    QHostAddress ipAddress{ QHostAddress::LocalHost };
+
+    for ( int i = 0; i < ipList.size(); ++i )
+    {
+        QString tmp = ipList.at( i ).toString();
+        //Remove localhost addresses.
+        if ( ipList.at( i ) != QHostAddress::LocalHost
+          //Remove any ipv6 addresses.
+          && ipList.at( i ).toIPv4Address()
+          //Remove any addresses the User manually marked invalid.
+          && !Settings::getIsInvalidIPAddress( tmp )
+          //Remove Windows generated APIPA addresses.
+          && !strStartsWithStr( tmp, "169" ) )
+        {
+            //Use first non-local IP address.
+            ipAddress = ipList.at(i).toString();
+            break;
+        }
+    }
+
+    //Null ip address was selected, default to '0.0.0.0'.
+    if ( ipAddress.isNull() )
+        ipAddress = QHostAddress::AnyIPv4;
+
+    return ipAddress;
+}
+
+void Helper::getSynRealData(ServerInfo* svr)
+{
+    if ( svr == nullptr )
+        return;
+
+    QFileInfo synRealFile( "synReal.ini" );
+
+    bool downloadFile = true;
+    if ( synRealFile.exists() )
+    {
+        qint64 curTime = static_cast<qint64>(
+                             QDateTime::currentDateTime()
+                                  .toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>(
+                             synRealFile.lastModified()
+                                  .toMSecsSinceEpoch() / 1000 );
+
+        //Check if the file is 48 hours old and set our bool.
+        downloadFile = ( curTime - modTime >= 172800 );
+    }
+
+    //The file was older than 48 hours or did not exist. Request a fresh copy.
+    if ( downloadFile )
+    {
+        QTcpSocket* socket = new QTcpSocket;
+        QUrl url( svr->getMasterInfoHost() );
+
+        socket->connectToHost( url.host(), 80 );
+        QObject::connect( socket, &QTcpSocket::connected, socket,
+        [=]()
+        {
+            socket->write( QString( "GET %1\r\n" )
+                               .arg( svr->getMasterInfoHost() )
+                                             .toLatin1() );
+        });
+
+        QObject::connect( socket, &QTcpSocket::readyRead, socket,
+        [=]()
+        {
+            QFile synreal( "synReal.ini" );
+            if ( synreal.open( QIODevice::WriteOnly ) )
+            {
+                socket->waitForReadyRead();
+                synreal.write( socket->readAll() );
+            }
+
+            synreal.close();
+
+            QSettings settings( "synReal.ini", QSettings::IniFormat );
+            QString str = settings.value( svr->getGameName()
+                                        % "/master" ).toString();
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                svr->setMasterIP( str.left( index ) );
+                svr->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
+            }
+        });
+
+        QObject::connect( socket, &QTcpSocket::disconnected,
+                          socket, &QTcpSocket::deleteLater );
+    }
+    else
+    {
+        QSettings settings( "synReal.ini", QSettings::IniFormat );
+        QString str = settings.value( svr->getGameName()
+                                    % "/master" ).toString();
+        if ( !str.isEmpty() )
+        {
+            int index = str.indexOf( ":" );
+            if ( index > 0 )
+            {
+                svr->setMasterIP( str.left( index ) );
+                svr->setMasterPort(
+                            static_cast<quint16>(
+                                str.mid( index + 1 ).toInt() ) );
+            }
+        }
+    }
+}
+
+bool Helper::strStartsWithStr(const QString& strA, const QString& strB)
+{
+    //Returns true if strA starts with strB.
+    return strA.startsWith( strB, Qt::CaseInsensitive );
+}
+
+bool Helper::strContainsStr(const QString& strA, const QString& strB)
+{
+    //Returns true if strA contains strB.
+    return strA.contains( strB, Qt::CaseInsensitive );
+}
+
+bool Helper::cmpStrings(const QString& strA, const QString& strB)
+{
+    //Returns true if strA is equal to strB.
+    return ( strA.compare( strB, Qt::CaseInsensitive ) == 0 );
+}
+
+qint32 Helper::getStrIndex(const QString& strA, const QString& strB)
+{
+    //Returns the position of strB within strA.
+    return strA.indexOf( strB, 0, Qt::CaseInsensitive );
 }

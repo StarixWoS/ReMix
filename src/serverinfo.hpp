@@ -5,11 +5,18 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
+#include <QElapsedTimer>
+#include <QHostInfo>
+#include <QVariant>
 #include <QObject>
+#include <QTimer>
 
 class ServerInfo
 {
     QUdpSocket* masterSocket{ nullptr };
+    Server* tcpServer{ nullptr };
+    UPNP* upnp{ nullptr };
+
     QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
 
     QTimer upTimer;
@@ -24,16 +31,16 @@ class ServerInfo
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
+    qint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
     quint32 usageCounter{ 0 };
 
-    quint32 usageHours{ 0 };
-    quint32 usageDays{ 0 };
-    quint32 usageMins{ 0 };
+    qint32 usageHours{ 0 };
+    qint32 usageDays{ 0 };
+    qint32 usageMins{ 0 };
 
     QTimer usageUpdate;
 
-    quint32 playerCount{ 0 };
+    qint32 playerCount{ 0 };
     QString serverID{ "" };
 
     bool isMaster{ false };
@@ -46,9 +53,11 @@ class ServerInfo
     QTimer masterTimeOut;
     bool masterTimedOut{ false };
 
-    quint64 masterPingSendTime{ 0 };
-    quint64 masterPingRespTime{ 0 };
-    quint32 masterPingCount{ 0 };
+    qint32 masterPingFailCount{ 0 };
+    qint32 masterPingCount{ 0 };
+
+    qint64 masterPingSendTime{ 0 };
+    qint64 masterPingRespTime{ 0 };
     double masterPingTrend{ 80 };
     double masterPingAvg{ 0 };
     double masterPing{ 0 };
@@ -76,18 +85,18 @@ class ServerInfo
     quint32 ipDc{ 0 };
 
     QElapsedTimer baudTime;
-    quint64 bytesIn{ 0 };
-    quint64 baudIn{ 0 };
+    qint64 bytesIn{ 0 };
+    qint64 baudIn{ 0 };
 
-    quint64 bytesOut{ 0 };
-    quint64 baudOut{ 0 };
+    qint64 bytesOut{ 0 };
+    qint64 baudOut{ 0 };
 
-    bool logFiles{ false };
-
-    QString serverTabID{ "" };
     public:
-        ServerInfo(QString svrID = "0");
+        ServerInfo();
         ~ServerInfo();
+
+        void setupInfo();
+        void setupUPNP(bool isDisable = false);
 
         void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
 
@@ -102,13 +111,12 @@ class ServerInfo
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
         int getQItemSlot(QStandardItem* index);
-        int getIPAddrSlot(QString ip);
 
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(QString packet, Player* plr = nullptr,
                                bool toAll = false);
-        quint64 sendToAllConnected(QString packet);
+        qint64 sendToAllConnected(QString packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -126,13 +134,12 @@ class ServerInfo
         void setGameName(const QString& value);
 
         QHostInfo getHostInfo() const;
-        void setHostInfo(const QHostInfo& value);
 
         int getVersionID() const;
         void setVersionID(int value);
 
         quint16 getMasterPort() const;
-        void setMasterPort(int value);
+        void setMasterPort(quint16 value);
 
         QString getMasterIP() const;
         void setMasterIP(const QString& value);
@@ -146,8 +153,8 @@ class ServerInfo
         QString getServerID() const;
         void setServerID(QString value);
 
-        quint32 getPlayerCount() const;
-        void setPlayerCount(quint32 value);
+        qint32 getPlayerCount() const;
+        void setPlayerCount(qint32 value);
 
         quint16 getPublicPort() const;
         void setPublicPort(quint16 value);
@@ -185,18 +192,15 @@ class ServerInfo
         quint32 getIpDc() const;
         void setIpDc(const quint32& value);
 
-        quint64 getBytesIn() const;
-        void setBytesIn(const quint64& value);
+        qint64 getBytesIn() const;
+        void setBytesIn(const qint64& value);
 
-        quint64 getBytesOut() const;
-        void setBytesOut(const quint64& value);
+        qint64 getBytesOut() const;
+        void setBytesOut(const qint64& value);
 
-        void setBaudIO(const quint64& bytes, quint64& baud);
-        quint64 getBaudIn() const;
-        quint64 getBaudOut() const;
-
-        bool getLogFiles() const;
-        void setLogFiles(bool value);
+        void setBaudIO(const qint64& bytes, qint64& baud);
+        qint64 getBaudIn() const;
+        qint64 getBaudOut() const;
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(QHostAddress& addr, quint16 port);
@@ -216,11 +220,11 @@ class ServerInfo
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        quint64 getMasterPingSendTime() const;
-        void setMasterPingSendTime(const quint64& value);
+        qint64 getMasterPingSendTime() const;
+        void setMasterPingSendTime(const qint64& value);
 
-        quint64 getMasterPingRespTime() const;
-        void setMasterPingRespTime(const quint64& value);
+        qint64 getMasterPingRespTime() const;
+        void setMasterPingRespTime(const qint64& value);
 
         double getMasterPingTrend() const;
         void setMasterPingTrend(double value);
@@ -228,15 +232,21 @@ class ServerInfo
         double getMasterPingAvg() const;
         void setMasterPingAvg(const double& value);
 
-        quint32 getMasterPingCount() const;
-        void setMasterPingCount(const quint32& value);
+        qint32 getMasterPingFailCount() const;
+        void setMasterPingFailCount(const qint32& value);
 
-        quint32 getMasterPing() const;
+        qint32 getMasterPingCount() const;
+        void setMasterPingCount(const qint32& value);
+
+        double getMasterPing() const;
         void setMasterPing();
 
-        quint32 getUsageHours() const;
-        quint32 getUsageDays() const;
-        quint32 getUsageMins() const;
+        qint32 getUsageHours() const;
+        qint32 getUsageDays() const;
+        qint32 getUsageMins() const;
+
+        Server* getTcpServer() const;
+        void setTcpServer(Server* value);
 };
 
 #endif // SERVERINFO_HPP

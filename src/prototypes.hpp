@@ -46,11 +46,13 @@
     class QUdpSocket;
     class QTableView;
     class QTabWidget;
+    class QCollator;  //Requires Include within Class Headers.
     class QHostInfo;
     class QDateTime;
     class QFileInfo;
     class QSettings;
     class QTextEdit;
+    class QLibrary;
     class QToolTip;
     class QVariant;
     class QtEndian;
@@ -69,18 +71,10 @@
     class QDir;
     class QUrl;
 
-    #ifdef DECRYPT_PACKET_PLUGIN
-        class QCoreApplication;
-        class QPluginLoader;
-    #endif // DECRYPT_PACKET_PLUGIN
-
 #endif // QT_PROTOTYPES_HPP
 
 #ifndef REMIX_PROTOTYPES_HPP
     #define REMIX_PROTOTYPES_HPP
-
-    namespace Helper
-    {}
 
     //Table-View Classes.
     class UserSortProxyModel;
@@ -89,32 +83,32 @@
 
     //Widget GUI Classes.
     class SettingsWidget;
-    class MessagesWidget;
     class ReMixTabWidget;
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
+    class MOTDWidget;
 
     //GUI and Data Storage Classes.
     class CreateInstance;
+    class AppEventFilter;
     class PacketHandler;
     class SelectWorld;
+    class PacketForge;
     class ServerInfo;
     class CmdHandler;
+    class ChatView;
     class Settings;
     class Comments;
     class RandDev;
     class SendMsg;
     class Player;
     class Server;
+    class Helper;
     class Rules;
     class ReMix;
     class User;
     class UPNP;
-
-    #ifdef DECRYPT_PACKET_PLUGIN
-        class PacketDecryptInterface;
-    #endif // DECRYPT_PACKET_PLUGIN
 
     #ifndef REMIX_GLOBALS
         #define REMIX_GLOBALS
@@ -136,9 +130,17 @@
             //Idle Users" enabled. 10 minutes - 600,000 milliseconds.
             MAX_IDLE_TIME = 600000,
 
-            //Maximum amout of time in MS (30 seconds) to allow for the
+            //Maximum amount of time in MS (30 seconds) to allow for the
             //Master to respond to a checkin.
             MAX_MASTER_RESPONSE_TIME = 30000,
+
+            //Maximum amount of time in MS (5 Minutes)
+            //before re-announcing to the Master Server.
+            MAX_MASTER_CHECKIN_TIME = 300000,
+
+            //Minimum amount of time in MS (2 Seconds)
+            //before re-announcing to the Master Server.
+            MIN_MASTER_CHECK_IN_TIME = 2000,
 
             //Amount of times an un-authenticated (admin) can use commands.
             MAX_CMD_ATTEMPTS = 3,
@@ -154,16 +156,16 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 23,
+            SETTINGS_SUBKEY_COUNT = 24,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            ADMIN_COMMAND_COUNT = 17,
+            ADMIN_COMMAND_COUNT = 18,
 
             //Count of Keys accessed via the User class.
-            USER_KEY_COUNT = 10,
+            USER_KEY_COUNT = 12,
 
             //Time interval for updating the server's Usage array.
             SERVER_USAGE_UPDATE = 600000,
@@ -175,17 +177,29 @@
             MAX_SERVER_COUNT = 19,
 
             //Count of possible Game Names we can use to initialize the server.
-            GAME_NAME_COUNT = 4,
+            GAME_NAME_COUNT = 3,
 
             //Maximum live-time for a UPNP PortForward to live.
-            //30 Minutes in seconds.
-            UPNP_TIME_OUT_S = 1800,
+            //1 Hour in seconds.
+            UPNP_TIME_OUT_S = 3600,
 
-            //Maximum live-time for a UPNP PortForward to live.
+            //Maximum idle-time for a UPNP PortForward exist without refreshing.
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
+
+            //Count of currently accepted UPNP Schemas
+            UPNP_SCHEMA_COUNT = 6,
+
+            //Maximum time before the Baud information
+            //must be displayed to the User. 5 seconds in milliseconds.
+            BAUD_UPDATE_TIME = 5000,
+
+            //Maximum wait time before the Server's UI is updated.
+            //0.5 seconds in milliseconds.
+            UI_UPDATE_TIME = 500,
         };
 
+        enum Games{ WoS = 1, ToY = 2, W97 = 3, Invalid = 4 };
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
         enum Themes{ LIGHT = 0, DARK = 1 };
 

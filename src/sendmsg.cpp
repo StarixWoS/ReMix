@@ -3,20 +3,14 @@
 #include "sendmsg.hpp"
 #include "ui_sendmsg.h"
 
-SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
+SendMsg::SendMsg(QString serNum, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SendMsg)
 {
     ui->setupUi(this);
 
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
+    QString title{ "Admin Message: [ %1 ]" };
+    this->setWindowTitle( title.arg( serNum ) );
 
     if ( Settings::getSaveWindowPositions() )
     {
@@ -28,9 +22,6 @@ SendMsg::SendMsg(QWidget *parent, ServerInfo* svr, Player* trg) :
                                        this->metaObject()->className() ) );
         }
     }
-
-    target = trg;
-    server = svr;
 
     //Install EventFilters.
     this->installEventFilter( this );
@@ -47,12 +38,19 @@ SendMsg::~SendMsg()
     delete ui;
 }
 
+bool SendMsg::sendToAll()
+{
+    bool checked{ ui->checkBox->isChecked() };
+    ui->checkBox->setChecked( false );
+
+    return checked;
+}
+
 void SendMsg::on_sendMsg_clicked()
 {
-    if ( server == nullptr )
-        return;
-
     QString message{ ui->msgEditor->toPlainText() };
+    ui->msgEditor->clear();
+
     if ( message.isEmpty() )
     {
         this->close();
@@ -62,16 +60,7 @@ void SendMsg::on_sendMsg_clicked()
     message = message.prepend( "Owner: " );
     Helper::stripNewlines( message );
 
-    if ( ui->checkBox->isChecked() )
-        server->sendMasterMessage( message, nullptr, true );
-    else
-    {
-        if ( target == nullptr )
-            return;
-
-        server->sendMasterMessage( message, target, false );
-    }
-
+    emit this->forwardMessage( message );
     this->close();
 }
 
@@ -81,6 +70,8 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
         return false;
 
     QKeyEvent* key = static_cast<QKeyEvent*>( event );
+    bool accept{ false };
+
     if ( key != nullptr
       && key->type() == QEvent::KeyPress )
     {
@@ -91,7 +82,7 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
                     this->close();
                     event->accept();
                 }
-                return true;
+                accept = true;
             break;
             case Qt::Key_Enter:
             case Qt::Key_Return:
@@ -99,12 +90,16 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
                     emit ui->sendMsg->clicked();
                     event->accept();
                 }
-                return true;
+                accept = true;
             break;
             default:
                 event->ignore();
             break;
         }
     }
+
+    if ( accept )
+        return accept;
+
     return QObject::eventFilter( obj, event );
 }

@@ -2,29 +2,19 @@
 #include "includes.hpp"
 #include "packethandler.hpp"
 
-PacketHandler::PacketHandler(User* usr, ServerInfo* svr, QString svrID)
+PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 {
-    serverID = svrID;
+    pktForge = PacketForge::getInstance();
+    chatView = chat;
     server = svr;
-    user = usr;
 
-    cmdHandle = new CmdHandler( this, server, user );
+    cmdHandle = new CmdHandler( this, server );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    this->loadPlugin();
-#endif
 }
 
 PacketHandler::~PacketHandler()
 {
-
-#ifdef DECRYPT_PACKET_PLUGIN
-    if ( pluginManager != nullptr )
-        pluginManager->unload();
-#endif
-
     cmdHandle->deleteLater();
 }
 
@@ -34,24 +24,43 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
         return;
 
     this->detectFlooding( plr );
-    if ( packet.startsWith( ":SR", Qt::CaseInsensitive ) )
+    if ( Helper::strStartsWithStr( packet, ":SR" ) )
     {
         if ( !!this->checkBannedInfo( plr ) )
         {
             //Prevent Users from Impersonating the Server Admin.
-            if ( packet.startsWith( ":SR@", Qt::CaseInsensitive ) )
+            if ( Helper::strStartsWithStr( packet, ":SR@" ) )
                 return;
 
             //Prevent Users from changing the Server's rules.
-            if ( packet.startsWith( ":SR$", Qt::CaseInsensitive ) )
+            if ( Helper::strStartsWithStr( packet, ":SR$" ) )
                 return;
 
             if ( !plr->getNetworkMuted() )
+            {
+                if ( !pktForge->validateSerNum( plr, packet ) )
+                    return;
+
                 this->parseSRPacket( packet, plr );
+
+                if ( chatView->getGameID() != Games::Invalid )
+                {
+                    if ( chatView->getGameID() == Games::W97 )
+                    {
+                        //Handle Warpath Packets.
+                        chatView->parsePacket( packet, plr->getSernum_s() );
+                    }
+                    else if ( chatView->getGameID() != Games::Invalid )
+                    {
+                        //Handle WoS and Arcadia Packets.
+                        chatView->parsePacket( packet );
+                    }
+                }
+            }
         }
     }
 
-    if ( packet.startsWith( ":MIX", Qt::CaseInsensitive ) )
+    if ( Helper::strStartsWithStr( packet, ":MIX" ) )
         this->parseMIXPacket( packet, plr );
 }
 
@@ -66,11 +75,11 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
     QTcpSocket* tmpSoc{ nullptr };
     Player* tmpPlr{ nullptr };
 
-    quint64 bOut{ 0 };
+    qint64 bOut{ 0 };
 
     //Only parse packets from Users that have entered the correct password.
-    if (( plr->getEnteredPwd() || !plr->getPwdRequested() )
-      && ( plr->getGotAuthPwd() || !plr->getReqAuthPwd() ))
+    if (( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
+      && ( plr->getAdminPwdReceived() || !plr->getAdminPwdRequested() ))
     {
         bool isAuth{ false };
         bool send{ false };
@@ -87,8 +96,10 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
                 tmpSoc = tmpPlr->getSocket();
                 if ( plr->getSocket() != tmpSoc )
                 {
-                    if (( tmpPlr->getEnteredPwd() || !tmpPlr->getPwdRequested() )
-                      && ( tmpPlr->getGotAuthPwd() || !tmpPlr->getReqAuthPwd() ))
+                    if ( ( tmpPlr->getSvrPwdReceived()
+                       || !tmpPlr->getSvrPwdRequested() )
+                      && ( tmpPlr->getAdminPwdReceived()
+                       || !tmpPlr->getAdminPwdRequested() ))
                     {
                         isAuth = true;
                         send = false;
@@ -217,9 +228,9 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                         //We've obtained a Master response.
                         server->setMasterUDPResponse( true );
 
-                        int opcode{ 0 };
-                        int pubIP{ 0 };
+                        quint32 pubIP{ 0 };
                         int pubPort{ 0 };
+                        int opcode{ 0 };
 
                         if ( !data.isEmpty() )
                         {
@@ -238,19 +249,19 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                 break;
                 case 'P':   //Store the Player information into a struct.
                     {
-                        index = data.indexOf( "d=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "d=" );
                         if ( index >= 0 )
                             dVar = data.mid( index + 2 ).left( 8 );
 
-                        index = data.indexOf( "w=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "w=" );
                         if ( index >= 0 )
                             wVar = data.mid( index + 2 ).left( 8 );
 
-                        index = data.indexOf( "sernum=", Qt::CaseInsensitive );
+                        index = Helper::getStrIndex( data, "sernum=" );
                         if ( index >= 0 )
                         {
                             sernum = data.mid( index + 7 );
-                            index = sernum.indexOf( "," );
+                            index = Helper::getStrIndex( sernum, "," );
                             if ( index >= 0 )
                             {
                                 sernum = sernum.left( index );
@@ -271,14 +282,14 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                                                .arg( ipAddr.toString() )
                                                .arg( port )
                                                .arg( data );
-                                logMsg = true;
+                                logMsg = Settings::getLogFiles();
                             }
                             else
                             {
                                 server->sendServerInfo( ipAddr, port );
                                 bioHash->insert( ipAddr, udp.mid( 1 ) );
                             }
-                            user->logBIO( sernum, ipAddr, dVar, wVar, data );
+                            User::logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
                         server->setUserPings( server->getUserPings() + 1 );
                     }
@@ -305,7 +316,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                        .arg( ipAddr.toString() )
                        .arg( port )
                        .arg( data );
-        logMsg = true;
+        logMsg = Settings::getLogFiles();
     }
 
     if ( logMsg )
@@ -335,9 +346,6 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        server->sendMasterMessage( Settings::getBanishMesage( serverID ), plr,
-                                   false );
-
         tmpMsg = tmpMsg.arg( "Banned Info" )
                        .arg( plr->getPublicIP() )
                        .arg( plr->getPublicPort() )
@@ -364,7 +372,7 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                                    .arg( plr->getBioData() );
 
                     if ( Settings::getBanDupedIP() )
-                        user->addBan( nullptr, plr, reason );
+                        User::addBan( nullptr, plr, reason );
 
                     if ( plr != nullptr )
                     {
@@ -439,7 +447,7 @@ void PacketHandler::detectFlooding(Player* plr)
     int floodCount = plr->getPacketFloodCount();
     if ( floodCount >= 1 )
     {
-        quint64 time = plr->getFloodTime();
+        qint64 time = plr->getFloodTime();
         if ( time <= PACKET_FLOOD_TIME )
         {
             if ( floodCount >= PACKET_FLOOD_LIMIT
@@ -456,7 +464,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
-                if ( Settings::getBanHackers() )
+                if ( Settings::getBanDeviants() )
                 {
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
@@ -466,7 +474,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                    .arg( plr->getBioData() );
                     Helper::logToFile( log, logMsg, true, true );
 
-                    user->addBan( nullptr, plr, logMsg );
+                    User::addBan( nullptr, plr, logMsg );
                 }
                 plr->setDisconnected( true );
                 server->setPktDc( server->getPktDc() + 1 );
@@ -553,8 +561,7 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
         QStringList vars = packet.split( ',' );
         QString val{ "" };
 
-        if ( Settings::getAllowSSV()
-          && !vars.contains( "Admin", Qt::CaseInsensitive ))
+        if ( Settings::getAllowSSV() )
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                            QSettings::IniFormat );
@@ -587,8 +594,7 @@ void PacketHandler::readMIX9(QString& packet, Player*)
     packet = packet.left( packet.length() - 2 );
 
     QStringList vars = packet.split( ',' );
-    if ( Settings::getAllowSSV()
-      && !vars.contains( "Admin", Qt::CaseInsensitive ))
+    if ( Settings::getAllowSSV() )
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                        QSettings::IniFormat );
@@ -597,41 +603,3 @@ void PacketHandler::readMIX9(QString& packet, Player*)
                       vars.value( 3 ) );
     }
 }
-
-
-#ifdef DECRYPT_PACKET_PLUGIN
-bool PacketHandler::loadPlugin()
-{
-    QDir pluginsDir( qApp->applicationDirPath() );
-
-    #if defined( Q_OS_WIN )
-        if ( pluginsDir.dirName().toLower() == QLatin1String( "debug" )
-          || pluginsDir.dirName().toLower() == QLatin1String( "release" ) )
-        {
-            pluginsDir.cdUp();
-        }
-
-    #elif defined(Q_OS_MAC)
-        if ( pluginsDir.dirName() == QLatin1String( "MacOS" ) )
-        {
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-        }
-    #endif
-
-    pluginsDir.cd( "plugins" );
-    foreach ( QString fileName, pluginsDir.entryList( QDir::Files ) )
-    {
-        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath( fileName ) );
-        QObject *plugin = pluginLoader.instance();
-        if ( plugin )
-        {
-            packetInterface = qobject_cast<PacketDecryptInterface*>( plugin );
-            if ( packetInterface )
-                return true;
-        }
-    }
-    return false;
-}
-#endif

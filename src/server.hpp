@@ -21,38 +21,32 @@ class Server : public QTcpServer
 
     Comments* serverComments{ nullptr };
     PacketHandler* pktHandle{ nullptr };
+    ChatView* chatView{ nullptr };
     ServerInfo* server{ nullptr };
-    User* user{ nullptr };
-    UPNP* upnp{ nullptr };
 
-    QString serverID{ "" };
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               User* adminDlg = nullptr, QStandardItemModel* plrView = nullptr,
-               QString svrID = "0");
+               QStandardItemModel* plrView = nullptr);
         ~Server();
 
         void setupServerInfo();
-        void setupUPNPForward();
-        void removeUPNPForward();
-        void setupPublicServer(bool value);
-
         void updatePlayerTable(Player* plr, QHostAddress peerAddr,
                                quint16 port);
         QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,
                                              Player* plr, bool insert);
 
         Comments* getServerComments() const;
+        ChatView* getChatView() const;
+
+        void userReadyRead(QTcpSocket* socket);
+        void userDisconnected(QTcpSocket* socket);
 
     public slots:
-        void sendRemoteAdminPwdReqSlot(Player* plr);
-        void sendRemoteAdminRegisterSlot(Player* plr);
+        void newRemotePwdRequestedSlot(Player* plr);
+        void newRemoteAdminRegisterSlot(Player* plr);
 
     private slots:
         void newConnectionSlot();
-        void userReadyReadSlot();
-        void userDisconnectedSlot();
-
         void readyReadUDPSlot();
 };
 

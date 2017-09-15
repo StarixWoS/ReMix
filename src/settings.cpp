@@ -25,7 +25,6 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "banishDupeIP",
     "reqServerPwd",
     "MOTD",
-    "BANISHED",
     "reqAdminAuth",
     "logComments",
     "fwdComments",
@@ -37,10 +36,18 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "worldDir",
     "portNumber",
     "isPublic",
-    "gameName"
+    "gameName",
+    "logFiles",
+    "darkMode",
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
+QHash<ServerInfo*, RulesWidget*> Settings::ruleWidgets;
+QHash<ServerInfo*, MOTDWidget*> Settings::msgWidgets;
+SettingsWidget* Settings::settings;
+QTabWidget* Settings::tabWidget;
+Settings* Settings::instance;
+
 QSettings* Settings::prefs{ new QSettings( "preferences.ini",
                                            QSettings::IniFormat ) };
 
@@ -49,15 +56,6 @@ Settings::Settings(QWidget *parent) :
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
-
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
 
     //Setup Objects.
     tabWidget = new QTabWidget( this );
@@ -95,29 +93,45 @@ Settings::~Settings()
     tabWidget->deleteLater();
     settings->deleteLater();
 
+    instance->close();
+    instance->deleteLater();
+
     delete ui;
 }
 
-void Settings::addTabObjects(MessagesWidget* msgWidget, RulesWidget* ruleWidget,
-                             QString& svrID)
+Settings*Settings::getInstance()
 {
-    if ( msgWidget != nullptr )
-        msgWidgets.insert( svrID, msgWidget );
+    if ( instance == nullptr )
+        instance = new Settings( nullptr );
 
-    if ( ruleWidget != nullptr )
-        ruleWidgets.insert( svrID, ruleWidget );
+    return instance;
 }
 
-void Settings::remTabObjects(QString& svrID)
+void Settings::setInstance(Settings* value)
 {
-    MessagesWidget* msgWidget{ msgWidgets.take( svrID ) };
+    instance = value;
+}
+
+void Settings::addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
+                             ServerInfo* server)
+{
+    if ( msgWidget != nullptr )
+        msgWidgets.insert( server, msgWidget );
+
+    if ( ruleWidget != nullptr )
+        ruleWidgets.insert( server, ruleWidget );
+}
+
+void Settings::remTabObjects(ServerInfo* server)
+{
+    MOTDWidget* msgWidget{ msgWidgets.take( server ) };
     if ( msgWidget != nullptr )
     {
         msgWidget->setParent( nullptr );
         msgWidget->deleteLater();
     }
 
-    RulesWidget* ruleWidget{ ruleWidgets.take( svrID ) };
+    RulesWidget* ruleWidget{ ruleWidgets.take( server ) };
     if ( ruleWidget != nullptr )
     {
         ruleWidget->setParent( nullptr );
@@ -125,19 +139,94 @@ void Settings::remTabObjects(QString& svrID)
     }
 }
 
-void Settings::updateTabBar(QString& svrID)
+void Settings::updateTabBar(ServerInfo* server)
 {
     qint32 index{ tabWidget->currentIndex() };
+
     tabWidget->clear();
     if ( settings == nullptr )
-        settings = new SettingsWidget( this );
+        settings = new SettingsWidget( nullptr );
 
-    this->setWindowTitle( "[ " % svrID % " ] Settings:");
+    getInstance()->setWindowTitle( "[ " % server->getName() % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
-    tabWidget->insertTab( 1, ruleWidgets.value( svrID ), "Rules" );
-    tabWidget->insertTab( 2, msgWidgets.value( svrID ), "Messages" );
+    tabWidget->insertTab( 1, ruleWidgets.value( server ), "Rules" );
+    tabWidget->insertTab( 2, msgWidgets.value( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
+}
+
+void Settings::copyServerSettings(ServerInfo* server, QString newName)
+{
+    QString oldName{ server->getName() };
+    QString value_s;
+    QVariant value;
+    if ( oldName != newName )
+    {
+        //Copy Rules.
+        Rules::setMaxPlayers( Rules::getMaxPlayers( oldName ), newName );
+        Rules::setMaxAFK( Rules::getMaxAFK( oldName ), newName );
+
+        value_s = Rules::getWorldName( oldName );
+                  Rules::setWorldName( value_s, newName );
+
+        value_s = Rules::getURLAddress( oldName );
+                  Rules::setURLAddress( value_s, newName );
+
+        value_s = Rules::getMinVersion( oldName );
+                  Rules::setMinVersion( value_s, newName );
+
+        value = Rules::getNoEavesdropping( oldName );
+                Rules::setNoEavesdropping( value, newName );
+
+        value = Rules::getReportLadder( oldName );
+                Rules::setReportLadder( value, newName );
+
+        value = Rules::getNoMigrating( oldName );
+                Rules::setNoMigrating( value, newName );
+
+        value = Rules::getNoCheating( oldName );
+                Rules::setNoCheating( value, newName );
+
+        value = Rules::getArenaPKing( oldName );
+                Rules::setArenaPKing( value, newName );
+
+        value = Rules::getNoCursing( oldName );
+                Rules::setNoCursing( value, newName );
+
+        value = Rules::getNoModding( oldName );
+                Rules::setNoModding( value, newName );
+
+        value = Rules::getAllPKing( oldName );
+                Rules::setAllPKing( value, newName );
+
+        value = Rules::getNoPKing( oldName );
+                Rules::setNoPKing( value, newName );
+
+        value = Rules::getNoPets( oldName );
+                Rules::setNoPets( value, newName );
+
+        //Copy other Settings.
+        value = getServerRunning( oldName );
+                setServerRunning( value, newName );
+
+        value = getMOTDMessage( oldName );
+                setMOTDMessage( value, newName );
+
+        value = getPortNumber( oldName );
+                setPortNumber( value, newName );
+
+        value = getServerID( oldName );
+                setServerID( value, newName );
+
+        value = getIsPublic( oldName );
+                setIsPublic( value, newName );
+
+        value = getGameName( oldName );
+                setGameName( value, newName );
+
+        prefs->remove( oldName );
+        prefs->sync();
+    }
 }
 
 //Static-Free Functions.
@@ -251,7 +340,7 @@ void Settings::setBanHackers(QVariant& value)
                 subKeys[ SubKeys::AutoBan ], value );
 }
 
-bool Settings::getBanHackers()
+bool Settings::getBanDeviants()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::AutoBan ] )
@@ -308,6 +397,32 @@ bool Settings::getLogComments()
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::LogComments ] )
               .toBool();
+}
+
+void Settings::setLogFiles(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::LogFiles ], value );
+}
+
+bool Settings::getLogFiles()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::LogFiles ] )
+            .toBool();
+}
+
+void Settings::setDarkMode(QVariant& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::DarkMode ], value );
+}
+
+bool Settings::getDarkMode()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::DarkMode ] )
+            .toBool();
 }
 
 void Settings::setFwdComments(QVariant& value)
@@ -413,19 +528,6 @@ QString Settings::getMOTDMessage(QString& svrID)
 {
     return getServerSetting( keys[ Keys::Messages ],
                              subKeys[ SubKeys::MOTD ], svrID  )
-                    .toString();
-}
-
-void Settings::setBanishMesage(QVariant& value, QString& svrID)
-{
-    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::BanishMsg ],
-                      value, svrID );
-}
-
-QString Settings::getBanishMesage(QString& svrID)
-{
-    return getServerSetting( keys[ Keys::Messages ],
-                             subKeys[ SubKeys::BanishMsg ], svrID  )
                     .toString();
 }
 

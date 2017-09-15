@@ -24,12 +24,10 @@ class PlrListWidget : public QWidget
     Player* menuTarget{ nullptr };
 
     ServerInfo* server{ nullptr };
-    User* user{ nullptr };
 
     public:
         explicit PlrListWidget(QWidget *parent = nullptr,
-                               ServerInfo* svr = nullptr,
-                               User* usr = nullptr);
+                               ServerInfo* svr = nullptr);
         ~PlrListWidget();
 
         QStandardItemModel* getPlrModel();

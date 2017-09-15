@@ -9,16 +9,6 @@ Comments::Comments(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //Remove the "Help" button from the window title bars.
-    {
-        QIcon icon = this->windowIcon();
-        Qt::WindowFlags flags = this->windowFlags();
-        flags &= ~Qt::WindowContextHelpButtonHint;
-
-        this->setWindowFlags( flags );
-        this->setWindowIcon( icon );
-    }
-
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions(
@@ -41,6 +31,12 @@ Comments::~Comments()
     delete ui;
 }
 
+void Comments::setTitle(QString name)
+{
+    if ( !name.isEmpty() )
+        this->setWindowTitle( "Server Comments: [ " % name % " ]" );
+}
+
 void Comments::newUserCommentSlot(QString& sernum, QString& alias,
                                   QString& message)
 {
@@ -48,8 +44,8 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
     if ( obj == nullptr )
         return;
 
-    quint64 date = QDateTime::currentDateTime()
-                        .toTime_t();
+    uint date = QDateTime::currentDateTime()
+                     .toTime_t();
     QString comment = QString( "\r\n --- \r\n"
                                "%1 \r\n"
                                "SerNum: %2 \r\n"
@@ -95,7 +91,7 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
         Helper::logToFile( log, comment, false, false );
     }
 
-    //Show the Dialog when a new comment is recieved.
+    //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )
         this->show();
 }

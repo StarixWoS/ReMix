@@ -15,64 +15,54 @@ class ReMixWidget : public QWidget
 {
     Q_OBJECT
 
-    MessagesWidget* messages{ nullptr };
+    MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
     PlrListWidget* plrWidget{ nullptr };
 
     Server* tcpServer{ nullptr };
     RandDev* randDev{ nullptr };
-    Settings* settings{ nullptr };
 
     ServerInfo* server{ nullptr };
-    User* user{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
     QPalette defaultPalette;
     bool nightMode{ false };
 
-    QString serverID{ "" };
-
-    enum CMDLArgs{ GAME = 0, MASTER = 1, PUBLIC = 2, LISTEN = 3, NAME = 4,
-                   FUDGE = 5, RELOAD = 6 };
     enum Themes{ LIGHT = 0, DARK = 1 };
-    static const QStringList cmdlArgs;
 
     public:
         explicit ReMixWidget(QWidget* parent = nullptr,
-                             QStringList* argList = nullptr,
-                             QString svrID = "0" );
+                             ServerInfo* svrInfo = nullptr);
         ~ReMixWidget();
 
-        void sendServerMessage(QString msg, Player* plr, bool toAll);
+        ServerInfo* getServerInfo();
+        void renameServer(QString newName);
+
+        void sendServerMessage(QString msg);
         qint32 getPlayerCount();
         QString getServerName() const;
 
-        Settings* getSettings() const;
         Server* getTcpServer() const;
 
-        QString& getServerID();
         quint16 getPrivatePort() const;
 
     private:
-        void parseCMDLArgs(QStringList* argList);
         void initUIUpdate();
 
     private slots:
         void on_openSettings_clicked();
         void on_openUserComments_clicked();
-        void on_enableNetworking_clicked();
         void on_openUserInfo_clicked();
-        void on_serverPort_textChanged(const QString &arg1);
-        void on_isPublicServer_toggled(bool);
-        void on_useUPNP_toggled(bool);
+        void on_isPublicServer_toggled(bool value);
 
         void on_networkStatus_linkActivated(const QString &link);
-        void on_networkStatus_customContextMenuRequested(const QPoint &pos);
+        void on_networkStatus_customContextMenuRequested(const QPoint &);
+
+        void on_openChatView_clicked();
 
     signals:
-        void reloadOldServersSignal();
         void reValidateServerIP();
 
     private:

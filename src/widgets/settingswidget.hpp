@@ -18,8 +18,8 @@ class SettingsWidget : public QWidget
                   BANDUPEDIP = 3, BANHACKERS = 4, REQSERNUM = 5,
                   DISCONNECTIDLES = 6, ALLOWSSV = 7, LOGCOMMENTS = 8,
                   FWDCOMMENTS = 9, ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13,
-                  WORLDDIR = 14 };
+                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13, LOGFILES = 14,
+                  WORLDDIR = 15 };
 
     bool pwdCheckState{ false };
 
@@ -30,7 +30,7 @@ class SettingsWidget : public QWidget
         void setCheckedState(Toggles option, bool val);
 
     private:
-        void toggleSettings(quint32 row, Qt::CheckState value);
+        void toggleSettings(qint32 row, Qt::CheckState value);
 
     private slots:
         void on_settingsView_doubleClicked(const QModelIndex &index);

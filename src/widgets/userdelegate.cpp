@@ -22,7 +22,7 @@ void UserDelegate::paint(QPainter* painter,
     QString text = "";
     switch( index.column() )
     {
-        case RANK:
+        case User::cRANK:
             {
                 QItemDelegate::drawBackground( painter, opt, index );
                 switch( index.data().toInt() )
@@ -50,7 +50,7 @@ void UserDelegate::paint(QPainter* painter,
                                             option.rect, text );
             }
         break;
-        case BANNED:
+        case User::cBANNED:
             {
                 {
                     QItemDelegate::drawBackground( painter, opt, index );
@@ -109,7 +109,7 @@ QWidget* UserDelegate::createEditor(QWidget* parent,
     QComboBox* editor = new QComboBox( parent );
                editor->setFocusPolicy( Qt::StrongFocus );
 
-    if ( index.column() == RANK )
+    if ( index.column() == User::cRANK )
     {
         editor->addItem( "User" );
         editor->addItem( "Game Master" );
@@ -117,7 +117,7 @@ QWidget* UserDelegate::createEditor(QWidget* parent,
         editor->addItem( "Admin" );
         editor->addItem( "Owner" );
     }
-    else if ( index.column() == BANNED )
+    else if ( index.column() == User::cBANNED )
     {
         editor->addItem( "Not Banned" );
         editor->addItem( "Banned" );

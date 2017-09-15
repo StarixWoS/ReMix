@@ -54,7 +54,7 @@ QString Rules::getRuleSet(QString& svrID)
 
         valIsBool = false;
 
-        if ( value.toString().compare( "true", Qt::CaseInsensitive ) == 0 )
+        if ( Helper::cmpStrings( value.toString(), "true" ) )
             valIsBool = true;
 
         rules += tmpRule % "=";

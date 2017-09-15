@@ -7,7 +7,8 @@ Player::Player()
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
-    QObject::connect( &connTimer, &QTimer::timeout, [=]()
+    QObject::connect( &connTimer, &QTimer::timeout, &connTimer,
+    [=]()
     {
         ++connTime;
 
@@ -25,18 +26,18 @@ Player::Player()
                                     .arg( connTime % 60, 2, 10, QChar( '0' ) ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaudIn( this->getBytesIn() );
+                this->setAvgBaud( this->getBytesIn(), false );
                 model->setData( row->model()->index( row->row(), 5 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaudIn() )
+                                    .arg( this->getAvgBaud( false ) )
                                     .arg( this->getBytesIn() )
                                     .arg( this->getPacketsIn() ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaudOut( this->getBytesOut() );
+                this->setAvgBaud( this->getBytesOut(), true );
                 model->setData( row->model()->index( row->row(), 6 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaudOut() )
+                                    .arg( this->getAvgBaud( true ) )
                                     .arg( this->getBytesOut() )
                                     .arg( this->getPacketsOut() ),
                                 Qt::DisplayRole );
@@ -45,7 +46,7 @@ Player::Player()
                 //Otherwise, color as Red.
                 if ( this->getIsAdmin() )
                 {
-                    if ( this->getGotAuthPwd() )
+                    if ( this->getAdminPwdReceived() )
                     {
                         model->setData( row->model()->index( row->row(), 1 ),
                                         QBrush( QColor( "limegreen" ) ),
@@ -91,20 +92,20 @@ Player::Player()
           && this->getIsAdmin() )
         {
             if ( this->getSernum_i() != 0
-              && !this->getReqAuthPwd() )
+              && !this->getAdminPwdRequested() )
             {
                 if ( !User::getHasPassword( this->getSernumHex_s() )
-                  && !this->getReqNewAuthPwd() )
+                  && !this->getNewAdminPwdRequested() )
                 {
-                    if ( !this->getGotNewAuthPwd() )
-                        this->setReqNewAuthPwd( true );
+                    if ( !this->getNewAdminPwdReceived() )
+                        this->setNewAdminPwdRequested( true );
                 }
                 else if (( !Settings::getRequirePassword()
-                        || this->getEnteredPwd() )
-                       && !this->getReqNewAuthPwd() )
+                        || this->getSvrPwdReceived() )
+                       && !this->getNewAdminPwdRequested() )
                 {
-                    if ( !this->getGotAuthPwd() )
-                        emit sendRemoteAdminPwdReqSignal( this );
+                    if ( !this->getAdminPwdReceived() )
+                        emit newAdminPwdRequestedSignal( this );
                 }
             }
         }
@@ -128,6 +129,16 @@ Player::Player()
 
 Player::~Player()
 {
+    if ( messageDialog != nullptr )
+    {
+        if ( messageDialog->isVisible() )
+        {
+            messageDialog->close();
+        }
+        messageDialog->disconnect();
+        messageDialog->deleteLater();
+    }
+
     connTimer.stop();
     connTimer.disconnect();
 
@@ -136,6 +147,49 @@ Player::~Player()
 
     this->disconnect();
     this->deleteLater();
+}
+
+void Player::sendMessage(QString msg, bool toAll)
+{
+    ServerInfo* server{ this->getServerInfo() };
+    if ( server == nullptr )
+        return;
+
+    if ( !msg.isEmpty() )
+    {
+        if ( toAll )
+            server->sendMasterMessage( msg, nullptr, true );
+        else
+            server->sendMasterMessage( msg, this, false );
+    }
+    else
+    {
+        if ( messageDialog == nullptr )
+        {
+            messageDialog = new SendMsg( this->getSernum_s() );
+            QObject::connect( messageDialog, &SendMsg::forwardMessage,
+                              messageDialog,
+                              [=](QString message)
+            {
+                if ( !message.isEmpty() )
+                {
+                    bool sendToAll{ messageDialog->sendToAll() };
+                    if ( server != nullptr )
+                    {
+                        if ( sendToAll )
+                            server->sendMasterMessage( message, nullptr, true );
+                        else
+                            server->sendMasterMessage( message, this, false );
+                    }
+                }
+            } );
+        }
+
+        if ( !messageDialog->isVisible() )
+            messageDialog->show();
+        else
+            messageDialog->hide();
+    }
 }
 
 qint64 Player::getConnTime() const
@@ -161,6 +215,16 @@ QTcpSocket* Player::getSocket() const
 void Player::setSocket(QTcpSocket* value)
 {
     socket = value;
+}
+
+ServerInfo* Player::getServerInfo() const
+{
+    return serverInfo;
+}
+
+void Player::setServerInfo(ServerInfo* value)
+{
+    serverInfo = value;
 }
 
 quint32 Player::getSernum_i() const
@@ -309,14 +373,14 @@ void Player::setOutBuff(const QByteArray& value)
 }
 
 
-bool Player::getPwdRequested() const
+bool Player::getSvrPwdRequested() const
 {
-    return pwdRequested;
+    return svrPwdRequested;
 }
 
-void Player::setPwdRequested(bool value)
+void Player::setSvrPwdRequested(bool value)
 {
-    pwdRequested = value;
+    svrPwdRequested = value;
 }
 
 int Player::getSlotPos() const
@@ -352,17 +416,17 @@ void Player::setPublicPort(const quint32& value)
     publicPort = value;
 }
 
-bool Player::getEnteredPwd() const
+bool Player::getSvrPwdReceived() const
 {
-    return enteredPwd;
+    return svrPwdReceived;
 }
 
-void Player::setEnteredPwd(bool value)
+void Player::setSvrPwdReceived(bool value)
 {
-    enteredPwd = value;
+    svrPwdReceived = value;
 }
 
-quint64 Player::getFloodTime() const
+qint64 Player::getFloodTime() const
 {
     return floodTimer.elapsed();
 }
@@ -397,32 +461,15 @@ void Player::setPacketsIn(int value, int incr)
     this->setPacketFloodCount( this->getPacketFloodCount() + incr );
 }
 
-quint64 Player::getBytesIn() const
+qint64 Player::getBytesIn() const
 {
     return bytesIn;
 }
 
-void Player::setBytesIn(const quint64& value)
+void Player::setBytesIn(const qint64& value)
 {
     bytesIn = value;
-    this->setAvgBaudIn( bytesIn );
-}
-
-quint64 Player::getAvgBaudIn() const
-{
-    return avgBaudIn;
-}
-
-void Player::setAvgBaudIn(const quint64& bIn)
-{
-    quint64 time = this->getConnTime();
-    quint64 baud{ 0 };
-
-    if ( bIn > 0 && time > 0 )
-        baud = 10 * bIn / time;
-
-    if ( baud > 0 )
-        avgBaudIn = baud;
+    this->setAvgBaud( bytesIn, false );
 }
 
 int Player::getPacketsOut() const
@@ -435,59 +482,68 @@ void Player::setPacketsOut(int value)
     packetsOut = value;
 }
 
-quint64 Player::getBytesOut() const
+qint64 Player::getBytesOut() const
 {
     return bytesOut;
 }
 
-void Player::setBytesOut(const quint64& value)
+void Player::setBytesOut(const qint64& value)
 {
     bytesOut = value;
+    this->setAvgBaud( bytesOut, true );
 }
 
-quint64 Player::getAvgBaudOut() const
+qint64 Player::getAvgBaud(bool out) const
 {
-    return avgBaudOut;
+    if ( out )
+        return avgBaudOut;
+    else
+        return avgBaudIn;
 }
 
-void Player::setAvgBaudOut(const quint64& bOut)
+void Player::setAvgBaud(const qint64& bytes, bool out)
 {
-    quint64 time = this->getConnTime();
-    quint64 baud{ 0 };
+    qint64 time = this->getConnTime();
+    qint64 baud{ 0 };
 
-    if ( bOut > 0 && time > 0 )
-        baud = 10 * bOut / time;
+    if ( bytes > 0 && time > 0 )
+        baud = 10 * bytes / time;
 
     if ( baud > 0 )
-        avgBaudOut = baud;
+    {
+        if ( out )
+            avgBaudOut = baud;
+        else
+            avgBaudIn = baud;
+    }
 }
 
 void Player::resetAdminAuth()
 {
-    this->setReqAuthPwd( false );
-    this->setGotAuthPwd( false );
-    this->setReqNewAuthPwd( false );
-    this->setGotNewAuthPwd( false );
+    this->setAdminPwdRequested( false );
+    this->setAdminPwdReceived( false );
+    this->setNewAdminPwdRequested( false );
+    this->setNewAdminPwdReceived( false );
 }
 
-bool Player::getReqAuthPwd() const
+bool Player::getAdminPwdRequested() const
 {
-    return reqAuthPwd;
+    return adminPwdRequested;
 }
 
-void Player::setReqAuthPwd(bool value)
+void Player::setAdminPwdRequested(bool value)
 {
-    reqAuthPwd = value;
+    adminPwdRequested = value;
 }
 
-bool Player::getGotAuthPwd() const
+bool Player::getAdminPwdReceived() const
 {
-    return gotAuthPwd;
+    return adminPwdReceived;
 }
 
-void Player::setGotAuthPwd(bool value)
+void Player::setAdminPwdReceived(bool value)
 {
-    gotAuthPwd = value;
+    adminPwdReceived = value;
 }
 
 bool Player::getIsAdmin()
@@ -512,26 +568,26 @@ void Player::setCmdAttempts(const qint32& value)
     cmdAttempts = value;
 }
 
-bool Player::getReqNewAuthPwd() const
+bool Player::getNewAdminPwdRequested() const
 {
-    return reqNewAuthPwd;
+    return newAdminPwdRequested;
 }
 
-void Player::setReqNewAuthPwd(bool value)
+void Player::setNewAdminPwdRequested(bool value)
 {
-    reqNewAuthPwd = value;
-    if ( reqNewAuthPwd )
-        emit sendRemoteAdminRegisterSignal( this );
+    newAdminPwdRequested = value;
+    if ( newAdminPwdRequested )
+        emit newRemoteAdminRegisterSignal( this );
 }
 
-bool Player::getGotNewAuthPwd() const
+bool Player::getNewAdminPwdReceived() const
 {
-    return gotNewAuthPwd;
+    return newAdminPwdReceived;
 }
 
-void Player::setGotNewAuthPwd(bool value)
+void Player::setNewAdminPwdReceived(bool value)
 {
-    gotNewAuthPwd = value;
+    newAdminPwdReceived = value;
 }
 
 bool Player::getDisconnected() const
@@ -558,8 +614,16 @@ bool Player::getNetworkMuted() const
     return networkMuted;
 }
 
-void Player::setNetworkMuted(bool value)
+void Player::setNetworkMuted(bool value, QString& msg)
 {
+    if ( Settings::getLogFiles() )
+    {
+        QString log{ "logs/muteLog.txt" };
+        if ( !msg.isEmpty() )
+        {
+            Helper::logToFile( log, msg, true, true );
+        }
+    }
     networkMuted = value;
 }
 
@@ -589,6 +653,24 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
         }
     }
 
+    if ( id == 1 || this->getSernum_i() == 1 )
+    {
+
+        QString masterIP{ server->getMasterIP() };
+        QString socketIP{ this->getPublicIP() };
+        if ( !Helper::cmpStrings( masterIP, socketIP ) )
+        {
+            //Ban IP?
+            QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
+                         "usage of <[ Soul 1 ][ %1 ]> while connecting from an "
+                         "improper IP Address." };
+                    msg = msg.arg( this->getSernum_s() )
+                             .arg( socketIP )
+                             .arg( masterIP );
+            this->setNetworkMuted( true, msg );
+        }
+    }
+
     if ( this->getDisconnected()
       && server != nullptr )
     {
@@ -615,29 +697,3 @@ void Player::setWVar(const QString& value)
 {
     wVar = value;
 }
-
-#ifdef DECRYPT_PACKET_PLUGIN
-QString Player::getGameInfo() const
-{
-    return gameInfo;
-}
-
-void Player::setGameInfo(const QString& value)
-{
-    gameInfo = value;
-    if ( !gameInfo.isEmpty() )
-        this->setHasGameInfo( true );
-    else
-        this->setHasGameInfo( false );
-}
-
-bool Player::getHasGameInfo() const
-{
-    return hasWorldInfo;
-}
-
-void Player::setHasGameInfo(bool value)
-{
-    hasWorldInfo = value;
-}
-#endif
