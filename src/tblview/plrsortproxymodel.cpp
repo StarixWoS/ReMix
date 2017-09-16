@@ -1,5 +1,13 @@
 
-#include "includes.hpp"
+//Class includes.
+#include "tblview/plrsortproxymodel.hpp"
+
+//ReMix includes.
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QModelIndex>
+#include <QVariant>
 
 PlrSortProxyModel::PlrSortProxyModel()
 {

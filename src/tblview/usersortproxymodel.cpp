@@ -1,5 +1,15 @@
 
-#include "includes.hpp"
+//Class includes.
+#include "tblview/usersortproxymodel.hpp"
+
+//ReMix includes.
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QModelIndex>
+#include <QDateTime>
+#include <QVariant>
 
 UserSortProxyModel::UserSortProxyModel()
 {

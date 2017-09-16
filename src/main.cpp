@@ -1,9 +1,13 @@
 
-#include "includes.hpp"
+//ReMix includes.
+#include "appeventfilter.hpp"
 #include "themechange.hpp"
-#include "remix.hpp"
 #include "runguard.hpp"
+#include "settings.hpp"
+#include "remix.hpp"
 
+//Qt Includes.
+#include <QStyleFactory>
 #include <QApplication>
 
 int main(int argc, char *[])
@@ -13,6 +17,8 @@ int main(int argc, char *[])
         return 0;
 
     QApplication a(argc, 0);
+                 a.setApplicationName( "ReMix" );
+                 a.setApplicationVersion( REMIX_VERSION );
                  a.setQuitOnLastWindowClosed( false );
 
     //Remove the "Help" button from the window title bars

@@ -1,9 +1,13 @@
 
+//Class includes.
 #include "selectworld.hpp"
-#include "includes.hpp"
-
 #include "ui_selectworld.h"
 
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
 #include <QFileSystemModel>
 
 SelectWorld::SelectWorld(QWidget *parent, QStringList) :

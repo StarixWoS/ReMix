@@ -1,7 +1,27 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "settings.hpp"
 #include "ui_settings.h"
+
+//ReMix Widget includes.
+#include "widgets/settingswidget.hpp"
+#include "widgets/motdwidget.hpp"
+#include"widgets/ruleswidget.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "helper.hpp"
+#include "rules.hpp"
+
+//Qt Includes.
+#include <QNetworkAccessManager>
+#include <QTabWidget>
+#include <QUdpSocket>
+#include <QString>
+#include <QObject>
+#include <QtCore>
 
 //Initialize Settings keys/        subKeys lists
 const QString Settings::keys[ SETTINGS_KEY_COUNT ] =

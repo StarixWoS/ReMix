@@ -1,3 +1,5 @@
+
+//Class includes.
 #include "runguard.hpp"
 
 RunGuard::RunGuard(const QString& key)

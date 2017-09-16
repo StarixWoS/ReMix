@@ -1,6 +1,14 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "rules.hpp"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QSettings>
+#include <QtCore>
 
 const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
 {

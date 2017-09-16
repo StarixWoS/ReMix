@@ -1,9 +1,18 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "ruleswidget.hpp"
 #include "ui_ruleswidget.h"
 
+//ReMix includes.
 #include "selectworld.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+#include "rules.hpp"
+
+//Qt Includes.
+#include <QSettings>
+#include <QtCore>
+#include <QDir>
 
 RulesWidget::RulesWidget() :
     ui(new Ui::RulesWidget)

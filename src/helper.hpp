@@ -6,7 +6,7 @@
 
 //Required Qt Includes.
 #include <QInputDialog>
-#include <QtCore>
+//#include <QtCore>
 
 class Helper
 {

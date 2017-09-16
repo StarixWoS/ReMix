@@ -1,7 +1,11 @@
 
+//Class includes.
 #include "userdelegate.hpp"
-#include "includes.hpp"
 
+//ReMix includes.
+#include "user.hpp"
+
+//Qt Includes.
 #include <QComboBox>
 #include <QPainter>
 

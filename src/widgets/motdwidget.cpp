@@ -1,7 +1,14 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "motdwidget.hpp"
 #include "ui_motdwidget.h"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QTimer>
 
 MOTDWidget::MOTDWidget() :
     ui(new Ui::MOTDWidget)

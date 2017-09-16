@@ -1,6 +1,17 @@
 
+//Class includes.
 #include "cmdhandler.hpp"
-#include "includes.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "player.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt includes.
+#include <QtCore>
 
 //Initialize our accepted Command List.
 const QString CmdHandler::commands[ ADMIN_COMMAND_COUNT ] =

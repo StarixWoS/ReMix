@@ -1,7 +1,7 @@
 #ifndef USER_HPP
 #define USER_HPP
 
-#include "includes.hpp"
+#include "prototypes.hpp"
 #include <QDialog>
 
 namespace Ui {

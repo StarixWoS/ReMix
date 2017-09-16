@@ -1,6 +1,13 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "packetforge.hpp"
+
+//ReMix includes.
+#include "player.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QDebug>
 
 PacketForge* PacketForge::instance{ nullptr };
 PacketForge::PacketForge()

@@ -1,7 +1,21 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "createinstance.hpp"
 #include "ui_createinstance.h"
+
+//Required ReMix Widget includes.
+#include "widgets/remixtabwidget.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QCloseEvent>
+#include <QTcpSocket>
+#include <QSettings>
 
 //Initialize our accepted Command List.
 const QString CreateInstance::gameNames[ GAME_NAME_COUNT ] =

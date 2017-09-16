@@ -1,8 +1,26 @@
 
+//Class includes.
 #include "user.hpp"
 #include "ui_user.h"
 
+//ReMix Widget includes.
 #include "widgets/userdelegate.hpp"
+
+//ReMix includes.
+#include "usersortproxymodel.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "helper.hpp"
+#include "player.hpp"
+
+//Qt Includes.
+#include <QStandardItemModel>
+#include <QHostAddress>
+#include <QSettings>
+#include <QVariant>
+#include <QString>
+#include <QObject>
+#include <QtCore>
 
 const QString User::keys[ USER_KEY_COUNT ] =
 {

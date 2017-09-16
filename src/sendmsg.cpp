@@ -1,7 +1,14 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "sendmsg.hpp"
 #include "ui_sendmsg.h"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QKeyEvent>
 
 SendMsg::SendMsg(QString serNum, QWidget *parent) :
     QDialog(parent),

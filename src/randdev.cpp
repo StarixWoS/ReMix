@@ -1,6 +1,12 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "randdev.hpp"
+
+//Required STD includes.
+#include <random>
+
+//Required Qt includes.
+#include <QDateTime>
 
 RandDev::RandDev()
 {

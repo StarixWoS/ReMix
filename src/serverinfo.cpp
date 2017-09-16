@@ -1,6 +1,23 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "serverinfo.hpp"
+
+//ReMix Widget includes.
+#include "widgets/userdelegate.hpp"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "player.hpp"
+#include "server.hpp"
+#include "helper.hpp"
+#include "rules.hpp"
+#include "upnp.hpp"
+
+//Qt Includes.
+#include <QHostAddress>
+#include <QUdpSocket>
+#include <QtCore>
+#include <QFile>
 
 ServerInfo::ServerInfo()
 {

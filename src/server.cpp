@@ -1,6 +1,26 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "server.hpp"
+
+//ReMix Widget includes.
+#include "widgets/remixwidget.hpp"
+
+//ReMix includes.
+#include "packethandler.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "comments.hpp"
+#include "chatview.hpp"
+#include "helper.hpp"
+#include "player.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QStandardItem>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket>
+#include <QtCore>
 
 Server::Server(QWidget* parent, ServerInfo* svr,
                QStandardItemModel* plrView)

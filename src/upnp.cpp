@@ -1,6 +1,18 @@
 
+//Class includes.
 #include "upnp.hpp"
-#include "includes.hpp"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QNetworkAccessManager>
+#include <QHostAddress>
+#include <QUdpSocket>
+#include <QString>
+#include <QObject>
+#include <QtCore>
 
 QString UPNP::schemas[ UPNP_SCHEMA_COUNT ]
 {

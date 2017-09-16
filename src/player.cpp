@@ -1,6 +1,18 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "player.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "sendmsg.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QStandardItemModel>
+#include <QApplication>
+#include <QTcpSocket>
 
 Player::Player()
 {

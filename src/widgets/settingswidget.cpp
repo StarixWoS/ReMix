@@ -1,7 +1,15 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "settingswidget.hpp"
 #include "ui_settingswidget.h"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QFileDialog>
+#include <QtCore>
 
 SettingsWidget::SettingsWidget(QWidget *parent) :
     QWidget(parent),

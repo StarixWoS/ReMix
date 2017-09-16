@@ -1,6 +1,19 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "remixtabwidget.hpp"
+
+//ReMix includes.
+#include "createinstance.hpp"
+#include "remixwidget.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+#include "remix.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QToolButton>
+#include <QTabBar>
 
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance;

@@ -1,6 +1,20 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "packethandler.hpp"
+
+//ReMix includes.
+#include "packetforge.hpp"
+#include "cmdhandler.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "chatview.hpp"
+#include "helper.hpp"
+#include "player.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QTcpSocket>
+#include <QtCore>
 
 PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 {

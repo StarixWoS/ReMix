@@ -1,7 +1,25 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "remixwidget.hpp"
 #include "ui_remixwidget.h"
+
+//Required ReMix Widget includes.
+#include "widgets/plrlistwidget.hpp"
+#include "widgets/ruleswidget.hpp"
+#include "widgets/motdwidget.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "chatview.hpp"
+#include "comments.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "server.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QMenu>
 
 ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QWidget(parent),

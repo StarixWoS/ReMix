@@ -1,6 +1,16 @@
+
+//Class includes.
 #include "chatview.hpp"
-#include "includes.hpp"
 #include "ui_chatview.h"
+
+//ReMix includes.
+#include "packetforge.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QScrollBar>
+#include <QtCore>
 
 ChatView::ChatView(QWidget *parent) :
     QDialog(parent),

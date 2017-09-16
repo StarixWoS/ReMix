@@ -1,6 +1,11 @@
 
+//Class includes.
 #include "appeventfilter.hpp"
-#include "includes.hpp"
+
+//Qt Includes.
+#include <QWidget>
+#include <QEvent>
+#include <QIcon>
 
 AppEventFilter::AppEventFilter(QObject *parent) : QObject(parent)
 {

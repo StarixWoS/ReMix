@@ -61,7 +61,6 @@ CppApplication
                  "src/cmdhandler.hpp",
                  "src/serverinfo.hpp",
                  "src/prototypes.hpp",
-                 "src/includes.hpp",
                  "src/chatview.hpp",
                  "src/comments.hpp",
                  "src/settings.hpp",

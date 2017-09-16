@@ -1,7 +1,15 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "comments.hpp"
 #include "ui_comments.h"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QScrollBar>
+#include <QtCore>
 
 Comments::Comments(QWidget *parent) :
     QDialog(parent),
