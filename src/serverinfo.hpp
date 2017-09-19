@@ -71,6 +71,7 @@ class ServerInfo
 
     QString gameName{ "WoS" };
     int gameId{ 0 };
+    Games gameId{ Games::Invalid };
 
     QString gameInfo{ "" };
     QString info{ "" };

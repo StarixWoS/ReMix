@@ -38,18 +38,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     chatView = new ChatView( parent );
     chatView->setTitle( svr->getName() );
 
-    Games gameID{ Games::Invalid };
-    QString gameName{ server->getGameName() };
-    if ( Helper::cmpStrings( gameName, "WoS" ) )
-        gameID = Games::WoS;
-    else if ( Helper::cmpStrings( gameName, "ToY" ) )
-        gameID = Games::ToY;
-    else if ( Helper::cmpStrings( gameName, "W97" ) )
-        gameID = Games::W97;
-    else
-        gameID = Games::Invalid;
-
-    chatView->setGameID( gameID );
+    chatView->setGameID( server->getGameId() );
 
     pktHandle = new PacketHandler( server, chatView );
 

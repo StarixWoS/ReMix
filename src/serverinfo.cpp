@@ -542,14 +542,22 @@ void ServerInfo::setGameInfo(const QString& value)
     gameInfo = value;
 }
 
-int ServerInfo::getGameId() const
+Games ServerInfo::getGameId() const
 {
     return gameId;
 }
 
-void ServerInfo::setGameId(int value)
+void ServerInfo::setGameId(const QString& gameName)
 {
-    gameId = value;
+    Games gameID{ Games::Invalid };
+    if ( Helper::cmpStrings( gameName, "WoS" ) )
+        gameID = Games::WoS;
+    else if ( Helper::cmpStrings( gameName, "ToY" ) )
+        gameID = Games::ToY;
+    else if ( Helper::cmpStrings( gameName, "W97" ) )
+        gameID = Games::W97;
+
+    gameId = gameID;
 }
 
 QString ServerInfo::getGameName() const
