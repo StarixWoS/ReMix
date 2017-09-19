@@ -558,13 +558,13 @@ void Player::setAdminPwdReceived(const bool& value)
     adminPwdReceived = value;
 }
 
-bool Player::getIsAdmin()
+bool Player::getIsAdmin() const
 {
     QString sernum{ this->getSernumHex_s() };
     return User::getIsAdmin( sernum );
 }
 
-qint32 Player::getAdminRank()
+qint32 Player::getAdminRank() const
 {
     QString sernum{ this->getSernumHex_s() };
     return User::getAdminRank( sernum );

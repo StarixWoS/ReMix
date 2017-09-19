@@ -22,7 +22,7 @@ RunGuard::~RunGuard()
     release();
 }
 
-bool RunGuard::isAnotherRunning()
+bool RunGuard::isAnotherRunning() const
 {
     if ( sharedMem->isAttached() )
         return false;

@@ -115,7 +115,7 @@ void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
     }
 }
 
-qint32 ReMixTabWidget::getPlayerCount()
+qint32 ReMixTabWidget::getPlayerCount() const
 {
     qint32 playerCount{ 0 };
 
@@ -129,7 +129,7 @@ qint32 ReMixTabWidget::getPlayerCount()
     return playerCount;
 }
 
-quint32 ReMixTabWidget::getServerCount()
+quint32 ReMixTabWidget::getServerCount() const
 {
     quint32 serverCount{ 0 };
 

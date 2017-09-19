@@ -339,7 +339,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
         Helper::logToFile( log, logTxt, true, true );
 }
 
-bool PacketHandler::checkBannedInfo(Player* plr)
+bool PacketHandler::checkBannedInfo(Player* plr) const
 {
     if ( plr == nullptr )
         return true;

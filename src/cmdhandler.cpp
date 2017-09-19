@@ -46,7 +46,7 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
 
 CmdHandler::~CmdHandler(){}
 
-bool CmdHandler::canUseAdminCommands(Player* plr)
+bool CmdHandler::canUseAdminCommands(Player* plr) const
 {
     bool retn{ false };
     QString unauth{ "While your SerNum is registered as a Remote Admin, "

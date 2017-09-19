@@ -37,11 +37,11 @@ class ReMixWidget : public QWidget
                              ServerInfo* svrInfo = nullptr);
         ~ReMixWidget();
 
-        ServerInfo* getServerInfo();
+        ServerInfo* getServerInfo() const;
         void renameServer(const QString& newName);
 
         void sendServerMessage(const QString& msg);
-        qint32 getPlayerCount();
+        qint32 getPlayerCount() const;
         QString getServerName() const;
 
         Server* getTcpServer() const;

@@ -31,8 +31,8 @@ class ReMixTabWidget : public QTabWidget
         ~ReMixTabWidget();
 
         void sendMultiServerMessage(const QString& msg);
-        qint32 getPlayerCount();
-        quint32 getServerCount();
+        qint32 getPlayerCount() const;
+        quint32 getServerCount() const;
 
         qint32 getPrevTabIndex() const;
         void setPrevTabIndex(const qint32& value);

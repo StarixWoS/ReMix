@@ -865,7 +865,7 @@ void ServerInfo::setMasterUDPResponse(const bool& value)
         masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
 }
 
-bool ServerInfo::getMasterTimedOut()
+bool ServerInfo::getMasterTimedOut() const
 {
     return masterTimedOut;
 }

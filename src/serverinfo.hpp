@@ -216,7 +216,7 @@ class ServerInfo
         bool getMasterUDPResponse() const;
         void setMasterUDPResponse(const bool& value);
 
-        bool getMasterTimedOut();
+        bool getMasterTimedOut() const;
         void setMasterTimedOut(const bool& value);
 
         void startMasterCheckIn();

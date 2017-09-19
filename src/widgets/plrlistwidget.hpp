@@ -30,7 +30,7 @@ class PlrListWidget : public QWidget
                                ServerInfo* svr = nullptr);
         ~PlrListWidget();
 
-        QStandardItemModel* getPlrModel();
+        QStandardItemModel* getPlrModel() const;
         void resizeColumns();
 
     private:

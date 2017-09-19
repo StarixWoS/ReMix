@@ -22,7 +22,7 @@ class SelectWorld : public QDialog
         explicit SelectWorld(QWidget* parent = 0 );
         ~SelectWorld();
 
-        QString getSelectedWorld();
+        QString& getSelectedWorld();
 
     private slots:
         void on_worldViewer_activated(const QModelIndex& index);

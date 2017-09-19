@@ -37,7 +37,7 @@ SelectWorld::~SelectWorld()
     delete ui;
 }
 
-QString SelectWorld::getSelectedWorld()
+QString& SelectWorld::getSelectedWorld()
 {
     return world;
 }

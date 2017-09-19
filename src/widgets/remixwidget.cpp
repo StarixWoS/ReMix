@@ -79,7 +79,7 @@ ReMixWidget::~ReMixWidget()
     delete ui;
 }
 
-ServerInfo* ReMixWidget::getServerInfo()
+ServerInfo* ReMixWidget::getServerInfo() const
 {
     return server;
 }
@@ -102,7 +102,7 @@ void ReMixWidget::sendServerMessage(const QString& msg)
         server->sendMasterMessage( msg, nullptr, true );
 }
 
-qint32 ReMixWidget::getPlayerCount()
+qint32 ReMixWidget::getPlayerCount() const
 {
     if ( server != nullptr )
         return server->getPlayerCount();

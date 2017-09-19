@@ -19,7 +19,7 @@ class SendMsg : public QDialog
         explicit SendMsg(const QString& serNum, QWidget* parent = nullptr);
         ~SendMsg();
 
-        bool sendToAll();
+        bool sendToAll() const;
 
     private:
         bool eventFilter(QObject* obj, QEvent* event);

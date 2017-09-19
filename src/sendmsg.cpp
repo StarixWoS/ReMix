@@ -45,7 +45,7 @@ SendMsg::~SendMsg()
     delete ui;
 }
 
-bool SendMsg::sendToAll()
+bool SendMsg::sendToAll() const
 {
     bool checked{ ui->checkBox->isChecked() };
     ui->checkBox->setChecked( false );

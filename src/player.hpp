@@ -168,8 +168,8 @@ class Player : public QObject
         bool getAdminPwdReceived() const;
         void setAdminPwdReceived(const bool& value);
 
-        bool getIsAdmin();
-        qint32 getAdminRank();
+        bool getIsAdmin() const;
+        qint32 getAdminRank() const;
 
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);

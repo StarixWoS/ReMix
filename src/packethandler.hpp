@@ -34,7 +34,7 @@ class PacketHandler : public QObject
                             const quint16& port,
                             QHash<QHostAddress, QByteArray>* bioHash);
 
-        bool checkBannedInfo(Player* plr);
+        bool checkBannedInfo(Player* plr) const;
 
     private:
         void detectFlooding(Player* plr);

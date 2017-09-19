@@ -67,7 +67,7 @@ PlrListWidget::~PlrListWidget()
     delete ui;
 }
 
-QStandardItemModel* PlrListWidget::getPlrModel()
+QStandardItemModel* PlrListWidget::getPlrModel() const
 {
     return plrModel;
 }
