@@ -27,27 +27,27 @@ build_script:
 - cmd: >-
 
     qbs-setup-toolchains --detect
-	
+
     qbs setup-qt %QT%\bin\qmake.exe qtav
-	
+
     qbs config profiles.qtav.baseProfile mingw32
-	
+
     qbs build profile:qtav release
 
     cd release
-	
+
     windeployqt ReMix-%APPVEYOR_REPO_TAG_NAME%-release.exe
 
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip ReMix-%APPVEYOR_REPO_TAG_NAME%-release.exe
-	
+
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip C:\MinGW\bin\libgcc_s_dw2-1.dll C:\MinGW\bin\libstdc++-6.dll
-	
+
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip Qt5Core.dll Qt5Gui.dll Qt5Network.dll Qt5Widgets.dll
-	
+
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip %QT%\bin\libwinpthread-1.dll
-	
+
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip platforms\qwindows.dll
-	
+
 
 artifacts:
 - path: release/remix-*.zip
