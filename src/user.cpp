@@ -323,7 +323,7 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
 
         user->updateRowData( index.row(),
                              UserColumns::cBANDATE,
-                             date );
+                             Helper::getTimeAsString( date ) );
     }
     return true;
 }
@@ -467,7 +467,7 @@ QModelIndex User::findModelIndex(const QString& value, const UserColumns& col)
     if ( col == UserColumns::cSERNUM )
         serNum = Helper::serNumToIntStr( value );
 
-    QList<QStandardItem*> list = tblModel->findItems( value,
+    QList<QStandardItem*> list = tblModel->findItems( serNum,
                                                       Qt::MatchExactly,
                                                       col );
     QModelIndex index;
@@ -573,33 +573,37 @@ void User::loadUserInfo()
     ui->userTable->resizeColumnsToContents();
 }
 
-void User::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
+void User::updateRowData(const qint32& row, const qint32& col,
+                         const QVariant& data)
 {
-    QString msg{ "" };
-    if ( col == UserColumns::cSEENDATE
-      || col == UserColumns::cBANDATE )
-    {
-        uint date{ data.toUInt() };
-        if ( date > 0 )
-        {
-            msg = QDateTime::fromTime_t( date )
-                       .toString( "ddd MMM dd HH:mm:ss yyyy" );
-        }
-        else
-        {
-            if ( col == UserColumns::cSEENDATE )
-                msg = "Never Seen";
-            else
-                msg = "";
-        }
-    }
-
     QModelIndex index = tblModel->index( row, col );
     if ( index.isValid() )
     {
-        tblModel->setData( index, data, Qt::DisplayRole );
-        if ( col == UserColumns::cBANDATE )
-            ui->userTable->resizeColumnToContents( UserColumns::cBANDATE );
+        QString msg{ "" };
+        if ( col == UserColumns::cSEENDATE
+          || col == UserColumns::cBANDATE )
+        {
+            uint date{ data.toUInt() };
+            if ( date > 0 )
+            {
+                msg = Helper::getTimeAsString( date );
+            }
+            else
+            {
+                if ( col == UserColumns::cSEENDATE )
+                    msg = "Never Seen";
+                else
+                    msg = "";
+            }
+
+            tblModel->setData( index, msg, Qt::DisplayRole );
+            if ( col == UserColumns::cBANDATE )
+                ui->userTable->resizeColumnToContents( UserColumns::cBANDATE );
+        }
+        else
+        {
+            tblModel->setData( index, data, Qt::DisplayRole );
+        }
     }
 }
 
@@ -663,15 +667,11 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
             {
                 bool setReason{ false };
                 QString reason{ "" };
-                QString date{ "" };
 
                 bool banned = tblModel->data( index ).toBool();
                 if ( banned )
                 {
                     value = QDateTime::currentDateTime().toTime_t();
-                    date = QDateTime::fromTime_t( value.toUInt() )
-                                .toString( "ddd MMM dd HH:mm:ss yyyy" );
-
                     reason = getData( sernum, keys[ UserKeys::kREASON ] )
                                 .toString();
                     if ( reason.isEmpty() )

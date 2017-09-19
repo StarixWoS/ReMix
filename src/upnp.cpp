@@ -365,7 +365,7 @@ void UPNP::postSOAP(const QString& action, const QString& message,
 
             if ( Settings::getLogFiles() )
             {
-                QString logMsg{ "Got Reply from  Action[ %1 ] for Port[ %2:%3 ]" };
+                QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
                         logMsg = logMsg.arg( action )
                                        .arg( protocol )
                                        .arg( port );

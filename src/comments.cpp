@@ -59,8 +59,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                                "SerNum: %2 \r\n"
                                "%3: %4"
                                "\r\n --- \r\n" )
-                          .arg( QDateTime::fromTime_t( date )
-                                     .toString( "ddd MMM dd HH:mm:ss yyyy" ) )
+                          .arg( Helper::getTimeAsString( date ) )
                           .arg( sernum )
                           .arg( alias )
                           .arg( message );

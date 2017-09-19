@@ -234,16 +234,12 @@ void Helper::logToFile(const QString& file, const QString& text,
     if ( log.open( QFile::WriteOnly | QFile::Append ) )
     {
         if ( timeStamp )
-        {
-            uint date = QDateTime::currentDateTime().toTime_t();
-            logTxt.prepend( QDateTime::fromTime_t( date )
-                               .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
-        }
+            logTxt.prepend( "[ " % getTimeAsString() % " ] " );
 
         if ( newLine )
             logTxt.prepend( "\r\n" );
 
-        log.write( text.toLatin1() );
+        log.write( logTxt.toLatin1() );
 
         log.close();
     }
@@ -563,4 +559,14 @@ qint32 Helper::getStrIndex(const QString& strA, const QString& strB)
 {
     //Returns the position of strB within strA.
     return strA.indexOf( strB, 0, Qt::CaseInsensitive );
+}
+
+QString Helper::getTimeAsString(const quint64& time)
+{
+    quint64 date{ time };
+    if ( date == 0 )
+        date = QDateTime::currentDateTime().toTime_t();
+
+    return QDateTime::fromTime_t( date )
+                .toString( "ddd MMM dd HH:mm:ss yyyy" );
 }

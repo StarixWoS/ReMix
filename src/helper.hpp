@@ -69,6 +69,7 @@ class Helper
         static bool strContainsStr(const QString& strA, const QString& strB);
         static bool cmpStrings(const QString& strA, const QString& strB );
         static qint32 getStrIndex(const QString& strA, const QString& strB);
+        static QString getTimeAsString(const quint64& time = 0);
 };
 
 #endif // PREFERENCES_HPP
