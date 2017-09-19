@@ -16,25 +16,26 @@ class ChatView : public QDialog
     Games gameID{ Games::Invalid };
 
     public:
-        explicit ChatView(QWidget *parent = 0);
+        explicit ChatView(QWidget* parent = 0);
         ~ChatView();
 
-        void setTitle(QString name);
-        void setGameID(Games gID);
+        void setTitle(const QString& name);
+        void setGameID(const Games& gID);
         Games getGameID() const;
 
-        void parsePacket(QString& packet, QString alias = "");
-        void parseChatEffect(QString packet);
-        void insertChat(QString msg, QString color, bool newLine);
+        void parsePacket(const QString& packet, QString alias = "");
+        void parseChatEffect(const QString& packet);
+        void insertChat(const QString& msg, const QString& color,
+                        const bool& newLine);
 
     private slots:
         void on_chatInput_returnPressed();
 
     private:
-        Ui::ChatView *ui;
+        Ui::ChatView* ui;
 
     signals:
-        void sendChat(QString);
+        void sendChat(const QString&);
 };
 
 #endif // CHATVIEW_HPP

@@ -20,7 +20,7 @@
 
 ReMix* ReMix::instance;
 
-ReMix::ReMix(QWidget *parent) :
+ReMix::ReMix(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {

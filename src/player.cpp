@@ -161,7 +161,7 @@ Player::~Player()
     this->deleteLater();
 }
 
-void Player::sendMessage(QString msg, bool toAll)
+void Player::sendMessage(const QString& msg, const bool& toAll)
 {
     ServerInfo* server{ this->getServerInfo() };
     if ( server == nullptr )
@@ -339,7 +339,7 @@ int Player::getTargetType() const
     return targetType;
 }
 
-void Player::setTargetType(int value)
+void Player::setTargetType(const int& value)
 {
     targetType = value;
 }
@@ -400,7 +400,7 @@ int Player::getSlotPos() const
     return slotPos;
 }
 
-void Player::setSlotPos(int value)
+void Player::setSlotPos(const int& value)
 {
     slotPos = value;
 }
@@ -433,7 +433,7 @@ bool Player::getSvrPwdReceived() const
     return svrPwdReceived;
 }
 
-void Player::setSvrPwdReceived(bool value)
+void Player::setSvrPwdReceived(const bool& value)
 {
     svrPwdReceived = value;
 }
@@ -453,7 +453,7 @@ int Player::getPacketFloodCount() const
     return packetFloodCount;
 }
 
-void Player::setPacketFloodCount(int value)
+void Player::setPacketFloodCount(const int& value)
 {
     packetFloodCount = value;
 }
@@ -463,7 +463,7 @@ int Player::getPacketsIn() const
     return packetsIn;
 }
 
-void Player::setPacketsIn(int value, int incr)
+void Player::setPacketsIn(const int& value, const int& incr)
 {
     packetsIn = value + incr;
 
@@ -489,7 +489,7 @@ int Player::getPacketsOut() const
     return packetsOut;
 }
 
-void Player::setPacketsOut(int value)
+void Player::setPacketsOut(const int& value)
 {
     packetsOut = value;
 }
@@ -505,7 +505,7 @@ void Player::setBytesOut(const qint64& value)
     this->setAvgBaud( bytesOut, true );
 }
 
-qint64 Player::getAvgBaud(bool out) const
+qint64 Player::getAvgBaud(const bool& out) const
 {
     if ( out )
         return avgBaudOut;
@@ -513,7 +513,7 @@ qint64 Player::getAvgBaud(bool out) const
         return avgBaudIn;
 }
 
-void Player::setAvgBaud(const qint64& bytes, bool out)
+void Player::setAvgBaud(const qint64& bytes, const bool& out)
 {
     qint64 time = this->getConnTime();
     qint64 baud{ 0 };
@@ -543,7 +543,7 @@ bool Player::getAdminPwdRequested() const
     return adminPwdRequested;
 }
 
-void Player::setAdminPwdRequested(bool value)
+void Player::setAdminPwdRequested(const bool& value)
 {
     adminPwdRequested = value;
 }
@@ -553,7 +553,7 @@ bool Player::getAdminPwdReceived() const
     return adminPwdReceived;
 }
 
-void Player::setAdminPwdReceived(bool value)
+void Player::setAdminPwdReceived(const bool& value)
 {
     adminPwdReceived = value;
 }
@@ -585,7 +585,7 @@ bool Player::getNewAdminPwdRequested() const
     return newAdminPwdRequested;
 }
 
-void Player::setNewAdminPwdRequested(bool value)
+void Player::setNewAdminPwdRequested(const bool& value)
 {
     newAdminPwdRequested = value;
     if ( newAdminPwdRequested )
@@ -597,7 +597,7 @@ bool Player::getNewAdminPwdReceived() const
     return newAdminPwdReceived;
 }
 
-void Player::setNewAdminPwdReceived(bool value)
+void Player::setNewAdminPwdReceived(const bool& value)
 {
     newAdminPwdReceived = value;
 }
@@ -607,7 +607,7 @@ bool Player::getDisconnected() const
     return pendingDisconnect;
 }
 
-void Player::setDisconnected(bool value)
+void Player::setDisconnected(const bool& value)
 {
     pendingDisconnect = value;
     if ( pendingDisconnect )
@@ -626,7 +626,7 @@ bool Player::getNetworkMuted() const
     return networkMuted;
 }
 
-void Player::setNetworkMuted(bool value, QString& msg)
+void Player::setNetworkMuted(const bool& value, const QString& msg)
 {
     if ( Settings::getLogFiles() )
     {
@@ -639,7 +639,7 @@ void Player::setNetworkMuted(bool value, QString& msg)
     networkMuted = value;
 }
 
-void Player::validateSerNum(ServerInfo* server, quint32 id)
+void Player::validateSerNum(ServerInfo* server, const quint32& id)
 {
     if (( this->getSernum_i() != id
        && id > 0 )

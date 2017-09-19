@@ -36,8 +36,9 @@ class Helper
         static QString serNumToIntStr(QString sernum);
         static qint32 serNumtoInt(QString& sernum);
 
-        static void logToFile(QString& file, QString& text,
-                              bool timeStamp = false, bool newLine = false);
+        static void logToFile(const QString& file, const QString& text,
+                              const bool& timeStamp = false,
+                              const bool& newLine = false);
 
         static bool confirmAction(QWidget* parent, QString& title,
                                   QString& prompt);
@@ -53,12 +54,13 @@ class Helper
 
         static QString hashPassword(QString& password);
         static QString genPwdSalt(RandDev* randGen,
-                                  qint32 length = SALT_LENGTH);
+                                  const qint32& length = SALT_LENGTH);
 
         static bool validateSalt(QString& salt);
 
-        static bool naturalSort(QString left, QString right, bool &result);
-        static void delay(qint32 time);
+        static bool naturalSort(QString& left, QString& right,
+                                bool& result);
+        static void delay(const qint32& time);
 
         static QHostAddress getPrivateIP();
         static void getSynRealData(ServerInfo* svr);

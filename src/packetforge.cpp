@@ -35,7 +35,7 @@ PacketForge* PacketForge::getInstance()
     return instance;
 }
 
-QString PacketForge::decryptPacket(QString packet)
+QString PacketForge::decryptPacket(const QString& packet)
 {
     //Player positioning packets, return an empty string.
     if ( !Helper::strStartsWithStr( packet, ":SR?" )
@@ -49,7 +49,7 @@ QString PacketForge::decryptPacket(QString packet)
     return QString( "" );
 }
 
-bool PacketForge::validateSerNum(Player* plr, QString packet)
+bool PacketForge::validateSerNum(Player* plr, const QString& packet)
 {
     QString pkt{ this->decryptPacket( packet ) };
 

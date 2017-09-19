@@ -221,9 +221,11 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-void Helper::logToFile(QString& file, QString& text, bool timeStamp,
-                       bool newLine)
+void Helper::logToFile(const QString& file, const QString& text,
+                       const bool& timeStamp,
+                       const bool& newLine)
 {
+    QString logTxt = text;
     QFile log( file );
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )
@@ -234,12 +236,12 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp,
         if ( timeStamp )
         {
             uint date = QDateTime::currentDateTime().toTime_t();
-            text.prepend( QDateTime::fromTime_t( date )
+            logTxt.prepend( QDateTime::fromTime_t( date )
                                .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
         }
 
         if ( newLine )
-            text.prepend( "\r\n" );
+            logTxt.prepend( "\r\n" );
 
         log.write( text.toLatin1() );
 
@@ -316,7 +318,7 @@ QString Helper::hashPassword(QString& password)
     return QString( hash.result().toHex() );
 }
 
-QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
+QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
 {
     bool newRNG{ false };
     if ( randGen == nullptr )
@@ -367,7 +369,7 @@ bool Helper::validateSalt(QString& salt)
     return true;
 }
 
-bool Helper::naturalSort(QString left, QString right, bool& result)
+bool Helper::naturalSort(QString& left, QString& right, bool& result)
 {
     do
     {
@@ -414,7 +416,7 @@ bool Helper::naturalSort(QString left, QString right, bool& result)
     return false;
 }
 
-void Helper::delay(qint32 time)
+void Helper::delay(const qint32& time)
 {
     //Delay the next Port refresh by /time/ seconds.
     QTime delayedTime = QTime::currentTime().addSecs( time );

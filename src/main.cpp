@@ -10,7 +10,7 @@
 #include <QStyleFactory>
 #include <QApplication>
 
-int main(int argc, char *[])
+int main(int argc, char* [])
 {
     RunGuard guard( "ReMix_Game_Server" );
     if ( !guard.tryToRun() )

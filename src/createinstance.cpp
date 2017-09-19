@@ -25,7 +25,7 @@ const QString CreateInstance::gameNames[ GAME_NAME_COUNT ] =
     "W97"
 };
 
-CreateInstance::CreateInstance(QWidget *parent) :
+CreateInstance::CreateInstance(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::CreateInstance)
 {
@@ -45,7 +45,7 @@ CreateInstance::~CreateInstance()
     delete ui;
 }
 
-void CreateInstance::updateServerList(bool firstRun)
+void CreateInstance::updateServerList(const bool& firstRun)
 {
     ui->servers->clear();
     ui->servers->addItem( "" );  //First item will always be blank.
@@ -74,7 +74,7 @@ void CreateInstance::updateServerList(bool firstRun)
             running = false;
             if ( firstRun )
             {
-                Settings::setServerRunning( QVariant( false ), name );
+                Settings::setServerRunning( false, name );
             }
             else
                 running = Settings::getServerRunning( name );
@@ -115,18 +115,11 @@ void CreateInstance::on_initializeServer_clicked()
         if ( server == nullptr )    //Failed to create the ServerInfo instance.
             return;
 
-        QString gameName{ gameNames[ ui->gameName->currentIndex() ] };
-        QString svrPort{ ui->portNumber->text( ) };
-
         Helper::getSynRealData( server );
         server->setName( svrName );
+        server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
+        server->setPrivatePort( ui->portNumber->text( ).toUShort() );
         server->setServerID( Settings::getServerID( svrName ) );
-        server->setPrivatePort( svrPort.toUShort() );
-        server->setGameName( gameName );
-
-        Settings::setPortNumber( QVariant( svrPort ), svrName );
-        Settings::setGameName( QVariant( gameName ), svrName );
-
         server->setIsPublic( ui->isPublic->isChecked() );
 
         emit this->createServerAcceptedSignal( server );
@@ -170,7 +163,7 @@ quint16 CreateInstance::genPort()
     return port;
 }
 
-bool CreateInstance::testPort(quint16 port)
+bool CreateInstance::testPort(const quint16& port)
 {
     //Get the best possible PrivateIP.
     QHostAddress addr{ Helper::getPrivateIP() };
@@ -265,7 +258,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         ui->isPublic->setChecked( false );
 }
 
-void CreateInstance::on_portNumber_textChanged(const QString &arg1)
+void CreateInstance::on_portNumber_textChanged(const QString& arg1)
 {
     //Reduce the User Inputted Port Number to within proper bounds.
     quint16 port{ arg1.toUShort() };
@@ -286,7 +279,7 @@ void CreateInstance::on_portNumber_textChanged(const QString &arg1)
     ui->portNumber->setText( Helper::intToStr( port ) );
 }
 
-void CreateInstance::on_servers_currentTextChanged(const QString &arg1)
+void CreateInstance::on_servers_currentTextChanged(const QString& arg1)
 {
     int index{ ui->servers->findText( arg1 ) };
     if ( index >= 0 )

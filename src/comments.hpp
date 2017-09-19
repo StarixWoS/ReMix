@@ -16,17 +16,17 @@ class Comments : public QDialog
         Q_OBJECT
 
     public:
-        explicit Comments(QWidget *parent = 0);
+        explicit Comments(QWidget* parent = 0);
         ~Comments();
 
-        void setTitle(QString name);
+        void setTitle(const QString& name);
 
     public slots:
-        void newUserCommentSlot(QString& sernum, QString& alias,
-                                QString& message);
+        void newUserCommentSlot(const QString& sernum, const QString& alias,
+                                const QString& message);
 
     private:
-        Ui::Comments *ui;
+        Ui::Comments* ui;
 };
 
 #endif // COMMENTS_HPP

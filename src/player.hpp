@@ -78,7 +78,7 @@ class Player : public QObject
         explicit Player();
         ~Player();
 
-        void sendMessage(QString msg = "", bool toAll = false);
+        void sendMessage(const QString& msg = "", const bool& toAll = false);
 
         enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
 
@@ -110,7 +110,7 @@ class Player : public QObject
         void setTargetSerNum(quint32 value);
 
         int getTargetType() const;
-        void setTargetType(int value);
+        void setTargetType(const int& value);
 
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
@@ -128,7 +128,7 @@ class Player : public QObject
         void setSvrPwdRequested(bool value);
 
         int getSlotPos() const;
-        void setSlotPos(int value);
+        void setSlotPos(const int& value);
 
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
@@ -137,36 +137,36 @@ class Player : public QObject
         void setPublicPort(const quint32& value);
 
         bool getSvrPwdReceived() const;
-        void setSvrPwdReceived(bool value);
+        void setSvrPwdReceived(const bool& value);
 
         qint64 getFloodTime() const;
         void restartFloodTimer();
 
         int getPacketFloodCount() const;
-        void setPacketFloodCount(int value);
+        void setPacketFloodCount(const int& value);
 
         int getPacketsIn() const;
-        void setPacketsIn(int value, int incr);
+        void setPacketsIn(const int& value, const int& incr);
 
         qint64 getBytesIn() const;
         void setBytesIn(const qint64& value);
 
         int getPacketsOut() const;
-        void setPacketsOut(int value);
+        void setPacketsOut(const int& value);
 
         qint64 getBytesOut() const;
         void setBytesOut(const qint64& value);
 
-        qint64 getAvgBaud(bool out) const;
-        void setAvgBaud(const qint64& bytes, bool out);
+        qint64 getAvgBaud(const bool& out) const;
+        void setAvgBaud(const qint64& bytes, const bool& out);
 
         void resetAdminAuth();
 
         bool getAdminPwdRequested() const;
-        void setAdminPwdRequested(bool value);
+        void setAdminPwdRequested(const bool& value);
 
         bool getAdminPwdReceived() const;
-        void setAdminPwdReceived(bool value);
+        void setAdminPwdReceived(const bool& value);
 
         bool getIsAdmin();
         qint32 getAdminRank();
@@ -175,20 +175,20 @@ class Player : public QObject
         void setCmdAttempts(const qint32& value);
 
         bool getNewAdminPwdRequested() const;
-        void setNewAdminPwdRequested(bool value);
+        void setNewAdminPwdRequested(const bool& value);
 
         bool getNewAdminPwdReceived() const;
-        void setNewAdminPwdReceived(bool value);
+        void setNewAdminPwdReceived(const bool& value);
 
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
         bool getDisconnected() const;
-        void setDisconnected(bool value);
+        void setDisconnected(const bool& value);
 
         bool getNetworkMuted() const;
-        void setNetworkMuted(bool value, QString& msg);
+        void setNetworkMuted(const bool& value, const QString& msg);
 
-        void validateSerNum(ServerInfo* server, quint32 id);
+        void validateSerNum(ServerInfo* server, const quint32& id);
 
         QString getDVar() const;
         void setDVar(const QString& value);

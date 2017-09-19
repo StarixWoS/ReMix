@@ -26,11 +26,12 @@ class PacketHandler : public QObject
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        void parsePacket(QString& packet, Player* plr = nullptr);
-        void parseSRPacket(QString& packet, Player* plr = nullptr);
-        void parseMIXPacket(QString& packet, Player* plr = nullptr);
+        void parsePacket(const QString& packet, Player* plr = nullptr);
+        void parseSRPacket(const QString& packet, Player* plr = nullptr);
+        void parseMIXPacket(const QString& packet, Player* plr = nullptr);
 
-        void parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr, quint16 port,
+        void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr,
+                            const quint16& port,
                             QHash<QHostAddress, QByteArray>* bioHash);
 
         bool checkBannedInfo(Player* plr);
@@ -38,20 +39,20 @@ class PacketHandler : public QObject
     private:
         void detectFlooding(Player* plr);
 
-        void readMIX0(QString& packet, Player* plr);
-        void readMIX1(QString& packet, Player* plr);
-        void readMIX2(QString& packet, Player* plr);
-        void readMIX3(QString& packet, Player* plr);
-        void readMIX4(QString& packet, Player* plr);
-        void readMIX5(QString& packet, Player* plr);
-        void readMIX6(QString& packet, Player* plr);
-        void readMIX7(QString& packet, Player* plr);
-        void readMIX8(QString& packet, Player* plr);
-        void readMIX9(QString& packet, Player* plr);
+        void readMIX0(const QString& packet, Player* plr);
+        void readMIX1(const QString& packet, Player* plr);
+        void readMIX2(const QString& packet, Player* plr);
+        void readMIX3(const QString& packet, Player* plr);
+        void readMIX4(const QString& packet, Player* plr);
+        void readMIX5(const QString& packet, Player* plr);
+        void readMIX6(const QString& packet, Player* plr);
+        void readMIX7(const QString& packet, Player* plr);
+        void readMIX8(const QString& packet, Player* plr);
+        void readMIX9(const QString& packet, Player* plr);
 
     signals:
-        void newUserCommentSignal(QString& sernum, QString& alias,
-                                  QString& message);
+        void newUserCommentSignal(const QString& sernum, const QString& alias,
+                                  const QString& message);
 };
 
 #endif // PACKETHANDLER_HPP

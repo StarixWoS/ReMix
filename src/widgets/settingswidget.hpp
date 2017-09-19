@@ -27,17 +27,17 @@ class SettingsWidget : public QWidget
         explicit SettingsWidget(QWidget* parent = nullptr);
         ~SettingsWidget();
 
-        void setCheckedState(Toggles option, bool val);
+        void setCheckedState(const Toggles& option, const bool& val);
 
     private:
-        void toggleSettings(qint32 row, Qt::CheckState value);
+        void toggleSettings(const qint32& row, Qt::CheckState value);
 
     private slots:
-        void on_settingsView_doubleClicked(const QModelIndex &index);
-        void on_settingsView_itemClicked(QTableWidgetItem *item);
+        void on_settingsView_doubleClicked(const QModelIndex& index);
+        void on_settingsView_itemClicked(QTableWidgetItem* item);
 
     private:
-        Ui::SettingsWidget *ui;
+        Ui::SettingsWidget* ui;
 };
 
 #endif // SETTINGSWIDGET_HPP

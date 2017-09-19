@@ -199,7 +199,7 @@
             UI_UPDATE_TIME = 500,
         };
 
-        enum Games{ WoS = 1, ToY = 2, W97 = 3, Invalid = 4 };
+        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = 0 };
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
         enum Themes{ LIGHT = 0, DARK = 1 };
 

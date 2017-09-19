@@ -84,7 +84,7 @@ ServerInfo* ReMixWidget::getServerInfo()
     return server;
 }
 
-void ReMixWidget::renameServer(QString newName)
+void ReMixWidget::renameServer(const QString& newName)
 {
     if ( !newName.isEmpty() )
     {
@@ -96,12 +96,10 @@ void ReMixWidget::renameServer(QString newName)
     }
 }
 
-void ReMixWidget::sendServerMessage(QString msg)
+void ReMixWidget::sendServerMessage(const QString& msg)
 {
     if ( server != nullptr )
-    {
         server->sendMasterMessage( msg, nullptr, true );
-    }
 }
 
 qint32 ReMixWidget::getPlayerCount()
@@ -285,7 +283,7 @@ void ReMixWidget::on_isPublicServer_toggled(bool value)
         server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
-void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
+void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
 {
     QString title = QString( "Invalid IP:" );
     QString prompt = QString( "Do you wish to mark the IP Address [ %1 ] as "

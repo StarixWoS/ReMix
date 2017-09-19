@@ -33,7 +33,7 @@ class ReMix : public QMainWindow
         void initUIUpdate();
 
     public:
-        explicit ReMix(QWidget *parent = 0);
+        explicit ReMix(QWidget* parent = 0);
         ~ReMix();
 
         static ReMix* getInstance();
@@ -41,8 +41,6 @@ class ReMix : public QMainWindow
 
         static void updateTitleBars(ServerInfo* server);
         static void getSynRealData(ServerInfo* svr);
-        static QPalette& setupPalette(qint32 type);
-        static QPalette& getPalette(qint32 type);
 
     private slots:
         //Handle Minimize events.
@@ -54,7 +52,7 @@ class ReMix : public QMainWindow
         bool rejectCloseEvent();
 
     private:
-        Ui::ReMix *ui;
+        Ui::ReMix* ui;
 };
 
 #endif // REMIX_HPP

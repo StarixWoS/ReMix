@@ -20,7 +20,7 @@ bool RandDev::getInitialized()
     return deviceInitialized;
 }
 
-void RandDev::setInitialized(bool value)
+void RandDev::setInitialized(const bool& value)
 {
     deviceInitialized = value;
 }

@@ -21,7 +21,7 @@
 #include <QtCore>
 #include <QMenu>
 
-PlrListWidget::PlrListWidget(QWidget *parent, ServerInfo* svr) :
+PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     QWidget(parent),
     ui(new Ui::PlrListWidget)
 {
@@ -91,7 +91,7 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
-void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint &pos)
+void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
 {
     QModelIndex menuIndex = plrProxy->mapToSource(
                                 ui->playerView->indexAt( pos ) );

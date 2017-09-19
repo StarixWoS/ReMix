@@ -25,8 +25,8 @@ class PacketForge
         static PacketForge* getInstance();
 
         //Wrappers for our imported functions.
-        QString decryptPacket(QString packet);
-        bool validateSerNum(Player* plr, QString packet);
+        QString decryptPacket(const QString& packet);
+        bool validateSerNum(Player* plr, const QString& packet);
 };
 
 #endif // PACKETFORGE_HPP

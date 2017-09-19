@@ -107,7 +107,8 @@ Server::~Server()
     bioHash.clear();
 }
 
-void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
+void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
+                               const quint16& port)
 {
     QString ip{ peerAddr.toString() };
 
@@ -141,8 +142,9 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
     pktHandle->checkBannedInfo( plr );
 }
 
-QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
-                                             Player* plr, bool insert)
+QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
+                                             const QByteArray& data,
+                                             Player* plr, const bool& insert)
 {
     QString bio = QString( data );
     int row{ -1 };

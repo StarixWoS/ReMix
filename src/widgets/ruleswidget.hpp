@@ -31,19 +31,19 @@ class RulesWidget : public QWidget
         explicit RulesWidget();
         ~RulesWidget();
 
-        void setServerName(QString name);
-        void setCheckedState(Toggles option, bool val);
-        void setSelectedWorld(QString worldName, bool state);
+        void setServerName(const QString& name);
+        void setCheckedState(const Toggles& option, const bool& val);
+        void setSelectedWorld(const QString& worldName, const bool& state);
 
     private:
-        void toggleRules(qint32 row, Qt::CheckState value);
+        void toggleRules(const qint32& row, const Qt::CheckState& value);
 
     private slots:
-        void on_rulesView_doubleClicked(const QModelIndex &index);
-        void on_rulesView_itemClicked(QTableWidgetItem *item);
+        void on_rulesView_doubleClicked(const QModelIndex& index);
+        void on_rulesView_itemClicked(QTableWidgetItem* item);
 
     private:
-        Ui::RulesWidget *ui;
+        Ui::RulesWidget* ui;
 };
 
 #endif // RULESWIDGET_HPP

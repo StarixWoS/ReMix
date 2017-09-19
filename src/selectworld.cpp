@@ -10,7 +10,7 @@
 //Qt Includes.
 #include <QFileSystemModel>
 
-SelectWorld::SelectWorld(QWidget *parent, QStringList) :
+SelectWorld::SelectWorld(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::SelectWorld)
 {
@@ -42,17 +42,17 @@ QString SelectWorld::getSelectedWorld()
     return world;
 }
 
-void SelectWorld::on_worldViewer_activated(const QModelIndex &index)
+void SelectWorld::on_worldViewer_activated(const QModelIndex& index)
 {
     world = index.data().toString();
 }
 
-void SelectWorld::on_worldViewer_clicked(const QModelIndex &index)
+void SelectWorld::on_worldViewer_clicked(const QModelIndex& index)
 {
     world = index.data().toString();
 }
 
-void SelectWorld::on_worldViewer_entered(const QModelIndex &index)
+void SelectWorld::on_worldViewer_entered(const QModelIndex& index)
 {
     world = index.data().toString();
 }

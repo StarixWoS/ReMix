@@ -200,7 +200,7 @@ void UPNP::getUdp()
                 ctrlPort = sport;
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished,
                                   httpSocket,
-                [=](QNetworkReply *reply)
+                [=](QNetworkReply* reply)
                 {
                     QString response = reply->readAll();
                     QString logMsg{ "" };
@@ -314,7 +314,8 @@ void UPNP::getExternalIP()
     }
 }
 
-void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 port)
+void UPNP::postSOAP(const QString& action, const QString& message,
+                    const QString& protocol, const qint32& port)
 {
     QString soap{ "\"%1#%2\"" };
             soap = soap.arg( rtrSchema ).arg( action );
@@ -387,7 +388,8 @@ void UPNP::postSOAP(QString action, QString message , QString protocol, qint32 p
     });
 }
 
-void UPNP::extractError( QString message, qint32 port, QString protocol )
+void UPNP::extractError(const QString& message, const qint32& port,
+                        const QString& protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
@@ -425,7 +427,7 @@ void UPNP::extractError( QString message, qint32 port, QString protocol )
     }
 }
 
-void UPNP::extractExternalIP( QString message )
+void UPNP::extractExternalIP(const QString& message )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
@@ -438,7 +440,7 @@ void UPNP::extractExternalIP( QString message )
         externalAddress = QHostAddress( reader.readElementText() );
 }
 
-void UPNP::checkPortForward(QString protocol, qint32 port)
+void UPNP::checkPortForward(const QString& protocol, const qint32& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
@@ -463,7 +465,7 @@ void UPNP::checkPortForward(QString protocol, qint32 port)
     }
 }
 
-void UPNP::addPortForward(QString protocol, qint32 port)
+void UPNP::addPortForward(const QString& protocol, const qint32& port)
 {
     if ( !ports.contains( port ) )
     {
@@ -502,7 +504,7 @@ void UPNP::addPortForward(QString protocol, qint32 port)
     }
 }
 
-void UPNP::removePortForward(QString protocol, qint32 port)
+void UPNP::removePortForward(const QString& protocol, const qint32& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"

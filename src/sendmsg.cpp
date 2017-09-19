@@ -10,7 +10,7 @@
 //Qt Includes.
 #include <QKeyEvent>
 
-SendMsg::SendMsg(QString serNum, QWidget *parent) :
+SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
     QDialog(parent),
     ui(new Ui::SendMsg)
 {

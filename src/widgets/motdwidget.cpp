@@ -25,8 +25,7 @@ MOTDWidget::MOTDWidget() :
         QString strVar{ ui->motdEdit->toPlainText() };
         Helper::stripNewlines( strVar );
 
-        QVariant var{ strVar };
-        Settings::setMOTDMessage( var, serverName );
+        Settings::setMOTDMessage( strVar, serverName );
     });
 }
 
@@ -35,16 +34,16 @@ MOTDWidget::~MOTDWidget()
     delete ui;
 }
 
-void MOTDWidget::setServerName(QString name)
+void MOTDWidget::setServerName(const QString& name)
 {
-    QVariant text = Settings::getMOTDMessage( name );
-    if ( text.toString().isEmpty() )
+    QString text = Settings::getMOTDMessage( name );
+    if ( text.isEmpty() )
     {
         text = ui->motdEdit->toPlainText();
         Settings::setMOTDMessage( text, name );
     }
     else
-        ui->motdEdit->setText( text.toString() );
+        ui->motdEdit->setText( text );
 
     serverName = name;
 }

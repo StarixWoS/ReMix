@@ -27,10 +27,10 @@ class ReMixTabWidget : public QTabWidget
     bool nightMode{ false };
 
     public:
-        explicit ReMixTabWidget(QWidget *parent = 0);
+        explicit ReMixTabWidget(QWidget* parent = 0);
         ~ReMixTabWidget();
 
-        void sendMultiServerMessage(QString msg);
+        void sendMultiServerMessage(const QString& msg);
         qint32 getPlayerCount();
         quint32 getServerCount();
 
@@ -46,8 +46,8 @@ class ReMixTabWidget : public QTabWidget
         void createServer();
 
     private slots:
-        void tabCloseRequestedSlot(qint32 index);
-        void currentChangedSlot(qint32 newTab);
+        void tabCloseRequestedSlot(const qint32& index);
+        void currentChangedSlot(const qint32& newTab);
         void createServerAcceptedSlot(ServerInfo* server = nullptr);
 };
 

@@ -28,7 +28,7 @@ class RandDev
 
     private:
         bool getInitialized();
-        void setInitialized(bool value);
+        void setInitialized(const bool& value);
         void initializeDevice();
 };
 

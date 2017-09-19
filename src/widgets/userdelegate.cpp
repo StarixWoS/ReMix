@@ -136,7 +136,7 @@ void UserDelegate::setModelData(QWidget* editor,
                                 QAbstractItemModel* model,
                                 const QModelIndex& index) const
 {
-    QComboBox *combobox = static_cast<QComboBox*>( editor );
+    QComboBox* combobox = static_cast<QComboBox*>( editor );
 
     int value = combobox->currentIndex();
     switch( value )

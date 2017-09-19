@@ -11,7 +11,7 @@
 #include <QScrollBar>
 #include <QtCore>
 
-Comments::Comments(QWidget *parent) :
+Comments::Comments(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::Comments)
 {
@@ -39,14 +39,14 @@ Comments::~Comments()
     delete ui;
 }
 
-void Comments::setTitle(QString name)
+void Comments::setTitle(const QString& name)
 {
     if ( !name.isEmpty() )
         this->setWindowTitle( "Server Comments: [ " % name % " ]" );
 }
 
-void Comments::newUserCommentSlot(QString& sernum, QString& alias,
-                                  QString& message)
+void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
+                                  const QString& message)
 {
     QTextEdit* obj = ui->msgView;
     if ( obj == nullptr )

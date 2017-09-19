@@ -29,20 +29,21 @@ const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
     "arenaPK"
 };
 
-void Rules::setRule(const QString& key, QVariant& value, QString& svrID)
+void Rules::setRule(const QString& key, const QVariant& value,
+                    const QString& svrID)
 {
     Settings::prefs->setValue( svrID % "/" % Settings::keys[ Settings::Rules ]
                                % "/" % key, value );
 }
 
-QVariant Rules::getRule(const QString& key, QString& svrID)
+QVariant Rules::getRule(const QString& key, const QString& svrID)
 {
     return Settings::prefs->value( svrID % "/"
                                    % Settings::keys[ Settings::Rules ]
                                    % "/" % key );
 }
 
-QString Rules::getRuleSet(QString& svrID)
+QString Rules::getRuleSet(const QString& svrID)
 {
     Settings::prefs->beginGroup( svrID % "/" %
                                  Settings::keys[ Settings::Rules ] );
@@ -77,182 +78,177 @@ QString Rules::getRuleSet(QString& svrID)
     return rules;
 }
 
-bool Rules::getRequireWorld(QString& svrID)
+bool Rules::getRequireWorld(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::world ], svrID ).toString().isEmpty();
 }
 
-void Rules::setWorldName(QString& value, QString& svrID)
+void Rules::setWorldName(const QString& value, const QString& svrID)
 {
-    QVariant data{ value };
-    setRule( subKeys[ SubKeys::world ], data, svrID );
+    setRule( subKeys[ SubKeys::world ], value, svrID );
 }
 
-QString Rules::getWorldName(QString& svrID)
+QString Rules::getWorldName(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::world ], svrID ).toString();
 }
 
-bool Rules::getRequireURL(QString& svrID)
+bool Rules::getRequireURL(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::url ], svrID ).toString().isEmpty();
 }
 
-void Rules::setURLAddress(QString& value, QString& svrID)
+void Rules::setURLAddress(const QString& value, const QString& svrID)
 {
-    QVariant data{ value };
-    setRule( subKeys[ SubKeys::url ], data, svrID );
+    setRule( subKeys[ SubKeys::url ], value, svrID );
 }
 
-QString Rules::getURLAddress(QString& svrID)
+QString Rules::getURLAddress(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::url ], svrID ).toString();
 }
 
-void Rules::setAllPKing(QVariant& value, QString& svrID)
+void Rules::setAllPKing(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::allPK ], value, svrID );
 }
 
-bool Rules::getAllPKing(QString& svrID)
+bool Rules::getAllPKing(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::allPK ], svrID ).toBool();
 }
 
-bool Rules::getRequireMaxPlayers(QString& svrID)
+bool Rules::getRequireMaxPlayers(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::maxP ], svrID ).toUInt() == 0;
 }
 
-void Rules::setMaxPlayers(quint32 value, QString& svrID)
+void Rules::setMaxPlayers(const quint32& value, const QString& svrID)
 {
-    QVariant data{ value };
-    setRule( subKeys[ SubKeys::maxP ], data, svrID );
+    setRule( subKeys[ SubKeys::maxP ], value, svrID );
 }
 
-quint32 Rules::getMaxPlayers(QString& svrID)
+quint32 Rules::getMaxPlayers(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::maxP ], svrID ).toUInt();
 }
 
-bool Rules::getRequireMaxAFK(QString& svrID)
+bool Rules::getRequireMaxAFK(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::maxAFK ], svrID ).toUInt() == 0;
 }
 
-void Rules::setMaxAFK(quint32 value, QString& svrID)
+void Rules::setMaxAFK(const quint32& value, const QString& svrID)
 {
-    QVariant data{ value };
-    setRule( subKeys[ SubKeys::maxAFK ], data, svrID );
+    setRule( subKeys[ SubKeys::maxAFK ], value, svrID );
 }
 
-quint32 Rules::getMaxAFK(QString& svrID)
+quint32 Rules::getMaxAFK(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::maxAFK ], svrID ).toUInt();
 }
 
-bool Rules::getRequireMinVersion(QString& svrID)
+bool Rules::getRequireMinVersion(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::minV ], svrID).toString().isEmpty();
 }
 
-void Rules::setMinVersion(QString& value, QString& svrID)
+void Rules::setMinVersion(const QString& value, const QString& svrID)
 {
-    QVariant data{ value };
-    setRule( subKeys[ SubKeys::minV ], data, svrID );
+    setRule( subKeys[ SubKeys::minV ], value, svrID );
 }
 
-QString Rules::getMinVersion(QString& svrID)
+QString Rules::getMinVersion(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::minV ], svrID ).toString();
 }
 
-void Rules::setReportLadder(QVariant& value, QString& svrID)
+void Rules::setReportLadder(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::ladder ], value, svrID );
 }
 
-bool Rules::getReportLadder(QString& svrID)
+bool Rules::getReportLadder(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::ladder ], svrID ).toBool();
 }
 
-void Rules::setNoCursing(QVariant& value, QString& svrID)
+void Rules::setNoCursing(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noBleep ], value, svrID );
 }
 
-bool Rules::getNoCursing(QString& svrID)
+bool Rules::getNoCursing(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noBleep ], svrID ).toBool();
 }
 
-void Rules::setNoCheating(QVariant& value, QString& svrID)
+void Rules::setNoCheating(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noCheat ], value, svrID );
 }
 
-bool Rules::getNoCheating(QString& svrID)
+bool Rules::getNoCheating(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noCheat ], svrID ).toBool();
 }
 
-void Rules::setNoEavesdropping(QVariant& value, QString& svrID)
+void Rules::setNoEavesdropping(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noEavesdrop ], value, svrID );
 }
 
-bool Rules::getNoEavesdropping(QString& svrID)
+bool Rules::getNoEavesdropping(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noEavesdrop ], svrID ).toBool();
 }
 
-void Rules::setNoMigrating(QVariant& value, QString& svrID)
+void Rules::setNoMigrating(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noMigrate ], value, svrID );
 }
 
-bool Rules::getNoMigrating(QString& svrID)
+bool Rules::getNoMigrating(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noMigrate ], svrID ).toBool();
 }
 
-void Rules::setNoModding(QVariant& value, QString& svrID)
+void Rules::setNoModding(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noMod ], value, svrID );
 }
 
-bool Rules::getNoModding(QString& svrID)
+bool Rules::getNoModding(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noMod ], svrID ).toBool();
 }
 
-void Rules::setNoPets(QVariant& value, QString& svrID)
+void Rules::setNoPets(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noPets ], value, svrID );
 }
 
-bool Rules::getNoPets(QString& svrID)
+bool Rules::getNoPets(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noPets ], svrID ).toBool();
 }
 
-void Rules::setNoPKing(QVariant& value, QString& svrID)
+void Rules::setNoPKing(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::noPK ], value, svrID );
 }
 
-bool Rules::getNoPKing(QString& svrID)
+bool Rules::getNoPKing(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::noPK ], svrID ).toBool();
 }
 
-void Rules::setArenaPKing(QVariant& value, QString& svrID)
+void Rules::setArenaPKing(const bool& value, const QString& svrID)
 {
     setRule( subKeys[ SubKeys::arenaPK ], value, svrID );
 }
 
-bool Rules::getArenaPKing(QString& svrID)
+bool Rules::getArenaPKing(const QString& svrID)
 {
     return getRule( subKeys[ SubKeys::arenaPK ], svrID ).toBool();
 }

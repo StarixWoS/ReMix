@@ -26,23 +26,23 @@ class CmdHandler : public QObject
         ~CmdHandler();
 
         bool canUseAdminCommands(Player* plr);
-        void parseMix5Command(Player* plr, QString& packet);
-        void parseMix6Command(Player* plr, QString& packet);
+        void parseMix5Command(Player* plr, const QString& packet);
+        void parseMix6Command(Player* plr, const QString& packet);
         bool parseCommandImpl(Player* plr, QString& packet);
 
     private:
-        void banhandler(Player* plr, QString& arg1, QString& message, bool all);
+        void banhandler(Player* plr, const QString& arg1, const QString& message, const bool& all);
 
-        void unBanhandler(QString& argType, QString& arg1);
-        void kickHandler(QString& arg1, QString& message, bool all);
-        void muteHandler(Player* plr, QString& arg1, qint32 argIndex,
-                         QString& message, bool all);
-        void msgHandler(QString& arg1, QString& message, bool all);
+        void unBanhandler(const QString& argType, const QString& arg1);
+        void kickHandler(const QString& arg1, const QString& message, const bool& all);
+        void muteHandler(Player* plr, const QString& arg1, const qint32& argIndex,
+                         const QString& message, const bool& all);
+        void msgHandler(const QString& arg1, const QString& message, const bool& all);
 
-        void loginHandler(Player* plr, QString& argType);
-        void registerHandler(Player* plr, QString& argType);
+        void loginHandler(Player* plr, const QString& argType);
+        void registerHandler(Player* plr, const QString& argType);
 
-        void shutDownHandler(Player* plr, bool restart = false);
+        void shutDownHandler(Player* plr, const bool restart = false);
 
 //        void mkAdminHandler(Player* plr, QString& sernum, QString& arg);
 //        void rmAdminHandler(Player* plr, QString& sernum);
@@ -54,8 +54,8 @@ class CmdHandler : public QObject
 //        void vanishHandler(Player* plr);
 
     signals:
-        void newUserCommentSignal(QString& sernum, QString& alias,
-                                  QString& message);
+        void newUserCommentSignal(const QString& sernum, const QString& alias,
+                                  const QString& message);
     public slots:
 };
 
