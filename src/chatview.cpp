@@ -64,7 +64,7 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(const QString& packet,const  QString alias)
+void ChatView::parsePacket(const QString& packet, const QString& alias)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )

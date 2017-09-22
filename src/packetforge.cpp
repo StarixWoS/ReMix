@@ -39,7 +39,7 @@ QString PacketForge::decryptPacket(const QString& packet)
 {
     //Player positioning packets, return an empty string.
     if ( !Helper::strStartsWithStr( packet, ":SR?" )
-      || !Helper::strStartsWithStr( packet, ":SR!" ) )
+      && !Helper::strStartsWithStr( packet, ":SR!" ) )
     {
         if ( initialized )
         {

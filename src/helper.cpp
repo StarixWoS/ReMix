@@ -27,7 +27,22 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
     return dialog;
 }
 
-QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
+qint32 Helper::strToInt(QString& str, int base)
+{
+    bool base16 = ( base != 10 );
+    bool ok{ false };
+
+    qint32 val = str.toInt( &ok, base );
+    if ( !ok && !base16 )
+        val = str.toInt( &ok, 16 );
+
+    if ( !ok )
+        val = -1;
+
+    return val;
+}
+
+QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
 {
     /* This overload is mainly used to reformat a QString's numeric format
      * if the source is in an unknown format.
@@ -43,21 +58,6 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
     else
         return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler )
                    .toUpper();
-}
-
-qint32 Helper::strToInt(QString str, int base)
-{
-    bool base16 = ( base != 10 );
-    bool ok{ false };
-
-    qint32 val = str.toInt( &ok, base );
-    if ( !ok && !base16 )
-        val = str.toInt( &ok, 16 );
-
-    if ( !ok )
-        val = -1;
-
-    return val;
 }
 
 QString Helper::getStrStr(const QString& str, QString indStr,

@@ -16,15 +16,15 @@ class Helper
                                                int width, int height);
 
         template<typename T>
-        static QString intToStr(T val, int base = 10, int fill = 0,
-                                QChar filler = '0')
+        static QString intToStr(const T& val, const int& base = 10,
+                                const int& fill = 0, const QChar& filler = '0')
         {
             return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
         }
+        static qint32 strToInt(QString& str, int base = 16);
 
-        static QString intSToStr(QString val, int base = 16, int fill = 0,
+        static QString intSToStr(QString& val, int base = 16, int fill = 0,
                                  QChar filler = '0');
-        static qint32 strToInt(QString str, int base = 16);
 
         static QString getStrStr(const QString& str, QString indStr,
                                  QString mid, QString left);

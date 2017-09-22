@@ -124,7 +124,6 @@ void CreateInstance::on_initializeServer_clicked()
 
         emit this->createServerAcceptedSignal( server );
         emit this->accept();
-
     }
     else
     {

@@ -23,7 +23,7 @@ class ChatView : public QDialog
         void setGameID(const Games& gID);
         Games getGameID() const;
 
-        void parsePacket(const QString& packet, QString alias = "");
+        void parsePacket(const QString& packet, const QString& alias = "");
         void parseChatEffect(const QString& packet);
         void insertChat(const QString& msg, const QString& color,
                         const bool& newLine);

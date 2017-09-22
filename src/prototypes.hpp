@@ -100,11 +100,13 @@
     class ChatView;
     class Settings;
     class Comments;
+    class RunGuard;
     class RandDev;
     class SendMsg;
     class Player;
     class Server;
     class Helper;
+    class Theme;
     class Rules;
     class ReMix;
     class User;
@@ -199,7 +201,7 @@
             UI_UPDATE_TIME = 500,
         };
 
-        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = 0 };
+        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
         enum Themes{ LIGHT = 0, DARK = 1 };
 

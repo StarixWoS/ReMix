@@ -1,13 +1,12 @@
 
 //ReMix includes.
 #include "appeventfilter.hpp"
-#include "themechange.hpp"
 #include "runguard.hpp"
 #include "settings.hpp"
 #include "remix.hpp"
+#include "theme.hpp"
 
 //Qt Includes.
-#include <QStyleFactory>
 #include <QApplication>
 
 int main(int argc, char* [])
@@ -25,17 +24,10 @@ int main(int argc, char* [])
     //with an eventfilter at the QApplication level.
     a.installEventFilter( new AppEventFilter() );
 
-#ifndef Q_OS_WIN
-    qApp->setFont( QFont( "Lucida Grande", 8 ) );
-#else
-    qApp->setFont( QFont( "Segoe UI", 8 ) );
-#endif
-
-    qApp->font().setFixedPitch( true );
-    qApp->setStyle( QStyleFactory::create( "Fusion" ) );
-
     if ( Settings::getDarkMode() )
-        ThemeChange::applyTheme( Themes::DARK );
+        Theme::setThemeType( Themes::DARK );
+    else
+        Theme::setThemeType( Themes::LIGHT );
 
     ReMix w;
     w.show();

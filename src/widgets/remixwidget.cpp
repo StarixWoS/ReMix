@@ -254,13 +254,22 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openUserComments_clicked()
 {
-    Comments* comments{ tcpServer->getServerComments() };
-    if ( comments != nullptr )
+    if ( tcpServer != nullptr )
     {
-        if ( comments->isVisible() )
-            comments->hide();
-        else
-            comments->show();
+        Comments* comments{ tcpServer->getServerComments() };
+        if ( comments != nullptr )
+        {
+            if ( comments->isVisible() )
+                comments->hide();
+            else
+                comments->show();
+        }
+    }
+    else
+    {
+        QString title{ "Error:" };
+        QString message{ "Unable to fetch the Server's Comment dialog!" };
+        Helper::warningMessage( this, title, message );
     }
 }
 
