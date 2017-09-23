@@ -32,7 +32,6 @@ CppApplication
 
     cpp.cxxLanguageVersion: "c++14"
     cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
-    cpp.separateDebugInformation: qbs.buildVariant == "debug" ? false : true //Strip Debug information from release.
     cpp.optimization: qbs.buildVariant == "debug" ? "small" : "fast"
     cpp.cxxFlags: ["-Os", "-s",]
     cpp.linkerFlags: [ "-s", ]
