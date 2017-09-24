@@ -11,8 +11,10 @@
 #include <QObject>
 #include <QTimer>
 
-class ServerInfo
+class ServerInfo : public QObject
 {
+    Q_OBJECT
+
     QUdpSocket* masterSocket{ nullptr };
     Server* tcpServer{ nullptr };
     UPNP* upnp{ nullptr };
@@ -45,6 +47,7 @@ class ServerInfo
 
     bool isMaster{ false };
     bool isPublic{ false };
+    bool useUPNP{ false };
 
     bool sentUDPCheckin{ false };
     bool masterUDPResponse{ false };
@@ -96,14 +99,14 @@ class ServerInfo
         ~ServerInfo();
 
         void setupInfo();
-        void setupUPNP(const bool isDisable = false);
+        void setupUPNP(const bool& enable = false);
 
         void sendUDPData(const QHostAddress& addr, const quint16& port,
                          const QString& data);
 
         void sendServerInfo(const QHostAddress& addr, const quint16& port);
         void sendUserList(const QHostAddress& addr, const quint16& port,
-                          const quint32 type = 0);
+                          const quint32& type = 0);
         void sendMasterInfo(const bool& disconnect = false);
 
         Player* createPlayer(const int& slot);
@@ -148,6 +151,9 @@ class ServerInfo
 
         bool getIsPublic() const;
         void setIsPublic(const bool& value);
+
+        bool getUseUPNP() const;
+        void setUseUPNP(const bool& value);
 
         bool getIsMaster() const;
         void setIsMaster(const bool& value);
@@ -243,12 +249,16 @@ class ServerInfo
         double getMasterPing() const;
         void setMasterPing();
 
+        QString getUsageString();
         qint32 getUsageHours() const;
         qint32 getUsageDays() const;
         qint32 getUsageMins() const;
 
         Server* getTcpServer() const;
         void setTcpServer(Server* value);
+
+    signals:
+        void serverIsSetup();
 };
 
 #endif // SERVERINFO_HPP

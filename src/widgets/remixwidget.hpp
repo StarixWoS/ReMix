@@ -56,10 +56,9 @@ class ReMixWidget : public QWidget
         void on_openUserComments_clicked();
         void on_openUserInfo_clicked();
         void on_isPublicServer_toggled(bool value);
-
+        void on_useUPNP_toggled(bool value);
         void on_networkStatus_linkActivated(const QString& link);
         void on_networkStatus_customContextMenuRequested(const QPoint&);
-
         void on_openChatView_clicked();
 
     signals:

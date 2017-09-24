@@ -120,6 +120,7 @@ void CreateInstance::on_initializeServer_clicked()
         server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
         server->setPrivatePort( ui->portNumber->text( ).toUShort() );
         server->setServerID( Settings::getServerID( svrName ) );
+        server->setUseUPNP( ui->useUPNP->isChecked() );
         server->setIsPublic( ui->isPublic->isChecked() );
 
         emit this->createServerAcceptedSignal( server );
@@ -255,6 +256,12 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         ui->isPublic->setChecked( isPublic );
     else
         ui->isPublic->setChecked( false );
+
+    bool useUPNP{ Settings::getUseUPNP( svrName ) };
+    if ( useUPNP )
+        ui->useUPNP->setChecked( useUPNP );
+    else
+        ui->useUPNP->setChecked( false );
 }
 
 void CreateInstance::on_portNumber_textChanged(const QString& arg1)

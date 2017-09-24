@@ -40,7 +40,7 @@ class Settings : public QDialog
                       ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles, DarkMode = 23 };
+                      GameName, LogFiles, DarkMode, UseUPNP = 24 };
 
         enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
@@ -152,6 +152,11 @@ class Settings : public QDialog
                                 const QString& svrID);
 
         static bool getIsPublic(const QString& svrID);
+
+        static void setUseUPNP(const bool& value,
+                               const QString& svrID);
+
+        static bool getUseUPNP(const QString& svrID);
 
         static void setGameName(const QString& value,
                                 const QString& svrID);

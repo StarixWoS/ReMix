@@ -120,13 +120,13 @@ void ServerInfo::setupInfo()
     }
 }
 
-void ServerInfo::setupUPNP(const bool isDisable)
+void ServerInfo::setupUPNP(const bool& enable)
 {
     upnp = UPNP::getInstance();
     if ( upnp == nullptr )
         return;
 
-    if ( !isDisable )
+    if ( enable )
     {
         bool tunneled = UPNP::getTunneled();
         if ( !tunneled )
@@ -146,10 +146,8 @@ void ServerInfo::setupUPNP(const bool isDisable)
             upnp->addPortForward( "UDP", this->getPrivatePort() );
         }
     }
-    else
+    else //Remove our UPNP Port Forward.
     {
-        //Add a delay of one second after each removal command.
-        //This is to ensure the command is sent.
         upnp->removePortForward( "TCP", this->getPrivatePort() );
         upnp->removePortForward( "UDP", this->getPrivatePort() );
     }
@@ -193,7 +191,8 @@ bool ServerInfo::initMasterSocket(const QHostAddress& addr, const quint16& port)
     return masterSocket->bind( addr, port );
 }
 
-void ServerInfo::sendUDPData(const QHostAddress& addr, const quint16& port, const QString& data)
+void ServerInfo::sendUDPData(const QHostAddress& addr, const quint16& port,
+                             const QString& data)
 {
     if ( masterSocket != nullptr )
         masterSocket->writeDatagram( data.toLatin1(), data.size() + 1,
@@ -205,33 +204,29 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
     if ( addr.isNull() )
         return;
 
+    QString serverName{ this->getName() };
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
                       "//ReMix[ %7 ]" };
 
-    response = response.arg( this->getName() );
+    response = response.arg( serverName );
     if ( !this->getGameInfo().isEmpty() )
         response = response.arg( " [" % this->getGameInfo() % "]" );
     else
         response = response.arg( "" );
 
-    QString usage{ "%1.%2.%3" };
-            usage = usage.arg( this->getUsageMins() )
-                         .arg( this->getUsageHours() )
-                         .arg( this->getUsageDays() );
-
-    QString serverName{ this->getName() };
     response = response.arg( Rules::getRuleSet( serverName ) )
                        .arg( this->getServerID() )
                        .arg( Helper::intToStr( QDateTime::currentDateTime()
                                                     .toTime_t(), 16, 8 ) )
-                       .arg( usage )
+                       .arg( this->getUsageString() )
                        .arg( QString( REMIX_VERSION ) );
 
     if ( !response.isEmpty() )
         this->sendUDPData( addr, port, response );
 }
 
-void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, const quint32 type)
+void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
+                              const quint32& type)
 {
     if ( addr.isNull() )
         return;
@@ -453,7 +448,8 @@ void ServerInfo::sendServerGreeting(Player* plr)
         this->sendServerRules( plr );
 }
 
-void ServerInfo::sendMasterMessage(const QString& packet, Player* plr, const bool toAll)
+void ServerInfo::sendMasterMessage(const QString& packet, Player* plr,
+                                   const bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
@@ -626,9 +622,6 @@ void ServerInfo::setIsPublic(const bool& value)
         if ( !this->getIsSetUp() )
             this->setupInfo();
 
-        //Tell the server to use a UPNP Port Forward.
-        this->setupUPNP( false );
-
         this->startMasterCheckIn();
 
         Server* server{ this->getTcpServer() };
@@ -640,8 +633,33 @@ void ServerInfo::setIsPublic(const bool& value)
         //Disconnect from the Master Server if applicable.
         this->stopMasterCheckIn();
         this->sendMasterInfo( true );
-        this->setupUPNP( true );
     }
+}
+
+bool ServerInfo::getUseUPNP() const
+{
+    return useUPNP;
+}
+
+void ServerInfo::setUseUPNP(const bool& value)
+{
+    //Tell the server to use a UPNP Port Forward.
+
+    Settings::setUseUPNP( value, this->getName() );
+    if ( useUPNP != value )
+    {
+        if ( !this->getIsSetUp() )
+        {
+            QObject::connect( this, &ServerInfo::serverIsSetup,
+            [=]()
+            {
+                this->setupUPNP( value );
+            });
+        }
+        else
+            this->setupUPNP( value );
+    }
+    useUPNP = value;
 }
 
 bool ServerInfo::getIsMaster() const
@@ -739,6 +757,7 @@ bool ServerInfo::getIsSetUp() const
 void ServerInfo::setIsSetUp(const bool& value)
 {
     isSetUp = value;
+    emit this->serverIsSetup();
 }
 
 quint32 ServerInfo::getUserCalls() const
@@ -974,6 +993,14 @@ void ServerInfo::setMasterPing()
 
     this->setMasterPingAvg( masterPing );
     this->setMasterPingTrend( masterPing );
+}
+
+QString ServerInfo::getUsageString()
+{
+    return QString( "%1.%2.%3" )
+                .arg( this->getUsageMins() )
+                .arg( this->getUsageHours() )
+                .arg( this->getUsageDays() );
 }
 
 qint32 ServerInfo::getUsageHours() const

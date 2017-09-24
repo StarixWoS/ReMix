@@ -55,6 +55,9 @@
       </property>
       <item row="2" column="0">
        <widget class="QCheckBox" name="checkBox">
+        <property name="toolTip">
+         <string>When toggled, your message will be sent to all Users on the current ReMix Server Instance.</string>
+        </property>
         <property name="text">
          <string>Send to Everyone</string>
         </property>

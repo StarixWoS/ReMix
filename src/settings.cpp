@@ -59,6 +59,7 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "gameName",
     "logFiles",
     "darkMode",
+    "useUPNP",
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -583,7 +584,20 @@ bool Settings::getIsPublic(const QString& svrID)
 {
     return getServerSetting( keys[ Keys::Setting ],
                              subKeys[ SubKeys::IsPublic ], svrID )
-              .toBool();
+            .toBool();
+}
+
+void Settings::setUseUPNP(const bool& value, const QString& svrID)
+{
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::UseUPNP ],
+                      value, svrID );
+}
+
+bool Settings::getUseUPNP(const QString& svrID)
+{
+    return getServerSetting( keys[ Keys::Setting ],
+                             subKeys[ SubKeys::UseUPNP ], svrID )
+                    .toBool();
 }
 
 void Settings::setGameName(const QString& value, const QString& svrID)

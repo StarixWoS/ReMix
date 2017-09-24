@@ -54,6 +54,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
         tcpServer->setupServerInfo();
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
+    ui->useUPNP->setChecked( server->getUseUPNP() );
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
@@ -65,7 +66,7 @@ ReMixWidget::~ReMixWidget()
     server->sendMasterInfo( true );
 
     if ( ui->isPublicServer->isChecked() )
-        server->setupUPNP( true );
+        server->setupUPNP( false );
 
     tcpServer->close();
     tcpServer->deleteLater();
@@ -308,6 +309,12 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
         prompt = "Please refresh your server list in-game!";
         Helper::confirmAction( this, title, prompt );
     }
+}
+
+void ReMixWidget::on_useUPNP_toggled(bool value)
+{
+    if ( value != server->getUseUPNP() )
+        server->setUseUPNP( ui->useUPNP->isChecked() );
 }
 
 void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)

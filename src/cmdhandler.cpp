@@ -209,7 +209,6 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     if ( !argType.isEmpty() )
     {
-
         if ( Helper::cmpStrings( argType, "all" ) )
         {
             if ( plr->getAdminRank() >= Ranks::ADMIN

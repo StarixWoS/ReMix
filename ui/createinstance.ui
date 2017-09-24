@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>287</width>
-    <height>175</height>
+    <width>260</width>
+    <height>150</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="gridLayout_3">
       <property name="leftMargin">
        <number>5</number>
       </property>
@@ -53,36 +53,6 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="3" column="0" colspan="3">
-       <widget class="QCheckBox" name="isPublic">
-        <property name="text">
-         <string>Register as Public Server</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QPushButton" name="initializeServer">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Create Server</string>
-        </property>
-        <property name="default">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QComboBox" name="servers">
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
@@ -90,7 +60,27 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1" colspan="2">
+      <item row="0" column="1">
+       <widget class="QComboBox" name="servers">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Game:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
        <widget class="QComboBox" name="gameName">
         <item>
          <property name="text">
@@ -109,29 +99,6 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="2">
-       <widget class="QPushButton" name="close">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QLineEdit" name="portNumber">
-        <property name="inputMethodHints">
-         <set>Qt::ImhNone</set>
-        </property>
-        <property name="text">
-         <string>8888</string>
-        </property>
-        <property name="maxLength">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="maximumSize">
@@ -145,18 +112,71 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="portNumber">
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
         </property>
         <property name="text">
-         <string>Game:</string>
+         <string>8888</string>
+        </property>
+        <property name="maxLength">
+         <number>5</number>
         </property>
        </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="spacing">
+         <number>5</number>
+        </property>
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="useUPNP">
+          <property name="toolTip">
+           <string>ReMix will attempt to automatically forward your selected port when enabled.</string>
+          </property>
+          <property name="text">
+           <string>Use UPNP</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="isPublic">
+          <property name="toolTip">
+           <string>ReMix will connect to the Master Mix Server and allow other people to see and connect to your ReMix Server.</string>
+          </property>
+          <property name="text">
+           <string>Public Server</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="initializeServer">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Create Server</string>
+          </property>
+          <property name="default">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="close">
+          <property name="text">
+           <string>Cancel</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
