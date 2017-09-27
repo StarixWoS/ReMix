@@ -65,7 +65,7 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
-    if ( ui->isPublicServer->isChecked() )
+    if ( ui->useUPNP->isChecked() )
         server->setupUPNP( false );
 
     tcpServer->close();

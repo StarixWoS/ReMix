@@ -650,6 +650,7 @@ void ServerInfo::setUseUPNP(const bool& value)
     {
         if ( !this->getIsSetUp() )
         {
+            //Catch a possible race condition with a signal connection.
             QObject::connect( this, &ServerInfo::serverIsSetup,
             [=]()
             {

@@ -153,6 +153,10 @@
             //Length of a Remote Admin's password salt.
             SALT_LENGTH = 12,
 
+            //Maximum length annowed for a GameInfo String to be set and sent to
+            //players that ping our servers.
+            MAX_GAME_NAME_LENGTH = 256,
+
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
             SETTINGS_KEY_COUNT = 5,

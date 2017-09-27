@@ -232,7 +232,21 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
             {
                 case 'G':   //Set the Server's gameInfoString.
                     {
-                        server->setGameInfo( data.mid( 1 ) );
+                        QString svrInfo{ server->getGameInfo() };
+                        QString usrInfo{ data.mid( 1 ) };
+                        if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
+                        {
+                            //Enforce a 256 character limit on GameNames.
+                            if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
+                            {
+                                //Truncate the User's GameInfo String to 256.
+                                server->setGameInfo(
+                                            usrInfo.left(
+                                                MAX_GAME_NAME_LENGTH ) );
+                            }
+                            else //Length was less than 256, set without issue.
+                                server->setGameInfo( usrInfo );
+                        }
                     }
                 break;
                 case 'M':   //Parse the Master Server's response.
