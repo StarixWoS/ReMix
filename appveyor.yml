@@ -47,6 +47,10 @@ build_script:
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip %QT%\bin\libwinpthread-1.dll
 
     7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip platforms\qwindows.dll
+    
+    appveyor DownloadFile https://bitbucket.org/ahitb/remix/downloads/PacketForge.dll
+    
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip PacketForge.dll
 
 
 artifacts:
