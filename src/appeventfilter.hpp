@@ -17,7 +17,7 @@ class AppEventFilter : public QObject
     signals:
 
     public slots:
-        bool eventFilter(QObject *obj, QEvent *event);
+        bool eventFilter(QObject* obj, QEvent* event);
 };
 
 #endif // APPEVENTFILTER_HPP

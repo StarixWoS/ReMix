@@ -37,11 +37,11 @@ class ReMixWidget : public QWidget
                              ServerInfo* svrInfo = nullptr);
         ~ReMixWidget();
 
-        ServerInfo* getServerInfo();
-        void renameServer(QString newName);
+        ServerInfo* getServerInfo() const;
+        void renameServer(const QString& newName);
 
-        void sendServerMessage(QString msg);
-        qint32 getPlayerCount();
+        void sendServerMessage(const QString& msg);
+        qint32 getPlayerCount() const;
         QString getServerName() const;
 
         Server* getTcpServer() const;
@@ -56,17 +56,16 @@ class ReMixWidget : public QWidget
         void on_openUserComments_clicked();
         void on_openUserInfo_clicked();
         void on_isPublicServer_toggled(bool value);
-
-        void on_networkStatus_linkActivated(const QString &link);
-        void on_networkStatus_customContextMenuRequested(const QPoint &);
-
+        void on_useUPNP_toggled(bool value);
+        void on_networkStatus_linkActivated(const QString& link);
+        void on_networkStatus_customContextMenuRequested(const QPoint&);
         void on_openChatView_clicked();
 
     signals:
         void reValidateServerIP();
 
     private:
-        Ui::ReMixWidget *ui;
+        Ui::ReMixWidget* ui;
 };
 
 #endif // REMIXWIDGET_HPP

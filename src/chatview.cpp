@@ -1,8 +1,18 @@
+
+//Class includes.
 #include "chatview.hpp"
-#include "includes.hpp"
 #include "ui_chatview.h"
 
-ChatView::ChatView(QWidget *parent) :
+//ReMix includes.
+#include "packetforge.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QScrollBar>
+#include <QtCore>
+
+ChatView::ChatView(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::ChatView)
 {
@@ -32,13 +42,13 @@ ChatView::~ChatView()
     delete ui;
 }
 
-void ChatView::setTitle(QString name)
+void ChatView::setTitle(const QString& name)
 {
     if ( !name.isEmpty() )
         this->setWindowTitle( "Chat View: [ " % name % " ]" );
 }
 
-void ChatView::setGameID(Games gID)
+void ChatView::setGameID(const Games& gID)
 {
     gameID = gID;
     if ( gameID == Games::W97 )
@@ -54,7 +64,7 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(QString& packet, QString alias)
+void ChatView::parsePacket(const QString& packet, const QString& alias)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
@@ -103,7 +113,7 @@ void ChatView::parsePacket(QString& packet, QString alias)
     }
 }
 
-void ChatView::parseChatEffect(QString packet)
+void ChatView::parseChatEffect(const QString& packet)
 {
     QString srcSerNum = packet.left( 12 ).mid( 4 );
             srcSerNum = Helper::serNumToIntStr( srcSerNum );
@@ -155,7 +165,8 @@ void ChatView::parseChatEffect(QString packet)
     }
 }
 
-void ChatView::insertChat(QString msg, QString color, bool newLine)
+void ChatView::insertChat(const QString& msg, const QString& color,
+                          const bool& newLine)
 {
     QTextEdit* obj{ ui->chatView };
     int curScrlPosMax = obj->verticalScrollBar()->maximum();

@@ -1,6 +1,23 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "serverinfo.hpp"
+
+//ReMix Widget includes.
+#include "widgets/userdelegate.hpp"
+
+//ReMix includes.
+#include "settings.hpp"
+#include "player.hpp"
+#include "server.hpp"
+#include "helper.hpp"
+#include "rules.hpp"
+#include "upnp.hpp"
+
+//Qt Includes.
+#include <QHostAddress>
+#include <QUdpSocket>
+#include <QtCore>
+#include <QFile>
 
 ServerInfo::ServerInfo()
 {
@@ -103,13 +120,13 @@ void ServerInfo::setupInfo()
     }
 }
 
-void ServerInfo::setupUPNP(bool isDisable)
+void ServerInfo::setupUPNP(const bool& enable)
 {
     upnp = UPNP::getInstance();
     if ( upnp == nullptr )
         return;
 
-    if ( !isDisable )
+    if ( enable )
     {
         bool tunneled = UPNP::getTunneled();
         if ( !tunneled )
@@ -129,10 +146,8 @@ void ServerInfo::setupUPNP(bool isDisable)
             upnp->addPortForward( "UDP", this->getPrivatePort() );
         }
     }
-    else
+    else //Remove our UPNP Port Forward.
     {
-        //Add a delay of one second after each removal command.
-        //This is to ensure the command is sent.
         upnp->removePortForward( "TCP", this->getPrivatePort() );
         upnp->removePortForward( "UDP", this->getPrivatePort() );
     }
@@ -168,7 +183,7 @@ QUdpSocket* ServerInfo::getMasterSocket() const
     return masterSocket;
 }
 
-bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
+bool ServerInfo::initMasterSocket(const QHostAddress& addr, const quint16& port)
 {
     if ( masterSocket->state() == QAbstractSocket::BoundState )
         masterSocket->close();
@@ -176,45 +191,42 @@ bool ServerInfo::initMasterSocket(QHostAddress& addr, quint16 port)
     return masterSocket->bind( addr, port );
 }
 
-void ServerInfo::sendUDPData(QHostAddress& addr, quint16 port, QString& data)
+void ServerInfo::sendUDPData(const QHostAddress& addr, const quint16& port,
+                             const QString& data)
 {
     if ( masterSocket != nullptr )
         masterSocket->writeDatagram( data.toLatin1(), data.size() + 1,
                                      addr, port );
 }
 
-void ServerInfo::sendServerInfo(QHostAddress& addr, quint16 port)
+void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
 {
     if ( addr.isNull() )
         return;
 
+    QString serverName{ this->getName() };
+    QString sGameInfo{ this->getGameInfo() };
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
                       "//ReMix[ %7 ]" };
 
-    response = response.arg( this->getName() );
-    if ( !this->getGameInfo().isEmpty() )
-        response = response.arg( " [" % this->getGameInfo() % "]" );
-    else
-        response = response.arg( "" );
+    if ( !sGameInfo.isEmpty() )
+        sGameInfo = " [" % sGameInfo % "]";
 
-    QString usage{ "%1.%2.%3" };
-            usage = usage.arg( this->getUsageMins() )
-                         .arg( this->getUsageHours() )
-                         .arg( this->getUsageDays() );
-
-    QString serverName{ this->getName() };
-    response = response.arg( Rules::getRuleSet( serverName ) )
-                       .arg( this->getServerID() )
-                       .arg( Helper::intToStr( QDateTime::currentDateTime()
-                                                    .toTime_t(), 16, 8 ) )
-                       .arg( usage )
-                       .arg( QString( REMIX_VERSION ) );
+    response = response.arg( serverName,
+                             sGameInfo,
+                             Rules::getRuleSet( serverName ),
+                             this->getServerID(),
+                             Helper::intToStr( QDateTime::currentDateTime()
+                                                    .toTime_t(), 16, 8 ),
+                             this->getUsageString(),
+                             QString( REMIX_VERSION ) );
 
     if ( !response.isEmpty() )
         this->sendUDPData( addr, port, response );
 }
 
-void ServerInfo::sendUserList(QHostAddress& addr, quint16 port, quint32 type)
+void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
+                              const quint32& type)
 {
     if ( addr.isNull() )
         return;
@@ -257,7 +269,7 @@ void ServerInfo::sendUserList(QHostAddress& addr, quint16 port, quint32 type)
         this->sendUDPData( addr, port, response );
 }
 
-void ServerInfo::sendMasterInfo(bool disconnect)
+void ServerInfo::sendMasterInfo(const bool& disconnect)
 {
     QHostAddress addr{ this->getMasterIP() };
     quint16 port{ this->getMasterPort() };
@@ -269,15 +281,19 @@ void ServerInfo::sendMasterInfo(bool disconnect)
         {
             response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
                        "port=%7,info=%8,name=%9";
-            response = response.arg( this->getVersionID() )
-                               .arg( this->getPlayerCount() )
-                               .arg( this->getGameId() )
-                               .arg( this->getGameName() )
-                               .arg( this->getHostInfo().localHostName() )
-                               .arg( this->getServerID() )
-                               .arg( this->getPrivatePort() )
-                               .arg( this->getGameInfo() )
-                               .arg( this->getName() );
+            response = response.arg( QString::number(
+                                         this->getVersionID() ),
+                                     QString::number(
+                                         this->getPlayerCount() ),
+                                     QString::number(
+                                         this->getGameId() ),
+                                     this->getGameName(),
+                                     this->getHostInfo().localHostName(),
+                                     this->getServerID(),
+                                     QString::number(
+                                         this->getPrivatePort() ),
+                                     this->getGameInfo(),
+                                     this->getName() );
         }
     }
 
@@ -294,7 +310,7 @@ void ServerInfo::sendMasterInfo(bool disconnect)
         this->setSentUDPCheckIn( false );
 }
 
-Player* ServerInfo::createPlayer(int slot)
+Player* ServerInfo::createPlayer(const int& slot)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS  )
     {
@@ -306,12 +322,12 @@ Player* ServerInfo::createPlayer(int slot)
     return nullptr;
 }
 
-Player* ServerInfo::getPlayer(int slot)
+Player* ServerInfo::getPlayer(const int& slot)
 {
     return players[ slot ];
 }
 
-void ServerInfo::deletePlayer(int slot)
+void ServerInfo::deletePlayer(const int& slot)
 {
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
@@ -324,12 +340,16 @@ void ServerInfo::deletePlayer(int slot)
                             "bytes in %4 packets, averaging %5 baud [ %6 ]" };
             if ( plr != nullptr )
             {
-                logMsg = logMsg.arg( plr->getPublicIP() )
-                               .arg( plr->getConnTime() / 60 )
-                               .arg( plr->getBytesIn() )
-                               .arg( plr->getPacketsIn() )
-                               .arg( plr->getAvgBaud( false ) )
-                               .arg( plr->getBioData() );
+                logMsg = logMsg.arg( plr->getPublicIP(),
+                                     QString::number(
+                                         plr->getConnTime() / 60 ),
+                                     QString::number(
+                                         plr->getBytesIn() ),
+                                     QString::number(
+                                         plr->getPacketsIn() ),
+                                     QString::number(
+                                         plr->getAvgBaud( false ) ),
+                                     plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
         }
@@ -436,7 +456,8 @@ void ServerInfo::sendServerGreeting(Player* plr)
         this->sendServerRules( plr );
 }
 
-void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
+void ServerInfo::sendMasterMessage(const QString& packet, Player* plr,
+                                   const bool toAll)
 {
     QString msg = QString( ":SR@M%1\r\n" )
                       .arg( packet );
@@ -468,7 +489,7 @@ void ServerInfo::sendMasterMessage(QString packet, Player* plr, bool toAll)
         this->setBytesOut( this->getBytesOut() + bOut );
 }
 
-qint64 ServerInfo::sendToAllConnected(QString packet)
+qint64 ServerInfo::sendToAllConnected(const QString& packet)
 {
     Player* tmpPlr{ nullptr };
     qint64 tmpBOut{ 0 };
@@ -525,14 +546,22 @@ void ServerInfo::setGameInfo(const QString& value)
     gameInfo = value;
 }
 
-int ServerInfo::getGameId() const
+Games ServerInfo::getGameId() const
 {
     return gameId;
 }
 
-void ServerInfo::setGameId(int value)
+void ServerInfo::setGameId(const QString& gameName)
 {
-    gameId = value;
+    Games gameID{ Games::Invalid };
+    if ( Helper::cmpStrings( gameName, "WoS" ) )
+        gameID = Games::WoS;
+    else if ( Helper::cmpStrings( gameName, "ToY" ) )
+        gameID = Games::ToY;
+    else if ( Helper::cmpStrings( gameName, "W97" ) )
+        gameID = Games::W97;
+
+    gameId = gameID;
 }
 
 QString ServerInfo::getGameName() const
@@ -543,6 +572,9 @@ QString ServerInfo::getGameName() const
 void ServerInfo::setGameName(const QString& value)
 {
     gameName = value;
+    this->setGameId( value );
+
+    Settings::setGameName( value, this->getName() );
 }
 
 QHostInfo ServerInfo::getHostInfo() const
@@ -555,7 +587,7 @@ int ServerInfo::getVersionID() const
     return versionID;
 }
 
-void ServerInfo::setVersionID(int value)
+void ServerInfo::setVersionID(const int& value)
 {
     versionID = value;
 }
@@ -565,7 +597,7 @@ quint16 ServerInfo::getMasterPort() const
     return masterPort;
 }
 
-void ServerInfo::setMasterPort(quint16 value)
+void ServerInfo::setMasterPort(const quint16& value)
 {
     masterPort = value;
 }
@@ -585,10 +617,10 @@ bool ServerInfo::getIsPublic() const
     return isPublic;
 }
 
-void ServerInfo::setIsPublic(bool value)
+void ServerInfo::setIsPublic(const bool& value)
 {
     isPublic = value;
-    Settings::setIsPublic( QVariant( value ), this->getName() );
+    Settings::setIsPublic( value, this->getName() );
 
     this->setMasterUDPResponse( false );
     this->setSentUDPCheckIn( false );
@@ -597,9 +629,6 @@ void ServerInfo::setIsPublic(bool value)
     {
         if ( !this->getIsSetUp() )
             this->setupInfo();
-
-        //Tell the server to use a UPNP Port Forward.
-        this->setupUPNP( false );
 
         this->startMasterCheckIn();
 
@@ -612,8 +641,34 @@ void ServerInfo::setIsPublic(bool value)
         //Disconnect from the Master Server if applicable.
         this->stopMasterCheckIn();
         this->sendMasterInfo( true );
-        this->setupUPNP( true );
     }
+}
+
+bool ServerInfo::getUseUPNP() const
+{
+    return useUPNP;
+}
+
+void ServerInfo::setUseUPNP(const bool& value)
+{
+    //Tell the server to use a UPNP Port Forward.
+
+    Settings::setUseUPNP( value, this->getName() );
+    if ( useUPNP != value )
+    {
+        if ( !this->getIsSetUp() )
+        {
+            //Catch a possible race condition with a signal connection.
+            QObject::connect( this, &ServerInfo::serverIsSetup,
+            [=]()
+            {
+                this->setupUPNP( value );
+            });
+        }
+        else
+            this->setupUPNP( value );
+    }
+    useUPNP = value;
 }
 
 bool ServerInfo::getIsMaster() const
@@ -621,7 +676,7 @@ bool ServerInfo::getIsMaster() const
     return isMaster;
 }
 
-void ServerInfo::setIsMaster(bool value)
+void ServerInfo::setIsMaster(const bool& value)
 {
     isMaster = value;
 }
@@ -631,24 +686,25 @@ QString ServerInfo::getServerID() const
     return serverID;
 }
 
-void ServerInfo::setServerID(QString value)
+void ServerInfo::setServerID(const QString& value)
 {
     serverID = value;
 }
 
-qint32 ServerInfo::getPlayerCount() const
+quint32 ServerInfo::getPlayerCount() const
 {
     return playerCount;
 }
 
-void ServerInfo::setPlayerCount(qint32 value)
+void ServerInfo::setPlayerCount(const quint32& value)
 {
     if ( value <= 0 )
     {
         this->setGameInfo( "" );
-        value = 0;
+        playerCount = 0;
     }
-    playerCount = value;
+    else
+        playerCount = value;
 }
 
 quint16 ServerInfo::getPublicPort() const
@@ -656,7 +712,7 @@ quint16 ServerInfo::getPublicPort() const
     return publicPort;
 }
 
-void ServerInfo::setPublicPort(quint16 value)
+void ServerInfo::setPublicPort(const quint16& value)
 {
     publicPort = value;
 }
@@ -676,9 +732,10 @@ quint16 ServerInfo::getPrivatePort() const
     return privatePort;
 }
 
-void ServerInfo::setPrivatePort(quint16 value)
+void ServerInfo::setPrivatePort(const quint16& value)
 {
     privatePort = value;
+    Settings::setPortNumber( value, this->getName() );
 }
 
 QString ServerInfo::getPrivateIP() const
@@ -706,9 +763,10 @@ bool ServerInfo::getIsSetUp() const
     return isSetUp;
 }
 
-void ServerInfo::setIsSetUp(bool value)
+void ServerInfo::setIsSetUp(const bool& value)
 {
     isSetUp = value;
+    emit this->serverIsSetup();
 }
 
 quint32 ServerInfo::getUserCalls() const
@@ -813,7 +871,7 @@ bool ServerInfo::getSentUDPCheckin() const
     return sentUDPCheckin;
 }
 
-void ServerInfo::setSentUDPCheckIn(bool value)
+void ServerInfo::setSentUDPCheckIn(const bool& value)
 {
     sentUDPCheckin = value;
 }
@@ -823,7 +881,7 @@ bool ServerInfo::getMasterUDPResponse() const
     return masterUDPResponse;
 }
 
-void ServerInfo::setMasterUDPResponse(bool value)
+void ServerInfo::setMasterUDPResponse(const bool& value)
 {
     masterUDPResponse = value;
     if ( masterUDPResponse )
@@ -835,12 +893,12 @@ void ServerInfo::setMasterUDPResponse(bool value)
         masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
 }
 
-bool ServerInfo::getMasterTimedOut()
+bool ServerInfo::getMasterTimedOut() const
 {
     return masterTimedOut;
 }
 
-void ServerInfo::setMasterTimedOut(bool value)
+void ServerInfo::setMasterTimedOut(const bool& value)
 {
     masterTimedOut = value;
     if ( masterTimedOut )
@@ -894,7 +952,7 @@ double ServerInfo::getMasterPingTrend() const
     return masterPingTrend;
 }
 
-void ServerInfo::setMasterPingTrend(double value)
+void ServerInfo::setMasterPingTrend(const double& value)
 {
     masterPingTrend = masterPingTrend * 0.9 + value * 0.1;
 }
@@ -944,6 +1002,14 @@ void ServerInfo::setMasterPing()
 
     this->setMasterPingAvg( masterPing );
     this->setMasterPingTrend( masterPing );
+}
+
+QString ServerInfo::getUsageString()
+{
+    return QString( "%1.%2.%3" )
+                .arg( this->getUsageMins(),
+                      this->getUsageHours(),
+                      this->getUsageDays() );
 }
 
 qint32 ServerInfo::getUsageHours() const

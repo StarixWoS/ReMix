@@ -4,16 +4,29 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
+#include <QStyleFactory>
 #include <QApplication>
 #include <QPalette>
 #include <QObject>
+#include <QFont>
 
-class ThemeChange
+class Theme
 {
+    static Themes themeType;
     public:
-        static void applyTheme(Themes type)
+        static void applyTheme(const Themes& type = Themes::LIGHT)
         {
             QPalette customPalette;
+
+            #ifndef Q_OS_WIN
+                qApp->setFont( QFont( "Lucida Grande", 8 ) );
+            #else
+                qApp->setFont( QFont( "Segoe UI", 8 ) );
+            #endif
+
+            qApp->font().setFixedPitch( true );
+            qApp->setStyle( QStyleFactory::create( "Fusion" ) );
+
             if ( type == Themes::DARK )
             {
                 //Activated Color Roles
@@ -67,9 +80,25 @@ class ThemeChange
                                   QColor( 0, 0, 0 ) );
                 customPalette.setColor( QPalette::Disabled, QPalette::Midlight,
                                   QColor( 247, 247, 247 ) );
+
+                qApp->setPalette( customPalette );
             }
-            qApp->setPalette( customPalette );
+            //Light theme, keep standard palette.
+        }
+
+        static Themes getThemeType()
+        {
+            return themeType;
+        }
+
+        static void setThemeType(const Themes& value)
+        {
+            themeType = value;
+            applyTheme( themeType );
         }
 };
+
+//Declare Class Static Objects.
+Themes Theme::themeType{ Themes::LIGHT };
 
 #endif // THEMECHANGE_HPP

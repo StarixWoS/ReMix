@@ -19,7 +19,7 @@ class RunGuard
         RunGuard(const QString& key);
         ~RunGuard();
 
-        bool isAnotherRunning();
+        bool isAnotherRunning() const;
         bool tryToRun();
         void release();
 

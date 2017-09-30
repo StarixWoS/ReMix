@@ -1,6 +1,20 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "helper.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QNetworkInterface>
+#include <QInputDialog>
+#include <QHostAddress>
+#include <QMessageBox>
+#include <QTcpSocket>
+#include <QtCore>
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
@@ -13,7 +27,22 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
     return dialog;
 }
 
-QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
+qint32 Helper::strToInt(QString& str, int base)
+{
+    bool base16 = ( base != 10 );
+    bool ok{ false };
+
+    qint32 val = str.toInt( &ok, base );
+    if ( !ok && !base16 )
+        val = str.toInt( &ok, 16 );
+
+    if ( !ok )
+        val = -1;
+
+    return val;
+}
+
+QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
 {
     /* This overload is mainly used to reformat a QString's numeric format
      * if the source is in an unknown format.
@@ -29,21 +58,6 @@ QString Helper::intSToStr(QString val, int base, int fill, QChar filler)
     else
         return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler )
                    .toUpper();
-}
-
-qint32 Helper::strToInt(QString str, int base)
-{
-    bool base16 = ( base != 10 );
-    bool ok{ false };
-
-    qint32 val = str.toInt( &ok, base );
-    if ( !ok && !base16 )
-        val = str.toInt( &ok, 16 );
-
-    if ( !ok )
-        val = -1;
-
-    return val;
 }
 
 QString Helper::getStrStr(const QString& str, QString indStr,
@@ -207,9 +221,11 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-void Helper::logToFile(QString& file, QString& text, bool timeStamp,
-                       bool newLine)
+void Helper::logToFile(const QString& file, const QString& text,
+                       const bool& timeStamp,
+                       const bool& newLine)
 {
+    QString logTxt = text;
     QFile log( file );
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )
@@ -218,16 +234,12 @@ void Helper::logToFile(QString& file, QString& text, bool timeStamp,
     if ( log.open( QFile::WriteOnly | QFile::Append ) )
     {
         if ( timeStamp )
-        {
-            uint date = QDateTime::currentDateTime().toTime_t();
-            text.prepend( QDateTime::fromTime_t( date )
-                               .toString( "[ ddd MMM dd HH:mm:ss yyyy ] " ) );
-        }
+            logTxt.prepend( "[ " % getTimeAsString() % " ] " );
 
         if ( newLine )
-            text.prepend( "\r\n" );
+            logTxt.prepend( "\r\n" );
 
-        log.write( text.toLatin1() );
+        log.write( logTxt.toLatin1() );
 
         log.close();
     }
@@ -302,7 +314,7 @@ QString Helper::hashPassword(QString& password)
     return QString( hash.result().toHex() );
 }
 
-QString Helper::genPwdSalt(RandDev* randGen, qint32 length)
+QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
 {
     bool newRNG{ false };
     if ( randGen == nullptr )
@@ -353,7 +365,7 @@ bool Helper::validateSalt(QString& salt)
     return true;
 }
 
-bool Helper::naturalSort(QString left, QString right, bool& result)
+bool Helper::naturalSort(QString& left, QString& right, bool& result)
 {
     do
     {
@@ -400,7 +412,7 @@ bool Helper::naturalSort(QString left, QString right, bool& result)
     return false;
 }
 
-void Helper::delay(qint32 time)
+void Helper::delay(const qint32& time)
 {
     //Delay the next Port refresh by /time/ seconds.
     QTime delayedTime = QTime::currentTime().addSecs( time );
@@ -547,4 +559,14 @@ qint32 Helper::getStrIndex(const QString& strA, const QString& strB)
 {
     //Returns the position of strB within strA.
     return strA.indexOf( strB, 0, Qt::CaseInsensitive );
+}
+
+QString Helper::getTimeAsString(const quint64& time)
+{
+    quint64 date{ time };
+    if ( date == 0 )
+        date = QDateTime::currentDateTime().toTime_t();
+
+    return QDateTime::fromTime_t( date )
+                .toString( "ddd MMM dd HH:mm:ss yyyy" );
 }

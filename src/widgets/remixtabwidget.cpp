@@ -1,6 +1,19 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "remixtabwidget.hpp"
+
+//ReMix includes.
+#include "createinstance.hpp"
+#include "remixwidget.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+#include "remix.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QToolButton>
+#include <QTabBar>
 
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance;
@@ -84,15 +97,14 @@ ReMixTabWidget::~ReMixTabWidget()
         server = serverMap.value( i );
         if ( server != nullptr )
         {
-            Settings::setServerRunning( QVariant( false ),
-                                        server->getServerName() );
+            Settings::setServerRunning( false, server->getServerName() );
             server->close();
             server->deleteLater();
         }
     }
 }
 
-void ReMixTabWidget::sendMultiServerMessage(QString msg)
+void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 {
     ReMixWidget* server{ nullptr };
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
@@ -103,7 +115,7 @@ void ReMixTabWidget::sendMultiServerMessage(QString msg)
     }
 }
 
-qint32 ReMixTabWidget::getPlayerCount()
+qint32 ReMixTabWidget::getPlayerCount() const
 {
     qint32 playerCount{ 0 };
 
@@ -117,7 +129,7 @@ qint32 ReMixTabWidget::getPlayerCount()
     return playerCount;
 }
 
-quint32 ReMixTabWidget::getServerCount()
+quint32 ReMixTabWidget::getServerCount() const
 {
     quint32 serverCount{ 0 };
 
@@ -192,7 +204,7 @@ void ReMixTabWidget::createTabButtons()
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
     QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
     {
-        QVariant type{ false };
+        bool type{ false };
         if ( !nightMode )
         {
             nightModeButton->setText( "Normal Mode" );
@@ -223,7 +235,7 @@ void ReMixTabWidget::createServer()
         createDialog->show();
 }
 
-void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)
+void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
 {
     QWidget* widget = this->widget( index );
     if ( widget != nullptr )
@@ -253,7 +265,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
                     {
-                        Settings::setServerRunning( QVariant( false ),
+                        Settings::setServerRunning( false,
                                                     instance->getServerName() );
 
                         serverMap.remove( i );
@@ -285,7 +297,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(qint32 index)
     }
 }
 
-void ReMixTabWidget::currentChangedSlot(qint32 newTab)
+void ReMixTabWidget::currentChangedSlot(const qint32& newTab)
 {
     //Make sure there are valid Servers to access.
     if ( instanceCount == 0 )
@@ -338,6 +350,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
                          serverMap.value( serverID ),
                          serverName );
         this->setCurrentIndex( serverID );
-        Settings::setServerRunning( QVariant( true ), serverName );
+        Settings::setServerRunning( server->getIsPublic(), serverName );
     }
 }

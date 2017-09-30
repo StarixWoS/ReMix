@@ -30,10 +30,11 @@ class Server : public QTcpServer
         ~Server();
 
         void setupServerInfo();
-        void updatePlayerTable(Player* plr, QHostAddress peerAddr,
-                               quint16 port);
-        QStandardItem* updatePlayerTableImpl(QString& peerIP, QByteArray& data,
-                                             Player* plr, bool insert);
+        void updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
+                               const quint16& port);
+        QStandardItem* updatePlayerTableImpl(const QString& peerIP,
+                                             const QByteArray& data,
+                                             Player* plr, const bool& insert);
 
         Comments* getServerComments() const;
         ChatView* getChatView() const;

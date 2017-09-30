@@ -22,7 +22,7 @@ class Settings : public QDialog
     static Settings* instance;
 
     public:
-        explicit Settings(QWidget *parent = 0);
+        explicit Settings(QWidget* parent = 0);
         ~Settings();
 
         static Settings* getInstance();
@@ -30,6 +30,7 @@ class Settings : public QDialog
 
         static void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
                                   ServerInfo* server);
+
         static void remTabObjects(ServerInfo* server);
         static void updateTabBar(ServerInfo* server);
         static void copyServerSettings(ServerInfo* server, QString newName);
@@ -39,7 +40,7 @@ class Settings : public QDialog
                       ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles, DarkMode = 23 };
+                      GameName, LogFiles, DarkMode, UseUPNP = 24 };
 
         enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
@@ -49,98 +50,121 @@ class Settings : public QDialog
         static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
 
     public: //Static-Free functions. Ported from Helper and Admin.
-        static void setSetting(const QString& key, const QString& subKey,
-                               QVariant& value);
+        static void setSetting(const QString& key,
+                               const QString& subKey,
+                               const QVariant& value);
 
         static QVariant getSetting(const QString& key, const QString& subKey);
 
-        static void setServerSetting(const QString& key, const QString& subKey,
-                                     QVariant& value, QString& svrID);
+        static void setServerSetting(const QString& key,
+                                     const QString& subKey,
+                                     const QVariant& value,
+                                     const QString& svrID);
 
         static QVariant getServerSetting(const QString& key,
-                                         const QString& subKey, QString& svrID);
+                                         const QString& subKey,
+                                         const QString& svrID);
 
-        static void setReqAdminAuth(QVariant& value);
+        static void setReqAdminAuth(const bool& value);
         static bool getReqAdminAuth();
 
-        static void setPassword(QString& value);
+        static void setPassword(const QString& value);
         static QString getPassword();
 
-        static void setRequirePassword(QVariant& value);
+        static void setRequirePassword(const bool& value);
         static bool getRequirePassword();
-        static bool cmpServerPassword(QString& value);
+        static bool cmpServerPassword(const QString& value);
 
-        static void setAllowDupedIP(QVariant& value);
+        static void setAllowDupedIP(const bool& value);
         static bool getAllowDupedIP();
 
-        static void setBanDupedIP(QVariant& value);
+        static void setBanDupedIP(const bool& value);
         static bool getBanDupedIP();
 
-        static void setBanHackers(QVariant& value);
+        static void setBanHackers(const bool& value);
         static bool getBanDeviants();
 
-        static void setReqSernums(QVariant& value);
+        static void setReqSernums(const bool& value);
         static bool getReqSernums();
 
-        static void setDisconnectIdles(QVariant& value);
+        static void setDisconnectIdles(const bool& value);
         static bool getDisconnectIdles();
 
-        static void setAllowSSV(QVariant& value);
+        static void setAllowSSV(const bool& value);
         static bool getAllowSSV();
 
-        static void setLogComments(QVariant& value);
+        static void setLogComments(const bool& value);
         static bool getLogComments();
 
-        static void setLogFiles(QVariant& value);
+        static void setLogFiles(const bool& value);
         static bool getLogFiles();
 
-        static void setDarkMode(QVariant& value);
+        static void setDarkMode(const bool& value);
         static bool getDarkMode();
 
-        static void setFwdComments(QVariant& value);
+        static void setFwdComments(const bool& value);
         static bool getFwdComments();
 
-        static void setInformAdminLogin(QVariant& value);
+        static void setInformAdminLogin(const bool& value);
         static bool getInformAdminLogin();
 
-        static void setEchoComments(QVariant& value);
+        static void setEchoComments(const bool& value);
         static bool getEchoComments();
 
-        static void setMinimizeToTray(QVariant& value);
+        static void setMinimizeToTray(const bool& value);
         static bool getMinimizeToTray();
 
-        static void setSaveWindowPositions(QVariant& value);
+        static void setSaveWindowPositions(const bool& value);
         static bool getSaveWindowPositions();
 
-        static void setWindowPositions(QByteArray geometry, const char* dialog);
+        static void setWindowPositions(const QByteArray& geometry,
+                                       const char* dialog);
+
         static QByteArray getWindowPositions(const char* dialog);
 
         static void setIsInvalidIPAddress(const QString& value);
         static bool getIsInvalidIPAddress(const QString& value);
 
-        static void setMOTDMessage(QVariant& value, QString& svrID);
-        static QString getMOTDMessage(QString& svrID);
+        static void setMOTDMessage(const QString& value,
+                                   const QString& svrID);
 
-        static void setServerID(QVariant& value, QString& svrID);
-        static QString getServerID(QString& svrID);
+        static QString getMOTDMessage(const QString& svrID);
 
-        static void setServerRunning(QVariant value, QString svrID);
-        static bool getServerRunning(QString& svrID);
+        static void setServerID(const qint32& value,
+                                const QString& svrID);
 
-        static void setWorldDir(QString& value);
+        static QString getServerID(const QString& svrID);
+
+        static void setServerRunning(const bool& value,
+                                     const QString& svrID);
+
+        static bool getServerRunning(const QString& svrID);
+
+        static void setWorldDir(const QString& value);
         static QString getWorldDir();
 
-        static void setPortNumber(QVariant value, QString svrID);
-        static QString getPortNumber(QString& svrID);
+        static void setPortNumber(const quint16& value,
+                                  const QString& svrID);
 
-        static void setIsPublic(QVariant value, QString svrID);
-        static bool getIsPublic(QString& svrID);
+        static QString getPortNumber(const QString& svrID);
 
-        static void setGameName(QVariant value, QString svrID);
-        static QString getGameName(QString& svrID);
+        static void setIsPublic(const bool& value,
+                                const QString& svrID);
+
+        static bool getIsPublic(const QString& svrID);
+
+        static void setUseUPNP(const bool& value,
+                               const QString& svrID);
+
+        static bool getUseUPNP(const QString& svrID);
+
+        static void setGameName(const QString& value,
+                                const QString& svrID);
+
+        static QString getGameName(const QString& svrID);
 
     private:
-        Ui::Settings *ui;
+        Ui::Settings* ui;
 };
 
 #endif // SETTINGS_HPP

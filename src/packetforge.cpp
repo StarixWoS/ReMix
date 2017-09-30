@@ -1,6 +1,13 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "packetforge.hpp"
+
+//ReMix includes.
+#include "player.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QDebug>
 
 PacketForge* PacketForge::instance{ nullptr };
 PacketForge::PacketForge()
@@ -28,11 +35,11 @@ PacketForge* PacketForge::getInstance()
     return instance;
 }
 
-QString PacketForge::decryptPacket(QString packet)
+QString PacketForge::decryptPacket(const QString& packet)
 {
     //Player positioning packets, return an empty string.
     if ( !Helper::strStartsWithStr( packet, ":SR?" )
-      || !Helper::strStartsWithStr( packet, ":SR!" ) )
+      && !Helper::strStartsWithStr( packet, ":SR!" ) )
     {
         if ( initialized )
         {
@@ -42,7 +49,7 @@ QString PacketForge::decryptPacket(QString packet)
     return QString( "" );
 }
 
-bool PacketForge::validateSerNum(Player* plr, QString packet)
+bool PacketForge::validateSerNum(Player* plr, const QString& packet)
 {
     QString pkt{ this->decryptPacket( packet ) };
 
@@ -63,10 +70,10 @@ bool PacketForge::validateSerNum(Player* plr, QString packet)
     QString msg{ "Automatic Network Mute of [ %1 ] due to a "
                  "SerNum Missmatch; Tried sending [ %2 ] as "
                  "[ %3 ] while connected as [ %4 ]." };
-            msg = msg.arg( plr->getSernum_s() )
-                     .arg( pkt )
-                     .arg( srcSerNum )
-                     .arg( plr->getSernumHex_s() );
+            msg = msg.arg( plr->getSernum_s(),
+                           pkt,
+                           srcSerNum,
+                           plr->getSernumHex_s() );
     plr->setNetworkMuted( true, msg );
 
     return false;

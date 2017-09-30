@@ -43,9 +43,9 @@ class UPNP : public QObject
     public:
         void makeTunnel();
 
-        void checkPortForward(QString protocol, qint32 port);
-        void addPortForward(QString protocol, qint32 port);
-        void removePortForward(QString protocol, qint32 port);
+        void checkPortForward(const QString& protocol, const qint32& port);
+        void addPortForward(const QString& protocol, const qint32& port);
+        void removePortForward(const QString& protocol, const qint32& port);
 
         static UPNP* getInstance();
 
@@ -54,20 +54,22 @@ class UPNP : public QObject
 
     private:
         void getExternalIP();
-        void extractExternalIP(QString message);
-        void postSOAP(QString action, QString message, QString protocol, qint32 port = 0);
-        void extractError(QString message, qint32 port, QString protocol);
+        void extractExternalIP(const QString& message);
+        void postSOAP(const QString& action, const QString& message,
+                      const QString& protocol, const qint32& port = 0);
+        void extractError(const QString& message, const qint32& port,
+                          const QString& protocol);
 
     private slots:
         void getUdp();
 
     signals:
-        void removedPortForward(qint32 port, QString protocol);
-        void addedPortForward(qint32 port, QString protocol);
-        void checkedPortForward(qint32 port, QString protocol);
+        void removedPortForward(const qint32 port, const QString& protocol);
+        void addedPortForward(const qint32 port, const QString& protocol);
+        void checkedPortForward(const qint32 port, const QString protocol);
         void success();
         void udpResponse();
-        void error(QString message);
+        void error(const QString& message);
         void createdTunnel();
 };
 

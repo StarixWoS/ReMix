@@ -1,11 +1,26 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "remix.hpp"
 #include "ui_remix.h"
 
+//ReMix Widget includes.
+#include "widgets/remixtabwidget.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QSystemTrayIcon>
+#include <QCloseEvent>
+#include <QSettings>
+#include <QMenu>
+
 ReMix* ReMix::instance;
 
-ReMix::ReMix(QWidget *parent) :
+ReMix::ReMix(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {
@@ -85,9 +100,10 @@ void ReMix::updateTitleBars(ServerInfo* server)
         settings->updateTabBar( server );
 
     QString title{ "ReMix[ %1 ]: %2 [ %3 ]" };
-            title = title.arg( QString( REMIX_VERSION ) )
-                         .arg( server->getName() )
-                         .arg( server->getPrivatePort() );
+            title = title.arg( QString( REMIX_VERSION ),
+                               server->getName(),
+                               QString::number(
+                                   server->getPrivatePort() ) );
     ReMix::getInstance()->setWindowTitle( title );
 }
 

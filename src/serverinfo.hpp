@@ -11,8 +11,10 @@
 #include <QObject>
 #include <QTimer>
 
-class ServerInfo
+class ServerInfo : public QObject
 {
+    Q_OBJECT
+
     QUdpSocket* masterSocket{ nullptr };
     Server* tcpServer{ nullptr };
     UPNP* upnp{ nullptr };
@@ -40,11 +42,12 @@ class ServerInfo
 
     QTimer usageUpdate;
 
-    qint32 playerCount{ 0 };
+    quint32 playerCount{ 0 };
     QString serverID{ "" };
 
     bool isMaster{ false };
     bool isPublic{ false };
+    bool useUPNP{ false };
 
     bool sentUDPCheckin{ false };
     bool masterUDPResponse{ false };
@@ -70,7 +73,7 @@ class ServerInfo
     QHostInfo hostInfo;
 
     QString gameName{ "WoS" };
-    int gameId{ 0 };
+    Games gameId{ Games::Invalid };
 
     QString gameInfo{ "" };
     QString info{ "" };
@@ -96,17 +99,19 @@ class ServerInfo
         ~ServerInfo();
 
         void setupInfo();
-        void setupUPNP(bool isDisable = false);
+        void setupUPNP(const bool& enable = false);
 
-        void sendUDPData(QHostAddress& addr, quint16 port, QString& data);
+        void sendUDPData(const QHostAddress& addr, const quint16& port,
+                         const QString& data);
 
-        void sendServerInfo(QHostAddress& addr, quint16 port);
-        void sendUserList(QHostAddress& addr, quint16 port, quint32 type = 0);
-        void sendMasterInfo(bool disconnect = false);
+        void sendServerInfo(const QHostAddress& addr, const quint16& port);
+        void sendUserList(const QHostAddress& addr, const quint16& port,
+                          const quint32& type = 0);
+        void sendMasterInfo(const bool& disconnect = false);
 
-        Player* createPlayer(int slot);
-        Player* getPlayer(int slot);
-        void deletePlayer(int slot);
+        Player* createPlayer(const int& slot);
+        Player* getPlayer(const int& slot);
+        void deletePlayer(const int& slot);
 
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
@@ -114,9 +119,9 @@ class ServerInfo
 
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
-        void sendMasterMessage(QString packet, Player* plr = nullptr,
-                               bool toAll = false);
-        qint64 sendToAllConnected(QString packet);
+        void sendMasterMessage(const QString& packet, Player* plr = nullptr,
+                               const bool toAll = false);
+        qint64 sendToAllConnected(const QString& packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -127,8 +132,8 @@ class ServerInfo
         QString getGameInfo() const;
         void setGameInfo(const QString& value);
 
-        int getGameId() const;
-        void setGameId(int value);
+        Games getGameId() const;
+        void setGameId(const QString& gameName);
 
         QString getGameName() const;
         void setGameName(const QString& value);
@@ -136,34 +141,37 @@ class ServerInfo
         QHostInfo getHostInfo() const;
 
         int getVersionID() const;
-        void setVersionID(int value);
+        void setVersionID(const int& value);
 
         quint16 getMasterPort() const;
-        void setMasterPort(quint16 value);
+        void setMasterPort(const quint16& value);
 
         QString getMasterIP() const;
         void setMasterIP(const QString& value);
 
         bool getIsPublic() const;
-        void setIsPublic(bool value);
+        void setIsPublic(const bool& value);
+
+        bool getUseUPNP() const;
+        void setUseUPNP(const bool& value);
 
         bool getIsMaster() const;
-        void setIsMaster(bool value);
+        void setIsMaster(const bool& value);
 
         QString getServerID() const;
-        void setServerID(QString value);
+        void setServerID(const QString& value);
 
-        qint32 getPlayerCount() const;
-        void setPlayerCount(qint32 value);
+        quint32 getPlayerCount() const;
+        void setPlayerCount(const quint32& value);
 
         quint16 getPublicPort() const;
-        void setPublicPort(quint16 value);
+        void setPublicPort(const quint16& value);
 
         QString getPublicIP() const;
         void setPublicIP(const QString& value);
 
         quint16 getPrivatePort() const;
-        void setPrivatePort(quint16 value);
+        void setPrivatePort(const quint16& value);
 
         QString getPrivateIP() const;
         void setPrivateIP(const QString& value);
@@ -172,7 +180,7 @@ class ServerInfo
         void setName(const QString& value);
 
         bool getIsSetUp() const;
-        void setIsSetUp(bool value);
+        void setIsSetUp(const bool& value);
 
         quint32 getUserCalls() const;
         void setUserCalls(const quint32& value);
@@ -203,19 +211,19 @@ class ServerInfo
         qint64 getBaudOut() const;
 
         QUdpSocket* getMasterSocket() const;
-        bool initMasterSocket(QHostAddress& addr, quint16 port);
+        bool initMasterSocket(const QHostAddress& addr, const quint16& port);
 
         QString getMasterInfoHost() const;
         void setMasterInfoHost(const QString& value);
 
         bool getSentUDPCheckin() const;
-        void setSentUDPCheckIn(bool value);
+        void setSentUDPCheckIn(const bool& value);
 
         bool getMasterUDPResponse() const;
-        void setMasterUDPResponse(bool value);
+        void setMasterUDPResponse(const bool& value);
 
-        bool getMasterTimedOut();
-        void setMasterTimedOut(bool value);
+        bool getMasterTimedOut() const;
+        void setMasterTimedOut(const bool& value);
 
         void startMasterCheckIn();
         void stopMasterCheckIn();
@@ -227,7 +235,7 @@ class ServerInfo
         void setMasterPingRespTime(const qint64& value);
 
         double getMasterPingTrend() const;
-        void setMasterPingTrend(double value);
+        void setMasterPingTrend(const double& value);
 
         double getMasterPingAvg() const;
         void setMasterPingAvg(const double& value);
@@ -241,12 +249,16 @@ class ServerInfo
         double getMasterPing() const;
         void setMasterPing();
 
+        QString getUsageString();
         qint32 getUsageHours() const;
         qint32 getUsageDays() const;
         qint32 getUsageMins() const;
 
         Server* getTcpServer() const;
         void setTcpServer(Server* value);
+
+    signals:
+        void serverIsSetup();
 };
 
 #endif // SERVERINFO_HPP

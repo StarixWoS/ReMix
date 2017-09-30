@@ -1,6 +1,18 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "player.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "sendmsg.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QStandardItemModel>
+#include <QApplication>
+#include <QTcpSocket>
 
 Player::Player()
 {
@@ -29,17 +41,23 @@ Player::Player()
                 this->setAvgBaud( this->getBytesIn(), false );
                 model->setData( row->model()->index( row->row(), 5 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaud( false ) )
-                                    .arg( this->getBytesIn() )
-                                    .arg( this->getPacketsIn() ),
+                                    .arg( QString::number(
+                                              this->getAvgBaud( false ) ),
+                                          QString::number(
+                                              this->getBytesIn() ),
+                                          QString::number(
+                                                  this->getPacketsIn() ) ),
                                 Qt::DisplayRole );
 
                 this->setAvgBaud( this->getBytesOut(), true );
                 model->setData( row->model()->index( row->row(), 6 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaud( true ) )
-                                    .arg( this->getBytesOut() )
-                                    .arg( this->getPacketsOut() ),
+                                    .arg( QString::number(
+                                              this->getAvgBaud( true ) ),
+                                          QString::number(
+                                              this->getBytesOut() ),
+                                          QString::number(
+                                              this->getPacketsOut() ) ),
                                 Qt::DisplayRole );
 
                 //Color the User's IP address Green if the Admin is authed
@@ -149,7 +167,7 @@ Player::~Player()
     this->deleteLater();
 }
 
-void Player::sendMessage(QString msg, bool toAll)
+void Player::sendMessage(const QString& msg, const bool& toAll)
 {
     ServerInfo* server{ this->getServerInfo() };
     if ( server == nullptr )
@@ -327,7 +345,7 @@ int Player::getTargetType() const
     return targetType;
 }
 
-void Player::setTargetType(int value)
+void Player::setTargetType(const int& value)
 {
     targetType = value;
 }
@@ -388,7 +406,7 @@ int Player::getSlotPos() const
     return slotPos;
 }
 
-void Player::setSlotPos(int value)
+void Player::setSlotPos(const int& value)
 {
     slotPos = value;
 }
@@ -421,7 +439,7 @@ bool Player::getSvrPwdReceived() const
     return svrPwdReceived;
 }
 
-void Player::setSvrPwdReceived(bool value)
+void Player::setSvrPwdReceived(const bool& value)
 {
     svrPwdReceived = value;
 }
@@ -441,7 +459,7 @@ int Player::getPacketFloodCount() const
     return packetFloodCount;
 }
 
-void Player::setPacketFloodCount(int value)
+void Player::setPacketFloodCount(const int& value)
 {
     packetFloodCount = value;
 }
@@ -451,7 +469,7 @@ int Player::getPacketsIn() const
     return packetsIn;
 }
 
-void Player::setPacketsIn(int value, int incr)
+void Player::setPacketsIn(const int& value, const int& incr)
 {
     packetsIn = value + incr;
 
@@ -477,7 +495,7 @@ int Player::getPacketsOut() const
     return packetsOut;
 }
 
-void Player::setPacketsOut(int value)
+void Player::setPacketsOut(const int& value)
 {
     packetsOut = value;
 }
@@ -493,7 +511,7 @@ void Player::setBytesOut(const qint64& value)
     this->setAvgBaud( bytesOut, true );
 }
 
-qint64 Player::getAvgBaud(bool out) const
+qint64 Player::getAvgBaud(const bool& out) const
 {
     if ( out )
         return avgBaudOut;
@@ -501,7 +519,7 @@ qint64 Player::getAvgBaud(bool out) const
         return avgBaudIn;
 }
 
-void Player::setAvgBaud(const qint64& bytes, bool out)
+void Player::setAvgBaud(const qint64& bytes, const bool& out)
 {
     qint64 time = this->getConnTime();
     qint64 baud{ 0 };
@@ -531,7 +549,7 @@ bool Player::getAdminPwdRequested() const
     return adminPwdRequested;
 }
 
-void Player::setAdminPwdRequested(bool value)
+void Player::setAdminPwdRequested(const bool& value)
 {
     adminPwdRequested = value;
 }
@@ -541,18 +559,18 @@ bool Player::getAdminPwdReceived() const
     return adminPwdReceived;
 }
 
-void Player::setAdminPwdReceived(bool value)
+void Player::setAdminPwdReceived(const bool& value)
 {
     adminPwdReceived = value;
 }
 
-bool Player::getIsAdmin()
+bool Player::getIsAdmin() const
 {
     QString sernum{ this->getSernumHex_s() };
     return User::getIsAdmin( sernum );
 }
 
-qint32 Player::getAdminRank()
+qint32 Player::getAdminRank() const
 {
     QString sernum{ this->getSernumHex_s() };
     return User::getAdminRank( sernum );
@@ -573,7 +591,7 @@ bool Player::getNewAdminPwdRequested() const
     return newAdminPwdRequested;
 }
 
-void Player::setNewAdminPwdRequested(bool value)
+void Player::setNewAdminPwdRequested(const bool& value)
 {
     newAdminPwdRequested = value;
     if ( newAdminPwdRequested )
@@ -585,7 +603,7 @@ bool Player::getNewAdminPwdReceived() const
     return newAdminPwdReceived;
 }
 
-void Player::setNewAdminPwdReceived(bool value)
+void Player::setNewAdminPwdReceived(const bool& value)
 {
     newAdminPwdReceived = value;
 }
@@ -595,7 +613,7 @@ bool Player::getDisconnected() const
     return pendingDisconnect;
 }
 
-void Player::setDisconnected(bool value)
+void Player::setDisconnected(const bool& value)
 {
     pendingDisconnect = value;
     if ( pendingDisconnect )
@@ -614,7 +632,7 @@ bool Player::getNetworkMuted() const
     return networkMuted;
 }
 
-void Player::setNetworkMuted(bool value, QString& msg)
+void Player::setNetworkMuted(const bool& value, const QString& msg)
 {
     if ( Settings::getLogFiles() )
     {
@@ -627,7 +645,7 @@ void Player::setNetworkMuted(bool value, QString& msg)
     networkMuted = value;
 }
 
-void Player::validateSerNum(ServerInfo* server, quint32 id)
+void Player::validateSerNum(ServerInfo* server, const quint32& id)
 {
     if (( this->getSernum_i() != id
        && id > 0 )
@@ -664,9 +682,9 @@ void Player::validateSerNum(ServerInfo* server, quint32 id)
             QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
                          "usage of <[ Soul 1 ][ %1 ]> while connecting from an "
                          "improper IP Address." };
-                    msg = msg.arg( this->getSernum_s() )
-                             .arg( socketIP )
-                             .arg( masterIP );
+                    msg = msg.arg( this->getSernum_s(),
+                                   socketIP,
+                                   masterIP );
             this->setNetworkMuted( true, msg );
         }
     }

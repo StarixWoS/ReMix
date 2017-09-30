@@ -1,0 +1,61 @@
+skip_non_tags: true
+shallow_clone: true
+version: '{build}'
+max_jobs: 8
+test: off
+
+configuration:
+  - MinGW
+
+platform:
+  - x86
+
+init:
+- cmd: set QT=C:\Qt\5.9.1\mingw53_32
+- cmd: set PATH=%PATH%;%QT%\bin;C:\MinGW\bin
+
+environment:
+  GitEmail: starixwos@gmail.com
+  GitUsername: Starix
+  GitPassword:
+    secure: +pH0LV7BEXaVOnI44xhz53ROYY5u1uZ4GNwtf9eJcRY=
+
+install:
+- cmd: Choco install qbs
+
+build_script:
+- cmd: >-
+
+    qbs-setup-toolchains --detect
+
+    qbs setup-qt %QT%\bin\qmake.exe qtav
+
+    qbs config profiles.qtav.baseProfile mingw32
+
+    qbs build profile:qtav release
+
+    cd release
+
+    windeployqt ReMix-%APPVEYOR_REPO_TAG_NAME%-release.exe
+
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip ReMix-%APPVEYOR_REPO_TAG_NAME%-release.exe
+
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip C:\MinGW\bin\libgcc_s_dw2-1.dll C:\MinGW\bin\libstdc++-6.dll
+
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip Qt5Core.dll Qt5Gui.dll Qt5Network.dll Qt5Widgets.dll
+
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip %QT%\bin\libwinpthread-1.dll
+
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip platforms\qwindows.dll
+    
+    appveyor DownloadFile https://bitbucket.org/ahitb/remix/downloads/PacketForge.dll
+    
+    7z a ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip PacketForge.dll
+
+
+artifacts:
+- path: release/remix-*.zip
+  name: ReMix
+
+deploy_script:
+- cmd: curl -s -X POST "https://%GitUsername%:%GitPassword%@api.bitbucket.org/2.0/repositories/ahitb/remix/downloads/" -F files=@ReMix-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip

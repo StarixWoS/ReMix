@@ -1,6 +1,12 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "randdev.hpp"
+
+//Required STD includes.
+#include <random>
+
+//Required Qt includes.
+#include <QDateTime>
 
 RandDev::RandDev()
 {
@@ -14,7 +20,7 @@ bool RandDev::getInitialized()
     return deviceInitialized;
 }
 
-void RandDev::setInitialized(bool value)
+void RandDev::setInitialized(const bool& value)
 {
     deviceInitialized = value;
 }

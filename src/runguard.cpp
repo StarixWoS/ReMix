@@ -1,3 +1,5 @@
+
+//Class includes.
 #include "runguard.hpp"
 
 RunGuard::RunGuard(const QString& key)
@@ -20,7 +22,7 @@ RunGuard::~RunGuard()
     release();
 }
 
-bool RunGuard::isAnotherRunning()
+bool RunGuard::isAnotherRunning() const
 {
     if ( sharedMem->isAttached() )
         return false;

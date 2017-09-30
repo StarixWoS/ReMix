@@ -100,11 +100,13 @@
     class ChatView;
     class Settings;
     class Comments;
+    class RunGuard;
     class RandDev;
     class SendMsg;
     class Player;
     class Server;
     class Helper;
+    class Theme;
     class Rules;
     class ReMix;
     class User;
@@ -151,12 +153,16 @@
             //Length of a Remote Admin's password salt.
             SALT_LENGTH = 12,
 
+            //Maximum length annowed for a GameInfo String to be set and sent to
+            //players that ping our servers.
+            MAX_GAME_NAME_LENGTH = 256,
+
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 24,
+            SETTINGS_SUBKEY_COUNT = 25,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
@@ -199,7 +205,7 @@
             UI_UPDATE_TIME = 500,
         };
 
-        enum Games{ WoS = 1, ToY = 2, W97 = 3, Invalid = 4 };
+        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
         enum Themes{ LIGHT = 0, DARK = 1 };
 

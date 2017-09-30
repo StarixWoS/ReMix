@@ -1,9 +1,17 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "comments.hpp"
 #include "ui_comments.h"
 
-Comments::Comments(QWidget *parent) :
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QScrollBar>
+#include <QtCore>
+
+Comments::Comments(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::Comments)
 {
@@ -31,14 +39,14 @@ Comments::~Comments()
     delete ui;
 }
 
-void Comments::setTitle(QString name)
+void Comments::setTitle(const QString& name)
 {
     if ( !name.isEmpty() )
         this->setWindowTitle( "Server Comments: [ " % name % " ]" );
 }
 
-void Comments::newUserCommentSlot(QString& sernum, QString& alias,
-                                  QString& message)
+void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
+                                  const QString& message)
 {
     QTextEdit* obj = ui->msgView;
     if ( obj == nullptr )
@@ -51,11 +59,10 @@ void Comments::newUserCommentSlot(QString& sernum, QString& alias,
                                "SerNum: %2 \r\n"
                                "%3: %4"
                                "\r\n --- \r\n" )
-                          .arg( QDateTime::fromTime_t( date )
-                                     .toString( "ddd MMM dd HH:mm:ss yyyy" ) )
-                          .arg( sernum )
-                          .arg( alias )
-                          .arg( message );
+                          .arg( Helper::getTimeAsString( date ),
+                                sernum,
+                                alias,
+                                message );
 
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
     int selStart{ 0 };

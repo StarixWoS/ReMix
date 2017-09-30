@@ -23,7 +23,7 @@ class TblEventFilter : public QObject
     signals:
 
     public slots:
-        bool eventFilter(QObject *obj, QEvent* event);
+        bool eventFilter(QObject* obj, QEvent* event);
 };
 
 #endif // TBLEVENTFILTER_HPP

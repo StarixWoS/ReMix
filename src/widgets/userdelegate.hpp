@@ -16,15 +16,15 @@ class UserDelegate : public QItemDelegate
         UserDelegate(QObject* parent  =0);
         ~UserDelegate();
 
-        void paint(QPainter * painter,
-                   const QStyleOptionViewItem & option,
-                   const QModelIndex & index) const;
+        void paint(QPainter* painter,
+                   const QStyleOptionViewItem& option,
+                   const QModelIndex& index) const;
 
         void setEditorData(QWidget* editor, const QModelIndex& index) const;
 
-        QWidget* createEditor(QWidget *parent,
+        QWidget* createEditor(QWidget* parent,
                               const QStyleOptionViewItem&,
-                              const QModelIndex &index) const;
+                              const QModelIndex& index) const;
     public slots:
         void setModelData(QWidget* editor,
                           QAbstractItemModel* model,

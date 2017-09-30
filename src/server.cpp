@@ -1,6 +1,26 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "server.hpp"
+
+//ReMix Widget includes.
+#include "widgets/remixwidget.hpp"
+
+//ReMix includes.
+#include "packethandler.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "comments.hpp"
+#include "chatview.hpp"
+#include "helper.hpp"
+#include "player.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QStandardItem>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket>
+#include <QtCore>
 
 Server::Server(QWidget* parent, ServerInfo* svr,
                QStandardItemModel* plrView)
@@ -18,18 +38,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     chatView = new ChatView( parent );
     chatView->setTitle( svr->getName() );
 
-    Games gameID{ Games::Invalid };
-    QString gameName{ server->getGameName() };
-    if ( Helper::cmpStrings( gameName, "WoS" ) )
-        gameID = Games::WoS;
-    else if ( Helper::cmpStrings( gameName, "ToY" ) )
-        gameID = Games::ToY;
-    else if ( Helper::cmpStrings( gameName, "W97" ) )
-        gameID = Games::W97;
-    else
-        gameID = Games::Invalid;
-
-    chatView->setGameID( gameID );
+    chatView->setGameID( server->getGameId() );
 
     pktHandle = new PacketHandler( server, chatView );
 
@@ -98,14 +107,16 @@ Server::~Server()
     bioHash.clear();
 }
 
-void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
+void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
+                               const quint16& port)
 {
     QString ip{ peerAddr.toString() };
 
     plr->setPublicIP( ip );
     plr->setPublicPort( port );
 
-    ip = ip.append( ":%1" ).arg( port );
+    ip = ip.append( ":%1" )
+           .arg( QString::number( port ) );
 
     QByteArray data = bioHash.value( peerAddr );
     if ( data.isEmpty() )
@@ -132,8 +143,9 @@ void Server::updatePlayerTable(Player* plr, QHostAddress peerAddr, quint16 port)
     pktHandle->checkBannedInfo( plr );
 }
 
-QStandardItem* Server::updatePlayerTableImpl(QString& peerIP, QByteArray& data,
-                                             Player* plr, bool insert)
+QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
+                                             const QByteArray& data,
+                                             Player* plr, const bool& insert)
 {
     QString bio = QString( data );
     int row{ -1 };

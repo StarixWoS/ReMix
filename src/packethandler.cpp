@@ -1,6 +1,20 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "packethandler.hpp"
+
+//ReMix includes.
+#include "packetforge.hpp"
+#include "cmdhandler.hpp"
+#include "serverinfo.hpp"
+#include "settings.hpp"
+#include "chatview.hpp"
+#include "helper.hpp"
+#include "player.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QTcpSocket>
+#include <QtCore>
 
 PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 {
@@ -18,7 +32,7 @@ PacketHandler::~PacketHandler()
     cmdHandle->deleteLater();
 }
 
-void PacketHandler::parsePacket(QString& packet, Player* plr)
+void PacketHandler::parsePacket(const QString& packet, Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -48,7 +62,7 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
                     if ( chatView->getGameID() == Games::W97 )
                     {
                         //Handle Warpath Packets.
-                        chatView->parsePacket( packet, plr->getSernum_s() );
+                        chatView->parsePacket( packet, plr->getAlias() );
                     }
                     else if ( chatView->getGameID() != Games::Invalid )
                     {
@@ -64,13 +78,14 @@ void PacketHandler::parsePacket(QString& packet, Player* plr)
         this->parseMIXPacket( packet, plr );
 }
 
-void PacketHandler::parseSRPacket(QString& packet, Player* plr)
+void PacketHandler::parseSRPacket(const QString& packet, Player* plr)
 {
     if ( plr == nullptr )
         return;
 
-    if ( !packet.isEmpty() )
-        packet.append( "\r\n" );
+    QString pkt = packet;
+    if ( !pkt.isEmpty() )
+        pkt.append( "\r\n" );
 
     QTcpSocket* tmpSoc{ nullptr };
     Player* tmpPlr{ nullptr };
@@ -129,8 +144,8 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
 
                     if ( send && isAuth )
                     {
-                        bOut = tmpSoc->write( packet.toLatin1(),
-                                              packet.length() );
+                        bOut = tmpSoc->write( pkt.toLatin1(),
+                                              pkt.length() );
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
@@ -147,7 +162,7 @@ void PacketHandler::parseSRPacket(QString& packet, Player* plr)
     plr->setTargetScene( 0 );
 }
 
-void PacketHandler::parseMIXPacket(QString& packet, Player* plr)
+void PacketHandler::parseMIXPacket(const QString& packet, Player* plr)
 {
     if ( plr == nullptr )
         return;
@@ -193,9 +208,10 @@ void PacketHandler::parseMIXPacket(QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
-                                   quint16 port, QHash<QHostAddress,
-                                                      QByteArray>* bioHash)
+void PacketHandler::parseUDPPacket(const QByteArray& udp, const
+                                   QHostAddress& ipAddr,
+                                   const quint16& port,
+                                   QHash<QHostAddress, QByteArray>* bioHash)
 {
     QString logTxt{ "Ignoring UDP from banned %1: "
                     "[ %2:%3 ] sent command: [ %4 ]" };
@@ -216,7 +232,21 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
             {
                 case 'G':   //Set the Server's gameInfoString.
                     {
-                        server->setGameInfo( data.mid( 1 ) );
+                        QString svrInfo{ server->getGameInfo() };
+                        QString usrInfo{ data.mid( 1 ) };
+                        if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
+                        {
+                            //Enforce a 256 character limit on GameNames.
+                            if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
+                            {
+                                //Truncate the User's GameInfo String to 256.
+                                server->setGameInfo(
+                                            usrInfo.left(
+                                                MAX_GAME_NAME_LENGTH ) );
+                            }
+                            else //Length was less than 256, set without issue.
+                                server->setGameInfo( usrInfo );
+                        }
                     }
                 break;
                 case 'M':   //Parse the Master Server's response.
@@ -278,10 +308,10 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
                               || User::getIsBanned( wVar, User::tWV )
                               || User::getIsBanned( dVar, User::tDV ) )
                             {
-                                logTxt = logTxt.arg( "Info" )
-                                               .arg( ipAddr.toString() )
-                                               .arg( port )
-                                               .arg( data );
+                                logTxt = logTxt.arg( "Info",
+                                                     ipAddr.toString(),
+                                                     QString::number( port ),
+                                                     data );
                                 logMsg = Settings::getLogFiles();
                             }
                             else
@@ -312,10 +342,10 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
     }
     else
     {
-        logTxt = logTxt.arg( "IP Address" )
-                       .arg( ipAddr.toString() )
-                       .arg( port )
-                       .arg( data );
+        logTxt = logTxt.arg( "IP Address",
+                             ipAddr.toString(),
+                             QString::number( port ),
+                             data );
         logMsg = Settings::getLogFiles();
     }
 
@@ -323,7 +353,7 @@ void PacketHandler::parseUDPPacket(QByteArray& udp, QHostAddress& ipAddr,
         Helper::logToFile( log, logTxt, true, true );
 }
 
-bool PacketHandler::checkBannedInfo(Player* plr)
+bool PacketHandler::checkBannedInfo(Player* plr) const
 {
     if ( plr == nullptr )
         return true;
@@ -346,10 +376,10 @@ bool PacketHandler::checkBannedInfo(Player* plr)
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        tmpMsg = tmpMsg.arg( "Banned Info" )
-                       .arg( plr->getPublicIP() )
-                       .arg( plr->getPublicPort() )
-                       .arg( plr->getBioData() );
+        tmpMsg = tmpMsg.arg( "Banned Info",
+                             plr->getPublicIP(),
+                             QString::number( plr->getPublicPort() ),
+                             plr->getBioData() );
 
         Helper::logToFile( log, tmpMsg, true, true );
         badInfo = true;
@@ -367,40 +397,31 @@ bool PacketHandler::checkBannedInfo(Player* plr)
             {
                 if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
                 {
-                    reason = reason.arg( plr->getPublicIP() )
-                                   .arg( plr->getPublicPort() )
-                                   .arg( plr->getBioData() );
+                    reason = reason.arg( plr->getPublicIP(),
+                                         QString::number(
+                                             plr->getPublicPort() ),
+                                         plr->getBioData() );
 
                     if ( Settings::getBanDupedIP() )
                         User::addBan( nullptr, plr, reason );
 
-                    if ( plr != nullptr )
+                    auto disconnect = [=](Player* plr, const QString& logMsg)
                     {
-                        tmpMsg = logMsg;
-                        tmpMsg = tmpMsg.arg( "Duplicate IP" )
-                                       .arg( plr->getPublicIP() )
-                                       .arg( plr->getPublicPort() )
-                                       .arg( plr->getBioData() );
+                        QString tmpMsg{ logMsg };
+                                tmpMsg = tmpMsg.arg( "Duplicate IP",
+                                                     plr->getPublicIP(),
+                                                     QString::number(
+                                                         plr->getPublicPort() ),
+                                                     plr->getBioData() );
                         Helper::logToFile( log, tmpMsg, true, true );
 
                         plr->setDisconnected( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
-                    }
+                    };
+                    disconnect( plr, logMsg );
+                    disconnect( tmpPlr, logMsg );
 
-                    if ( tmpPlr != nullptr )
-                    {
-                        tmpMsg = logMsg;
-                        tmpMsg = tmpMsg.arg( "Duplicate IP" )
-                                       .arg( tmpPlr->getPublicIP() )
-                                       .arg( tmpPlr->getPublicPort() )
-                                       .arg( tmpPlr->getBioData() );
-                        Helper::logToFile( log, tmpMsg, true, true );
-
-                        tmpPlr->setDisconnected( true );
-                        server->setIpDc( server->getIpDc() + 1 );
-                        server->setDupDc( server->getDupDc() + 1 );
-                    }
                     badInfo = true;
                 }
             }
@@ -422,10 +443,11 @@ bool PacketHandler::checkBannedInfo(Player* plr)
                 if ( tmpPlr != plr )
                 {
                     tmpMsg = logMsg;
-                    tmpMsg = tmpMsg.arg( "Duplicate SerNum" )
-                                   .arg( tmpPlr->getPublicIP() )
-                                   .arg( tmpPlr->getPublicPort() )
-                                   .arg( tmpPlr->getBioData() );
+                    tmpMsg = tmpMsg.arg( "Duplicate SerNum",
+                                         tmpPlr->getPublicIP(),
+                                         QString::number(
+                                             tmpPlr->getPublicPort() ),
+                                         tmpPlr->getBioData() );
                     Helper::logToFile( log, tmpMsg, true, true );
 
                     plr->setDisconnected( true );
@@ -457,11 +479,14 @@ void PacketHandler::detectFlooding(Player* plr)
                 QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] "
                                 "sent %3 packets in %4 MS, they are "
                                 "disconnected: [ %5 ]" };
-                        logMsg = logMsg.arg( plr->getPublicIP() )
-                                       .arg( plr->getPublicPort() )
-                                       .arg( floodCount )
-                                       .arg( time )
-                                       .arg( plr->getBioData() );
+                        logMsg = logMsg.arg( plr->getPublicIP(),
+                                             QString::number(
+                                                 plr->getPublicPort() ),
+                                             QString::number(
+                                                 floodCount ),
+                                             QString::number(
+                                                 time ),
+                                             plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
                 if ( Settings::getBanDeviants() )
@@ -469,9 +494,10 @@ void PacketHandler::detectFlooding(Player* plr)
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
                              "[ %1:%2 ]: [ %3 ]";
-                    logMsg = logMsg.arg( plr->getPublicIP() )
-                                   .arg( plr->getPublicPort() )
-                                   .arg( plr->getBioData() );
+                    logMsg = logMsg.arg( plr->getPublicIP(),
+                                         QString::number(
+                                             plr->getPublicPort() ),
+                                         plr->getBioData() );
                     Helper::logToFile( log, logMsg, true, true );
 
                     User::addBan( nullptr, plr, logMsg );
@@ -488,7 +514,7 @@ void PacketHandler::detectFlooding(Player* plr)
     }
 }
 
-void PacketHandler::readMIX0(QString& packet, Player* plr)
+void PacketHandler::readMIX0(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -497,19 +523,19 @@ void PacketHandler::readMIX0(QString& packet, Player* plr)
     plr->setTargetType( Player::SCENE );
 }
 
-void PacketHandler::readMIX1(QString& packet, Player* plr)
+void PacketHandler::readMIX1(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     plr->setSceneHost( sernum.toUInt( 0, 16 ) );
 }
 
-void PacketHandler::readMIX2(QString&, Player* plr)
+void PacketHandler::readMIX2(const QString&, Player* plr)
 {
     plr->setSceneHost( 0 );
     plr->setTargetType( Player::ALL );
 }
 
-void PacketHandler::readMIX3(QString& packet, Player* plr)
+void PacketHandler::readMIX3(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -517,7 +543,7 @@ void PacketHandler::readMIX3(QString& packet, Player* plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX4(QString& packet, Player* plr)
+void PacketHandler::readMIX4(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -525,40 +551,41 @@ void PacketHandler::readMIX4(QString& packet, Player* plr)
     plr->setTargetType( Player::PLAYER );
 }
 
-void PacketHandler::readMIX5(QString& packet, Player* plr)
+void PacketHandler::readMIX5(const QString& packet, Player* plr)
 {
     cmdHandle->parseMix5Command( plr, packet );
 }
 
-void PacketHandler::readMIX6(QString& packet, Player* plr)
+void PacketHandler::readMIX6(const QString& packet, Player* plr)
 {
     cmdHandle->parseMix6Command( plr, packet );
 }
 
-void PacketHandler::readMIX7(QString& packet, Player* plr)
+void PacketHandler::readMIX7(const QString& packet, Player* plr)
 {
     if ( plr == nullptr )
         return;
 
-    packet = packet.mid( 2 );
-    packet = packet.left( packet.length() - 2 );
+    QString pkt = packet;
+            pkt = pkt.mid( 2 );
+            pkt = pkt.left( pkt.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, packet.toUInt( 0, 16 ) );
+    plr->validateSerNum( server, pkt.toUInt( 0, 16 ) );
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX8(QString& packet, Player* plr)
+void PacketHandler::readMIX8(const QString& packet, Player* plr)
 {
     QDir ssvDir( "mixVariableCache" );
     if ( ssvDir.exists() )
     {
-        QString sernum = packet.mid( 2 ).left( 8 );
+        QString pkt = packet;
+                pkt = pkt.mid( 10 );
+                pkt = pkt.left( pkt.length() - 2 );
 
-        packet = packet.mid( 10 );
-        packet = packet.left( packet.length() - 2 );
-
-        QStringList vars = packet.split( ',' );
+        QString sernum = pkt.mid( 2 ).left( 8 );
+        QStringList vars = pkt.split( ',' );
         QString val{ "" };
 
         if ( Settings::getAllowSSV() )
@@ -566,11 +593,11 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                            QSettings::IniFormat );
             val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
-                      .arg( sernum )
-                      .arg( vars.value( 0 ) )
-                      .arg( vars.value( 1 ) )
-                      .arg( vars.value( 2 ) )
-                      .arg( ssv.value( vars.value( 1 ) % "/" %
+                      .arg( sernum,
+                            vars.value( 0 ),
+                            vars.value( 1 ),
+                            vars.value( 2 ),
+                            ssv.value( vars.value( 1 ) % "/" %
                                        vars.value( 2 ), "" )
                                .toString() );
         }
@@ -584,16 +611,17 @@ void PacketHandler::readMIX8(QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::readMIX9(QString& packet, Player*)
+void PacketHandler::readMIX9(const QString& packet, Player*)
 {
     QDir ssvDir( "mixVariableCache" );
     if ( !ssvDir.exists() )
         ssvDir.mkpath( "." );
 
-    packet = packet.mid( 10 );
-    packet = packet.left( packet.length() - 2 );
+    QString pkt = packet;
+            pkt = pkt.mid( 10 );
+            pkt = pkt.left( pkt.length() - 2 );
 
-    QStringList vars = packet.split( ',' );
+    QStringList vars = pkt.split( ',' );
     if ( Settings::getAllowSSV() )
     {
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",

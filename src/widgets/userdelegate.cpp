@@ -1,7 +1,11 @@
 
+//Class includes.
 #include "userdelegate.hpp"
-#include "includes.hpp"
 
+//ReMix includes.
+#include "user.hpp"
+
+//Qt Includes.
 #include <QComboBox>
 #include <QPainter>
 
@@ -132,7 +136,7 @@ void UserDelegate::setModelData(QWidget* editor,
                                 QAbstractItemModel* model,
                                 const QModelIndex& index) const
 {
-    QComboBox *combobox = static_cast<QComboBox*>( editor );
+    QComboBox* combobox = static_cast<QComboBox*>( editor );
 
     int value = combobox->currentIndex();
     switch( value )

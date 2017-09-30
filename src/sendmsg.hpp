@@ -16,10 +16,10 @@ class SendMsg : public QDialog
     Q_OBJECT
 
     public:
-        explicit SendMsg(QString serNum, QWidget *parent = nullptr);
+        explicit SendMsg(const QString& serNum, QWidget* parent = nullptr);
         ~SendMsg();
 
-        bool sendToAll();
+        bool sendToAll() const;
 
     private:
         bool eventFilter(QObject* obj, QEvent* event);
@@ -28,10 +28,10 @@ class SendMsg : public QDialog
         void on_sendMsg_clicked();
 
     signals:
-        void forwardMessage(QString);
+        void forwardMessage(const QString&);
 
     private:
-        Ui::SendMsg *ui;
+        Ui::SendMsg* ui;
 };
 
 #endif // SENDMSG_HPP

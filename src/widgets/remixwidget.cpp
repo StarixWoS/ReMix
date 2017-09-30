@@ -1,7 +1,25 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "remixwidget.hpp"
 #include "ui_remixwidget.h"
+
+//Required ReMix Widget includes.
+#include "widgets/plrlistwidget.hpp"
+#include "widgets/ruleswidget.hpp"
+#include "widgets/motdwidget.hpp"
+
+//ReMix includes.
+#include "serverinfo.hpp"
+#include "chatview.hpp"
+#include "comments.hpp"
+#include "settings.hpp"
+#include "randdev.hpp"
+#include "server.hpp"
+#include "helper.hpp"
+#include "user.hpp"
+
+//Qt Includes.
+#include <QMenu>
 
 ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QWidget(parent),
@@ -36,6 +54,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
         tcpServer->setupServerInfo();
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
+    ui->useUPNP->setChecked( server->getUseUPNP() );
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
@@ -46,8 +65,8 @@ ReMixWidget::~ReMixWidget()
 {
     server->sendMasterInfo( true );
 
-    if ( ui->isPublicServer->isChecked() )
-        server->setupUPNP( true );
+    if ( ui->useUPNP->isChecked() )
+        server->setupUPNP( false );
 
     tcpServer->close();
     tcpServer->deleteLater();
@@ -61,12 +80,12 @@ ReMixWidget::~ReMixWidget()
     delete ui;
 }
 
-ServerInfo* ReMixWidget::getServerInfo()
+ServerInfo* ReMixWidget::getServerInfo() const
 {
     return server;
 }
 
-void ReMixWidget::renameServer(QString newName)
+void ReMixWidget::renameServer(const QString& newName)
 {
     if ( !newName.isEmpty() )
     {
@@ -78,15 +97,13 @@ void ReMixWidget::renameServer(QString newName)
     }
 }
 
-void ReMixWidget::sendServerMessage(QString msg)
+void ReMixWidget::sendServerMessage(const QString& msg)
 {
     if ( server != nullptr )
-    {
         server->sendMasterMessage( msg, nullptr, true );
-    }
 }
 
-qint32 ReMixWidget::getPlayerCount()
+qint32 ReMixWidget::getPlayerCount() const
 {
     if ( server != nullptr )
         return server->getPlayerCount();
@@ -173,11 +190,15 @@ void ReMixWidget::initUIUpdate()
                                             "( Ping: %3 ms, "
                                             "Avg: %4 ms, "
                                             "Trend: %5 ms )" };
-                            msg2 = msg2.arg( server->getPublicIP() )
-                                       .arg( server->getPublicPort() )
-                                       .arg( server->getMasterPing() )
-                                       .arg( server->getMasterPingAvg() )
-                                       .arg( server->getMasterPingTrend() );
+                            msg2 = msg2.arg( server->getPublicIP(),
+                                             QString::number(
+                                                 server->getPublicPort() ),
+                                             QString::number(
+                                                 server->getMasterPing() ),
+                                             QString::number(
+                                                 server->getMasterPingAvg() ),
+                                             QString::number(
+                                                 server->getMasterPingTrend() ));
                     msg.append( msg2 );
 
                     qint32 fails{ server->getMasterPingFailCount() };
@@ -238,13 +259,22 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openUserComments_clicked()
 {
-    Comments* comments{ tcpServer->getServerComments() };
-    if ( comments != nullptr )
+    if ( tcpServer != nullptr )
     {
-        if ( comments->isVisible() )
-            comments->hide();
-        else
-            comments->show();
+        Comments* comments{ tcpServer->getServerComments() };
+        if ( comments != nullptr )
+        {
+            if ( comments->isVisible() )
+                comments->hide();
+            else
+                comments->show();
+        }
+    }
+    else
+    {
+        QString title{ "Error:" };
+        QString message{ "Unable to fetch the Server's Comment dialog!" };
+        Helper::warningMessage( this, title, message );
     }
 }
 
@@ -267,7 +297,7 @@ void ReMixWidget::on_isPublicServer_toggled(bool value)
         server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
-void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
+void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
 {
     QString title = QString( "Invalid IP:" );
     QString prompt = QString( "Do you wish to mark the IP Address [ %1 ] as "
@@ -283,6 +313,12 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString &link)
         prompt = "Please refresh your server list in-game!";
         Helper::confirmAction( this, title, prompt );
     }
+}
+
+void ReMixWidget::on_useUPNP_toggled(bool value)
+{
+    if ( value != server->getUseUPNP() )
+        server->setUseUPNP( ui->useUPNP->isChecked() );
 }
 
 void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)

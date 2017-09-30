@@ -1,5 +1,11 @@
 
-#include "includes.hpp"
+//Class includes.
+#include "tblview/tbleventfilter.hpp"
+
+//Qt Includes.
+#include <QSortFilterProxyModel>
+#include <QMouseEvent>
+#include <QTableView>
 
 TblEventFilter::TblEventFilter(QTableView* tbl,
                                QSortFilterProxyModel* tblProxy)

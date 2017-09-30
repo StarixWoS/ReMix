@@ -18,7 +18,7 @@ class UserSortProxyModel : public QSortFilterProxyModel
         ~UserSortProxyModel();
 
     protected:
-        bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
+        bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
 };
 
 #endif // ADMINSORTMODEL_HPP

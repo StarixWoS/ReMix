@@ -1,7 +1,7 @@
 #ifndef USER_HPP
 #define USER_HPP
 
-#include "includes.hpp"
+#include "prototypes.hpp"
 #include <QDialog>
 
 namespace Ui {
@@ -39,42 +39,45 @@ class User : public QDialog
         static void setInstance(User* value);
 
         static QSettings* getUserData();
-        static void setUserData(QSettings* value);
+        static void setUserData(const QSettings* value);
 
         static void setData(const QString& key, const QString& subKey,
                             const QVariant& value);
         static QVariant getData(const QString& key, const QString& subKey);
 
-        static bool makeAdmin(QString& sernum, QString& pwd);
+        static bool makeAdmin(const QString& sernum, const QString& pwd);
 
-        static bool getIsAdmin(QString& sernum);
-        static bool getHasPassword(QString sernum);
-        static bool cmpAdminPwd(QString& sernum, QString& value);
+        static bool getIsAdmin(const QString& sernum);
+        static bool getHasPassword(const QString& sernum);
+        static bool cmpAdminPwd(const QString& sernum, const QString& value);
 
-        static qint32 getAdminRank(QString& sernum);
-        static void setAdminRank(QString& sernum, qint32 rank);
+        static qint32 getAdminRank(const QString& sernum);
+        static void setAdminRank(const QString& sernum, const qint32& rank);
 
-        static void removeBan(QString& value, qint32 type);
-        static bool addBan(Player* admin, Player* target, QString& reason,
-                           bool remote = false);
+        static void removeBan(const QString& value, const qint32& type);
+        static bool addBan(const Player* admin, const Player* target,
+                           const QString& reason, const bool remote = false);
 
-        static bool getIsBanned(QString value, BanTypes type);
+        static bool getIsBanned(const QString& value, const BanTypes& type);
 
-        static void updateCallCount(QString serNum);
-        static void logBIO(QString& serNum, QHostAddress& ip, QString& dv,
-                           QString& wv, QString& bio);
+        static void updateCallCount(const QString& serNum);
+        static void logBIO(const QString& serNum, const QHostAddress& ip,
+                           const QString& dv, const QString& wv,
+                           const QString& bio);
 
     private:
-        QModelIndex findModelIndex(QString value, UserColumns col);
+        QModelIndex findModelIndex(const QString& value,
+                                   const UserColumns& col);
         void loadUserInfo();
-        void updateRowData(qint32 row, qint32 col, QVariant data);
+        void updateRowData(const qint32& row, const qint32& col,
+                           const QVariant& data);
 
     private slots:
         void updateDataValue(const QModelIndex& index,
                              const QModelIndex&,
                              const QVector<int>& = QVector<int> ());
     private:
-        Ui::User *ui;
+        Ui::User* ui;
 };
 
 #endif // USER_HPP

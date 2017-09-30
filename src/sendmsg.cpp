@@ -1,9 +1,16 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "sendmsg.hpp"
 #include "ui_sendmsg.h"
 
-SendMsg::SendMsg(QString serNum, QWidget *parent) :
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QKeyEvent>
+
+SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
     QDialog(parent),
     ui(new Ui::SendMsg)
 {
@@ -38,7 +45,7 @@ SendMsg::~SendMsg()
     delete ui;
 }
 
-bool SendMsg::sendToAll()
+bool SendMsg::sendToAll() const
 {
     bool checked{ ui->checkBox->isChecked() };
     ui->checkBox->setChecked( false );

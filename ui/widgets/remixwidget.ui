@@ -127,7 +127,7 @@
       <item row="0" column="0" colspan="2">
        <widget class="QCheckBox" name="isPublicServer">
         <property name="text">
-         <string>Public Server</string>
+         <string>Public</string>
         </property>
        </widget>
       </item>
@@ -364,6 +364,13 @@
        <widget class="QPushButton" name="openChatView">
         <property name="text">
          <string>Chat View</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="useUPNP">
+        <property name="text">
+         <string>UPNP</string>
         </property>
        </widget>
       </item>

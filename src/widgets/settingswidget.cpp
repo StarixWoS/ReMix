@@ -1,9 +1,17 @@
 
-#include "includes.hpp"
+//Class includes.
 #include "settingswidget.hpp"
 #include "ui_settingswidget.h"
 
-SettingsWidget::SettingsWidget(QWidget *parent) :
+//ReMix includes.
+#include "settings.hpp"
+#include "helper.hpp"
+
+//Qt Includes.
+#include <QFileDialog>
+#include <QtCore>
+
+SettingsWidget::SettingsWidget(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::SettingsWidget)
 {
@@ -69,7 +77,7 @@ SettingsWidget::~SettingsWidget()
     delete ui;
 }
 
-void SettingsWidget::setCheckedState(Toggles option, bool val)
+void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
 {
     Qt::CheckState state;
     if ( val )
@@ -80,7 +88,7 @@ void SettingsWidget::setCheckedState(Toggles option, bool val)
     ui->settingsView->item( option, 0 )->setCheckState( state );
 }
 
-void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem *item)
+void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
 {
     if ( item != nullptr )
     {
@@ -92,7 +100,7 @@ void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem *item)
     }
 }
 
-void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex &index)
+void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex& index)
 {
     int row = index.row();
 
@@ -105,9 +113,9 @@ void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex &index)
     this->toggleSettings( row, val );
 }
 
-void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
+void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
 {
-    QVariant state = value == Qt::Checked;
+    bool state = value == Qt::Checked;
 
     QString title{ "" };
     QString prompt{ "" };
@@ -122,7 +130,7 @@ void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
                 bool ok{ false };
 
                 Settings::setRequirePassword( state );
-                if ( state.toBool() != pwdCheckState )
+                if ( state != pwdCheckState )
                 {
                     if ( Settings::getRequirePassword() )
                     {
@@ -174,7 +182,7 @@ void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
                         }
                     }
                 }
-                pwdCheckState = state.toBool();
+                pwdCheckState = state;
             }
         break;
         case Toggles::REQADMINPWD: //1
@@ -253,7 +261,7 @@ void SettingsWidget::toggleSettings(qint32 row, Qt::CheckState value)
                         }
                     }
 
-                    if ( !state.toBool() )
+                    if ( !state )
                     {
                         directory = "";
                         title = "Invalid Directory:";

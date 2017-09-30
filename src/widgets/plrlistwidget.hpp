@@ -26,18 +26,18 @@ class PlrListWidget : public QWidget
     ServerInfo* server{ nullptr };
 
     public:
-        explicit PlrListWidget(QWidget *parent = nullptr,
+        explicit PlrListWidget(QWidget* parent = nullptr,
                                ServerInfo* svr = nullptr);
         ~PlrListWidget();
 
-        QStandardItemModel* getPlrModel();
+        QStandardItemModel* getPlrModel() const;
         void resizeColumns();
 
     private:
         void initContextMenu();
 
     private slots:
-        void on_playerView_customContextMenuRequested(const QPoint &pos);
+        void on_playerView_customContextMenuRequested(const QPoint& pos);
 
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
@@ -46,7 +46,7 @@ class PlrListWidget : public QWidget
         void on_actionBANISHUser_triggered();
 
     private:
-        Ui::PlrListWidget *ui;
+        Ui::PlrListWidget* ui;
 };
 
 #endif // PLRLISTWIDGET_HPP
