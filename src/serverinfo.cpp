@@ -205,21 +205,21 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
         return;
 
     QString serverName{ this->getName() };
+    QString sGameInfo{ this->getGameInfo() };
     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
                       "//ReMix[ %7 ]" };
 
-    response = response.arg( serverName );
-    if ( !this->getGameInfo().isEmpty() )
-        response = response.arg( " [" % this->getGameInfo() % "]" );
-    else
-        response = response.arg( "" );
+    if ( !sGameInfo.isEmpty() )
+        sGameInfo = " [" % sGameInfo % "]";
 
-    response = response.arg( Rules::getRuleSet( serverName ) )
-                       .arg( this->getServerID() )
-                       .arg( Helper::intToStr( QDateTime::currentDateTime()
-                                                    .toTime_t(), 16, 8 ) )
-                       .arg( this->getUsageString() )
-                       .arg( QString( REMIX_VERSION ) );
+    response = response.arg( serverName,
+                             sGameInfo,
+                             Rules::getRuleSet( serverName ),
+                             this->getServerID(),
+                             Helper::intToStr( QDateTime::currentDateTime()
+                                                    .toTime_t(), 16, 8 ),
+                             this->getUsageString(),
+                             QString( REMIX_VERSION ) );
 
     if ( !response.isEmpty() )
         this->sendUDPData( addr, port, response );
@@ -281,15 +281,19 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
         {
             response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
                        "port=%7,info=%8,name=%9";
-            response = response.arg( this->getVersionID() )
-                               .arg( this->getPlayerCount() )
-                               .arg( this->getGameId() )
-                               .arg( this->getGameName() )
-                               .arg( this->getHostInfo().localHostName() )
-                               .arg( this->getServerID() )
-                               .arg( this->getPrivatePort() )
-                               .arg( this->getGameInfo() )
-                               .arg( this->getName() );
+            response = response.arg( QString::number(
+                                         this->getVersionID() ),
+                                     QString::number(
+                                         this->getPlayerCount() ),
+                                     QString::number(
+                                         this->getGameId() ),
+                                     this->getGameName(),
+                                     this->getHostInfo().localHostName(),
+                                     this->getServerID(),
+                                     QString::number(
+                                         this->getPrivatePort() ),
+                                     this->getGameInfo(),
+                                     this->getName() );
         }
     }
 
@@ -336,12 +340,16 @@ void ServerInfo::deletePlayer(const int& slot)
                             "bytes in %4 packets, averaging %5 baud [ %6 ]" };
             if ( plr != nullptr )
             {
-                logMsg = logMsg.arg( plr->getPublicIP() )
-                               .arg( plr->getConnTime() / 60 )
-                               .arg( plr->getBytesIn() )
-                               .arg( plr->getPacketsIn() )
-                               .arg( plr->getAvgBaud( false ) )
-                               .arg( plr->getBioData() );
+                logMsg = logMsg.arg( plr->getPublicIP(),
+                                     QString::number(
+                                         plr->getConnTime() / 60 ),
+                                     QString::number(
+                                         plr->getBytesIn() ),
+                                     QString::number(
+                                         plr->getPacketsIn() ),
+                                     QString::number(
+                                         plr->getAvgBaud( false ) ),
+                                     plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
         }
@@ -999,9 +1007,9 @@ void ServerInfo::setMasterPing()
 QString ServerInfo::getUsageString()
 {
     return QString( "%1.%2.%3" )
-                .arg( this->getUsageMins() )
-                .arg( this->getUsageHours() )
-                .arg( this->getUsageDays() );
+                .arg( this->getUsageMins(),
+                      this->getUsageHours(),
+                      this->getUsageDays() );
 }
 
 qint32 ServerInfo::getUsageHours() const

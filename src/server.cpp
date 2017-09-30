@@ -115,7 +115,8 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     plr->setPublicIP( ip );
     plr->setPublicPort( port );
 
-    ip = ip.append( ":%1" ).arg( port );
+    ip = ip.append( ":%1" )
+           .arg( QString::number( port ) );
 
     QByteArray data = bioHash.value( peerAddr );
     if ( data.isEmpty() )

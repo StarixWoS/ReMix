@@ -151,15 +151,15 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
                     "if you believe this was in error." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
+    QString prompt{ "" };
     if ( !User::getIsAdmin( sernum ) )
     {
         QString title{ "Create Admin:" };
-        QString prompt{ "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
-                        "\r\n\r\nPlease make sure you trust [ %2 ] as this will "
-                        "allow the them to utilize Admin commands that can remove "
-                        "the ability for other users to connect to the Server." };
-        prompt = prompt.arg( sernum )
-                       .arg( sernum );
+        prompt =  "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
+                  "\r\n\r\nPlease make sure you trust [ %1 ] as this will "
+                  "allow the them to utilize Admin commands that can remove "
+                  "the ability for other users to connect to the Server.";
+        prompt = prompt.arg( sernum );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
@@ -170,9 +170,8 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     else
     {
         QString title{ "Revoke Admin:" };
-        QString prompt{ "Are you certain you want to REVOKE [ "
-                       % Helper::serNumToIntStr( sernum )
-                       % " ]'s powers?" };
+        prompt = "Are you certain you want to REVOKE [ %1 ]'s powers?";
+        prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
@@ -211,8 +210,8 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             QString msg{ "Manual %1 of [ %2 ] by Server Owner." };
-                    msg = msg.arg( mute ? "Mute" : "UnMute" )
-                             .arg( menuTarget->getSernum_s() );
+                    msg = msg.arg( mute ? "Mute" : "UnMute",
+                                   menuTarget->getSernum_s() );
             menuTarget->setNetworkMuted( mute, msg );
         }
     }
@@ -251,9 +250,9 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
             {
                 QString log{ "logs/DCLog.txt" };
                 QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                logMsg = logMsg.arg( reason )
-                         .arg( menuTarget->getSernum_s() )
-                         .arg( menuTarget->getBioData() );
+                logMsg = logMsg.arg( reason,
+                                     menuTarget->getSernum_s(),
+                                     menuTarget->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
         }
@@ -293,9 +292,9 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             {
                 QString log{ "logs/BanLog.txt" };
                 QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                        logMsg = logMsg.arg( reason )
-                                       .arg( menuTarget->getSernum_s() )
-                                       .arg( menuTarget->getBioData() );
+                        logMsg = logMsg.arg( reason,
+                                             menuTarget->getSernum_s(),
+                                             menuTarget->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
             }
         }

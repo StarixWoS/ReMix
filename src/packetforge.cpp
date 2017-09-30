@@ -70,10 +70,10 @@ bool PacketForge::validateSerNum(Player* plr, const QString& packet)
     QString msg{ "Automatic Network Mute of [ %1 ] due to a "
                  "SerNum Missmatch; Tried sending [ %2 ] as "
                  "[ %3 ] while connected as [ %4 ]." };
-            msg = msg.arg( plr->getSernum_s() )
-                     .arg( pkt )
-                     .arg( srcSerNum )
-                     .arg( plr->getSernumHex_s() );
+            msg = msg.arg( plr->getSernum_s(),
+                           pkt,
+                           srcSerNum,
+                           plr->getSernumHex_s() );
     plr->setNetworkMuted( true, msg );
 
     return false;

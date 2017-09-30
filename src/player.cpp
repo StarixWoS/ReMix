@@ -41,17 +41,23 @@ Player::Player()
                 this->setAvgBaud( this->getBytesIn(), false );
                 model->setData( row->model()->index( row->row(), 5 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaud( false ) )
-                                    .arg( this->getBytesIn() )
-                                    .arg( this->getPacketsIn() ),
+                                    .arg( QString::number(
+                                              this->getAvgBaud( false ) ),
+                                          QString::number(
+                                              this->getBytesIn() ),
+                                          QString::number(
+                                                  this->getPacketsIn() ) ),
                                 Qt::DisplayRole );
 
                 this->setAvgBaud( this->getBytesOut(), true );
                 model->setData( row->model()->index( row->row(), 6 ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( this->getAvgBaud( true ) )
-                                    .arg( this->getBytesOut() )
-                                    .arg( this->getPacketsOut() ),
+                                    .arg( QString::number(
+                                              this->getAvgBaud( true ) ),
+                                          QString::number(
+                                              this->getBytesOut() ),
+                                          QString::number(
+                                              this->getPacketsOut() ) ),
                                 Qt::DisplayRole );
 
                 //Color the User's IP address Green if the Admin is authed
@@ -676,9 +682,9 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
                          "usage of <[ Soul 1 ][ %1 ]> while connecting from an "
                          "improper IP Address." };
-                    msg = msg.arg( this->getSernum_s() )
-                             .arg( socketIP )
-                             .arg( masterIP );
+                    msg = msg.arg( this->getSernum_s(),
+                                   socketIP,
+                                   masterIP );
             this->setNetworkMuted( true, msg );
         }
     }

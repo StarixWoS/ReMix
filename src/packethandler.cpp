@@ -308,10 +308,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                               || User::getIsBanned( wVar, User::tWV )
                               || User::getIsBanned( dVar, User::tDV ) )
                             {
-                                logTxt = logTxt.arg( "Info" )
-                                               .arg( ipAddr.toString() )
-                                               .arg( port )
-                                               .arg( data );
+                                logTxt = logTxt.arg( "Info",
+                                                     ipAddr.toString(),
+                                                     QString::number( port ),
+                                                     data );
                                 logMsg = Settings::getLogFiles();
                             }
                             else
@@ -342,10 +342,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     }
     else
     {
-        logTxt = logTxt.arg( "IP Address" )
-                       .arg( ipAddr.toString() )
-                       .arg( port )
-                       .arg( data );
+        logTxt = logTxt.arg( "IP Address",
+                             ipAddr.toString(),
+                             QString::number( port ),
+                             data );
         logMsg = Settings::getLogFiles();
     }
 
@@ -376,10 +376,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
         plr->setDisconnected( true );
         server->setIpDc( server->getIpDc() + 1 );
 
-        tmpMsg = tmpMsg.arg( "Banned Info" )
-                       .arg( plr->getPublicIP() )
-                       .arg( plr->getPublicPort() )
-                       .arg( plr->getBioData() );
+        tmpMsg = tmpMsg.arg( "Banned Info",
+                             plr->getPublicIP(),
+                             QString::number( plr->getPublicPort() ),
+                             plr->getBioData() );
 
         Helper::logToFile( log, tmpMsg, true, true );
         badInfo = true;
@@ -397,40 +397,31 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             {
                 if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
                 {
-                    reason = reason.arg( plr->getPublicIP() )
-                                   .arg( plr->getPublicPort() )
-                                   .arg( plr->getBioData() );
+                    reason = reason.arg( plr->getPublicIP(),
+                                         QString::number(
+                                             plr->getPublicPort() ),
+                                         plr->getBioData() );
 
                     if ( Settings::getBanDupedIP() )
                         User::addBan( nullptr, plr, reason );
 
-                    if ( plr != nullptr )
+                    auto disconnect = [=](Player* plr, const QString& logMsg)
                     {
-                        tmpMsg = logMsg;
-                        tmpMsg = tmpMsg.arg( "Duplicate IP" )
-                                       .arg( plr->getPublicIP() )
-                                       .arg( plr->getPublicPort() )
-                                       .arg( plr->getBioData() );
+                        QString tmpMsg{ logMsg };
+                                tmpMsg = tmpMsg.arg( "Duplicate IP",
+                                                     plr->getPublicIP(),
+                                                     QString::number(
+                                                         plr->getPublicPort() ),
+                                                     plr->getBioData() );
                         Helper::logToFile( log, tmpMsg, true, true );
 
                         plr->setDisconnected( true );
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
-                    }
+                    };
+                    disconnect( plr, logMsg );
+                    disconnect( tmpPlr, logMsg );
 
-                    if ( tmpPlr != nullptr )
-                    {
-                        tmpMsg = logMsg;
-                        tmpMsg = tmpMsg.arg( "Duplicate IP" )
-                                       .arg( tmpPlr->getPublicIP() )
-                                       .arg( tmpPlr->getPublicPort() )
-                                       .arg( tmpPlr->getBioData() );
-                        Helper::logToFile( log, tmpMsg, true, true );
-
-                        tmpPlr->setDisconnected( true );
-                        server->setIpDc( server->getIpDc() + 1 );
-                        server->setDupDc( server->getDupDc() + 1 );
-                    }
                     badInfo = true;
                 }
             }
@@ -452,10 +443,11 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 if ( tmpPlr != plr )
                 {
                     tmpMsg = logMsg;
-                    tmpMsg = tmpMsg.arg( "Duplicate SerNum" )
-                                   .arg( tmpPlr->getPublicIP() )
-                                   .arg( tmpPlr->getPublicPort() )
-                                   .arg( tmpPlr->getBioData() );
+                    tmpMsg = tmpMsg.arg( "Duplicate SerNum",
+                                         tmpPlr->getPublicIP(),
+                                         QString::number(
+                                             tmpPlr->getPublicPort() ),
+                                         tmpPlr->getBioData() );
                     Helper::logToFile( log, tmpMsg, true, true );
 
                     plr->setDisconnected( true );
@@ -487,11 +479,14 @@ void PacketHandler::detectFlooding(Player* plr)
                 QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] "
                                 "sent %3 packets in %4 MS, they are "
                                 "disconnected: [ %5 ]" };
-                        logMsg = logMsg.arg( plr->getPublicIP() )
-                                       .arg( plr->getPublicPort() )
-                                       .arg( floodCount )
-                                       .arg( time )
-                                       .arg( plr->getBioData() );
+                        logMsg = logMsg.arg( plr->getPublicIP(),
+                                             QString::number(
+                                                 plr->getPublicPort() ),
+                                             QString::number(
+                                                 floodCount ),
+                                             QString::number(
+                                                 time ),
+                                             plr->getBioData() );
                 Helper::logToFile( log, logMsg, true, true );
 
                 if ( Settings::getBanDeviants() )
@@ -499,9 +494,10 @@ void PacketHandler::detectFlooding(Player* plr)
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
                              "[ %1:%2 ]: [ %3 ]";
-                    logMsg = logMsg.arg( plr->getPublicIP() )
-                                   .arg( plr->getPublicPort() )
-                                   .arg( plr->getBioData() );
+                    logMsg = logMsg.arg( plr->getPublicIP(),
+                                         QString::number(
+                                             plr->getPublicPort() ),
+                                         plr->getBioData() );
                     Helper::logToFile( log, logMsg, true, true );
 
                     User::addBan( nullptr, plr, logMsg );
@@ -597,11 +593,11 @@ void PacketHandler::readMIX8(const QString& packet, Player* plr)
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                            QSettings::IniFormat );
             val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
-                      .arg( sernum )
-                      .arg( vars.value( 0 ) )
-                      .arg( vars.value( 1 ) )
-                      .arg( vars.value( 2 ) )
-                      .arg( ssv.value( vars.value( 1 ) % "/" %
+                      .arg( sernum,
+                            vars.value( 0 ),
+                            vars.value( 1 ),
+                            vars.value( 2 ),
+                            ssv.value( vars.value( 1 ) % "/" %
                                        vars.value( 2 ), "" )
                                .toString() );
         }

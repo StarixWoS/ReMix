@@ -100,9 +100,10 @@ void ReMix::updateTitleBars(ServerInfo* server)
         settings->updateTabBar( server );
 
     QString title{ "ReMix[ %1 ]: %2 [ %3 ]" };
-            title = title.arg( QString( REMIX_VERSION ) )
-                         .arg( server->getName() )
-                         .arg( server->getPrivatePort() );
+            title = title.arg( QString( REMIX_VERSION ),
+                               server->getName(),
+                               QString::number(
+                                   server->getPrivatePort() ) );
     ReMix::getInstance()->setWindowTitle( title );
 }
 

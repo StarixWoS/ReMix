@@ -59,10 +59,10 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                                "SerNum: %2 \r\n"
                                "%3: %4"
                                "\r\n --- \r\n" )
-                          .arg( Helper::getTimeAsString( date ) )
-                          .arg( sernum )
-                          .arg( alias )
-                          .arg( message );
+                          .arg( Helper::getTimeAsString( date ),
+                                sernum,
+                                alias,
+                                message );
 
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
     int selStart{ 0 };

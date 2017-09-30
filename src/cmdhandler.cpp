@@ -82,10 +82,12 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
             plr->sendMessage( reason );
 
             //Append BIO data to the reason for the Ban log.
-            reason.append( " [ %1:%2 ]: %3" );
-            reason = reason.arg( plr->getPublicIP() )
-                           .arg( plr->getPublicPort() )
-                           .arg( plr->getBioData() );
+            QString append{ " [ %1:%2 ]: %3" };
+                    append = append.arg( plr->getPublicIP(),
+                                         QString::number(
+                                             plr->getPublicPort() ),
+                                         plr->getBioData() );
+            reason.append( append );
 
             User::addBan( nullptr, plr, reason );
 
@@ -142,10 +144,9 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
                     message = message.arg( plr->getAdminRank() >= Ranks::GMASTER
-                                         ? "Admin"
-                                         : "User" )
-                                     .arg( plr->getSernum_s() )
-                                     .arg( msg );
+                                            ? "Admin" : "User",
+                                           plr->getSernum_s(),
+                                           msg );
                     for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
                         tmpPlr = server->getPlayer( i );
@@ -291,10 +292,8 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 {
                     tmpMsg = message;
                     tmpMsg.prepend( "Admin [ %1 ] to [ %2 ]: " );
-                    tmpMsg = tmpMsg.arg( plr->getSernum_s() )
-                                   .arg( all
-                                       ? "Everyone"
-                                       : arg1 );
+                    tmpMsg = tmpMsg.arg( plr->getSernum_s(),
+                                         all ? "Everyone" : arg1 );
                 }
 
                 canUseCommands = this->canUseAdminCommands( plr );
@@ -408,12 +407,12 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                  "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message "
                  "[ %6 ]." };
 
-    msg = msg.arg( plr->getSernum_s() )
-             .arg( cmd )
-             .arg( argType )
-             .arg( arg1 )
-             .arg( arg2 )
-             .arg( message );
+    msg = msg.arg( plr->getSernum_s(),
+                   cmd,
+                   argType,
+                   arg1,
+                   arg2,
+                   message );
 
     //The command was a Message, do not send command information to
     //online Users.
@@ -457,10 +456,9 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
 
             if ( ban )
             {
-                reason = reason.arg( plr->getSernum_s() )
-                               .arg( message.isEmpty()
-                                   ? "No Reason!"
-                                   : message );
+                reason = reason.arg( plr->getSernum_s(),
+                                     message.isEmpty()
+                                      ? "No Reason!" : message );
                 if ( !reason.isEmpty() )
                     tmpPlr->sendMessage( reason );
 
@@ -498,8 +496,7 @@ void CmdHandler::kickHandler(const QString& arg1, const QString& message,
               || all )
             {
                 reason = reason.arg( message.isEmpty()
-                                   ? "No Reason!"
-                                   : message );
+                                   ? "No Reason!" : message );
                 if ( !reason.isEmpty() )
                     tmpPlr->sendMessage( reason );
 
@@ -526,14 +523,12 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
               || tmpPlr->getSernum_s() == arg1
               || all )
             {
-                msg = msg.arg( plr->getSernum_s() )
-                          .arg( argIndex == CMDS::MUTE
-                              ? "Muted"
-                              : "Un-Muted" )
-                          .arg( arg1 )
-                          .arg( message.isEmpty()
-                              ? "No Reason!"
-                              : message );
+                msg = msg.arg( plr->getSernum_s(),
+                               argIndex == CMDS::MUTE
+                                ? "Muted" : "Un-Muted",
+                               arg1,
+                               message.isEmpty()
+                                ? "No Reason!" : message );
 
                 if ( argIndex == CMDS::MUTE )
                     tmpPlr->setNetworkMuted( true, msg );

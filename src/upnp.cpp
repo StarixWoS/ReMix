@@ -228,8 +228,8 @@ void UPNP::getUdp()
                                 if ( Settings::getLogFiles() )
                                 {
                                     logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
-                                    logMsg = logMsg.arg( rtrSchema )
-                                                   .arg( schema );
+                                    logMsg = logMsg.arg( rtrSchema,
+                                                         schema );
                                     Helper::logToFile( upnpLog, logMsg, true, true );
                                 }
 
@@ -254,9 +254,9 @@ void UPNP::getUdp()
                                                      "controlUrl" ) )
                                 {
                                     gatewayCtrlUrl = QString( "http://%1:%2%3" )
-                                                         .arg( gateway.toString() )
-                                                         .arg( ctrlPort )
-                                                         .arg( reader.readElementText() );
+                                                         .arg( gateway.toString(),
+                                                               ctrlPort,
+                                                               reader.readElementText() );
 
                                     if ( Settings::getLogFiles() )
                                     {
@@ -309,7 +309,6 @@ void UPNP::getExternalIP()
     if ( Settings::getLogFiles() )
     {
         QString logMsg{ "Getting ExternalIP." };
-                logMsg = logMsg.arg( message );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -318,9 +317,11 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                     const QString& protocol, const qint32& port)
 {
     QString soap{ "\"%1#%2\"" };
-            soap = soap.arg( rtrSchema ).arg( action );
+            soap = soap.arg( rtrSchema,
+                             action );
     QString host{ "%1:%2" };
-            host = host.arg( gateway.toString() ).arg( ctrlPort );
+            host = host.arg( gateway.toString(),
+                             ctrlPort );
 
     QNetworkRequest req( gatewayCtrlUrl );
                     req.setRawHeader( QByteArray( "Cache-Control" ), "no-cache" );
@@ -366,9 +367,10 @@ void UPNP::postSOAP(const QString& action, const QString& message,
             if ( Settings::getLogFiles() )
             {
                 QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
-                        logMsg = logMsg.arg( action )
-                                       .arg( protocol )
-                                       .arg( port );
+                        logMsg = logMsg.arg( action,
+                                             protocol,
+                                             QString::number(
+                                                 port ) );
                 Helper::logToFile( upnpLog, logMsg, true, true );
             }
         }
@@ -420,9 +422,10 @@ void UPNP::extractError(const QString& message, const qint32& port,
     if ( Settings::getLogFiles() )
     {
         QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
-                logMsg = logMsg.arg( protocol )
-                               .arg( port )
-                               .arg( message );
+                logMsg = logMsg.arg( protocol,
+                                     QString::number(
+                                         port ),
+                                     message );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -450,17 +453,17 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
                      "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
                      "</m:GetSpecificPortMappingEntry></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
-    message = message.arg( rtrSchema )
-                     .arg( QString::number( port ) )
-                     .arg( protocol );
+    message = message.arg( rtrSchema,
+                           QString::number( port ),
+                           protocol );
 
     this->postSOAP( "GetSpecificPortMappingEntry", message, protocol, port );
 
     if ( Settings::getLogFiles() )
     {
         QString logMsg{ "Checking Port[ %1:%2 ]." };
-                logMsg = logMsg.arg( protocol )
-                               .arg( port );
+                logMsg = logMsg.arg( protocol,
+                                     port );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -485,21 +488,21 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port)
                      "<NewLeaseDuration xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">%7</NewLeaseDuration></m:AddPortMapping>"
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
-    message = message.arg( rtrSchema )
-                     .arg( QString::number( port ) )
-                     .arg( protocol )
-                     .arg( QString::number( port ) )
-                     .arg( localAddress.ip().toString() )
-                     .arg( "ReMix_" % QString::number( port ) % protocol )
-                     .arg( QString::number( UPNP_TIME_OUT_S ) );
+    message = message.arg( rtrSchema,
+                           QString::number( port ),
+                           protocol,
+                           QString::number( port ),
+                           localAddress.ip().toString(),
+                           "ReMix_" % QString::number( port ) % protocol,
+                           QString::number( UPNP_TIME_OUT_S ) );
 
     this->postSOAP( "AddPortMapping", message, protocol, port );
 
     if ( Settings::getLogFiles() )
     {
         QString logMsg{ "Adding Port[ %1:%2 ]." };
-                logMsg = logMsg.arg( protocol )
-                               .arg( port );
+                logMsg = logMsg.arg( protocol,
+                                     port );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -514,9 +517,9 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
                      "<NewProtocol xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\">%3</NewProtocol>"
                      "</m:DeletePortMapping></SOAP-ENV:Body></SOAP-ENV:Envelope>" );
 
-    message = message.arg( rtrSchema )
-                     .arg( QString::number( port ) )
-                     .arg( protocol );
+    message = message.arg( rtrSchema,
+                           QString::number( port ),
+                           protocol );
 
     this->postSOAP( "DeletePortMapping", message, protocol, port );
 
@@ -526,8 +529,8 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     if ( Settings::getLogFiles() )
     {
         QString logMsg{ "Removing Port[ %1:%2 ]." };
-        logMsg = logMsg.arg( protocol )
-                       .arg( port );
+        logMsg = logMsg.arg( protocol,
+                             port );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }

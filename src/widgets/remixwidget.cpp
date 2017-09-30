@@ -190,11 +190,15 @@ void ReMixWidget::initUIUpdate()
                                             "( Ping: %3 ms, "
                                             "Avg: %4 ms, "
                                             "Trend: %5 ms )" };
-                            msg2 = msg2.arg( server->getPublicIP() )
-                                       .arg( server->getPublicPort() )
-                                       .arg( server->getMasterPing() )
-                                       .arg( server->getMasterPingAvg() )
-                                       .arg( server->getMasterPingTrend() );
+                            msg2 = msg2.arg( server->getPublicIP(),
+                                             QString::number(
+                                                 server->getPublicPort() ),
+                                             QString::number(
+                                                 server->getMasterPing() ),
+                                             QString::number(
+                                                 server->getMasterPingAvg() ),
+                                             QString::number(
+                                                 server->getMasterPingTrend() ));
                     msg.append( msg2 );
 
                     qint32 fails{ server->getMasterPingFailCount() };

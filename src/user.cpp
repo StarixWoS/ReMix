@@ -295,8 +295,8 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
                 return false;
 
             msg = "Remote-Banish by [ %1 ]; Unknown Reason: [ %2 ]";
-            msg = msg.arg( admin->getSernum_s() )
-                     .arg( target->getSernum_s() );
+            msg = msg.arg( admin->getSernum_s(),
+                           target->getSernum_s() );
         }
         else
         {
@@ -323,7 +323,7 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
 
         user->updateRowData( index.row(),
                              UserColumns::cBANDATE,
-                             Helper::getTimeAsString( date ) );
+                             date );
     }
     return true;
 }
