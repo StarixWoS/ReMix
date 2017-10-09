@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.9'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.9'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.0'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.0'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -36,7 +36,7 @@ CppApplication
     cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
     cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     cpp.cxxFlags: ["-Os", "-s",]
-    //cpp.linkerFlags: [ "-s", ]
+    cpp.linkerFlags: [ "-s", ]
 
     destinationDirectory: "../" + qbs.buildVariant
 

@@ -93,7 +93,9 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    ui->settingsView->item( option, 0 )->setCheckState( state );
+    QTableWidgetItem* item = ui->settingsView->item( option, 0 );
+    if ( item != nullptr )
+        ui->settingsView->item( option, 0 )->setCheckState( state );
 }
 
 void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)

@@ -198,6 +198,11 @@
        <string>15</string>
       </property>
      </row>
+     <row>
+      <property name="text">
+       <string>16</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>Options: ( Double-click to enable or disable )</string>
@@ -326,6 +331,14 @@
      <item row="15" column="0">
       <property name="text">
        <string>World Directory</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="16" column="0">
+      <property name="text">
+       <string>Check For Updates</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
