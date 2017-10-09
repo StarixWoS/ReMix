@@ -36,7 +36,7 @@ CppApplication
     cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
     cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     cpp.cxxFlags: ["-Os", "-s",]
-    cpp.linkerFlags: [ "-s", ]
+    //cpp.linkerFlags: [ "-s", ]
 
     destinationDirectory: "../" + qbs.buildVariant
 
