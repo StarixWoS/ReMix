@@ -4,6 +4,9 @@
 
 #include "prototypes.hpp"
 
+//Required Qt-Sparkle Includes.
+#include "qtsparkle/src/updater.h"
+
 //Required Qt Includes..
 #include <QMainWindow>
 #include <QModelIndex>
@@ -16,6 +19,7 @@ class ReMix : public QMainWindow
 {
     Q_OBJECT
 
+    static qtsparkle::Updater* updaterInstance;
     static ReMix* instance;
 
     QSystemTrayIcon* trayObject{ nullptr };
@@ -36,6 +40,7 @@ class ReMix : public QMainWindow
         explicit ReMix(QWidget* parent = 0);
         ~ReMix();
 
+        static qtsparkle::Updater* getUpdaterInstance();
         static ReMix* getInstance();
         static void setInstance(ReMix* value);
 

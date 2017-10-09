@@ -253,27 +253,30 @@ bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
     return value == QMessageBox::Yes;
 }
 
-qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
+qint32 Helper::warningMessage(QWidget* parent, const QString& title,
+                              const QString& prompt)
 {
     return QMessageBox::warning( parent, title, prompt,
                                  QMessageBox::NoButton,
                                  QMessageBox::Ok );
 }
 
-QString Helper::getTextResponse(QWidget* parent, QString& title,
-                                QString& prompt, bool* ok, int type)
+QString Helper::getTextResponse(QWidget* parent, const QString& title,
+                                const QString& prompt,
+                                const QString& defaultInput,
+                                bool* ok, int type)
 {
     QString response{ "" };
     if ( type == 0 )    //Single-line message.
     {
         response = QInputDialog::getText( parent, title, prompt,
                                           QLineEdit::Normal,
-                                          "", ok );
+                                          defaultInput, ok );
     }
     else if ( type == 1 )   //Multi-line message.
     {
         response = QInputDialog::getMultiLineText( parent, title, prompt,
-                                                   "", ok );
+                                                   defaultInput, ok );
     }
     return response;
 }

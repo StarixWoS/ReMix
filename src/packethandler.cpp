@@ -214,7 +214,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                    QHash<QHostAddress, QByteArray>* bioHash)
 {
     QString logTxt{ "Ignoring UDP from banned %1: "
-                    "[ %2:%3 ] sent command: [ %4 ]" };
+                    "[ %2 ] sent command: [ %3 ]" };
     QString log{ "logs/Ignored.txt" };
     bool logMsg{ false };
 
@@ -310,7 +310,6 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                             {
                                 logTxt = logTxt.arg( "Info",
                                                      ipAddr.toString(),
-                                                     QString::number( port ),
                                                      data );
                                 logMsg = Settings::getLogFiles();
                             }
@@ -344,7 +343,6 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     {
         logTxt = logTxt.arg( "IP Address",
                              ipAddr.toString(),
-                             QString::number( port ),
                              data );
         logMsg = Settings::getLogFiles();
     }
@@ -364,7 +362,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
     QString log{ "logs/DCLog.txt" };
 
-    QString logMsg{ "Auto-Disconnect; %1: [ %2:%3 ], [ %4 ]" };
+    QString logMsg{ "Auto-Disconnect; %1: [ %2 ], [ %3 ]" };
     QString tmpMsg{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
@@ -378,7 +376,6 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
         tmpMsg = tmpMsg.arg( "Banned Info",
                              plr->getPublicIP(),
-                             QString::number( plr->getPublicPort() ),
                              plr->getBioData() );
 
         Helper::logToFile( log, tmpMsg, true, true );
@@ -388,7 +385,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //Disconnect and ban all duplicate IP's if required.
     if ( !Settings::getAllowDupedIP() )
     {
-        QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
+
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             tmpPlr = server->getPlayer( i );
@@ -397,21 +394,19 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             {
                 if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
                 {
-                    reason = reason.arg( plr->getPublicIP(),
-                                         QString::number(
-                                             plr->getPublicPort() ),
-                                         plr->getBioData() );
-
-                    if ( Settings::getBanDupedIP() )
-                        User::addBan( nullptr, plr, reason );
-
-                    auto disconnect = [=](Player* plr, const QString& logMsg)
+                    auto disconnect = [=]( Player* plr, const QString& logMsg )
                     {
+                        QString reason{ "Auto-Banish; Duplicate IP Address: "
+                                        "[ %1 ]: %2" };
+                                reason = reason.arg( plr->getPublicIP(),
+                                                     plr->getBioData() );
+
+                        if ( Settings::getBanDupedIP() )
+                            User::addBan( nullptr, plr, reason );
+
                         QString tmpMsg{ logMsg };
                                 tmpMsg = tmpMsg.arg( "Duplicate IP",
                                                      plr->getPublicIP(),
-                                                     QString::number(
-                                                         plr->getPublicPort() ),
                                                      plr->getBioData() );
                         Helper::logToFile( log, tmpMsg, true, true );
 
@@ -419,6 +414,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         server->setIpDc( server->getIpDc() + 1 );
                         server->setDupDc( server->getDupDc() + 1 );
                     };
+
                     disconnect( plr, logMsg );
                     disconnect( tmpPlr, logMsg );
 
@@ -445,8 +441,6 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                     tmpMsg = logMsg;
                     tmpMsg = tmpMsg.arg( "Duplicate SerNum",
                                          tmpPlr->getPublicIP(),
-                                         QString::number(
-                                             tmpPlr->getPublicPort() ),
                                          tmpPlr->getBioData() );
                     Helper::logToFile( log, tmpMsg, true, true );
 
@@ -476,12 +470,10 @@ void PacketHandler::detectFlooding(Player* plr)
               && !plr->getDisconnected() )
             {
                 QString log{ "logs/DCLog.txt" };
-                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] "
-                                "sent %3 packets in %4 MS, they are "
-                                "disconnected: [ %5 ]" };
+                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1 ] "
+                                "sent %2 packets in %3 MS, they are "
+                                "disconnected: [ %4 ]" };
                         logMsg = logMsg.arg( plr->getPublicIP(),
-                                             QString::number(
-                                                 plr->getPublicPort() ),
                                              QString::number(
                                                  floodCount ),
                                              QString::number(
@@ -493,10 +485,8 @@ void PacketHandler::detectFlooding(Player* plr)
                 {
                     log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
-                             "[ %1:%2 ]: [ %3 ]";
+                             "[ %1 ]: [ %2 ]";
                     logMsg = logMsg.arg( plr->getPublicIP(),
-                                         QString::number(
-                                             plr->getPublicPort() ),
                                          plr->getBioData() );
                     Helper::logToFile( log, logMsg, true, true );
 

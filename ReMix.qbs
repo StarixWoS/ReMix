@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.8'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.8'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.9'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.9'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -22,6 +22,8 @@ CppApplication
 
     cpp.includePaths: [ "resources", "ui", "ui/widgets",
                         "src", "src/tblview", "src/widgets",
+                        "3rdparty", "3rdparty/qtsparkle",
+                        "3rdparty/qtsparkle/src",
                       ]
 
     cpp.defines: [ "RC_VERSION=" + ReMixVersion.replace(/\./g, ",") + ",0",
@@ -32,7 +34,7 @@ CppApplication
 
     cpp.cxxLanguageVersion: "c++14"
     cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
-    cpp.optimization: qbs.buildVariant == "debug" ? "small" : "fast"
+    cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     cpp.cxxFlags: ["-Os", "-s",]
     cpp.linkerFlags: [ "-s", ]
 
@@ -43,39 +45,38 @@ CppApplication
         name: "HPP"
 
         fileTags: ["hpp"]
-        files: [
-            "src/tblview/usersortproxymodel.hpp",
-            "src/tblview/plrsortproxymodel.hpp",
-            "src/tblview/tbleventfilter.hpp",
-            "src/widgets/settingswidget.hpp",
-            "src/widgets/remixtabwidget.hpp",
-            "src/widgets/plrlistwidget.hpp",
-            "src/widgets/userdelegate.hpp",
-            "src/widgets/remixwidget.hpp",
-            "src/widgets/ruleswidget.hpp",
-            "src/widgets/motdwidget.hpp",
-            "src/createinstance.hpp",
-            "src/appeventfilter.hpp",
-            "src/packethandler.hpp",
-            "src/packetforge.hpp",
-            "src/selectworld.hpp",
-            "src/cmdhandler.hpp",
-            "src/serverinfo.hpp",
-            "src/prototypes.hpp",
-            "src/chatview.hpp",
-            "src/comments.hpp",
-            "src/settings.hpp",
-            "src/runguard.hpp",
-            "src/randdev.hpp",
-            "src/sendmsg.hpp",
-            "src/server.hpp",
-            "src/player.hpp",
-            "src/helper.hpp",
-            "src/theme.hpp",
-            "src/rules.hpp",
-            "src/remix.hpp",
-            "src/user.hpp",
-            "src/upnp.hpp",
+        files: [ "src/tblview/usersortproxymodel.hpp",
+                 "src/tblview/plrsortproxymodel.hpp",
+                 "src/tblview/tbleventfilter.hpp",
+                 "src/widgets/settingswidget.hpp",
+                 "src/widgets/remixtabwidget.hpp",
+                 "src/widgets/plrlistwidget.hpp",
+                 "src/widgets/userdelegate.hpp",
+                 "src/widgets/remixwidget.hpp",
+                 "src/widgets/ruleswidget.hpp",
+                 "src/widgets/motdwidget.hpp",
+                 "src/createinstance.hpp",
+                 "src/appeventfilter.hpp",
+                 "src/packethandler.hpp",
+                 "src/packetforge.hpp",
+                 "src/selectworld.hpp",
+                 "src/cmdhandler.hpp",
+                 "src/serverinfo.hpp",
+                 "src/prototypes.hpp",
+                 "src/chatview.hpp",
+                 "src/comments.hpp",
+                 "src/settings.hpp",
+                 "src/runguard.hpp",
+                 "src/randdev.hpp",
+                 "src/sendmsg.hpp",
+                 "src/server.hpp",
+                 "src/player.hpp",
+                 "src/helper.hpp",
+                 "src/theme.hpp",
+                 "src/rules.hpp",
+                 "src/remix.hpp",
+                 "src/user.hpp",
+                 "src/upnp.hpp",
         ]
     }
 
@@ -142,9 +143,31 @@ CppApplication
     Group
     {
         name: "RC"
-        files: [
-            "resources/icons.qrc",
-            "resources/ReMix.rc",
+        files: [ "resources/icons.qrc",
+                 "resources/ReMix.rc",
+        ]
+    }
+
+    Group
+    {
+        name: "Qt-Sparkle"
+        files: [ "3rdparty/qtsparkle/src/appcast.cpp",
+                 "3rdparty/qtsparkle/src/appcast.h",
+                 "3rdparty/qtsparkle/src/appcast_fwd.h",
+                 "3rdparty/qtsparkle/src/common.cpp",
+                 "3rdparty/qtsparkle/src/compareversions.cpp",
+                 "3rdparty/qtsparkle/src/compareversions.h",
+                 "3rdparty/qtsparkle/src/followredirects.cpp",
+                 "3rdparty/qtsparkle/src/followredirects.h",
+                 "3rdparty/qtsparkle/src/uicontroller.cpp",
+                 "3rdparty/qtsparkle/src/uicontroller.h",
+                 "3rdparty/qtsparkle/src/updatechecker.cpp",
+                 "3rdparty/qtsparkle/src/updatechecker.h",
+                 "3rdparty/qtsparkle/src/updatedialog.cpp",
+                 "3rdparty/qtsparkle/src/updatedialog.h",
+                 "3rdparty/qtsparkle/src/updatedialog.ui",
+                 "3rdparty/qtsparkle/src/updater.cpp",
+                 "3rdparty/qtsparkle/src/updater.h",
         ]
     }
 }

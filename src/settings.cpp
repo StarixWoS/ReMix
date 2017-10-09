@@ -60,6 +60,7 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "logFiles",
     "darkMode",
     "useUPNP",
+    "checkForUpdates",
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -476,6 +477,19 @@ bool Settings::getSaveWindowPositions()
               .toBool();
 }
 
+void Settings::setCheckForUpdates(const bool& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::CheckForUpdates ], value );
+}
+
+bool Settings::getCheckForUpdates()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::CheckForUpdates ] )
+              .toBool();
+}
+
 void Settings::setWindowPositions(const QByteArray& geometry,
                                   const char* dialog)
 {
@@ -485,7 +499,7 @@ void Settings::setWindowPositions(const QByteArray& geometry,
 QByteArray Settings::getWindowPositions(const char* dialog)
 {
     return getSetting( keys[ Keys::Positions ], dialog )
-            .toByteArray();
+              .toByteArray();
 }
 
 void Settings::setIsInvalidIPAddress(const QString& value)

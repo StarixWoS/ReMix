@@ -680,7 +680,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
         {
             //Ban IP?
             QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
-                         "usage of <[ Soul 1 ][ %1 ]> while connecting from an "
+                         "usage of <[ Soul 1 ][ %3 ]> while connecting from an "
                          "improper IP Address." };
                     msg = msg.arg( this->getSernum_s(),
                                    socketIP,

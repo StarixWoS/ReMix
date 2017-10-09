@@ -19,7 +19,7 @@ class SettingsWidget : public QWidget
                   DISCONNECTIDLES = 6, ALLOWSSV = 7, LOGCOMMENTS = 8,
                   FWDCOMMENTS = 9, ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
                   MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13, LOGFILES = 14,
-                  WORLDDIR = 15 };
+                  WORLDDIR = 15, CHECKFORUPDATES = 16 };
 
     bool pwdCheckState{ false };
 

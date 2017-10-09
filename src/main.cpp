@@ -3,11 +3,17 @@
 #include "appeventfilter.hpp"
 #include "runguard.hpp"
 #include "settings.hpp"
+#include "helper.hpp"
 #include "remix.hpp"
 #include "theme.hpp"
 
+//Qt-Sparkle Includes.
+#include "qtsparkle/src/updater.h"
+
 //Qt Includes.
+#include <QNetworkAccessManager>
 #include <QApplication>
+#include <QUrl>
 
 int main(int argc, char* [])
 {
@@ -19,11 +25,7 @@ int main(int argc, char* [])
                  a.setApplicationName( "ReMix" );
                  a.setApplicationVersion( REMIX_VERSION );
                  a.setQuitOnLastWindowClosed( false );
-
-    //Remove the "Help" button from the window title bars
-    //with an eventfilter at the QApplication level.
-    a.installEventFilter( new AppEventFilter() );
-
+                 a.installEventFilter( new AppEventFilter() );
     if ( Settings::getDarkMode() )
         Theme::setThemeType( Themes::DARK );
     else

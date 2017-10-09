@@ -169,7 +169,8 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
 
         if ( rank == PlayerRanks::rUSER )
         {
-            setData( sernum, keys[ UserKeys::kRANK ], PlayerRanks::rGAMEMASTER );
+            setData( sernum, keys[ UserKeys::kRANK ],
+                     PlayerRanks::rGAMEMASTER );
             QModelIndex index = user->findModelIndex(
                                     Helper::serNumToIntStr( sernum ),
                                             UserColumns::cSERNUM );
@@ -260,8 +261,10 @@ void User::removeBan(const QString& value, const qint32& type)
                 sernum = sernums.at( i );
                 if ( Helper::cmpStrings( sernum, value ) )
                 {
-                    userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
-                    userData->remove( sernum % "/" % keys[ UserKeys::kREASON ] );
+                    userData->remove( sernum % "/"
+                                    % keys[ UserKeys::kBANNED ] );
+                    userData->remove( sernum % "/"
+                                    % keys[ UserKeys::kREASON ] );
                     break;
                 }
             }
@@ -280,7 +283,8 @@ void User::removeBan(const QString& value, const qint32& type)
     }
 }
 
-bool User::addBan(const Player* admin, const Player* target, const QString& reason, const bool remote)
+bool User::addBan(const Player* admin, const Player* target,
+                  const QString& reason, const bool remote)
 {
     User* user = User::getInstance();
     if ( target == nullptr )
@@ -410,8 +414,8 @@ void User::updateCallCount(const QString& serNum)
     }
 }
 
-void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& dv,
-                  const QString& wv, const QString& bio)
+void User::logBIO(const QString& serNum, const QHostAddress& ip,
+                  const QString& dv, const QString& wv, const QString& bio)
 {
     User* user = User::getInstance();
     QString sernum{ serNum };

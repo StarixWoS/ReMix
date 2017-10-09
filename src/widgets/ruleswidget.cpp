@@ -205,7 +205,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 title = "Server World:";
                                 prompt = "World:";
                                 world = Helper::getTextResponse( this, title,
-                                                                 prompt, &ok, 0 );
+                                                                 prompt, "",
+                                                                 &ok, 0 );
                             }
 
                             if ( !world.isEmpty() && !ok )
@@ -255,7 +256,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Server URL:";
                             prompt = "URL:";
                             url = Helper::getTextResponse( this, title,
-                                                           prompt, &ok, 0 );
+                                                           prompt, "",
+                                                           &ok, 0 );
                         }
 
                         if ( url.isEmpty() && !ok  )
@@ -313,7 +315,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Max-Players:";
                             prompt = "Value:";
                             maxPlrs = Helper::getTextResponse( this, title,
-                                                               prompt, &ok, 0 )
+                                                               prompt, "",
+                                                               &ok, 0 )
                                                      .toUInt();
                         }
 
@@ -367,7 +370,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Max-AFK:";
                             prompt = "Value:";
                             maxAFK = Helper::getTextResponse( this, title,
-                                                              prompt, &ok, 0 )
+                                                              prompt, "",
+                                                              &ok, 0 )
                                                     .toUInt();
                         }
 
@@ -421,7 +425,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Min-Version:";
                             prompt = "Version:";
                             version = Helper::getTextResponse( this, title,
-                                                               prompt, &ok, 0 );
+                                                               prompt, "",
+                                                               &ok, 0 );
                         }
 
                         if ( version.isEmpty() && !ok  )

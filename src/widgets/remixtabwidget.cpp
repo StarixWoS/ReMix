@@ -53,21 +53,43 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
             QString message{ "Please enter the new name you wish "
                              "to use for this server!" };
 
+            bool accepted{ false };
             QString response{ Helper::getTextResponse( this, title, message,
-                                                       nullptr, 0 ) };
+                                                       tabA->getServerName(),
+                                                       &accepted, 0 ) };
 
-            if ( response.isEmpty() )
+            //The User clicked OK. Do nothing if the User clicked Cancel.
+            if ( accepted == true )
             {
-                title = "Error:";
-                message = "The Server name can not be empty!";
-                Helper::warningMessage( this, title, message );
-            }
-            else
-            {
-                this->setTabText( index, response );
-                tabA->renameServer( response );
+                bool warnUser{ false };
+                //The Response was not empty, change the Server's Name.
+                if ( !response.isEmpty() )
+                {
+                    //Check if the new name is the same as the old.
+                    if ( !Helper::cmpStrings( tabA->getServerName(),
+                                              response ) )
+                    {
+                        this->setTabText( index, response );
+                        tabA->renameServer( response );
 
-                emit this->currentChanged( index );
+                        emit this->currentChanged( index );
+                    }
+                    else //The new Server name is the same as the Old.
+                    {
+                        message = "The new server name can not be the same "
+                                  "as the old name!";
+                        warnUser = true;
+                    }
+
+                }
+                else //The Response was empty or otherwise invalid.
+                {    //Inform the User.
+                    message = "The server name can not be empty!";
+                    warnUser = true;
+                }
+
+                if ( warnUser )
+                    Helper::warningMessage( this, "Error:", message );
             }
         }
     });

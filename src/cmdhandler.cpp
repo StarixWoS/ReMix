@@ -82,10 +82,8 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
             plr->sendMessage( reason );
 
             //Append BIO data to the reason for the Ban log.
-            QString append{ " [ %1:%2 ]: %3" };
+            QString append{ " [ %1 ]: %2" };
                     append = append.arg( plr->getPublicIP(),
-                                         QString::number(
-                                             plr->getPublicPort() ),
                                          plr->getBioData() );
             reason.append( append );
 
@@ -606,9 +604,9 @@ void CmdHandler::loginHandler(Player* plr, const QString& argType)
             //Inform Other Users of this Remote-Admin's login if enabled.
             if ( Settings::getInformAdminLogin() )
             {
-                QString message{ "Remote Admin [ "
-                                 % plr->getSernum_s()
-                                 % " ] has Authenticated with the server." };
+                QString message{ "Remote Admin [ %1 ] has Authenticated with "
+                                 "the server." };
+                        message = message.arg( plr->getSernum_s() ) ;
 
                 Player* tmpPlr{ nullptr };
                 for ( int i = 0; i < MAX_PLAYERS; ++i )
