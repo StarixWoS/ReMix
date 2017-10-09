@@ -57,7 +57,8 @@ ReMix::ReMix(QWidget* parent) :
         this->initSysTray();
     #endif
 
-    this->getUpdaterInstance()->CheckNow();
+    if ( Settings::getCheckForUpdates() )
+        this->getUpdaterInstance()->CheckNow();
 }
 
 ReMix::~ReMix()

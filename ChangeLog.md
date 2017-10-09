@@ -8,6 +8,7 @@ Import:
   Bugfixes:
     * When changing a server's name, the input dialog will now properly have the old server's name pre-entered.
       * If accepting a name change with the old name, a warning message will be shown to the User.
+	* ReMix will nolonger automatically attempt to update when the setting is not toggled.
 
   Buildsystem:
     * Merge the QtSparkle Update Checking library into the repository.
