@@ -1,3 +1,10 @@
+Version 2.3.1:
+  Bugfixes:
+    * Properly remove Users from the online User list when they are banned, kicked, or otherwise disconnected.
+
+
+
+
 Version 2.3.0:
   Bugfixes:
     * Fixed a crash related to accessing a nonexistint row within the SettingsWidget table.

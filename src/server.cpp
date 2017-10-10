@@ -110,9 +110,10 @@ Server::~Server()
 void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
                                const quint16& port)
 {
-    QString ip{ peerAddr.toString() };
+    QString ip{ peerAddr.toString() % ":%1" };
+            ip = ip.arg( port );
 
-    plr->setPublicIP( ip );
+    plr->setPublicIP( peerAddr.toString() );
     plr->setPublicPort( port );
 
     QByteArray data = bioHash.value( peerAddr );
