@@ -9,6 +9,9 @@ Version 2.3.0:
   Bugfixes:
     * Fixed a crash related to accessing a nonexistint row within the SettingsWidget table.
 
+
+
+
 Version 2.2.9:
   Change:
     * Remove references to a User's port number from Log files.
