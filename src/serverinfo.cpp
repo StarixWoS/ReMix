@@ -210,7 +210,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                       "//ReMix[ %7 ]" };
 
     if ( !sGameInfo.isEmpty() )
-        sGameInfo = " [" % sGameInfo % "]";
+        sGameInfo = " [world=" % sGameInfo % "]";
 
     response = response.arg( serverName,
                              sGameInfo,
@@ -700,7 +700,7 @@ void ServerInfo::setPlayerCount(const quint32& value)
 {
     if ( value <= 0 )
     {
-        this->setGameInfo( "" );
+        this->setGameInfo( Rules::getWorldName( this->getName() ) );
         playerCount = 0;
     }
     else

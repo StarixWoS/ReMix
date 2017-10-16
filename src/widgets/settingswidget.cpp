@@ -292,10 +292,10 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         break;
         case Toggles::CHECKFORUPDATES:
             {
-                if ( state )
-                {
+                bool toggled{ Settings::getCheckForUpdates() };
+                if ( state && !toggled )
                     ReMix::getUpdaterInstance()->CheckNow();
-                }
+
                 Settings::setCheckForUpdates( state );
             }
         break;

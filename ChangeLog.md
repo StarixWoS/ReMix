@@ -1,3 +1,17 @@
+Version 2.3.2:
+  Change:
+    * Permanently show the designated GameInfo( World Name ) as selected within the RulesWidget class.
+      * Instead of disabling the shown GameInfo( World Name ) when all users are disconnected, we now show it on the server list at all times.
+
+  Bugfixes:
+    * Correctly format and present the GameInfo( World Name ) on server lists.
+    * When the GameInfo( World Name ) is changed within the RulesWidget class, emit a signal to update the information within the ServerInfo class.
+    * Correctly convert integers to strings within the UPNP class for logging to file.
+    * When selecting the option to toggle the update checker the stored state is now checked to prevent an update check when the option is already toggled.
+
+
+
+
 Version 2.3.1:
   Bugfixes:
     * Properly remove Users from the online User list when they are banned, kicked, or otherwise disconnected.

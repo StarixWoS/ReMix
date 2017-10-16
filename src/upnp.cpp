@@ -369,8 +369,7 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
                         logMsg = logMsg.arg( action,
                                              protocol,
-                                             QString::number(
-                                                 port ) );
+                                             QString::number( port ) );
                 Helper::logToFile( upnpLog, logMsg, true, true );
             }
         }
@@ -423,8 +422,7 @@ void UPNP::extractError(const QString& message, const qint32& port,
     {
         QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
                 logMsg = logMsg.arg( protocol,
-                                     QString::number(
-                                         port ),
+                                     QString::number( port ),
                                      message );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
@@ -463,7 +461,7 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
     {
         QString logMsg{ "Checking Port[ %1:%2 ]." };
                 logMsg = logMsg.arg( protocol,
-                                     port );
+                                     QString::number( port ) );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -502,7 +500,7 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port)
     {
         QString logMsg{ "Adding Port[ %1:%2 ]." };
                 logMsg = logMsg.arg( protocol,
-                                     port );
+                                     QString::number( port ) );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }
@@ -530,7 +528,7 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     {
         QString logMsg{ "Removing Port[ %1:%2 ]." };
         logMsg = logMsg.arg( protocol,
-                             port );
+                             QString::number( port ) );
         Helper::logToFile( upnpLog, logMsg, true, true );
     }
 }

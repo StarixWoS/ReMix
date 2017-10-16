@@ -37,6 +37,11 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     motdWidget->setServerName( server->getName() );
 
     rules = new RulesWidget();
+    QObject::connect( rules, &RulesWidget::gameInfoChanged,
+    [=](const QString& gameInfo)
+    {
+        server->setGameInfo( gameInfo );
+    });
     rules->setServerName( server->getName() );
 
     Settings::addTabObjects( motdWidget, rules, server );

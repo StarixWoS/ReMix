@@ -42,6 +42,9 @@ class RulesWidget : public QWidget
         void on_rulesView_doubleClicked(const QModelIndex& index);
         void on_rulesView_itemClicked(QTableWidgetItem* item);
 
+    signals:
+        void gameInfoChanged(const QString& gameInfo);
+
     private:
         Ui::RulesWidget* ui;
 };
