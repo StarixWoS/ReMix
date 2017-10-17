@@ -46,7 +46,7 @@ class CmdHandler : public QObject
         void loginHandler(Player* plr, const QString& argType);
         void registerHandler(Player* plr, const QString& argType);
 
-        void shutDownHandler(Player* plr, const bool restart = false);
+        void shutDownHandler(Player* plr, const bool& restart = false);
 
 //        void mkAdminHandler(Player* plr, QString& sernum, QString& arg);
 //        void rmAdminHandler(Player* plr, QString& sernum);

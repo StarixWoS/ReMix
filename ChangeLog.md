@@ -1,3 +1,16 @@
+Version 2.3.3:
+  Change:
+    * Re-enable the remote administrator commands to shutdown and restart a server.
+      * When the last server is shutdown via a remote command, the ReMix instance will also close.
+      * When the last server is restarted via a remote admin command, the Create Instance dialog will be skipped, and the server will be recreated using the previous settings.
+
+  Bugfixes:
+    * Servers when closed will now correctly have their indices shifted to retain the proper name and position within the server map.
+      * The previous behavior would cause a server to take on the name and settings dialog of another active server.
+
+
+
+
 Version 2.3.2:
   Change:
     * Permanently show the designated GameInfo( World Name ) as selected within the RulesWidget class.

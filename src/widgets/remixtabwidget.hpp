@@ -13,6 +13,7 @@ class ReMixTabWidget : public QTabWidget
 {
     Q_OBJECT
 
+    static QMap<int, ReMixWidget*> serverMap;
     static CreateInstance* createDialog;
     static ReMixTabWidget* tabInstance;
     static qint32 instanceCount;
@@ -20,7 +21,6 @@ class ReMixTabWidget : public QTabWidget
     QToolButton* nightModeButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
-    QMap<int, ReMixWidget*> serverMap;
     User* user{ nullptr };
 
     qint32 prevTabIndex{ 0 };
@@ -40,8 +40,14 @@ class ReMixTabWidget : public QTabWidget
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
         static CreateInstance* getCreateDialog(QWidget* parent = nullptr);
+        static void remoteCloseServer(ServerInfo* server,
+                                      const bool restart = false);
 
     private:
+        static void removeServer(const qint32& index,
+                                 const bool& remote = false,
+                                 const bool& restart = false);
+        void repositionServerIndices();
         void createTabButtons();
         void createServer();
 

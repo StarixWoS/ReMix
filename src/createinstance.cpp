@@ -163,6 +163,31 @@ quint16 CreateInstance::genPort()
     return port;
 }
 
+void CreateInstance::restartServer(const QString& name, const QString& gameName,
+                                   const quint16& port, const bool& useUPNP,
+                                   const bool& isPublic)
+{
+    if ( !name.isEmpty() )
+    {
+        ServerInfo* server = new ServerInfo();
+
+        //Failed to create the ServerInfo instance.
+        if ( server == nullptr )
+            return;
+
+        Helper::getSynRealData( server );
+        server->setName( name );
+        server->setGameName( gameName );
+        server->setPrivatePort( port );
+        server->setServerID( Settings::getServerID( name ) );
+        server->setUseUPNP( useUPNP );
+        server->setIsPublic( isPublic );
+
+        emit this->createServerAcceptedSignal( server );
+        emit this->accept();
+    }
+}
+
 bool CreateInstance::testPort(const quint16& port)
 {
     //Get the best possible PrivateIP.

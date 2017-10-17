@@ -3,6 +3,7 @@
 #include "cmdhandler.hpp"
 
 //ReMix includes.
+#include "remixtabwidget.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
@@ -330,28 +331,28 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 logMsg = false;
             }
         break;
-//        case CMDS::SHUTDOWN: //8
-//            {
-//                canUseCommands = this->canUseAdminCommands( plr );
-//                if ( plr->getAdminRank() >= Ranks::OWNER
-//                  && canUseCommands )
-//                {
-//                    this->shutDownHandler( plr, false );
-//                    retn = true;
-//                }
-//            }
-//        break;
-//        case CMDS::RESTART: //9
-//            {
-//                canUseCommands = this->canUseAdminCommands( plr );
-//                if ( plr->getAdminRank() >= Ranks::OWNER
-//                  && canUseCommands )
-//                {
-//                    this->shutDownHandler( plr, true );
-//                    retn = true;
-//                }
-//            }
-//        break;
+        case CMDS::SHUTDOWN: //8
+            {
+                canUseCommands = this->canUseAdminCommands( plr );
+                if ( plr->getAdminRank() >= Ranks::OWNER
+                  && canUseCommands )
+                {
+                    this->shutDownHandler( plr, false );
+                    retn = true;
+                }
+            }
+        break;
+        case CMDS::RESTART: //9
+            {
+                canUseCommands = this->canUseAdminCommands( plr );
+                if ( plr->getAdminRank() >= Ranks::OWNER
+                  && canUseCommands )
+                {
+                    this->shutDownHandler( plr, true );
+                    retn = true;
+                }
+            }
+        break;
 //        case CMDS::MKADMIN: //10
 //            {
 //                this->mkAdminHandler( plr, arg1, arg2 );
@@ -710,23 +711,26 @@ void CmdHandler::registerHandler(Player* plr, const QString& argType)
         plr->sendMessage( response );
 }
 
-void CmdHandler::shutDownHandler(Player* plr, bool restart)
+void CmdHandler::shutDownHandler(Player* plr, const bool& restart)
 {
     QString message{ "Admin [ %1 ]: The Server will %2 in 30 seconds..." };
             message = message.arg( plr->getSernum_s() );
 
     QTimer* timer = new QTimer();
-    QObject::connect( timer, &QTimer::timeout, timer,
-    [=]()
+
+    ServerInfo* plrServer = plr->getServerInfo();
+    if ( plrServer != nullptr )
     {
-        if ( restart )
+
+        QObject::connect( timer, &QTimer::timeout, timer,
+        [=]()
         {
-            QProcess proc;
-            proc.startDetached( qApp->applicationFilePath(),
-                                qApp->arguments() );
-        }
-        qApp->quit();
-    });
+            ReMixTabWidget::remoteCloseServer( plrServer, restart );
+
+            timer->disconnect();
+            timer->deleteLater();
+        });
+    }
 
     if ( restart )
         message = message.arg( "restart" );
