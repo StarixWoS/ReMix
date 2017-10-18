@@ -1007,9 +1007,9 @@ void ServerInfo::setMasterPing()
 QString ServerInfo::getUsageString()
 {
     return QString( "%1.%2.%3" )
-                .arg( this->getUsageMins(),
-                      this->getUsageHours(),
-                      this->getUsageDays() );
+            .arg( QString::number( this->getUsageMins() ),
+                  QString::number( this->getUsageHours() ),
+                  QString::number( this->getUsageDays() ) );
 }
 
 qint32 ServerInfo::getUsageHours() const

@@ -7,6 +7,8 @@ Version 2.3.3:
   Bugfixes:
     * Servers when closed will now correctly have their indices shifted to retain the proper name and position within the server map.
       * The previous behavior would cause a server to take on the name and settings dialog of another active server.
+    * Correctly convert the server usage information to strings.
+      * The previous behavior of using the raw data would eventually cause a segfault.
 
 
 
