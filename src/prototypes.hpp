@@ -157,6 +157,9 @@
             //players that ping our servers.
             MAX_GAME_NAME_LENGTH = 256,
 
+            //Count of possible logging types that ReMix uses.
+            LOG_TYPE_COUNT = 8,
+
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
             SETTINGS_KEY_COUNT = 5,

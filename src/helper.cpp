@@ -16,6 +16,18 @@
 #include <QTcpSocket>
 #include <QtCore>
 
+const QString Helper::logType[ LOG_TYPE_COUNT ] =
+{
+    "AdminUsage.txt",
+    "Comments.txt",
+    "UsageLog.txt",
+    "UPNPLog.txt",
+    "BanLog.txt",
+    "DCLog.txt",
+    "MuteLog.txt",
+    "Ignored.txt",
+};
+
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
                                         int width, int height)
@@ -221,12 +233,16 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-void Helper::logToFile(const QString& file, const QString& text,
+void Helper::logToFile(const LogTypes& type, const QString& text,
                        const bool& timeStamp,
                        const bool& newLine)
 {
     QString logTxt = text;
-    QFile log( file );
+
+    QFile log( "logs/"
+               % QDate::currentDate().toString( "[yyyy-MM-dd]/")
+               % logType[ type ] );
+
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )
         logInfo.dir().mkdir( "." );

@@ -1,3 +1,14 @@
+Version 2.3.4:
+  Change:
+    * Consolidate information regarding log file names into the Helper class for ease of use.
+    * All logs will now be seperated into subdirectories based on the current date to more easily browse to events on a certain day.
+
+  Bugfixes:
+    * Properly validate settings before logging certain information to file.
+      * Before, the setting "Settings::getLogFiles()" was not being checked when certain events occured.
+
+
+
 Version 2.3.3:
   Change:
     * Re-enable the remote administrator commands to shutdown and restart a server.

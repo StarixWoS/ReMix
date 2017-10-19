@@ -636,11 +636,8 @@ void Player::setNetworkMuted(const bool& value, const QString& msg)
 {
     if ( Settings::getLogFiles() )
     {
-        QString log{ "logs/muteLog.txt" };
         if ( !msg.isEmpty() )
-        {
-            Helper::logToFile( log, msg, true, true );
-        }
+            Helper::logToFile( Helper::MUTE, msg, true, true );
     }
     networkMuted = value;
 }

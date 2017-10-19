@@ -10,7 +10,12 @@
 
 class Helper
 {
+        static const QString logType[ LOG_TYPE_COUNT ];
+
     public:
+        enum LogTypes{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC, MUTE,
+                       IGNORE = 7 };
+
         static QInputDialog* createInputDialog(QWidget* parent, QString& label,
                                                QInputDialog::InputMode mode,
                                                int width, int height);
@@ -36,7 +41,7 @@ class Helper
         static QString serNumToIntStr(QString sernum);
         static qint32 serNumtoInt(QString& sernum);
 
-        static void logToFile(const QString& file, const QString& text,
+        static void logToFile(const LogTypes& type, const QString& text,
                               const bool& timeStamp = false,
                               const bool& newLine = false);
 

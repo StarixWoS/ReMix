@@ -334,8 +334,6 @@ void ServerInfo::deletePlayer(const int& slot)
     {
         if ( Settings::getLogFiles() )
         {
-            QString log{ QDate::currentDate()
-                          .toString( "logs/UsageLog.txt" ) };
             QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
                             "bytes in %4 packets, averaging %5 baud [ %6 ]" };
             if ( plr != nullptr )
@@ -350,7 +348,7 @@ void ServerInfo::deletePlayer(const int& slot)
                                      QString::number(
                                          plr->getAvgBaud( false ) ),
                                      plr->getBioData() );
-                Helper::logToFile( log, logMsg, true, true );
+                Helper::logToFile( Helper::USAGE, logMsg, true, true );
             }
         }
 

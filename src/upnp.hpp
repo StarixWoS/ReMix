@@ -20,8 +20,6 @@ class UPNP : public QObject
         static bool tunneled;
         static UPNP* upnp;
 
-        static QString upnpLog;
-
     private:
         QNetworkAccessManager* httpSocket;
         QUdpSocket* udpSocket;

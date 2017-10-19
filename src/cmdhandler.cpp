@@ -83,12 +83,13 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
             plr->sendMessage( reason );
 
             //Append BIO data to the reason for the Ban log.
-            QString append{ " [ %1 ]: %2" };
+            QString append{ " [ %1 ], %2" };
                     append = append.arg( plr->getPublicIP(),
                                          plr->getBioData() );
             reason.append( append );
 
             User::addBan( nullptr, plr, reason );
+            Helper::logToFile( Helper::BAN, reason, true, true );
 
             plr->setDisconnected( true );
             server->setIpDc( server->getIpDc() + 1 );
@@ -423,8 +424,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     if ( logMsg )
     {
-        QString log{ "logs/adminUsage.txt" };
-        Helper::logToFile( log, msg, true, true );
+        Helper::logToFile( Helper::ADMIN, msg, true, true );
     }
     return retn;
 }
@@ -435,6 +435,7 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
     QString sernum = Helper::serNumToHexStr( arg1 );
     QString reason{ "Remote-Admin [ %1 ] has [ Banned ] you. "
                     "Reason: [ %2 ]." };
+    QString msg = message;
 
     bool ban{ false };
     Player* tmpPlr{ nullptr };
@@ -455,13 +456,23 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
 
             if ( ban )
             {
-                reason = reason.arg( plr->getSernum_s(),
-                                     message.isEmpty()
-                                      ? "No Reason!" : message );
+                if ( msg.isEmpty() )
+                    msg = "No Reason!";
+
+                reason = reason.arg( plr->getSernum_s(), msg );
                 if ( !reason.isEmpty() )
                     tmpPlr->sendMessage( reason );
 
-                User::addBan( plr, tmpPlr, message, true );
+                msg = msg.prepend( "Remote-Banish; " );
+                User::addBan( plr, tmpPlr, msg, true );
+                if ( Settings::getLogFiles() )
+                {
+                    msg = msg.append( ": [ %1 ], [ %2 ]" );
+                    msg = msg.arg( plr->getSernum_s(),
+                                   plr->getBioData() );
+
+                    Helper::logToFile( Helper::BAN, msg, true, true );
+                }
                 tmpPlr->setDisconnected( true );
             }
         }

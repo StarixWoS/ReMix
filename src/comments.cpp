@@ -95,7 +95,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
     {
         QString log = QDate::currentDate()
                        .toString( "logs/Comments.txt" );
-        Helper::logToFile( log, comment, false, false );
+        Helper::logToFile( Helper::COMMENT, comment, false, false );
     }
 
     //Show the Dialog when a new comment is received.
