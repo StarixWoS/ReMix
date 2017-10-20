@@ -166,8 +166,10 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        plr->setSernum_i( Helper::serNumToHexStr( sernum )
-                                     .toUInt( 0, 16 ) );
+        plr->validateSerNum( plr->getServerInfo(),
+                             Helper::serNumToHexStr( sernum )
+                                        .toUInt( 0, 16 ) );
+
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
         QString alias = Helper::getStrStr( bio, "alias", "=", "," );

@@ -332,24 +332,21 @@ void ServerInfo::deletePlayer(const int& slot)
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
     {
-        if ( Settings::getLogFiles() )
+        QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
+                        "bytes in %4 packets, averaging %5 baud [ %6 ]" };
+        if ( plr != nullptr )
         {
-            QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
-                            "bytes in %4 packets, averaging %5 baud [ %6 ]" };
-            if ( plr != nullptr )
-            {
-                logMsg = logMsg.arg( plr->getPublicIP(),
-                                     QString::number(
-                                         plr->getConnTime() / 60 ),
-                                     QString::number(
-                                         plr->getBytesIn() ),
-                                     QString::number(
-                                         plr->getPacketsIn() ),
-                                     QString::number(
-                                         plr->getAvgBaud( false ) ),
-                                     plr->getBioData() );
-                Helper::logToFile( Helper::USAGE, logMsg, true, true );
-            }
+            logMsg = logMsg.arg( plr->getPublicIP(),
+                                 QString::number(
+                                     plr->getConnTime() / 60 ),
+                                 QString::number(
+                                     plr->getBytesIn() ),
+                                 QString::number(
+                                     plr->getPacketsIn() ),
+                                 QString::number(
+                                     plr->getAvgBaud( false ) ),
+                                 plr->getBioData() );
+            Helper::logToFile( Helper::USAGE, logMsg, true, true );
         }
 
         QTcpSocket* soc = plr->getSocket();

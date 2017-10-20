@@ -209,7 +209,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            QString msg{ "Manual %1 of [ %2 ] by Server Owner." };
+            QString msg{ "Manual Network %1 of [ %2 ] by Server Owner." };
                     msg = msg.arg( mute ? "Mute" : "UnMute",
                                    menuTarget->getSernum_s() );
             menuTarget->setNetworkMuted( mute, msg );
@@ -241,19 +241,13 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
-            {
-                menuTarget->setDisconnected( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
+                menuTarget->setDisconnected( true, DCTypes::IPDC );
 
-            if ( Settings::getLogFiles() )
-            {
-                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                logMsg = logMsg.arg( reason,
-                                     menuTarget->getSernum_s(),
-                                     menuTarget->getBioData() );
-                Helper::logToFile( Helper::DC, logMsg, true, true );
-            }
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+            logMsg = logMsg.arg( reason,
+                                 menuTarget->getSernum_s(),
+                                 menuTarget->getBioData() );
+            Helper::logToFile( Helper::DC, logMsg, true, true );
         }
     }
     menuTarget = nullptr;
@@ -280,21 +274,16 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             inform = inform.arg( reason );
 
             User::addBan( nullptr, menuTarget, reason );
-            if ( Settings::getLogFiles() )
-            {
-                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                        logMsg = logMsg.arg( reason,
-                                             menuTarget->getSernum_s(),
-                                             menuTarget->getBioData() );
-                Helper::logToFile( Helper::BAN, logMsg, true, true );
-            }
+
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+            logMsg = logMsg.arg( reason,
+                                 menuTarget->getSernum_s(),
+                                 menuTarget->getBioData() );
+            Helper::logToFile( Helper::BAN, logMsg, true, true );
 
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
-            {
-                menuTarget->setDisconnected( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
+                menuTarget->setDisconnected( true, DCTypes::IPDC );
         }
     }
     menuTarget = nullptr;

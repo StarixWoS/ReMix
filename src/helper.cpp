@@ -237,27 +237,30 @@ void Helper::logToFile(const LogTypes& type, const QString& text,
                        const bool& timeStamp,
                        const bool& newLine)
 {
-    QString logTxt = text;
-
-    QFile log( "logs/"
-               % QDate::currentDate().toString( "[yyyy-MM-dd]/")
-               % logType[ type ] );
-
-    QFileInfo logInfo( log );
-    if ( !logInfo.dir().exists() )
-        logInfo.dir().mkdir( "." );
-
-    if ( log.open( QFile::WriteOnly | QFile::Append ) )
+    if ( Settings::getLogFiles() )
     {
-        if ( timeStamp )
-            logTxt.prepend( "[ " % getTimeAsString() % " ] " );
+        QString logTxt = text;
 
-        if ( newLine )
-            logTxt.prepend( "\r\n" );
+        QFile log( "logs/"
+                 % QDate::currentDate().toString( "[yyyy-MM-dd]/")
+                 % logType[ type ] );
 
-        log.write( logTxt.toLatin1() );
+        QFileInfo logInfo( log );
+        if ( !logInfo.dir().exists() )
+            logInfo.dir().mkdir( "." );
 
-        log.close();
+        if ( log.open( QFile::WriteOnly | QFile::Append ) )
+        {
+            if ( timeStamp )
+                logTxt.prepend( "[ " % getTimeAsString() % " ] " );
+
+            if ( newLine )
+                logTxt.prepend( "\r\n" );
+
+            log.write( logTxt.toLatin1() );
+
+            log.close();
+        }
     }
 }
 

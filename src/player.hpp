@@ -80,7 +80,7 @@ class Player : public QObject
 
         void sendMessage(const QString& msg = "", const bool& toAll = false);
 
-        enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
+        enum Target{ ALL = 0, PLAYER, SCENE = 2 };
 
         qint64 getConnTime() const;
         void startConnTimer();
@@ -183,7 +183,8 @@ class Player : public QObject
         //Note: A User will be disconnected on their next update.
         //Usually every 1,000 MS.
         bool getDisconnected() const;
-        void setDisconnected(const bool& value);
+        void setDisconnected(const bool& value,
+                             const DCTypes& dcType = DCTypes::IPDC);
 
         bool getNetworkMuted() const;
         void setNetworkMuted(const bool& value, const QString& msg);

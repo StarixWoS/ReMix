@@ -2,6 +2,8 @@
 #define USER_HPP
 
 #include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
 
 namespace Ui {

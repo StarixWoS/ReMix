@@ -2,10 +2,15 @@ Version 2.3.4:
   Change:
     * Consolidate information regarding log file names into the Helper class for ease of use.
     * All logs will now be seperated into subdirectories based on the current date to more easily browse to events on a certain day.
+    * All disconnects are now logged to file if the option to log files is enabled.
+    *
 
   Bugfixes:
     * Properly validate settings before logging certain information to file.
       * Before, the setting "Settings::getLogFiles()" was not being checked when certain events occured.
+    * Setting a SerNum no longer calls the validation function.
+      * The call was redundant, as validation occurs before setting in any case.
+
 
 
 

@@ -102,7 +102,13 @@ Player::Player()
         if ( Settings::getDisconnectIdles()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
-            this->setDisconnected( true );
+            QString reason{ "Auto-Disconnect; Idle timeout: "
+                            "[ %1 ], [ %2 ]" };
+            reason = reason.arg( this->getSernum_s(),
+                                 this->getBioData() );
+            Helper::logToFile( Helper::DC, reason, true, true );
+
+            this->setDisconnected( true, DCTypes::IPDC );
         }
 
         //Authenticate Remote Admins as required.
@@ -252,16 +258,8 @@ quint32 Player::getSernum_i() const
 
 void Player::setSernum_i(quint32 value)
 {
-    //The User has no serNum, and we require a serNum;
-    //forcibly remove the User from the server.
-    if ( Settings::getReqSernums() && value == 0 )
-    {
-        this->setDisconnected( true );
-        return;
-    }
-
     hasSernum = true;
-    if ( value != sernum_i )
+    if ( value != this->getSernum_i() )
     {
         QString sernum_s{ Helper::serNumToIntStr(
                                Helper::intToStr(
@@ -389,7 +387,6 @@ void Player::setOutBuff(const QByteArray& value)
 {
     outBuff = value;
 }
-
 
 bool Player::getSvrPwdRequested() const
 {
@@ -613,8 +610,33 @@ bool Player::getDisconnected() const
     return pendingDisconnect;
 }
 
-void Player::setDisconnected(const bool& value)
+void Player::setDisconnected(const bool& value, const DCTypes& dcType)
 {
+    auto* server = this->getServerInfo();
+    if ( server != nullptr )
+    {
+        //Increment the disconnect count for the specific type.
+        switch ( dcType )
+        {
+            case DCTypes::IPDC:
+            default:
+                {
+                    server->setIpDc( server->getIpDc() + 1 );
+                }
+            break;
+            case DCTypes::DUPDC:
+                {
+                    server->setDupDc( server->getDupDc() + 1 );
+                }
+            break;
+            case DCTypes::PKTDC:
+                {
+                    server->setPktDc( server->getPktDc() + 1 );
+                }
+            break;
+        }
+    }
+
     pendingDisconnect = value;
     if ( pendingDisconnect )
     {
@@ -634,16 +656,20 @@ bool Player::getNetworkMuted() const
 
 void Player::setNetworkMuted(const bool& value, const QString& msg)
 {
-    if ( Settings::getLogFiles() )
-    {
-        if ( !msg.isEmpty() )
-            Helper::logToFile( Helper::MUTE, msg, true, true );
-    }
+    if ( !msg.isEmpty() )
+        Helper::logToFile( Helper::MUTE, msg, true, true );
+
     networkMuted = value;
 }
 
 void Player::validateSerNum(ServerInfo* server, const quint32& id)
 {
+    QString reason{ "" };
+
+    bool serNumChanged{ false };
+    bool zeroSerNum{ false };
+    bool disconnect{ false };
+
     if (( this->getSernum_i() != id
        && id > 0 )
       || this->getSernum_i() == 0 )
@@ -654,7 +680,8 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             if ( Settings::getReqSernums()
               && id == 0 )
             {
-                this->setDisconnected( true );
+                zeroSerNum = true;
+                disconnect = true;
             }
             this->setSernum_i( id );
         }
@@ -664,25 +691,48 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             //User's sernum has somehow changed. Disconnect them.
             //This is a possible Ban event.
             //TODO: Add Setting to enable banning.
-            this->setDisconnected( true );
+            serNumChanged = true;
+            disconnect = true;
+        }
+        if ( disconnect == true )
+        {
+            reason = "";
+            if ( serNumChanged )
+            {
+                reason = "Auto-Disconnect; SerNum Changed: "
+                         "[ %1 ] to [ %2 ], [ %3 ]";
+                reason = reason.arg( this->getSernum_s(),
+                                     Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ),
+                                     this->getBioData() );
+            }
+            else if ( zeroSerNum )
+            {
+                reason = "Auto-Disconnect; Invalid SerNum: "
+                         "[ %1 ], [ %3 ]";
+                reason = reason.arg( Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ),
+                                     this->getBioData() );
+            }
+            Helper::logToFile( Helper::DC, reason, true, true );
+            this->setDisconnected( true, DCTypes::IPDC );
         }
     }
 
     if ( id == 1 || this->getSernum_i() == 1 )
     {
-
         QString masterIP{ server->getMasterIP() };
         QString socketIP{ this->getPublicIP() };
         if ( !Helper::cmpStrings( masterIP, socketIP ) )
         {
             //Ban IP?
-            QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
-                         "usage of <[ Soul 1 ][ %3 ]> while connecting from an "
-                         "improper IP Address." };
-                    msg = msg.arg( this->getSernum_s(),
-                                   socketIP,
-                                   masterIP );
-            this->setNetworkMuted( true, msg );
+            reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
+                     "usage of <[ Soul 1 ][ %3 ]> while connecting from an "
+                     "improper IP Address.";
+            reason = reason.arg( this->getSernum_s(),
+                                 socketIP,
+                                 masterIP );
+            this->setNetworkMuted( true, reason );
         }
     }
 

@@ -91,12 +91,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    if ( Settings::getLogComments() )
-    {
-        QString log = QDate::currentDate()
-                       .toString( "logs/Comments.txt" );
-        Helper::logToFile( Helper::COMMENT, comment, false, false );
-    }
+    Helper::logToFile( Helper::COMMENT, comment, false, false );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

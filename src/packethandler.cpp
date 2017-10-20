@@ -310,7 +310,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                 logTxt = logTxt.arg( "Info",
                                                      ipAddr.toString(),
                                                      data );
-                                logMsg = Settings::getLogFiles();
+                                logMsg = true;
                             }
                             else
                             {
@@ -343,7 +343,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
         logTxt = logTxt.arg( "IP Address",
                              ipAddr.toString(),
                              data );
-        logMsg = Settings::getLogFiles();
+        logMsg = true;
     }
 
     if ( logMsg )
@@ -360,7 +360,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     bool badInfo{ true };
 
     QString logMsg{ "Auto-Disconnect; %1: [ %2 ], [ %3 ]" };
-    QString tmpMsg{ logMsg };
+    QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
     if ( User::getIsBanned( plr->getPublicIP(), User::tIP )
@@ -368,21 +368,18 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
       || User::getIsBanned( plr->getWVar(), User::tWV )
       || User::getIsBanned( plr->getDVar(), User::tDV ) )
     {
-        plr->setDisconnected( true );
-        server->setIpDc( server->getIpDc() + 1 );
-
-        tmpMsg = tmpMsg.arg( "Banned Info",
+        reason = reason.arg( "Banned Info",
                              plr->getPublicIP(),
                              plr->getBioData() );
+        Helper::logToFile( Helper::DC, reason, true, true );
 
-        Helper::logToFile( Helper::DC, tmpMsg, true, true );
+        plr->setDisconnected( true, DCTypes::IPDC );
         badInfo = true;
     }
 
     //Disconnect and ban all duplicate IP's if required.
     if ( !Settings::getAllowDupedIP() )
     {
-
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             tmpPlr = server->getPlayer( i );
@@ -393,33 +390,25 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 {
                     auto disconnect = [=]( Player* plr, const QString& logMsg )
                     {
-                        if ( Settings::getLogFiles() )
-                        {
-                            QString tmpMsg{ logMsg };
-                            tmpMsg = tmpMsg.arg( "Duplicate IP",
-                                                 plr->getPublicIP(),
-                                                 plr->getBioData() );
-                            Helper::logToFile( Helper::DC, tmpMsg,
-                                               true, true );
-                        }
+                        QString reason{ logMsg };
+                        reason = reason.arg( "Duplicate IP",
+                                             plr->getPublicIP(),
+                                             plr->getBioData() );
+                        Helper::logToFile( Helper::DC, reason,
+                                           true, true );
 
                         if ( Settings::getBanDupedIP() )
                         {
-                            QString reason{ "Auto-Banish; Duplicate IP "
-                                            "Address: [ %1 ], %2" };
+                            reason = "Auto-Banish; Duplicate IP "
+                                     "Address: [ %1 ], %2";
                             reason = reason.arg( plr->getPublicIP(),
                                                  plr->getBioData() );
-                            if ( Settings::getLogFiles() )
-                            {
-                                Helper::logToFile( Helper::BAN, reason,
-                                                   true, true );
-                            }
-                            User::addBan( nullptr, plr, reason );
-                        }
 
-                        plr->setDisconnected( true );
-                        server->setIpDc( server->getIpDc() + 1 );
-                        server->setDupDc( server->getDupDc() + 1 );
+                            User::addBan( nullptr, plr, reason );
+                            Helper::logToFile( Helper::BAN, reason,
+                                               true, true );
+                        }
+                        plr->setDisconnected( true, DCTypes::DUPDC );
                     };
 
                     disconnect( plr, logMsg );
@@ -435,29 +424,30 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //This is an un-optional disconnect
     //due to how Private chat is handled.
     //Perhaps once a better fix is found we can remove this.
-    if ( plr != nullptr )
+    if ( !badInfo )
     {
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        //The User has the same SerNum as another User
+        //and is connecting from a different IP Address.
+        //Disconnect the newly connected User.
+        if ( plr != nullptr )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr
-              && tmpPlr->getSernum_i() == plr->getSernum_i() )
+            for ( int i = 0; i < MAX_PLAYERS; ++i )
             {
-                if ( tmpPlr != plr )
+                tmpPlr = server->getPlayer( i );
+                if ( tmpPlr != nullptr
+                     && tmpPlr->getSernum_i() == plr->getSernum_i() )
                 {
-                    if ( Settings::getLogFiles() )
+                    if ( tmpPlr != plr )
                     {
-                        tmpMsg = logMsg;
-                        tmpMsg = tmpMsg.arg( "Duplicate SerNum",
+                        reason = logMsg;
+                        reason = reason.arg( "Duplicate SerNum",
                                              tmpPlr->getPublicIP(),
                                              tmpPlr->getBioData() );
-                        Helper::logToFile( Helper::DC, tmpMsg, true, true );
+                        Helper::logToFile( Helper::DC, reason, true, true );
+
+                        plr->setDisconnected( true, DCTypes::DUPDC );
+                        badInfo = true;
                     }
-
-                    plr->setDisconnected( true );
-                    server->setDupDc( server->getDupDc() + 1 );
-
-                    badInfo = true;
                 }
             }
         }
@@ -500,8 +490,7 @@ void PacketHandler::detectFlooding(Player* plr)
                     User::addBan( nullptr, plr, logMsg );
                     Helper::logToFile( Helper::BAN, logMsg, true, true );
                 }
-                plr->setDisconnected( true );
-                server->setPktDc( server->getPktDc() + 1 );
+                plr->setDisconnected( true, DCTypes::PKTDC );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )

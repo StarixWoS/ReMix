@@ -13,14 +13,9 @@ class CmdHandler : public QObject
     ServerInfo* server{ nullptr };
     RandDev* randDev{ nullptr };
 
-    static const QString commands[ ADMIN_COMMAND_COUNT ];
+    static const QString commands[ GM_COMMAND_COUNT ];
 
     public:
-        enum Ranks{ USER = 0, GMASTER, COADMIN, ADMIN, OWNER = 4 };
-        enum CMDS{ BAN = 0, UNBAN, KICK, MUTE, UNMUTE, MSG, LOGIN, REGISTER,
-                   SHUTDOWN, RESTART,  MKADMIN, RMADMIN, CHADMIN, CHRULES,
-                   GETCOMMENTS, CHSETTINGS, VANISH, VERSION = 17 };
-
         explicit CmdHandler(QObject* parent = nullptr,
                             ServerInfo* svr = nullptr);
         ~CmdHandler();

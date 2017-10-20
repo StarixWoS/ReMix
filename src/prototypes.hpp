@@ -171,7 +171,7 @@
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            ADMIN_COMMAND_COUNT = 18,
+            GM_COMMAND_COUNT = 18,
 
             //Count of Keys accessed via the User class.
             USER_KEY_COUNT = 12,
@@ -208,8 +208,27 @@
             UI_UPDATE_TIME = 500,
         };
 
-        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+        //Valid Remote Administrator Ranks.
+        enum GMRanks{ USER = 0, GMASTER, COADMIN, ADMIN, OWNER = 4 };
+
+        //Valid Remote Administrator commands.
+        enum GMCmds{ BAN = 0, UNBAN, KICK, MUTE, UNMUTE, MESSAGE, LOGIN,
+                     REGISTER, SHUTDOWN, RESTART,  MKADMIN, RMADMIN, CHADMIN,
+                     CHRULES, GETCOMMENTS, CHSETTINGS, VANISH, VERSION = 17 };
+
+        //Valid Password types.
+        enum PwdTypes{ SERVER = 0, REMOTEADMIN = 1, INVALID = -1 };
+
+        //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
+
+        //Valid Game ID's that ReMix can call to.
+        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+
+        //Valid forms of diconnecting Users.
+        enum DCTypes{ IPDC = 0, DUPDC, PKTDC = 2 };
+
+        //Valid Theme ID's.
         enum Themes{ LIGHT = 0, DARK = 1 };
 
     #endif  // REMIX_GLOBALS
