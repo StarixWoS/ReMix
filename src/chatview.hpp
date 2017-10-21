@@ -25,7 +25,7 @@ class ChatView : public QDialog
 
         void parsePacket(const QString& packet, const QString& alias = "");
         void parseChatEffect(const QString& packet);
-        void insertChat(const QString& msg, const QString& color,
+        void insertChat(const QString& msg, const Colors& color,
                         const bool& newLine);
 
     private slots:

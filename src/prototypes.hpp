@@ -62,6 +62,7 @@
     class QString;
     class QObject;  //Requires Include within Class Headers.
     class QTimer;  //Requires Include within Class Headers.
+    class QBrush;
     class QDebug;
     class QEvent;
     class QPoint;
@@ -206,6 +207,13 @@
             //Maximum wait time before the Server's UI is updated.
             //0.5 seconds in milliseconds.
             UI_UPDATE_TIME = 500,
+
+            //Valid Count of usable "Themes".
+            UI_THEME_COUNT = 2,
+
+            //Valid count of colors the Theme class can use for certain
+            //UI and Chat roles.
+            UI_THEME_COLORS = 10,
         };
 
         //Valid Remote Administrator Ranks.
@@ -229,7 +237,12 @@
         enum DCTypes{ IPDC = 0, DUPDC, PKTDC = 2 };
 
         //Valid Theme ID's.
-        enum Themes{ LIGHT = 0, DARK = 1 };
+        enum class Themes: int{ LIGHT = 0, DARK = 1 };
+
+        //Valid Theme Colors
+        enum class Colors: int{ VALID = 0, INVISIBLE, INVALID, OWNERNAME, NAME,
+                                OWNERCHAT, CHAT, GOSSIP, SHOUT, EMOTE = 9,
+                                DEFAULT = -1 };
 
     #endif  // REMIX_GLOBALS
 

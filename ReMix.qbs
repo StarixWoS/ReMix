@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.4'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.4'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.5'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.5'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -111,12 +111,13 @@ CppApplication
                  "src/server.cpp",
                  "src/player.cpp",
                  "src/helper.cpp",
+                 "src/theme.cpp",
                  "src/rules.cpp",
                  "src/remix.cpp",
                  "src/user.cpp",
                  "src/upnp.cpp",
                  "src/main.cpp",
-                ]
+        ]
     }
 
     Group

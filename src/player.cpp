@@ -7,6 +7,7 @@
 #include "settings.hpp"
 #include "sendmsg.hpp"
 #include "helper.hpp"
+#include "theme.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -67,18 +68,18 @@ Player::Player()
                     if ( this->getAdminPwdReceived() )
                     {
                         model->setData( row->model()->index( row->row(), 1 ),
-                                        QBrush( QColor( "limegreen" ) ),
+                                        Theme::getThemeColor( Colors::VALID ),
                                         Qt::ForegroundRole );
                     }
                     else
                         model->setData( row->model()->index( row->row(), 1 ),
-                                        QBrush( QColor( "red" ) ),
+                                        Theme::getThemeColor( Colors::INVALID ),
                                         Qt::ForegroundRole );
                 }
                 else
                 {
                     model->setData( row->model()->index( row->row(), 1 ),
-                                    qApp->palette().windowText(),
+                                    Theme::getThemeColor( Colors::DEFAULT ),
                                     Qt::ForegroundRole );
                 }
 
@@ -87,13 +88,13 @@ Player::Player()
                 if ( this->getNetworkMuted() )
                 {
                     model->setData( row->model()->index( row->row(), 0 ),
-                                    QBrush( QColor( "red" ) ),
+                                    Theme::getThemeColor( Colors::INVALID ),
                                     Qt::ForegroundRole );
                 }
                 else
                 {
                     model->setData( row->model()->index( row->row(), 0 ),
-                                    QBrush( QColor( "limegreen" ) ),
+                                    Theme::getThemeColor( Colors::VALID ),
                                     Qt::ForegroundRole );
                 }
             }

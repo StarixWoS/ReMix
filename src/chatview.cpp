@@ -106,9 +106,9 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
             pkt = pkt.left( pkt.length() - 2 );
 
             this->insertChat( alias % ": ",
-                              "limegreen", true );
+                              Colors::NAME, true );
             this->insertChat( pkt,
-                              "yellow", false );
+                              Colors::CHAT, false );
         }
     }
 }
@@ -141,31 +141,31 @@ void ChatView::parseChatEffect(const QString& packet)
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " gossips: " % message,
-                              "goldenrod", true );
+                              Colors::GOSSIP, true );
         }
         else if ( type == '!' )
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " shouts: " % message,
-                              "sienna", true );
+                              Colors::SHOUT, true );
         }
         else if ( type == '/' )
         {
             message = message.mid( 2 );
             this->insertChat( srcSerNum % message,
-                              "seagreen", true );
+                              Colors::EMOTE, true );
         }
         else
         {
             this->insertChat( srcSerNum % ": ",
-                              "limegreen", true );
+                              Colors::NAME, true );
             this->insertChat( message,
-                              "yellow", false );
+                              Colors::CHAT, false );
         }
     }
 }
 
-void ChatView::insertChat(const QString& msg, const QString& color,
+void ChatView::insertChat(const QString& msg, const Colors& color,
                           const bool& newLine)
 {
     QTextEdit* obj{ ui->chatView };
@@ -182,7 +182,7 @@ void ChatView::insertChat(const QString& msg, const QString& color,
     cursor.movePosition( QTextCursor::End );
 
     QTextCharFormat format;
-                    format.setForeground( QBrush( QColor( color ) ) );
+                    format.setForeground( Theme::getThemeColor( color ) );
     cursor.setCharFormat( format );
     if ( newLine )
         cursor.insertText( "\r\n" );
@@ -221,9 +221,9 @@ void ChatView::on_chatInput_returnPressed()
     }
 
     this->insertChat( "Owner: ",
-                      "limegreen", true );
+                      Colors::OWNERNAME, true );
     this->insertChat( message,
-                      "cyan", false );
+                      Colors::OWNERCHAT, false );
 
     if ( gameID == Games::W97 )
     {

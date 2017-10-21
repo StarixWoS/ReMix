@@ -1,3 +1,15 @@
+Version 2.3.5:
+  Change:
+    * Add a set of colors to the Theme class that are utilized in certain UI and chat elements.
+    * Add global variables to indicate how many Themes ReMix can use, and how many custom UI colors the Theme class can use.
+    * Add an enumerator class for use with the new theme color array used within the Theme class.
+    * Add an implementation file for the Theme class.
+
+  Note:
+    * These changes to the Theme Class are intended to preceed the implementation of a Theme-Color selector.
+
+
+
 Version 2.3.4:
   Change:
     * Consolidate information regarding log file names into the Helper class for ease of use.

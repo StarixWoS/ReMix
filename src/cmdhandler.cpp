@@ -722,10 +722,9 @@ void CmdHandler::registerHandler(Player* plr, const QString& argType)
     if ( registered
       && Settings::getInformAdminLogin() )
     {
-        QString message{ "User [ "
-                       % plr->getSernum_s()
-                       % " ] has Registered as a Remote "
+        QString message{ "User [ %1 ] has Registered as a Remote "
                          "Administrator with the server." };
+                message = message.arg( plr->getSernum_s() );
 
         Player* tmpPlr{ nullptr };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
