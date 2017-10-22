@@ -50,7 +50,8 @@ void PacketHandler::parsePacket(const QString& packet, Player* plr)
             if ( Helper::strStartsWithStr( packet, ":SR$" ) )
                 return;
 
-            if ( !plr->getNetworkMuted() )
+            if ( !plr->getNetworkMuted()
+              && !plr->getIsInvisible() )
             {
                 if ( !pktForge->validateSerNum( plr, packet ) )
                     return;
@@ -218,7 +219,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     bool logMsg{ false };
 
     QString data{ udp };
-    if ( !User::getIsBanned( ipAddr.toString(), User::tIP ) )
+    if ( !User::getIsBanned( ipAddr.toString(), BanTypes::IP ) )
     {
         QString sernum{ "" };
         QString dVar{ "" };
@@ -303,9 +304,9 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                            && Helper::serNumtoInt( sernum ) )
                           || !Settings::getReqSernums() )
                         {
-                            if ( User::getIsBanned( sernum, User::tSERNUM )
-                              || User::getIsBanned( wVar, User::tWV )
-                              || User::getIsBanned( dVar, User::tDV ) )
+                            if ( User::getIsBanned( sernum, BanTypes::SerNum )
+                              || User::getIsBanned( wVar, BanTypes::WV )
+                              || User::getIsBanned( dVar, BanTypes::DV ) )
                             {
                                 logTxt = logTxt.arg( "Info",
                                                      ipAddr.toString(),
@@ -363,10 +364,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( User::getIsBanned( plr->getPublicIP(), User::tIP )
-      || User::getIsBanned( plr->getSernumHex_s(), User::tSERNUM )
-      || User::getIsBanned( plr->getWVar(), User::tWV )
-      || User::getIsBanned( plr->getDVar(), User::tDV ) )
+    if ( User::getIsBanned( plr->getPublicIP(), BanTypes::IP )
+      || User::getIsBanned( plr->getSernumHex_s(), BanTypes::SerNum )
+      || User::getIsBanned( plr->getWVar(), BanTypes::WV )
+      || User::getIsBanned( plr->getDVar(), BanTypes::DV ) )
     {
         reason = reason.arg( "Banned Info",
                              plr->getPublicIP(),
@@ -408,7 +409,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                             Helper::logToFile( Helper::BAN, reason,
                                                true, true );
                         }
-                        plr->setDisconnected( true, DCTypes::DUPDC );
+                        plr->setDisconnected( true, DCTypes::DupDC );
                     };
 
                     disconnect( plr, logMsg );
@@ -445,7 +446,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                              tmpPlr->getBioData() );
                         Helper::logToFile( Helper::DC, reason, true, true );
 
-                        plr->setDisconnected( true, DCTypes::DUPDC );
+                        plr->setDisconnected( true, DCTypes::DupDC );
                         badInfo = true;
                     }
                 }
@@ -490,7 +491,7 @@ void PacketHandler::detectFlooding(Player* plr)
                     User::addBan( nullptr, plr, logMsg );
                     Helper::logToFile( Helper::BAN, logMsg, true, true );
                 }
-                plr->setDisconnected( true, DCTypes::PKTDC );
+                plr->setDisconnected( true, DCTypes::PktDC );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )

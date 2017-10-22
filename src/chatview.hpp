@@ -2,6 +2,11 @@
 #define CHATVIEW_HPP
 
 #include "prototypes.hpp"
+
+//Required ReMix includes.
+#include "theme.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
 
 namespace Ui {

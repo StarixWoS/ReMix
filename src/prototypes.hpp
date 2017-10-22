@@ -216,33 +216,39 @@
             UI_THEME_COLORS = 10,
         };
 
+        //Valid Password types.
+        enum class PwdTypes: int{ Server = 0, Admin = 1, Invalid = -1 };
+
         //Valid Remote Administrator Ranks.
-        enum GMRanks{ USER = 0, GMASTER, COADMIN, ADMIN, OWNER = 4 };
+        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner = 4 };
 
         //Valid Remote Administrator commands.
-        enum GMCmds{ BAN = 0, UNBAN, KICK, MUTE, UNMUTE, MESSAGE, LOGIN,
-                     REGISTER, SHUTDOWN, RESTART,  MKADMIN, RMADMIN, CHADMIN,
-                     CHRULES, GETCOMMENTS, CHSETTINGS, VANISH, VERSION = 17 };
-
-        //Valid Password types.
-        enum PwdTypes{ SERVER = 0, REMOTEADMIN = 1, INVALID = -1 };
+        enum class GMCmds: int{ Ban = 0, UnBan, Kick, Mute, UnMute, Message,
+                                Login, Register, ShutDown, ReStart, MkAdmin,
+                                RmAdmin, ChAdmin, ChRules, GetComments,
+                                ChSettings, Vanish, Version = 17,
+                                Invalid = -1 };
 
         //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
 
         //Valid Game ID's that ReMix can call to.
-        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+        enum class Games: int{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+
+        //Valid methods ov banning Users.
+        enum class BanTypes: int{ SerNum = 0, IP, DV, WV = 3 };
 
         //Valid forms of diconnecting Users.
-        enum DCTypes{ IPDC = 0, DUPDC, PKTDC = 2 };
+        enum class DCTypes: int{ IPDC = 0, DupDC, PktDC = 2 };
 
         //Valid Theme ID's.
-        enum class Themes: int{ LIGHT = 0, DARK = 1 };
+        enum class Themes: int{ Light = 0, Dark = 1 };
 
         //Valid Theme Colors
-        enum class Colors: int{ VALID = 0, INVISIBLE, INVALID, OWNERNAME, NAME,
-                                OWNERCHAT, CHAT, GOSSIP, SHOUT, EMOTE = 9,
-                                DEFAULT = -1 };
+        enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
+                                OwnerChat, Chat, Gossip, Shout, Emote = 9,
+                                Default = -1 };
+
 
     #endif  // REMIX_GLOBALS
 

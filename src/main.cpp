@@ -27,9 +27,9 @@ int main(int argc, char* [])
                  a.setQuitOnLastWindowClosed( false );
                  a.installEventFilter( new AppEventFilter() );
     if ( Settings::getDarkMode() )
-        Theme::setThemeType( Themes::DARK );
+        Theme::setThemeType( Themes::Dark );
     else
-        Theme::setThemeType( Themes::LIGHT );
+        Theme::setThemeType( Themes::Light );
 
     ReMix w;
     w.show();

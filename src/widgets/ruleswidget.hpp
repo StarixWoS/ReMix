@@ -19,6 +19,8 @@ class RulesWidget : public QWidget
                   noMigrate = 10, noMod = 11, noPets = 12, noPK = 13,
                   arenaPK = 14 };
 
+    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
+
     SelectWorld* selectWorld{ nullptr };
     bool maxPlayersCheckState{ false };
     bool minVersionCheckState{ false };
@@ -30,6 +32,9 @@ class RulesWidget : public QWidget
     public:
         explicit RulesWidget();
         ~RulesWidget();
+
+        static RulesWidget* getWidget(ServerInfo* server);
+        static void deleteWidget(ServerInfo* server);
 
         void setServerName(const QString& name);
         void setCheckedState(const Toggles& option, const bool& val);

@@ -106,9 +106,9 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
             pkt = pkt.left( pkt.length() - 2 );
 
             this->insertChat( alias % ": ",
-                              Colors::NAME, true );
+                              Colors::Name, true );
             this->insertChat( pkt,
-                              Colors::CHAT, false );
+                              Colors::Chat, false );
         }
     }
 }
@@ -141,26 +141,26 @@ void ChatView::parseChatEffect(const QString& packet)
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " gossips: " % message,
-                              Colors::GOSSIP, true );
+                              Colors::Gossip, true );
         }
         else if ( type == '!' )
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " shouts: " % message,
-                              Colors::SHOUT, true );
+                              Colors::Shout, true );
         }
         else if ( type == '/' )
         {
             message = message.mid( 2 );
             this->insertChat( srcSerNum % message,
-                              Colors::EMOTE, true );
+                              Colors::Emote, true );
         }
         else
         {
             this->insertChat( srcSerNum % ": ",
-                              Colors::NAME, true );
+                              Colors::Name, true );
             this->insertChat( message,
-                              Colors::CHAT, false );
+                              Colors::Chat, false );
         }
     }
 }
@@ -221,9 +221,9 @@ void ChatView::on_chatInput_returnPressed()
     }
 
     this->insertChat( "Owner: ",
-                      Colors::OWNERNAME, true );
+                      Colors::OwnerName, true );
     this->insertChat( message,
-                      Colors::OWNERCHAT, false );
+                      Colors::OwnerChat, false );
 
     if ( gameID == Games::W97 )
     {

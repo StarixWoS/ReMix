@@ -72,6 +72,7 @@ class Player : public QObject
     QTimer killTimer;
     bool pendingDisconnect{ false };
 
+    bool isInvisible{ false };
     bool networkMuted{ false };
 
     public:
@@ -199,6 +200,9 @@ class Player : public QObject
 
         ServerInfo* getServerInfo() const;
         void setServerInfo(ServerInfo* value);
+
+        bool getIsInvisible() const;
+        void setIsInvisible(const bool& value);
 
     signals:
             void newAdminPwdRequestedSignal(Player* plr);

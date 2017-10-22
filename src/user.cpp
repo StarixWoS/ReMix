@@ -157,7 +157,7 @@ QVariant User::getData(const QString& key, const QString& subKey)
 
 bool User::makeAdmin(const QString& sernum, const QString& pwd)
 {
-    qint32 rank{ getAdminRank( sernum ) };
+    GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
     User* user = User::getInstance();
 
     if ( !sernum.isEmpty()
@@ -167,10 +167,10 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
         QString hash( salt + pwd );
                 hash = Helper::hashPassword( hash );
 
-        if ( rank == PlayerRanks::rUSER )
+        if ( rank == GMRanks::User )
         {
             setData( sernum, keys[ UserKeys::kRANK ],
-                     PlayerRanks::rGAMEMASTER );
+                     static_cast<int>( GMRanks::GMaster ) );
             QModelIndex index = user->findModelIndex(
                                     Helper::serNumToIntStr( sernum ),
                                             UserColumns::cSERNUM );
@@ -178,7 +178,7 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
             {
                 user->updateRowData( index.row(),
                                      UserColumns::cRANK,
-                                     QVariant( PlayerRanks::rGAMEMASTER ) );
+                                     static_cast<int>( GMRanks::GMaster ) );
             }
         }
 
@@ -222,11 +222,11 @@ qint32 User::getAdminRank(const QString& sernum)
               .toInt();
 }
 
-void User::setAdminRank(const QString& sernum, const qint32& rank)
+void User::setAdminRank(const QString& sernum, const GMRanks& rank)
 {
     User* user = User::getInstance();
 
-    setData( sernum, keys[ UserKeys::kRANK ], rank );
+    setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( rank ) );
 
     QModelIndex index = user->findModelIndex( sernum,
                                               UserColumns::cSERNUM );
@@ -234,14 +234,14 @@ void User::setAdminRank(const QString& sernum, const qint32& rank)
     {
         user->updateRowData( index.row(),
                              UserColumns::cRANK,
-                             rank );
+                             static_cast<int>( rank ) );
     }
 }
 
 void User::removeBan(const QString& value, const qint32& type)
 {
     QList<QStandardItem*> list = tblModel->findItems( value, Qt::MatchExactly,
-                                                       type );
+                                                      type );
     User* user = User::getInstance();
 
     if ( list.count() > 1 && list.count() > 0 )
@@ -349,27 +349,27 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
         sernum = sernums.at( i );
         switch ( type )
         {
-            case BanTypes::tSERNUM:
+            case BanTypes::SerNum:
             {
                 if ( Helper::cmpStrings( sernum, value ) )
                     isValue = true;
             }
             break;
-            case BanTypes::tIP:
+            case BanTypes::IP:
             {
                 var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
             }
             break;
-            case BanTypes::tDV:
+            case BanTypes::DV:
             {
                 var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
             }
             break;
-            case BanTypes::tWV:
+            case BanTypes::WV:
             {
                 var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
@@ -631,13 +631,14 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                 QString message{ "Do you wish to remove this "
                                  "Admin's password information?" };
 
-                qint32 rank{ getAdminRank( sernum ) };
+                GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
                 bool hasPassword{ getHasPassword( sernum ) };
                 bool removePassword{ false };
 
                 value = tblModel->data( index );
-                if (( rank > User::rUSER )
-                  && ( value.toInt() == User::rUSER ) )
+                if (( rank > GMRanks::User )
+                  && ( static_cast<GMRanks>( value.toInt() )
+                       == GMRanks::User ) )
                 {
                     if ( hasPassword )
                     {
@@ -645,8 +646,9 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                                               this, title, message );
                     }
                 }
-                else if (( rank == User::rUSER )
-                       && ( value.toInt() > User::rUSER ) )
+                else if (( rank == GMRanks::User )
+                       && ( static_cast<GMRanks>( value.toInt() )
+                            > GMRanks::User ) )
                 {
                     if ( hasPassword )
                     {

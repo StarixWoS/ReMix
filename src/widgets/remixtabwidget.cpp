@@ -266,10 +266,27 @@ void ReMixTabWidget::removeServer(const qint32& index,
         //and if so, ignore the creation dialog and gracefully close.
         if ( instanceCount == 0 )
         {
-            if ( remote )
-                qApp->quit();
+            if ( !remote )
+            {
+                Settings* settings{ Settings::getInstance() };
+                if ( settings != nullptr )
+                {
+                    if ( settings->isVisible() )
+                        settings->close();
+                }
+
+                User* user{ User::getInstance() };
+                if ( user != nullptr )
+                {
+                    if ( user->isVisible() )
+                        user->close();
+                }
+
+                if ( !createDialog->isVisible() )
+                    createDialog->show();
+            }
             else
-                createDialog->show();
+                qApp->quit();
         }
     }
     else    //The server is set to restart.

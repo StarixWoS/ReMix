@@ -4,16 +4,20 @@
 #include "ui_motdwidget.h"
 
 //ReMix includes.
+#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
 #include <QTimer>
 
-MOTDWidget::MOTDWidget() :
+QHash<ServerInfo*, MOTDWidget*> MOTDWidget::motdWidgets;
+
+MOTDWidget::MOTDWidget(const QString& name) :
     ui(new Ui::MOTDWidget)
 {
     ui->setupUi(this);
+    this->setServerName( name );
 
     //Update the MOTD file after the timer has elapsed.
     motdUpdate.setInterval( 10000 ); //Update the file after 10seconds.
@@ -32,6 +36,27 @@ MOTDWidget::MOTDWidget() :
 MOTDWidget::~MOTDWidget()
 {
     delete ui;
+}
+
+MOTDWidget* MOTDWidget::getWidget(ServerInfo* server)
+{
+    MOTDWidget* widget{ motdWidgets.value( server ) };
+    if ( widget == nullptr )
+    {
+        widget = new MOTDWidget( server->getName() );
+        motdWidgets.insert( server, widget );
+    }
+    return widget;
+}
+
+void MOTDWidget::deleteWidget(ServerInfo* server)
+{
+    MOTDWidget* widget{ motdWidgets.take( server ) };
+    if ( widget != nullptr )
+    {
+        widget->setParent( nullptr );
+        widget->deleteLater();
+    }
 }
 
 void MOTDWidget::setServerName(const QString& name)

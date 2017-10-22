@@ -9,7 +9,8 @@ class Theme
     static QString themeColors[ UI_THEME_COUNT ][ UI_THEME_COLORS ];
 
     public:
-        static void applyTheme(const Themes& type = Themes::LIGHT);
+
+        static void applyTheme(const Themes& type = Themes::Light);
 
         static Themes getThemeType();
 

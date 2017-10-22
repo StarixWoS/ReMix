@@ -68,18 +68,18 @@ Player::Player()
                     if ( this->getAdminPwdReceived() )
                     {
                         model->setData( row->model()->index( row->row(), 1 ),
-                                        Theme::getThemeColor( Colors::VALID ),
+                                        Theme::getThemeColor( Colors::Valid ),
                                         Qt::ForegroundRole );
                     }
                     else
                         model->setData( row->model()->index( row->row(), 1 ),
-                                        Theme::getThemeColor( Colors::INVALID ),
+                                        Theme::getThemeColor( Colors::Invalid ),
                                         Qt::ForegroundRole );
                 }
                 else
                 {
                     model->setData( row->model()->index( row->row(), 1 ),
-                                    Theme::getThemeColor( Colors::DEFAULT ),
+                                    Theme::getThemeColor( Colors::Default ),
                                     Qt::ForegroundRole );
                 }
 
@@ -88,13 +88,19 @@ Player::Player()
                 if ( this->getNetworkMuted() )
                 {
                     model->setData( row->model()->index( row->row(), 0 ),
-                                    Theme::getThemeColor( Colors::INVALID ),
+                                    Theme::getThemeColor( Colors::Invalid ),
+                                    Qt::ForegroundRole );
+                }
+                if ( this->getIsInvisible() )
+                {
+                    model->setData( row->model()->index( row->row(), 0 ),
+                                    Theme::getThemeColor( Colors::Invisible ),
                                     Qt::ForegroundRole );
                 }
                 else
                 {
                     model->setData( row->model()->index( row->row(), 0 ),
-                                    Theme::getThemeColor( Colors::VALID ),
+                                    Theme::getThemeColor( Colors::Valid ),
                                     Qt::ForegroundRole );
                 }
             }
@@ -250,6 +256,16 @@ ServerInfo* Player::getServerInfo() const
 void Player::setServerInfo(ServerInfo* value)
 {
     serverInfo = value;
+}
+
+bool Player::getIsInvisible() const
+{
+    return isInvisible;
+}
+
+void Player::setIsInvisible(const bool& value)
+{
+    isInvisible = value;
 }
 
 quint32 Player::getSernum_i() const
@@ -564,14 +580,12 @@ void Player::setAdminPwdReceived(const bool& value)
 
 bool Player::getIsAdmin() const
 {
-    QString sernum{ this->getSernumHex_s() };
-    return User::getIsAdmin( sernum );
+    return User::getIsAdmin( this->getSernumHex_s() );
 }
 
 qint32 Player::getAdminRank() const
 {
-    QString sernum{ this->getSernumHex_s() };
-    return User::getAdminRank( sernum );
+    return User::getAdminRank( this->getSernumHex_s() );
 }
 
 qint32 Player::getCmdAttempts() const
@@ -625,12 +639,12 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
                     server->setIpDc( server->getIpDc() + 1 );
                 }
             break;
-            case DCTypes::DUPDC:
+            case DCTypes::DupDC:
                 {
                     server->setDupDc( server->getDupDc() + 1 );
                 }
             break;
-            case DCTypes::PKTDC:
+            case DCTypes::PktDC:
                 {
                     server->setPktDc( server->getPktDc() + 1 );
                 }

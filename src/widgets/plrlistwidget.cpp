@@ -163,7 +163,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            User::setAdminRank( sernum, User::rGAMEMASTER );
+            User::setAdminRank( sernum, GMRanks::GMaster );
             menuTarget->setNewAdminPwdRequested( true );
         }
     }
@@ -175,7 +175,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            User::setAdminRank( sernum, User::rUSER );
+            User::setAdminRank( sernum, GMRanks::User );
             send = true;
         }
     }

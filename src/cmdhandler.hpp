@@ -26,6 +26,9 @@ class CmdHandler : public QObject
         bool parseCommandImpl(Player* plr, QString& packet);
 
     private:
+        bool validateAdmin(Player* plr, const GMRanks& rank);
+        GMRanks getAdminRank(Player* plr);
+
         void banhandler(Player* plr, const QString& arg1,
                         const QString& message, const bool& all);
 
@@ -33,7 +36,7 @@ class CmdHandler : public QObject
         void kickHandler(const QString& arg1, const QString& message,
                          const bool& all);
         void muteHandler(Player* plr, const QString& arg1,
-                         const qint32& argIndex, const QString& message,
+                         const GMCmds& argIndex, const QString& message,
                          const bool& all);
         void msgHandler(const QString& arg1, const QString& message,
                         const bool& all);
@@ -47,10 +50,11 @@ class CmdHandler : public QObject
 //        void rmAdminHandler(Player* plr, QString& sernum);
 //        void chAdminHandler(Player* plr, QString& sernum, QString& arg);
 
-//        void chRulesHandler(Player* plr, QString& rules);
+        void chRulesHandler(Player* plr, const QString& rule,
+                            const QVariant& value);
 //        void getCommentsHandler(Player* plr, QString& arg);
 //        void chSettingsHandler(Player* plr, QString& setting, QString& value);
-//        void vanishHandler(Player* plr);
+        void vanishHandler(Player* plr);
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias,

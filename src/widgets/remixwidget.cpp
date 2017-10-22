@@ -33,18 +33,15 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     randDev = new RandDev();
 
     //Setup Objects.
-    motdWidget = new MOTDWidget();
-    motdWidget->setServerName( server->getName() );
+    motdWidget = MOTDWidget::getWidget( server );
 
-    rules = new RulesWidget();
+    rules = RulesWidget::getWidget( server );
     QObject::connect( rules, &RulesWidget::gameInfoChanged,
     [=](const QString& gameInfo)
     {
         server->setGameInfo( gameInfo );
     });
     rules->setServerName( server->getName() );
-
-    Settings::addTabObjects( motdWidget, rules, server );
 
     plrWidget = new PlrListWidget( this, server );
     ui->tmpWidget->setLayout( plrWidget->layout() );
@@ -78,7 +75,8 @@ ReMixWidget::~ReMixWidget()
 
     plrWidget->deleteLater();
 
-    Settings::remTabObjects( server );
+    RulesWidget::deleteWidget( server );
+    MOTDWidget::deleteWidget( server );
 
     delete randDev;
     delete server;

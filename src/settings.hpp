@@ -15,8 +15,6 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
-    static QHash<ServerInfo*, MOTDWidget*> msgWidgets;
     static SettingsWidget* settings;
     static QTabWidget* tabWidget;
     static Settings* instance;
@@ -28,10 +26,6 @@ class Settings : public QDialog
         static Settings* getInstance();
         static void setInstance(Settings* value);
 
-        static void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                                  ServerInfo* server);
-
-        static void remTabObjects(ServerInfo* server);
         static void updateTabBar(ServerInfo* server);
         static void copyServerSettings(ServerInfo* server, QString newName);
 

@@ -5,6 +5,7 @@
 
 //ReMix includes.
 #include "selectworld.hpp"
+#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
 #include "rules.hpp"
@@ -13,6 +14,8 @@
 #include <QSettings>
 #include <QtCore>
 #include <QDir>
+
+QHash<ServerInfo*, RulesWidget*> RulesWidget::ruleWidgets;
 
 RulesWidget::RulesWidget() :
     ui(new Ui::RulesWidget)
@@ -23,6 +26,27 @@ RulesWidget::RulesWidget() :
 RulesWidget::~RulesWidget()
 {
     delete ui;
+}
+
+RulesWidget* RulesWidget::getWidget(ServerInfo* server)
+{
+    RulesWidget* widget{ ruleWidgets.value( server ) };
+    if ( widget == nullptr )
+    {
+        widget = new RulesWidget();
+        ruleWidgets.insert( server, widget );
+    }
+    return widget;
+}
+
+void RulesWidget::deleteWidget(ServerInfo* server)
+{
+    RulesWidget* widget{ ruleWidgets.take( server ) };
+    if ( widget != nullptr )
+    {
+        widget->setParent( nullptr );
+        widget->deleteLater();
+    }
 }
 
 void RulesWidget::setServerName(const QString& name)

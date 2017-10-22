@@ -4,6 +4,18 @@ Version 2.3.5:
     * Add global variables to indicate how many Themes ReMix can use, and how many custom UI colors the Theme class can use.
     * Add an enumerator class for use with the new theme color array used within the Theme class.
     * Add an implementation file for the Theme class.
+    * Convert a few basic enumerators into a strongly typed enumerator class.
+    * Enable the remote administrator command '/vanish' for remote administrators to appear as 'disappeared' or to sit on a server unnoticed.
+      * The command also prevents Users from seeing Vanished administrators on the User-list.
+    * The Settings class nolonger has control of the RulesWidget or the MOTDWidget classes.
+      * Each class now stored the objects currently in use, and can be fetched or deleted through static functions.
+      * These changes were made for the possibility of implementing the ability for remote administrators to change a server's rule set or message of the day.
+
+  Bugfixes:
+    * When logging SerNum mismatches to file, we should be logging the encrypted packet instead of the unencrypted packet.
+      * This is to ensure that any packet using the ':SR' format aren't being encrypted, and that we will know the packet at issue in it's original state.
+    * The Settings and User Information dialogs will now close once the last server has been exited.
+      * The previous behavior left these two dialogs open for view and interaction while the Create Server dialog was shown.
 
   Note:
     * These changes to the Theme Class are intended to preceed the implementation of a Theme-Color selector.

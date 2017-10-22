@@ -250,17 +250,21 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
         if ( plr != nullptr
           && plr->getSernum_i() != 0 )
         {
-            if ( type == Q_Response ) //Standard 'Q' Response.
+            //Don't show Invisible Administrators on the User List.
+            if ( !plr->getIsInvisible() )
             {
-                response += filler_Q.arg( Helper::intToStr(
-                                              plr->getSernum_i(), 16 ) );
-            }
-            else if ( type == R_Response ) //Non-Standard 'R' Response
-            {
-                response += filler_R.arg( Helper::intToStr(
-                                              plr->getSernum_i(), 16 ) )
-                                    .arg( Helper::intToStr(
-                                              plr->getSlotPos(), 16, 8 ) );
+                if ( type == Q_Response ) //Standard 'Q' Response.
+                {
+                    response += filler_Q.arg( Helper::intToStr(
+                                                  plr->getSernum_i(), 16 ) );
+                }
+                else if ( type == R_Response ) //Non-Standard 'R' Response
+                {
+                    response += filler_R.arg( Helper::intToStr(
+                                                  plr->getSernum_i(), 16 ) )
+                                        .arg( Helper::intToStr(
+                                                  plr->getSlotPos(), 16, 8 ) );
+                }
             }
         }
     }
@@ -286,7 +290,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
                                      QString::number(
                                          this->getPlayerCount() ),
                                      QString::number(
-                                         this->getGameId() ),
+                                         static_cast<int>( this->getGameId() ) ),
                                      this->getGameName(),
                                      this->getHostInfo().localHostName(),
                                      this->getServerID(),
