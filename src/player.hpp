@@ -204,6 +204,11 @@ class Player : public QObject
         bool getIsInvisible() const;
         void setIsInvisible(const bool& value);
 
+    private:
+        void setModelData(QStandardItem* model, const qint32& row,
+                          const qint32& column, const QVariant& data,
+                          const qint32& role, const bool& isColor = false);
+
     signals:
             void newAdminPwdRequestedSignal(Player* plr);
             void newRemoteAdminRegisterSignal(Player* plr);

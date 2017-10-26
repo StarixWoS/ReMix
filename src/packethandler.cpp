@@ -236,6 +236,19 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                         QString usrInfo{ data.mid( 1 ) };
                         if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
                         {
+                            //Check if the World String starts with "world="
+                            //And remove the substring.
+                            if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
+                            {
+                                //This event rarely happens, and mainly due to
+                                //a certain 3rd party client...
+                                //Ahem, ReBreather. *shifty eyes*
+                                usrInfo = Helper::getStrStr( usrInfo,
+                                                             "world",
+                                                             "=",
+                                                             "=" );
+                            }
+
                             //Enforce a 256 character limit on GameNames.
                             if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
                             {

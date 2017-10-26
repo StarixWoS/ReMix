@@ -28,82 +28,69 @@ Player::Player()
         QStandardItem* row = this->getTableRow();
         if ( row != nullptr )
         {
-            QStandardItemModel* model = row->model();
-            if ( model != nullptr )
-            {
-                model->setData( row->model()->index( row->row(), 4 ),
+            this->setModelData( row, row->row(), 4,
                                 QString( "%1:%2:%3" )
-                                    .arg( connTime / 3600, 2, 10, QChar( '0' ) )
-                                    .arg(( connTime / 60 ) % 60, 2,
-                                         10, QChar( '0' ) )
-                                    .arg( connTime % 60, 2, 10, QChar( '0' ) ),
+                                 .arg( connTime / 3600, 2, 10, QChar( '0' ) )
+                                 .arg(( connTime / 60 ) % 60, 2,
+                                      10, QChar( '0' ) )
+                                 .arg( connTime % 60, 2, 10, QChar( '0' ) ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaud( this->getBytesIn(), false );
-                model->setData( row->model()->index( row->row(), 5 ),
+            this->setAvgBaud( this->getBytesIn(), false );
+            this->setModelData( row, row->row(), 5,
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( QString::number(
-                                              this->getAvgBaud( false ) ),
-                                          QString::number(
-                                              this->getBytesIn() ),
-                                          QString::number(
-                                                  this->getPacketsIn() ) ),
+                                 .arg( QString::number(
+                                           this->getAvgBaud( false ) ),
+                                       QString::number(
+                                           this->getBytesIn() ),
+                                       QString::number(
+                                           this->getPacketsIn() ) ),
                                 Qt::DisplayRole );
 
-                this->setAvgBaud( this->getBytesOut(), true );
-                model->setData( row->model()->index( row->row(), 6 ),
+            this->setAvgBaud( this->getBytesOut(), true );
+            this->setModelData( row, row->row(), 6,
                                 QString( "%1Bd, %2B, %3 Pkts" )
-                                    .arg( QString::number(
-                                              this->getAvgBaud( true ) ),
-                                          QString::number(
-                                              this->getBytesOut() ),
-                                          QString::number(
-                                              this->getPacketsOut() ) ),
+                                 .arg( QString::number(
+                                           this->getAvgBaud( true ) ),
+                                       QString::number(
+                                           this->getBytesOut() ),
+                                       QString::number(
+                                           this->getPacketsOut() ) ),
                                 Qt::DisplayRole );
 
-                //Color the User's IP address Green if the Admin is authed
-                //Otherwise, color as Red.
-                if ( this->getIsAdmin() )
-                {
-                    if ( this->getAdminPwdReceived() )
-                    {
-                        model->setData( row->model()->index( row->row(), 1 ),
-                                        Theme::getThemeColor( Colors::Valid ),
-                                        Qt::ForegroundRole );
-                    }
-                    else
-                        model->setData( row->model()->index( row->row(), 1 ),
-                                        Theme::getThemeColor( Colors::Invalid ),
-                                        Qt::ForegroundRole );
-                }
+            //Color the User's IP address Green if the Admin is authed
+            //Otherwise, color as Red.
+            Colors color{ Colors::Default };
+            if ( this->getIsAdmin() )
+            {
+                if ( this->getAdminPwdReceived() )
+                    color = Colors::Valid;
                 else
-                {
-                    model->setData( row->model()->index( row->row(), 1 ),
-                                    Theme::getThemeColor( Colors::Default ),
-                                    Qt::ForegroundRole );
-                }
-
-                //Color the User's IP address Red if the User's is muted.
-                //Otherwise, color as Green.
-                if ( this->getNetworkMuted() )
-                {
-                    model->setData( row->model()->index( row->row(), 0 ),
-                                    Theme::getThemeColor( Colors::Invalid ),
-                                    Qt::ForegroundRole );
-                }
-                if ( this->getIsInvisible() )
-                {
-                    model->setData( row->model()->index( row->row(), 0 ),
-                                    Theme::getThemeColor( Colors::Invisible ),
-                                    Qt::ForegroundRole );
-                }
-                else
-                {
-                    model->setData( row->model()->index( row->row(), 0 ),
-                                    Theme::getThemeColor( Colors::Valid ),
-                                    Qt::ForegroundRole );
-                }
+                    color = Colors::Invalid;
             }
+            else
+                color = Colors::Default;
+
+            this->setModelData( row, row->row(), 1,
+                                static_cast<int>( color ),
+                                Qt::ForegroundRole, true );
+
+            //Color the User's IP address Red if the User's is muted.
+            //Otherwise, color as Green.
+            color = Colors::Default;
+            if ( !this->getNetworkMuted() )
+            {
+                if ( this->getIsInvisible() )
+                    color = Colors::Invisible;
+                else
+                    color = Colors::Valid;
+            }
+            else
+                color = Colors::Invalid;
+
+            this->setModelData( row, row->row(), 0,
+                                static_cast<int>( color ),
+                                Qt::ForegroundRole, true );
         }
 
         if ( Settings::getDisconnectIdles()
@@ -266,6 +253,31 @@ bool Player::getIsInvisible() const
 void Player::setIsInvisible(const bool& value)
 {
     isInvisible = value;
+}
+
+void Player::setModelData(QStandardItem* model, const qint32& row,
+                          const qint32& column, const QVariant& data,
+                          const qint32& role, const bool& isColor)
+{
+    if ( model != nullptr )
+    {
+        QStandardItemModel* sModel = model->model();
+        if ( model != nullptr )
+        {
+            if ( !isColor )
+            {
+                sModel->setData( model->model()->index( row, column ),
+                                 data, role );
+            }
+            else
+            {
+                sModel->setData( model->model()->index( row, column ),
+                                 Theme::getThemeColor(
+                                     static_cast<Colors>( data.toInt() ) ),
+                                 role );
+            }
+        }
+    }
 }
 
 quint32 Player::getSernum_i() const

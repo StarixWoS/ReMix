@@ -10,12 +10,19 @@ Version 2.3.5:
     * The Settings class nolonger has control of the RulesWidget or the MOTDWidget classes.
       * Each class now stored the objects currently in use, and can be fetched or deleted through static functions.
       * These changes were made for the possibility of implementing the ability for remote administrators to change a server's rule set or message of the day.
+    * The WorldSelection dialog, when used, will now allow the User to not select a World.
+      * If the User previously had a world selected, a confirmation dialog will appear to confirm the removal.
+      * If no world was previously selected by the User, the 'Ok' button will function as though the User had clicked 'Cancel'.
 
   Bugfixes:
     * When logging SerNum mismatches to file, we should be logging the encrypted packet instead of the unencrypted packet.
       * This is to ensure that any packet using the ':SR' format aren't being encrypted, and that we will know the packet at issue in it's original state.
     * The Settings and User Information dialogs will now close once the last server has been exited.
       * The previous behavior left these two dialogs open for view and interaction while the Create Server dialog was shown.
+    * Prevent the string "world=" within the GameInfo string sent to Users when the Server information is requested.
+      * This usually doesn't appear outside of "ReBreather" chat clients.
+      * It's better to patch it in ReMix than bothering with the "ReBreather" sorce, though.
+    * Properly remove the World rule when the option is unselected.
 
   Note:
     * These changes to the Theme Class are intended to preceed the implementation of a Theme-Color selector.

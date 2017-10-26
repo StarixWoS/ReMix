@@ -137,13 +137,17 @@ void RulesWidget::setCheckedState(const Toggles& option, const bool& val)
 void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
 {
     QString rowText{ "World Name: [ %1 ]" };
-            rowText = rowText.arg( worldName );
+    if ( worldName.isEmpty() )
+        rowText = rowText.arg( "Not Selected" );
+    else
+        rowText = rowText.arg( worldName );
 
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
     ui->rulesView->item( Toggles::world, 0 )->setCheckState( state
                                                            ? Qt::Checked
                                                            : Qt::Unchecked );
 
+    worldCheckState = state;
     Rules::setWorldName( worldName, serverName );
 }
 
@@ -201,14 +205,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     if ( !worldDir.isEmpty() )
                     {
                         selectWorld = new SelectWorld( this );
+                        selectWorld->setRequireWorld( !world.isEmpty() );
                         QObject::connect( selectWorld, &SelectWorld::accepted,
-                                          [&world, this]()
+                        [&world, this]()
                         {
-                            QString worldName{ selectWorld->getSelectedWorld() };
-                            if ( !worldName.isEmpty() )
-                            {
-                                world = worldName;
-                            }
+                            world = selectWorld->getSelectedWorld();
+
                             selectWorld->close();
                             selectWorld->disconnect();
                             selectWorld->deleteLater();
@@ -216,8 +218,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         selectWorld->exec();
 
                         state = true;
-                        worldCheckState = state;
-                        this->setSelectedWorld( world, state );
+                        if ( world.isEmpty() )
+                        {
+                            state = false;
+                            removeKey = true;
+                        }
                     }
                     else
                     {
@@ -241,8 +246,6 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 
                                 state = false;
                             }
-                            else
-                                this->setSelectedWorld( world, state );
                         }
                         else if ( !Rules::getRequireWorld( serverName )
                                && !world.isEmpty() )
@@ -257,12 +260,14 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 state = true;
                             }
                             else
+                            {
+                                removeKey = true;
                                 world = "";
+                            }
                         }
                     }
                     this->setSelectedWorld( world, state );
                     emit this->gameInfoChanged( world );
-                    worldCheckState = state;
                 }
             }
         break;

@@ -42,6 +42,11 @@ QString& SelectWorld::getSelectedWorld()
     return world;
 }
 
+void SelectWorld::setRequireWorld(const bool& value)
+{
+    requireWorld = value;
+}
+
 void SelectWorld::on_worldViewer_activated(const QModelIndex& index)
 {
     world = index.data().toString();
@@ -69,9 +74,30 @@ void SelectWorld::on_okButton_clicked()
     QString  prompt{ "Are you certain that you want to select the "
                      "world [ %1 ]?" };
 
-    prompt = prompt.arg( this->getSelectedWorld() );
-    if ( Helper::confirmAction( this, title, prompt ) )
+    QString world = this->getSelectedWorld();
+    bool accept{ true };
+
+    if ( world.isEmpty() )
     {
-        this->accept();
+        prompt = "Are you certain that you want to unselect the "
+                 "current world?";
+
+        if ( !requireWorld )
+            accept = false;
+    }
+    else
+        prompt = prompt.arg( world );
+
+    if ( accept )
+    {
+        if ( Helper::confirmAction( this, title, prompt ) )
+        {
+            this->accept();
+        }
+    }
+    else
+    {
+        this->reject();
+        this->close();
     }
 }
