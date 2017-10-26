@@ -139,14 +139,7 @@ void ReMixWidget::initUIUpdate()
                       server->getUpTimer(),
     [=]()
     {
-        quint64 time = server->getUpTime();
-
-        QString time_s = QString( "%1:%2:%3" )
-                             .arg( time / 3600, 2, 10, QChar( '0' ) )
-                             .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
-                             .arg( time % 60, 2, 10, QChar( '0' ) );
-
-        ui->onlineTime->setText( time_s );
+        ui->onlineTime->setText( Helper::getTimeFormat( server->getUpTime() ) );
         ui->callCount->setText(
                     QString( "#Calls: %1" )
                         .arg( server->getUserCalls() ) );

@@ -34,14 +34,22 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
 
     //Setup the PlayerInfo TableView.
     plrModel = new QStandardItemModel( 0, 8, 0 );
-    plrModel->setHeaderData( 0, Qt::Horizontal, "Player IP:Port" );
-    plrModel->setHeaderData( 1, Qt::Horizontal, "SerNum" );
-    plrModel->setHeaderData( 2, Qt::Horizontal, "Age" );
-    plrModel->setHeaderData( 3, Qt::Horizontal, "Alias" );
-    plrModel->setHeaderData( 4, Qt::Horizontal, "Time" );
-    plrModel->setHeaderData( 5, Qt::Horizontal, "IN" );
-    plrModel->setHeaderData( 6, Qt::Horizontal, "OUT" );
-    plrModel->setHeaderData( 7, Qt::Horizontal, "BIO" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ),
+                             Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ),
+                             Qt::Horizontal, "SerNum" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Age ),
+                             Qt::Horizontal, "Age" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Alias ),
+                             Qt::Horizontal, "Alias" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Time ),
+                             Qt::Horizontal, "Time" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesIn ),
+                             Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesOut ),
+                             Qt::Horizontal, "OUT" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BioData ),
+                             Qt::Horizontal, "BIO" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model

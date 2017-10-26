@@ -590,5 +590,37 @@ QString Helper::getTimeAsString(const quint64& time)
         date = QDateTime::currentDateTime().toTime_t();
 
     return QDateTime::fromTime_t( date )
-                .toString( "ddd MMM dd HH:mm:ss yyyy" );
+            .toString( "ddd MMM dd HH:mm:ss yyyy" );
+}
+
+QString Helper::getTimeFormat(const qint64& time)
+{
+    return QString( "%1:%2:%3" )
+            .arg( getTimeIntFormat( time, TimeFormat::Hours ),
+                  2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Minutes ),
+                  2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Seconds ),
+                  2, 10, QChar( '0' ) );
+}
+
+qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
+{
+    switch ( format )
+    {
+        case TimeFormat::Hours:
+        return ( time / static_cast<int>( TimeFormat::HoursDiv ) );
+        break;
+        case TimeFormat::Minutes:
+        return ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
+                 % static_cast<int>( TimeFormat::SecDiv ) );
+        break;
+        case TimeFormat::Seconds:
+        return ( time % static_cast<int>( TimeFormat::SecDiv ) );
+        break;
+        case TimeFormat::Default:
+        default:
+        return time;
+        break;
+    }
 }

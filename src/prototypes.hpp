@@ -249,6 +249,17 @@
                                 OwnerChat, Chat, Gossip, Shout, Emote = 9,
                                 Default = -1 };
 
+        //Valid columns within the PlrListWidget.
+        enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
+                                 BytesIn, BytesOut, BioData = 7, ColCount = 9 };
+
+        enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
+                                  Rank, Banned, BanDate, BanReason = 8,
+                                  ColCount = 9 };
+
+        //Used for converting time in seconds to a human readable format.
+        enum class TimeFormat{ Hours = 0, Minutes, Seconds = 3, Default = -1,
+                               HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
 
     #endif  // REMIX_GLOBALS
 

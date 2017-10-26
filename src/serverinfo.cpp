@@ -342,7 +342,9 @@ void ServerInfo::deletePlayer(const int& slot)
         {
             logMsg = logMsg.arg( plr->getPublicIP(),
                                  QString::number(
-                                     plr->getConnTime() / 60 ),
+                                     Helper::getTimeIntFormat(
+                                         plr->getConnTime(),
+                                         TimeFormat::Minutes ) ),
                                  QString::number(
                                      plr->getBytesIn() ),
                                  QString::number(

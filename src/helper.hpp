@@ -77,6 +77,9 @@ class Helper
         static bool cmpStrings(const QString& strA, const QString& strB );
         static qint32 getStrIndex(const QString& strA, const QString& strB);
         static QString getTimeAsString(const quint64& time = 0);
+        static QString getTimeFormat(const qint64& time);
+        static  qint64 getTimeIntFormat(const qint64& time,
+                                        const TimeFormat& format);
 };
 
 #endif // PREFERENCES_HPP

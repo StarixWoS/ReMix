@@ -28,16 +28,14 @@ Player::Player()
         QStandardItem* row = this->getTableRow();
         if ( row != nullptr )
         {
-            this->setModelData( row, row->row(), 4,
-                                QString( "%1:%2:%3" )
-                                 .arg( connTime / 3600, 2, 10, QChar( '0' ) )
-                                 .arg(( connTime / 60 ) % 60, 2,
-                                      10, QChar( '0' ) )
-                                 .arg( connTime % 60, 2, 10, QChar( '0' ) ),
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::Time ),
+                                Helper::getTimeFormat( this->getConnTime() ),
                                 Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesIn(), false );
-            this->setModelData( row, row->row(), 5,
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::BytesIn ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
                                  .arg( QString::number(
                                            this->getAvgBaud( false ) ),
@@ -48,7 +46,8 @@ Player::Player()
                                 Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesOut(), true );
-            this->setModelData( row, row->row(), 6,
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::BytesOut ),
                                 QString( "%1Bd, %2B, %3 Pkts" )
                                  .arg( QString::number(
                                            this->getAvgBaud( true ) ),
@@ -71,7 +70,8 @@ Player::Player()
             else
                 color = Colors::Default;
 
-            this->setModelData( row, row->row(), 1,
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::SerNum ),
                                 static_cast<int>( color ),
                                 Qt::ForegroundRole, true );
 
@@ -88,7 +88,8 @@ Player::Player()
             else
                 color = Colors::Invalid;
 
-            this->setModelData( row, row->row(), 0,
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::IPPort ),
                                 static_cast<int>( color ),
                                 Qt::ForegroundRole, true );
         }

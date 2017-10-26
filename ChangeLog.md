@@ -13,6 +13,11 @@ Version 2.3.5:
     * The WorldSelection dialog, when used, will now allow the User to not select a World.
       * If the User previously had a world selected, a confirmation dialog will appear to confirm the removal.
       * If no world was previously selected by the User, the 'Ok' button will function as though the User had clicked 'Cancel'.
+    * Add an enumerator class for the PlrListWidget class' table columns.
+    * Convert the User enumerator to a enumerator class, and renameed it to 'UserCols'.
+    * Add an enumerator for use in converting a numeric time to a user readable format. 'Hours:Minutes:Seconds'.
+    * Add two Helper function to convert seconds into a time format using the TimeFormat enumerator.
+      * Used for the Server UpTime, and the User connection times.
 
   Bugfixes:
     * When logging SerNum mismatches to file, we should be logging the encrypted packet instead of the unencrypted packet.
@@ -26,6 +31,7 @@ Version 2.3.5:
 
   Note:
     * These changes to the Theme Class are intended to preceed the implementation of a Theme-Color selector.
+
 
 
 

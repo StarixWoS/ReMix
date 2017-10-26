@@ -23,9 +23,6 @@ class User : public QDialog
     static const QString keys[ USER_KEY_COUNT ];
 
     public:
-        enum UserColumns{ cSERNUM = 0, cPINGS, cCALLS, cSEENDATE, cIP,
-                          cRANK, cBANNED, cBANDATE, cREASON, cCOLS = 9 };
-
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
                        kREASON, kBANNED, kPINGS, kCALLS = 11 };
 
@@ -64,7 +61,7 @@ class User : public QDialog
 
     private:
         QModelIndex findModelIndex(const QString& value,
-                                   const UserColumns& col);
+                                   const UserCols& col);
         void loadUserInfo();
         void updateRowData(const qint32& row, const qint32& col,
                            const QVariant& data);
