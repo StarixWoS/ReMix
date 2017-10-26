@@ -32,15 +32,39 @@ const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
 void Rules::setRule(const QString& key, const QVariant& value,
                     const QString& svrID)
 {
-    Settings::prefs->setValue( svrID % "/" % Settings::keys[ Settings::Rules ]
-                               % "/" % key, value );
+    bool remove{ false };
+    if ( !value.toBool()
+      && ( value.toInt() == 0 )
+      && ( Helper::cmpStrings( "false", value.toString() )
+        || Helper::cmpStrings( "0", value.toString() )
+        || value.toString().isEmpty() ) )
+    {
+        //Keys with a 'disabled' value will be removed from storage
+        //instead of being set.
+        remove = true;
+    }
+
+    if ( !remove )
+    {
+        Settings::prefs->setValue( svrID % "/"
+                                 % Settings::keys[ Settings::Rules ]
+                                 % "/" % key, value );
+    }
+    else
+        removeRule( key, svrID );
 }
 
 QVariant Rules::getRule(const QString& key, const QString& svrID)
 {
     return Settings::prefs->value( svrID % "/"
-                                   % Settings::keys[ Settings::Rules ]
-                                   % "/" % key );
+                                 % Settings::keys[ Settings::Rules ]
+                                 % "/" % key );
+}
+
+void Rules::removeRule(const QString& key, const QString& svrID)
+{
+    Settings::prefs->remove( svrID % "/" % Settings::keys[ Settings::Rules ]
+                           % "/" % key );
 }
 
 QString Rules::getRuleSet(const QString& svrID)
