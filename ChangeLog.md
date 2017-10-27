@@ -28,6 +28,8 @@ Version 2.3.5:
       * This usually doesn't appear outside of "ReBreather" chat clients.
       * It's better to patch it in ReMix than bothering with the "ReBreather" sorce, though.
     * Properly remove the World rule when the option is unselected.
+    * When renaming a Server instance, the process will no longer toggle all rules in a disabled state.
+      * This was unintended and otherwise caused clutter that left the important rules 'hidden' to Users.
 
   Note:
     * These changes to the Theme Class are intended to preceed the implementation of a Theme-Color selector.
