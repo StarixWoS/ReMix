@@ -41,7 +41,6 @@ const QString User::keys[ USER_KEY_COUNT ] =
 QSortFilterProxyModel* User::tblProxy{ nullptr };
 QStandardItemModel* User::tblModel{ nullptr };
 QSettings* User::userData{ nullptr };
-RandDev* User::randDev{ nullptr };
 User* User::instance{ nullptr };
 
 User::User(QWidget* parent) :
@@ -59,9 +58,6 @@ User::User(QWidget* parent) :
 
     //Setup our QSettings Object.
     userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
-
-    //Setup our Random Device
-    randDev = new RandDev();
 
     //Setup the ServerInfo TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>(
@@ -164,7 +160,7 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
     if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
     {
-        QString salt = Helper::genPwdSalt( randDev, SALT_LENGTH );
+        QString salt = Helper::genPwdSalt( SALT_LENGTH );
         QString hash( salt + pwd );
                 hash = Helper::hashPassword( hash );
 

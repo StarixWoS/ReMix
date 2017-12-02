@@ -208,10 +208,6 @@ class Player : public QObject
         void setModelData(QStandardItem* model, const qint32& row,
                           const qint32& column, const QVariant& data,
                           const qint32& role, const bool& isColor = false);
-
-    signals:
-            void newAdminPwdRequestedSignal(Player* plr);
-            void newRemoteAdminRegisterSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

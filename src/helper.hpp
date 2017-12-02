@@ -60,8 +60,7 @@ class Helper
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(QString& password);
-        static QString genPwdSalt(RandDev* randGen,
-                                  const qint32& length = SALT_LENGTH);
+        static QString genPwdSalt(const qint32& length = SALT_LENGTH);
 
         static bool validateSalt(QString& salt);
 

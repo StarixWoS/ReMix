@@ -19,11 +19,8 @@ class ReMixWidget : public QWidget
     RulesWidget* rules{ nullptr };
 
     PlrListWidget* plrWidget{ nullptr };
-
-    Server* tcpServer{ nullptr };
-    RandDev* randDev{ nullptr };
-
     ServerInfo* server{ nullptr };
+    Server* tcpServer{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };

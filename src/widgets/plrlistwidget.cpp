@@ -167,7 +167,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
                   "\r\n\r\nPlease make sure you trust [ %1 ] as this will "
                   "allow the them to utilize Admin commands that can remove "
                   "the ability for other users to connect to the Server.";
-        prompt = prompt.arg( sernum );
+        prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {

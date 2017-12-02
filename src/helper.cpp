@@ -336,14 +336,9 @@ QString Helper::hashPassword(QString& password)
     return QString( hash.result().toHex() );
 }
 
-QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
+QString Helper::genPwdSalt(const qint32& length)
 {
-    bool newRNG{ false };
-    if ( randGen == nullptr )
-    {
-        randGen = new RandDev();
-        newRNG = true;
-    }
+    RandDev* randGen{ RandDev::getDevice() };
 
     QString salt{ "" };
     QString charList
@@ -361,11 +356,8 @@ QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
         salt.append( charList.at( chrPos ) );
     }
 
-    if ( newRNG )
-        delete randGen;
-
     if ( !validateSalt( salt ) )
-        salt = genPwdSalt( randGen, length );
+        salt = genPwdSalt( length );
 
     return salt;
 }

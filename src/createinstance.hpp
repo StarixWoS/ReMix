@@ -16,7 +16,6 @@ class CreateInstance : public QDialog
         Q_OBJECT
 
         static const QString gameNames[ GAME_NAME_COUNT ];
-        RandDev* randDev{ nullptr };
         QCollator collator;
 
     public:

@@ -17,7 +17,6 @@ class User : public QDialog
     static QSortFilterProxyModel* tblProxy;
     static QStandardItemModel* tblModel;
     static QSettings* userData;
-    static RandDev* randDev;
     static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];

@@ -29,9 +29,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 
     server = svrInfo;
 
-    //Setup our Random Device
-    randDev = new RandDev();
-
     //Setup Objects.
     motdWidget = MOTDWidget::getWidget( server );
 
@@ -78,7 +75,6 @@ ReMixWidget::~ReMixWidget()
     RulesWidget::deleteWidget( server );
     MOTDWidget::deleteWidget( server );
 
-    delete randDev;
     delete server;
     delete ui;
 }

@@ -124,7 +124,21 @@ Player::Player()
                        && !this->getNewAdminPwdRequested() )
                 {
                     if ( !this->getAdminPwdReceived() )
-                        emit newAdminPwdRequestedSignal( this );
+                    {
+                        QString msg{ "The server Admin requires all Remote "
+                                     "Administrators to authenticate themselves "
+                                     "with their password. Please enter your "
+                                     "password with the command (/login *PASS) "
+                                     "or be denied access to the server. "
+                                     "Thank you!" };
+
+                        if ( Settings::getReqAdminAuth()
+                          && this->getIsAdmin() )
+                        {
+                            this->setAdminPwdRequested( true );
+                            this->sendMessage( msg );
+                        }
+                    }
                 }
             }
         }
@@ -620,7 +634,15 @@ void Player::setNewAdminPwdRequested(const bool& value)
 {
     newAdminPwdRequested = value;
     if ( newAdminPwdRequested )
-        emit newRemoteAdminRegisterSignal( this );
+    {
+        QString msg{ "The Server Host is attempting to register you as an "
+                     "Admin with the server. Please reply to this message with "
+                     "(/register *YOURPASS). Note: The server Host and other "
+                     "Admins will not have access to this information." };
+
+        if ( this->getIsAdmin() )
+            this->sendMessage( msg );
+    }
 }
 
 bool Player::getNewAdminPwdReceived() const

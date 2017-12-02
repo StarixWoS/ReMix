@@ -510,7 +510,7 @@ QString Settings::getServerID(const QString& svrID)
                          .toInt();
     if ( id <= 0 )
     {
-        RandDev* randDev = new RandDev();
+        RandDev* randDev{ RandDev::getDevice() };
         if ( randDev != nullptr )
             id = randDev->genRandNum( 1, 0x7FFFFFFE );
 

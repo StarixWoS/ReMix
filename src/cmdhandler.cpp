@@ -40,8 +40,6 @@ const QString CmdHandler::commands[ GM_COMMAND_COUNT ] =
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     : QObject(parent)
 {
-    //Setup our Random Device
-    randDev = new RandDev();
     server = svr;
 }
 

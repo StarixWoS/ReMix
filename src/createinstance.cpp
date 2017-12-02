@@ -33,7 +33,6 @@ CreateInstance::CreateInstance(QWidget* parent) :
     collator.setNumericMode( true );
     collator.setCaseSensitivity( Qt::CaseInsensitive );
 
-    randDev = new RandDev();
     this->updateServerList( true );
 }
 
@@ -145,6 +144,7 @@ quint16 CreateInstance::genPort()
     quint16 portMin{ std::numeric_limits<quint16>::min() };
     quint16 port{ 0 };
 
+    RandDev* randDev{ RandDev::getDevice() };
     if ( randDev == nullptr )
         return 8888;    //Return Arbitrary number if Generator is invalid.
 

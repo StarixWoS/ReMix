@@ -45,7 +45,7 @@ class RulesWidget : public QWidget
 
     private slots:
         void on_rulesView_doubleClicked(const QModelIndex& index);
-        void on_rulesView_itemClicked(QTableWidgetItem* item);
+        void on_rulesView_itemClicked(QTableWidgetItem *item);
 
     signals:
         void gameInfoChanged(const QString& gameInfo);

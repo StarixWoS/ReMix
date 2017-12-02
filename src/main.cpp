@@ -7,9 +7,6 @@
 #include "remix.hpp"
 #include "theme.hpp"
 
-//Qt-Sparkle Includes.
-#include "qtsparkle/src/updater.h"
-
 //Qt Includes.
 #include <QNetworkAccessManager>
 #include <QApplication>

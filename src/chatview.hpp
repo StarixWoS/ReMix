@@ -17,11 +17,14 @@ class ChatView : public QDialog
 {
     Q_OBJECT
 
-    PacketForge* pktForge{ nullptr };
     Games gameID{ Games::Invalid };
+    static QString bleepList[31];
+
+    PacketForge* pktForge{ nullptr };
+    ServerInfo* server{ nullptr };
 
     public:
-        explicit ChatView(QWidget* parent = 0);
+        explicit ChatView(QWidget* parent = nullptr, ServerInfo* svr = nullptr);
         ~ChatView();
 
         void setTitle(const QString& name);
@@ -32,6 +35,8 @@ class ChatView : public QDialog
         void parseChatEffect(const QString& packet);
         void insertChat(const QString& msg, const Colors& color,
                         const bool& newLine);
+
+        void bleepChat(QString& message);
 
     private slots:
         void on_chatInput_returnPressed();

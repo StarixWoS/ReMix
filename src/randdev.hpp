@@ -9,27 +9,25 @@
 
 class RandDev
 {
-    std::mt19937 randDevice;
-    bool deviceInitialized{ false };
+    static RandDev* device;
+    static std::mt19937 randDevice;
 
     public:
         RandDev();
         ~RandDev();
 
+        static RandDev* getDevice();
+        static unsigned int getSeed();
+
         template<typename T>
         T genRandNum(T min, T max)
         {
-            if ( !this->getInitialized() )
-                this->initializeDevice();
+            //Re-Seed the device on every use.
+            randDevice.seed( getSeed() );
 
             std::uniform_int_distribution<T> randInt( min, max );
             return randInt( randDevice );
         }
-
-    private:
-        bool getInitialized();
-        void setInitialized(const bool& value);
-        void initializeDevice();
 };
 
 #endif // RANDDEV_HPP

@@ -1,3 +1,21 @@
+Version 2.3.6:
+    Change:
+      * Disabled update checking.
+        * The feature didn't appear to work for most Users.
+        * Maybe one day someone will add it in, but I doubt it will be useful.
+      * Add a basic chat filter for the ReMix chat viewer.
+        * The feature relies on the server host having the rule "No Cursing" enabled.
+      * The RandDev class is now a static class and the device member can be accessed globally.
+	  
+    Bugfixes:
+      * Removed two emit and slot functions related to Remote Administrator authentication.
+        * This improves the speed at which the User receives the notification.
+      * Change how the User's sernum is shown to the server host in various dialogs.
+        * This primarily improves consitency between the various dialogs.
+
+
+
+
 Version 2.3.5:
   Change:
     * Add a set of colors to the Theme class that are utilized in certain UI and chat elements.

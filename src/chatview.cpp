@@ -5,18 +5,56 @@
 
 //ReMix includes.
 #include "packetforge.hpp"
+#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "rules.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
 #include <QtCore>
 
-ChatView::ChatView(QWidget* parent) :
+QString ChatView::bleepList[31]
+{
+    "fudgepack",
+    "fuck",
+    "f*ck",
+    "f.uck",
+    "f uck",
+    "fuc",
+    "phuck",
+    "cunt",
+    "shit",
+    "sh1t",
+    "asshole",
+    "nigger",
+    "nigga",
+    "clit",
+    "bitch",
+    "biatch",
+    "cock",
+    "piss",
+    "penis",
+    "vagina",
+    "pussy",
+    "tits",
+    "ass",
+    "gay",
+    "fag",
+    "cum",
+    "goddam",
+    "wtf",
+    "damn",
+    "hell",
+    "ass"
+};
+
+ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
+    server = svr;
 
     pktForge = PacketForge::getInstance();
 
@@ -135,6 +173,19 @@ void ChatView::parseChatEffect(const QString& packet)
     if ( packet.at( 3 ) == 'C' )
     {
         QString message{ packet.mid( 31 ) };
+
+        //TODO: Change into something more complex and better.
+
+        //Quick and dirty word replacement.
+        if ( server != nullptr )
+        {
+            //Check if the bleeping rule is set.
+            //There's no pint in censoring our chat if we aren't censoring chat
+            //for other people.
+            if ( Rules::getNoCursing( server->getName() ) )
+                this->bleepChat( message );
+        }
+
         QChar type{ packet.at( 31 ) };
 
         if ( type == '\'' )
@@ -162,6 +213,15 @@ void ChatView::parseChatEffect(const QString& packet)
             this->insertChat( message,
                               Colors::Chat, false );
         }
+    }
+}
+
+void ChatView::bleepChat(QString& message)
+{
+    for ( int i = 0; i <= 30; ++i )
+    {
+        message = message.replace( bleepList[ i ], "bleep",
+                                   Qt::CaseInsensitive );
     }
 }
 

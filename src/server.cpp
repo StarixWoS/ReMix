@@ -35,7 +35,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     serverComments = new Comments( parent );
     serverComments->setTitle( svr->getName() );
 
-    chatView = new ChatView( parent );
+    chatView = new ChatView( parent, server );
     chatView->setTitle( svr->getName() );
 
     chatView->setGameID( server->getGameId() );
@@ -253,13 +253,6 @@ void Server::newConnectionSlot()
     //Set the Player's reference to the ServerInfo class.
     plr->setServerInfo( server );
 
-    //Connect to our Password Request Signal. This signal is
-    //turned on or off by enabling or disabling Admin Auth requirements.
-    QObject::connect( plr, &Player::newAdminPwdRequestedSignal,
-                      this, &Server::newRemotePwdRequestedSlot );
-    QObject::connect( plr, &Player::newRemoteAdminRegisterSignal,
-                      this, &Server::newRemoteAdminRegisterSlot );
-
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, peer,
     [=]()
@@ -374,36 +367,4 @@ void Server::readyReadUDPSlot()
         if ( socket->hasPendingDatagrams() )
             emit socket->readyRead();
     }
-}
-
-void Server::newRemotePwdRequestedSlot(Player* plr)
-{
-    if ( plr == nullptr )
-        return;
-
-    QString msg{ "The server Admin requires all Remote Administrators to "
-                 "authenticate themselves with their password. "
-                 "Please enter your password with the command (/login *PASS) "
-                 "or be denied access to the server. Thank you!" };
-
-    if ( Settings::getReqAdminAuth()
-      && plr->getIsAdmin() )
-    {
-        plr->setAdminPwdRequested( true );
-        plr->sendMessage( msg );
-    }
-}
-
-void Server::newRemoteAdminRegisterSlot(Player* plr)
-{
-    if ( plr == nullptr )
-        return;
-
-    QString msg{ "The Server Host is attempting to register you as an "
-                 "Admin with the server. Please reply to this message with "
-                 "(/register *YOURPASS). Note: The server Host and other "
-                 "Admins will not have access to this information." };
-
-    if ( plr->getIsAdmin() )
-        plr->sendMessage( msg );
 }

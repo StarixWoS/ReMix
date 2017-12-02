@@ -11,7 +11,6 @@ class CmdHandler : public QObject
     Q_OBJECT
 
     ServerInfo* server{ nullptr };
-    RandDev* randDev{ nullptr };
 
     static const QString commands[ GM_COMMAND_COUNT ];
 

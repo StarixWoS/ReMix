@@ -19,7 +19,6 @@
 #include <QSettings>
 #include <QMenu>
 
-qtsparkle::Updater* ReMix::updaterInstance{ nullptr };
 ReMix* ReMix::instance{ nullptr };
 
 ReMix::ReMix(QWidget* parent) :
@@ -56,9 +55,6 @@ ReMix::ReMix(QWidget* parent) :
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
         this->initSysTray();
     #endif
-
-    if ( Settings::getCheckForUpdates() )
-        this->getUpdaterInstance()->CheckNow();
 }
 
 ReMix::~ReMix()
@@ -86,20 +82,6 @@ ReMix::~ReMix()
 
     Settings::prefs->deleteLater();
     delete ui;
-}
-qtsparkle::Updater* ReMix::getUpdaterInstance()
-{
-    if ( updaterInstance == nullptr )
-    {
-        updaterInstance = new qtsparkle::Updater(
-                              QUrl( "https://bitbucket.org/ahitb/remix/"
-                                    "downloads/updater.xml" ),
-                              nullptr );
-        updaterInstance->SetNetworkAccessManager(
-                    new QNetworkAccessManager( nullptr ) );
-        updaterInstance->SetVersion( REMIX_VERSION );
-    }
-    return updaterInstance;
 }
 
 ReMix* ReMix::getInstance()

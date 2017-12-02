@@ -8,9 +8,6 @@
 #include "helper.hpp"
 #include "remix.hpp"
 
-//Qt-Sparkle Includes.
-#include "qtsparkle/src/updater.h"
-
 //Qt Includes.
 #include <QNetworkAccessManager>
 #include <QFileDialog>
@@ -69,8 +66,8 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( Toggles::LOGFILES,
                            Settings::getLogFiles() );
 
-    this->setCheckedState( Toggles::CHECKFORUPDATES,
-                           Settings::getCheckForUpdates() );
+//    this->setCheckedState( Toggles::CHECKFORUPDATES,
+//                           Settings::getCheckForUpdates() );
 
     QString dir{ Settings::getWorldDir() };
     QString rowText{ "World Dir: [ %1 ]" };
@@ -296,11 +293,6 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         break;
         case Toggles::CHECKFORUPDATES:
             {
-                bool toggled{ Settings::getCheckForUpdates() };
-                if ( state && !toggled )
-                    ReMix::getUpdaterInstance()->CheckNow();
-
-                Settings::setCheckForUpdates( state );
             }
         break;
         default:

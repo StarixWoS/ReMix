@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.5'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.5'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -22,8 +22,6 @@ CppApplication
 
     cpp.includePaths: [ "resources", "ui", "ui/widgets",
                         "src", "src/tblview", "src/widgets",
-                        "3rdparty", "3rdparty/qtsparkle",
-                        "3rdparty/qtsparkle/src",
                       ]
 
     cpp.defines: [ "RC_VERSION=" + ReMixVersion.replace(/\./g, ",") + ",0",
@@ -146,29 +144,6 @@ CppApplication
         name: "RC"
         files: [ "resources/icons.qrc",
                  "resources/ReMix.rc",
-        ]
-    }
-
-    Group
-    {
-        name: "Qt-Sparkle"
-        files: [ "3rdparty/qtsparkle/src/appcast.cpp",
-                 "3rdparty/qtsparkle/src/appcast.h",
-                 "3rdparty/qtsparkle/src/appcast_fwd.h",
-                 "3rdparty/qtsparkle/src/common.cpp",
-                 "3rdparty/qtsparkle/src/compareversions.cpp",
-                 "3rdparty/qtsparkle/src/compareversions.h",
-                 "3rdparty/qtsparkle/src/followredirects.cpp",
-                 "3rdparty/qtsparkle/src/followredirects.h",
-                 "3rdparty/qtsparkle/src/uicontroller.cpp",
-                 "3rdparty/qtsparkle/src/uicontroller.h",
-                 "3rdparty/qtsparkle/src/updatechecker.cpp",
-                 "3rdparty/qtsparkle/src/updatechecker.h",
-                 "3rdparty/qtsparkle/src/updatedialog.cpp",
-                 "3rdparty/qtsparkle/src/updatedialog.h",
-                 "3rdparty/qtsparkle/src/updatedialog.ui",
-                 "3rdparty/qtsparkle/src/updater.cpp",
-                 "3rdparty/qtsparkle/src/updater.h",
         ]
     }
 }

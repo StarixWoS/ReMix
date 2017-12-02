@@ -42,10 +42,6 @@ class Server : public QTcpServer
         void userReadyRead(QTcpSocket* socket);
         void userDisconnected(QTcpSocket* socket);
 
-    public slots:
-        void newRemotePwdRequestedSlot(Player* plr);
-        void newRemoteAdminRegisterSlot(Player* plr);
-
     private slots:
         void newConnectionSlot();
         void readyReadUDPSlot();

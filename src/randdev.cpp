@@ -8,25 +8,25 @@
 //Required Qt includes.
 #include <QDateTime>
 
+RandDev* RandDev::device{ nullptr };
+std::mt19937 RandDev::randDevice;
+
 RandDev::RandDev()
 {
-    this->initializeDevice();
+    randDevice.seed( this->getSeed() );
 }
 
 RandDev::~RandDev(){}
 
-bool RandDev::getInitialized()
+RandDev* RandDev::getDevice()
 {
-    return deviceInitialized;
+    if ( device == nullptr )
+        device = new RandDev();
+
+    return device;
 }
 
-void RandDev::setInitialized(const bool& value)
+unsigned int RandDev::getSeed()
 {
-    deviceInitialized = value;
-}
-
-void RandDev::initializeDevice()
-{
-    randDevice.seed( static_cast<uint>( QDateTime::currentMSecsSinceEpoch() ) );
-    setInitialized( true );
+    return static_cast<unsigned int>( QDateTime::currentMSecsSinceEpoch() );
 }
