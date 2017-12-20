@@ -15,12 +15,16 @@ class MOTDWidget : public QWidget
 {
     Q_OBJECT
 
+    static QHash<ServerInfo*, MOTDWidget*> motdWidgets;
     QString serverName{ "" };
     QTimer motdUpdate;
 
     public:
-        explicit MOTDWidget();
+        explicit MOTDWidget(const QString& name);
         ~MOTDWidget();
+
+        static MOTDWidget* getWidget(ServerInfo* server);
+        static void deleteWidget(ServerInfo* server);
 
         void setServerName(const QString& name);
 

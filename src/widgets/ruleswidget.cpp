@@ -5,6 +5,7 @@
 
 //ReMix includes.
 #include "selectworld.hpp"
+#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
 #include "rules.hpp"
@@ -13,6 +14,8 @@
 #include <QSettings>
 #include <QtCore>
 #include <QDir>
+
+QHash<ServerInfo*, RulesWidget*> RulesWidget::ruleWidgets;
 
 RulesWidget::RulesWidget() :
     ui(new Ui::RulesWidget)
@@ -23,6 +26,27 @@ RulesWidget::RulesWidget() :
 RulesWidget::~RulesWidget()
 {
     delete ui;
+}
+
+RulesWidget* RulesWidget::getWidget(ServerInfo* server)
+{
+    RulesWidget* widget{ ruleWidgets.value( server ) };
+    if ( widget == nullptr )
+    {
+        widget = new RulesWidget();
+        ruleWidgets.insert( server, widget );
+    }
+    return widget;
+}
+
+void RulesWidget::deleteWidget(ServerInfo* server)
+{
+    RulesWidget* widget{ ruleWidgets.take( server ) };
+    if ( widget != nullptr )
+    {
+        widget->setParent( nullptr );
+        widget->deleteLater();
+    }
 }
 
 void RulesWidget::setServerName(const QString& name)
@@ -36,6 +60,7 @@ void RulesWidget::setServerName(const QString& name)
     rowText = "World Name: [ %1 ]";
     rowText = rowText.arg( Rules::getWorldName( name ) );
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
+    emit this->gameInfoChanged( Rules::getWorldName( name ) );
 
     urlCheckState = !Rules::getURLAddress( name ).isEmpty();
     this->setCheckedState( Toggles::url, urlCheckState );
@@ -112,13 +137,17 @@ void RulesWidget::setCheckedState(const Toggles& option, const bool& val)
 void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
 {
     QString rowText{ "World Name: [ %1 ]" };
-            rowText = rowText.arg( worldName );
+    if ( worldName.isEmpty() )
+        rowText = rowText.arg( "Not Selected" );
+    else
+        rowText = rowText.arg( worldName );
 
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
     ui->rulesView->item( Toggles::world, 0 )->setCheckState( state
                                                            ? Qt::Checked
                                                            : Qt::Unchecked );
 
+    worldCheckState = state;
     Rules::setWorldName( worldName, serverName );
 }
 
@@ -176,14 +205,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     if ( !worldDir.isEmpty() )
                     {
                         selectWorld = new SelectWorld( this );
+                        selectWorld->setRequireWorld( !world.isEmpty() );
                         QObject::connect( selectWorld, &SelectWorld::accepted,
-                                          [&world, this]()
+                        [&world, this]()
                         {
-                            QString worldName{ selectWorld->getSelectedWorld() };
-                            if ( !worldName.isEmpty() )
-                            {
-                                world = worldName;
-                            }
+                            world = selectWorld->getSelectedWorld();
+
                             selectWorld->close();
                             selectWorld->disconnect();
                             selectWorld->deleteLater();
@@ -191,8 +218,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         selectWorld->exec();
 
                         state = true;
-                        worldCheckState = state;
-                        this->setSelectedWorld( world, state );
+                        if ( world.isEmpty() )
+                        {
+                            state = false;
+                            removeKey = true;
+                        }
                     }
                     else
                     {
@@ -205,7 +235,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 title = "Server World:";
                                 prompt = "World:";
                                 world = Helper::getTextResponse( this, title,
-                                                                 prompt, &ok, 0 );
+                                                                 prompt, "",
+                                                                 &ok, 0 );
                             }
 
                             if ( !world.isEmpty() && !ok )
@@ -215,8 +246,6 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 
                                 state = false;
                             }
-                            else
-                                this->setSelectedWorld( world, state );
                         }
                         else if ( !Rules::getRequireWorld( serverName )
                                && !world.isEmpty() )
@@ -231,12 +260,15 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 state = true;
                             }
                             else
+                            {
+                                removeKey = true;
                                 world = "";
+                            }
                         }
                     }
                     this->setSelectedWorld( world, state );
-                    worldCheckState = state;
-                    }
+                    emit this->gameInfoChanged( world );
+                }
             }
         break;
         case Toggles::url:
@@ -255,7 +287,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Server URL:";
                             prompt = "URL:";
                             url = Helper::getTextResponse( this, title,
-                                                           prompt, &ok, 0 );
+                                                           prompt, "",
+                                                           &ok, 0 );
                         }
 
                         if ( url.isEmpty() && !ok  )
@@ -313,7 +346,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Max-Players:";
                             prompt = "Value:";
                             maxPlrs = Helper::getTextResponse( this, title,
-                                                               prompt, &ok, 0 )
+                                                               prompt, "",
+                                                               &ok, 0 )
                                                      .toUInt();
                         }
 
@@ -367,7 +401,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Max-AFK:";
                             prompt = "Value:";
                             maxAFK = Helper::getTextResponse( this, title,
-                                                              prompt, &ok, 0 )
+                                                              prompt, "",
+                                                              &ok, 0 )
                                                     .toUInt();
                         }
 
@@ -421,7 +456,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             title = "Min-Version:";
                             prompt = "Version:";
                             version = Helper::getTextResponse( this, title,
-                                                               prompt, &ok, 0 );
+                                                               prompt, "",
+                                                               &ok, 0 );
                         }
 
                         if ( version.isEmpty() && !ok  )

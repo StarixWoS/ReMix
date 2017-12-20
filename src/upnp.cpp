@@ -27,18 +27,15 @@ QString UPNP::schemas[ UPNP_SCHEMA_COUNT ]
 QVector<qint32> UPNP::ports;
 bool UPNP::tunneled{ false };
 UPNP* UPNP::upnp{ nullptr };
-QString UPNP::upnpLog{ "logs/upnpLog.txt" };
 
 UPNP* UPNP::getInstance()
 {
     if ( upnp == nullptr )
         upnp = new UPNP();
 
-    if ( Settings::getLogFiles() )
-    {
-        QString msg{ "Getting UPNP Object." };
-        Helper::logToFile( upnpLog, msg, true, true );
-    }
+    QString msg{ "Getting UPNP Object." };
+    Helper::logToFile( Helper::UPNP, msg, true, true );
+
     return upnp;
 }
 
@@ -84,11 +81,8 @@ UPNP::UPNP(QObject* parent )
             }
         });
 
-        if ( Settings::getLogFiles() )
-        {
-            QString msg{ "Creating UPNP Object." };
-            Helper::logToFile( upnpLog, msg, true, true );
-        }
+        QString msg{ "Creating UPNP Object." };
+        Helper::logToFile( Helper::UPNP, msg, true, true );
     }
     else    //Delete our object at the next oppertunity.
     {
@@ -125,12 +119,9 @@ void UPNP::makeTunnel()
                               localAddress.broadcast(),
                               1900 );
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Sent UDP Query Response [ %1 ]." };
-                logMsg = logMsg.arg( discover.trimmed() );
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Sent UDP Query Response [ %1 ]." };
+    logMsg = logMsg.arg( discover.trimmed() );
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
 void UPNP::getUdp()
@@ -159,12 +150,9 @@ void UPNP::getUdp()
             vs = datagram.data();
             if ( !vs.isEmpty() )
             {
-                if ( Settings::getLogFiles() )
-                {
-                    logMsg = "Got UDP Query Response [ %1 ].";
-                    logMsg = logMsg.arg( vs.trimmed() );
-                    Helper::logToFile( upnpLog, logMsg, true, true );
-                }
+                logMsg = "Got UDP Query Response [ %1 ].";
+                logMsg = logMsg.arg( vs.trimmed() );
+                Helper::logToFile( Helper::UPNP, logMsg, true, true );
             }
 
             int index = Helper::getStrIndex( vs, "Location" );
@@ -225,13 +213,10 @@ void UPNP::getUdp()
                             bool validSchema{ false };
                             for ( auto schema : schemas )
                             {
-                                if ( Settings::getLogFiles() )
-                                {
-                                    logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
-                                    logMsg = logMsg.arg( rtrSchema,
-                                                         schema );
-                                    Helper::logToFile( upnpLog, logMsg, true, true );
-                                }
+                                logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
+                                logMsg = logMsg.arg( rtrSchema,
+                                                     schema );
+                                Helper::logToFile( Helper::UPNP, logMsg, true, true );
 
                                 validSchema = false;
                                 if ( Helper::cmpStrings( rtrSchema, schema ) )
@@ -258,12 +243,10 @@ void UPNP::getUdp()
                                                                ctrlPort,
                                                                reader.readElementText() );
 
-                                    if ( Settings::getLogFiles() )
-                                    {
-                                        logMsg = "Got ControlURL[ %1 ].";
-                                        logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
-                                        Helper::logToFile( upnpLog, logMsg, true, true );
-                                    }
+                                    logMsg = "Got ControlURL[ %1 ].";
+                                    logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
+                                    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+
                                     this->setTunneled( true );
                                     emit this->success();
                                     break;
@@ -280,12 +263,9 @@ void UPNP::getUdp()
                     httpSocket->disconnect();
                 });
 
-                if ( Settings::getLogFiles() )
-                {
-                    logMsg = "Requesting Service Information from [ %1 ].";
-                    logMsg = logMsg.arg( vs );
-                    Helper::logToFile( upnpLog, logMsg, true, true );
-                }
+                logMsg = "Requesting Service Information from [ %1 ].";
+                logMsg = logMsg.arg( vs );
+                Helper::logToFile( Helper::UPNP, logMsg, true, true );
 
                 httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
                 udpSocket->close();
@@ -306,11 +286,8 @@ void UPNP::getExternalIP()
     message = message.arg( rtrSchema );
     this->postSOAP( "GetExternalIPAddress", message, "" );
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Getting ExternalIP." };
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Getting ExternalIP." };
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
 void UPNP::postSOAP(const QString& action, const QString& message,
@@ -364,15 +341,11 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 }
             }
 
-            if ( Settings::getLogFiles() )
-            {
-                QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
-                        logMsg = logMsg.arg( action,
-                                             protocol,
-                                             QString::number(
-                                                 port ) );
-                Helper::logToFile( upnpLog, logMsg, true, true );
-            }
+            QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
+            logMsg = logMsg.arg( action,
+                                 protocol,
+                                 QString::number( port ) );
+            Helper::logToFile( Helper::UPNP, logMsg, true, true );
         }
         else
         {
@@ -419,15 +392,11 @@ void UPNP::extractError(const QString& message, const qint32& port,
             emit this->error( reader.readElementText() );
     }
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
-                logMsg = logMsg.arg( protocol,
-                                     QString::number(
-                                         port ),
-                                     message );
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
+    logMsg = logMsg.arg( protocol,
+                         QString::number( port ),
+                         message );
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
 void UPNP::extractExternalIP(const QString& message )
@@ -459,13 +428,10 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
 
     this->postSOAP( "GetSpecificPortMappingEntry", message, protocol, port );
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Checking Port[ %1:%2 ]." };
-                logMsg = logMsg.arg( protocol,
-                                     port );
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Checking Port[ %1:%2 ]." };
+    logMsg = logMsg.arg( protocol,
+                         QString::number( port ) );
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
 void UPNP::addPortForward(const QString& protocol, const qint32& port)
@@ -498,13 +464,10 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port)
 
     this->postSOAP( "AddPortMapping", message, protocol, port );
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Adding Port[ %1:%2 ]." };
-                logMsg = logMsg.arg( protocol,
-                                     port );
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Adding Port[ %1:%2 ]." };
+    logMsg = logMsg.arg( protocol,
+                         QString::number( port ) );
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
 void UPNP::removePortForward(const QString& protocol, const qint32& port)
@@ -526,11 +489,9 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     if ( ports.contains( port ) )
         ports.remove( ports.indexOf( port ) );
 
-    if ( Settings::getLogFiles() )
-    {
-        QString logMsg{ "Removing Port[ %1:%2 ]." };
-        logMsg = logMsg.arg( protocol,
-                             port );
-        Helper::logToFile( upnpLog, logMsg, true, true );
-    }
+    QString logMsg{ "Removing Port[ %1:%2 ]." };
+    logMsg = logMsg.arg( protocol,
+                         QString::number( port ) );
+    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+
 }

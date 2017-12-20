@@ -15,8 +15,6 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
-    static QHash<ServerInfo*, MOTDWidget*> msgWidgets;
     static SettingsWidget* settings;
     static QTabWidget* tabWidget;
     static Settings* instance;
@@ -28,10 +26,6 @@ class Settings : public QDialog
         static Settings* getInstance();
         static void setInstance(Settings* value);
 
-        static void addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                                  ServerInfo* server);
-
-        static void remTabObjects(ServerInfo* server);
         static void updateTabBar(ServerInfo* server);
         static void copyServerSettings(ServerInfo* server, QString newName);
 
@@ -40,7 +34,8 @@ class Settings : public QDialog
                       ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles, DarkMode, UseUPNP = 24 };
+                      GameName, LogFiles, DarkMode, UseUPNP,
+                      CheckForUpdates = 25 };
 
         enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
@@ -116,6 +111,9 @@ class Settings : public QDialog
 
         static void setSaveWindowPositions(const bool& value);
         static bool getSaveWindowPositions();
+
+        static void setCheckForUpdates(const bool& value);
+        static bool getCheckForUpdates();
 
         static void setWindowPositions(const QByteArray& geometry,
                                        const char* dialog);

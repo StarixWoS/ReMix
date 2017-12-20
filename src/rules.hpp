@@ -19,6 +19,7 @@ class Rules
         static void setRule(const QString& key, const QVariant& value,
                             const QString& svrID);
         static QVariant getRule(const QString& key, const QString& svrID);
+        static void removeRule(const QString& key, const QString& svrID);
 
         static QString getRuleSet(const QString& svrID);
 

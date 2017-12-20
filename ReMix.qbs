@@ -4,8 +4,13 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
+<<<<<<< .merge_file_a10732
     property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.6'; }
     property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.6'; }
+=======
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
+>>>>>>> .merge_file_a08060
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -43,39 +48,38 @@ CppApplication
         name: "HPP"
 
         fileTags: ["hpp"]
-        files: [
-            "src/tblview/usersortproxymodel.hpp",
-            "src/tblview/plrsortproxymodel.hpp",
-            "src/tblview/tbleventfilter.hpp",
-            "src/widgets/settingswidget.hpp",
-            "src/widgets/remixtabwidget.hpp",
-            "src/widgets/plrlistwidget.hpp",
-            "src/widgets/userdelegate.hpp",
-            "src/widgets/remixwidget.hpp",
-            "src/widgets/ruleswidget.hpp",
-            "src/widgets/motdwidget.hpp",
-            "src/createinstance.hpp",
-            "src/appeventfilter.hpp",
-            "src/packethandler.hpp",
-            "src/packetforge.hpp",
-            "src/selectworld.hpp",
-            "src/cmdhandler.hpp",
-            "src/serverinfo.hpp",
-            "src/prototypes.hpp",
-            "src/chatview.hpp",
-            "src/comments.hpp",
-            "src/settings.hpp",
-            "src/runguard.hpp",
-            "src/randdev.hpp",
-            "src/sendmsg.hpp",
-            "src/server.hpp",
-            "src/player.hpp",
-            "src/helper.hpp",
-            "src/theme.hpp",
-            "src/rules.hpp",
-            "src/remix.hpp",
-            "src/user.hpp",
-            "src/upnp.hpp",
+        files: [ "src/tblview/usersortproxymodel.hpp",
+                 "src/tblview/plrsortproxymodel.hpp",
+                 "src/tblview/tbleventfilter.hpp",
+                 "src/widgets/settingswidget.hpp",
+                 "src/widgets/remixtabwidget.hpp",
+                 "src/widgets/plrlistwidget.hpp",
+                 "src/widgets/userdelegate.hpp",
+                 "src/widgets/remixwidget.hpp",
+                 "src/widgets/ruleswidget.hpp",
+                 "src/widgets/motdwidget.hpp",
+                 "src/createinstance.hpp",
+                 "src/appeventfilter.hpp",
+                 "src/packethandler.hpp",
+                 "src/packetforge.hpp",
+                 "src/selectworld.hpp",
+                 "src/cmdhandler.hpp",
+                 "src/serverinfo.hpp",
+                 "src/prototypes.hpp",
+                 "src/chatview.hpp",
+                 "src/comments.hpp",
+                 "src/settings.hpp",
+                 "src/runguard.hpp",
+                 "src/randdev.hpp",
+                 "src/sendmsg.hpp",
+                 "src/server.hpp",
+                 "src/player.hpp",
+                 "src/helper.hpp",
+                 "src/theme.hpp",
+                 "src/rules.hpp",
+                 "src/remix.hpp",
+                 "src/user.hpp",
+                 "src/upnp.hpp",
         ]
     }
 
@@ -110,12 +114,13 @@ CppApplication
                  "src/server.cpp",
                  "src/player.cpp",
                  "src/helper.cpp",
+                 "src/theme.cpp",
                  "src/rules.cpp",
                  "src/remix.cpp",
                  "src/user.cpp",
                  "src/upnp.cpp",
                  "src/main.cpp",
-                ]
+        ]
     }
 
     Group
@@ -142,9 +147,8 @@ CppApplication
     Group
     {
         name: "RC"
-        files: [
-            "resources/icons.qrc",
-            "resources/ReMix.rc",
+        files: [ "resources/icons.qrc",
+                 "resources/ReMix.rc",
         ]
     }
 }

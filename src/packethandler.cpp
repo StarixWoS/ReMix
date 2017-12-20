@@ -50,7 +50,8 @@ void PacketHandler::parsePacket(const QString& packet, Player* plr)
             if ( Helper::strStartsWithStr( packet, ":SR$" ) )
                 return;
 
-            if ( !plr->getNetworkMuted() )
+            if ( !plr->getNetworkMuted()
+              && !plr->getIsInvisible() )
             {
                 if ( !pktForge->validateSerNum( plr, packet ) )
                     return;
@@ -214,12 +215,11 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                    QHash<QHostAddress, QByteArray>* bioHash)
 {
     QString logTxt{ "Ignoring UDP from banned %1: "
-                    "[ %2:%3 ] sent command: [ %4 ]" };
-    QString log{ "logs/Ignored.txt" };
+                    "[ %2 ] sent command: [ %3 ]" };
     bool logMsg{ false };
 
     QString data{ udp };
-    if ( !User::getIsBanned( ipAddr.toString(), User::tIP ) )
+    if ( !User::getIsBanned( ipAddr.toString(), BanTypes::IP ) )
     {
         QString sernum{ "" };
         QString dVar{ "" };
@@ -236,6 +236,19 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                         QString usrInfo{ data.mid( 1 ) };
                         if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
                         {
+                            //Check if the World String starts with "world="
+                            //And remove the substring.
+                            if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
+                            {
+                                //This event rarely happens, and mainly due to
+                                //a certain 3rd party client...
+                                //Ahem, ReBreather. *shifty eyes*
+                                usrInfo = Helper::getStrStr( usrInfo,
+                                                             "world",
+                                                             "=",
+                                                             "=" );
+                            }
+
                             //Enforce a 256 character limit on GameNames.
                             if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
                             {
@@ -304,15 +317,14 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                            && Helper::serNumtoInt( sernum ) )
                           || !Settings::getReqSernums() )
                         {
-                            if ( User::getIsBanned( sernum, User::tSERNUM )
-                              || User::getIsBanned( wVar, User::tWV )
-                              || User::getIsBanned( dVar, User::tDV ) )
+                            if ( User::getIsBanned( sernum, BanTypes::SerNum )
+                              || User::getIsBanned( wVar, BanTypes::WV )
+                              || User::getIsBanned( dVar, BanTypes::DV ) )
                             {
                                 logTxt = logTxt.arg( "Info",
                                                      ipAddr.toString(),
-                                                     QString::number( port ),
                                                      data );
-                                logMsg = Settings::getLogFiles();
+                                logMsg = true;
                             }
                             else
                             {
@@ -344,13 +356,12 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     {
         logTxt = logTxt.arg( "IP Address",
                              ipAddr.toString(),
-                             QString::number( port ),
                              data );
-        logMsg = Settings::getLogFiles();
+        logMsg = true;
     }
 
     if ( logMsg )
-        Helper::logToFile( log, logTxt, true, true );
+        Helper::logToFile( Helper::IGNORE, logTxt, true, true );
 }
 
 bool PacketHandler::checkBannedInfo(Player* plr) const
@@ -362,33 +373,27 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
     bool badInfo{ true };
 
-    QString log{ "logs/DCLog.txt" };
-
-    QString logMsg{ "Auto-Disconnect; %1: [ %2:%3 ], [ %4 ]" };
-    QString tmpMsg{ logMsg };
+    QString logMsg{ "Auto-Disconnect; %1: [ %2 ], [ %3 ]" };
+    QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( User::getIsBanned( plr->getPublicIP(), User::tIP )
-      || User::getIsBanned( plr->getSernumHex_s(), User::tSERNUM )
-      || User::getIsBanned( plr->getWVar(), User::tWV )
-      || User::getIsBanned( plr->getDVar(), User::tDV ) )
+    if ( User::getIsBanned( plr->getPublicIP(), BanTypes::IP )
+      || User::getIsBanned( plr->getSernumHex_s(), BanTypes::SerNum )
+      || User::getIsBanned( plr->getWVar(), BanTypes::WV )
+      || User::getIsBanned( plr->getDVar(), BanTypes::DV ) )
     {
-        plr->setDisconnected( true );
-        server->setIpDc( server->getIpDc() + 1 );
-
-        tmpMsg = tmpMsg.arg( "Banned Info",
+        reason = reason.arg( "Banned Info",
                              plr->getPublicIP(),
-                             QString::number( plr->getPublicPort() ),
                              plr->getBioData() );
+        Helper::logToFile( Helper::DC, reason, true, true );
 
-        Helper::logToFile( log, tmpMsg, true, true );
+        plr->setDisconnected( true, DCTypes::IPDC );
         badInfo = true;
     }
 
     //Disconnect and ban all duplicate IP's if required.
     if ( !Settings::getAllowDupedIP() )
     {
-        QString reason{ "Auto-Banish; Duplicate IP Address: [ %1:%2 ]: %3" };
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
             tmpPlr = server->getPlayer( i );
@@ -397,28 +402,29 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             {
                 if ( tmpPlr->getPublicIP() == plr->getPublicIP() )
                 {
-                    reason = reason.arg( plr->getPublicIP(),
-                                         QString::number(
-                                             plr->getPublicPort() ),
-                                         plr->getBioData() );
-
-                    if ( Settings::getBanDupedIP() )
-                        User::addBan( nullptr, plr, reason );
-
-                    auto disconnect = [=](Player* plr, const QString& logMsg)
+                    auto disconnect = [=]( Player* plr, const QString& logMsg )
                     {
-                        QString tmpMsg{ logMsg };
-                                tmpMsg = tmpMsg.arg( "Duplicate IP",
-                                                     plr->getPublicIP(),
-                                                     QString::number(
-                                                         plr->getPublicPort() ),
-                                                     plr->getBioData() );
-                        Helper::logToFile( log, tmpMsg, true, true );
+                        QString reason{ logMsg };
+                        reason = reason.arg( "Duplicate IP",
+                                             plr->getPublicIP(),
+                                             plr->getBioData() );
+                        Helper::logToFile( Helper::DC, reason,
+                                           true, true );
 
-                        plr->setDisconnected( true );
-                        server->setIpDc( server->getIpDc() + 1 );
-                        server->setDupDc( server->getDupDc() + 1 );
+                        if ( Settings::getBanDupedIP() )
+                        {
+                            reason = "Auto-Banish; Duplicate IP "
+                                     "Address: [ %1 ], %2";
+                            reason = reason.arg( plr->getPublicIP(),
+                                                 plr->getBioData() );
+
+                            User::addBan( nullptr, plr, reason );
+                            Helper::logToFile( Helper::BAN, reason,
+                                               true, true );
+                        }
+                        plr->setDisconnected( true, DCTypes::DupDC );
                     };
+
                     disconnect( plr, logMsg );
                     disconnect( tmpPlr, logMsg );
 
@@ -432,28 +438,30 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //This is an un-optional disconnect
     //due to how Private chat is handled.
     //Perhaps once a better fix is found we can remove this.
-    if ( plr != nullptr )
+    if ( !badInfo )
     {
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        //The User has the same SerNum as another User
+        //and is connecting from a different IP Address.
+        //Disconnect the newly connected User.
+        if ( plr != nullptr )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr
-              && tmpPlr->getSernum_i() == plr->getSernum_i() )
+            for ( int i = 0; i < MAX_PLAYERS; ++i )
             {
-                if ( tmpPlr != plr )
+                tmpPlr = server->getPlayer( i );
+                if ( tmpPlr != nullptr
+                     && tmpPlr->getSernum_i() == plr->getSernum_i() )
                 {
-                    tmpMsg = logMsg;
-                    tmpMsg = tmpMsg.arg( "Duplicate SerNum",
-                                         tmpPlr->getPublicIP(),
-                                         QString::number(
-                                             tmpPlr->getPublicPort() ),
-                                         tmpPlr->getBioData() );
-                    Helper::logToFile( log, tmpMsg, true, true );
+                    if ( tmpPlr != plr )
+                    {
+                        reason = logMsg;
+                        reason = reason.arg( "Duplicate SerNum",
+                                             tmpPlr->getPublicIP(),
+                                             tmpPlr->getBioData() );
+                        Helper::logToFile( Helper::DC, reason, true, true );
 
-                    plr->setDisconnected( true );
-                    server->setDupDc( server->getDupDc() + 1 );
-
-                    badInfo = true;
+                        plr->setDisconnected( true, DCTypes::DupDC );
+                        badInfo = true;
+                    }
                 }
             }
         }
@@ -475,35 +483,28 @@ void PacketHandler::detectFlooding(Player* plr)
             if ( floodCount >= PACKET_FLOOD_LIMIT
               && !plr->getDisconnected() )
             {
-                QString log{ "logs/DCLog.txt" };
-                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1:%2 ] "
-                                "sent %3 packets in %4 MS, they are "
-                                "disconnected: [ %5 ]" };
+                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1 ] "
+                                "sent %2 packets in %3 MS, they are "
+                                "disconnected: [ %4 ]" };
                         logMsg = logMsg.arg( plr->getPublicIP(),
-                                             QString::number(
-                                                 plr->getPublicPort() ),
                                              QString::number(
                                                  floodCount ),
                                              QString::number(
                                                  time ),
                                              plr->getBioData() );
-                Helper::logToFile( log, logMsg, true, true );
+                Helper::logToFile( Helper::DC, logMsg, true, true );
 
                 if ( Settings::getBanDeviants() )
                 {
-                    log = "logs/BanLog.txt";
                     logMsg = "Auto-Banish; Suspicious data from: "
-                             "[ %1:%2 ]: [ %3 ]";
+                             "[ %1 ], [ %2 ]";
                     logMsg = logMsg.arg( plr->getPublicIP(),
-                                         QString::number(
-                                             plr->getPublicPort() ),
                                          plr->getBioData() );
-                    Helper::logToFile( log, logMsg, true, true );
 
                     User::addBan( nullptr, plr, logMsg );
+                    Helper::logToFile( Helper::BAN, logMsg, true, true );
                 }
-                plr->setDisconnected( true );
-                server->setPktDc( server->getPktDc() + 1 );
+                plr->setDisconnected( true, DCTypes::PktDC );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )

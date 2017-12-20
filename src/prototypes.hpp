@@ -62,6 +62,7 @@
     class QString;
     class QObject;  //Requires Include within Class Headers.
     class QTimer;  //Requires Include within Class Headers.
+    class QBrush;
     class QDebug;
     class QEvent;
     class QPoint;
@@ -157,18 +158,21 @@
             //players that ping our servers.
             MAX_GAME_NAME_LENGTH = 256,
 
+            //Count of possible logging types that ReMix uses.
+            LOG_TYPE_COUNT = 8,
+
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 25,
+            SETTINGS_SUBKEY_COUNT = 26,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            ADMIN_COMMAND_COUNT = 18,
+            GM_COMMAND_COUNT = 18,
 
             //Count of Keys accessed via the User class.
             USER_KEY_COUNT = 12,
@@ -203,11 +207,59 @@
             //Maximum wait time before the Server's UI is updated.
             //0.5 seconds in milliseconds.
             UI_UPDATE_TIME = 500,
+
+            //Valid Count of usable "Themes".
+            UI_THEME_COUNT = 2,
+
+            //Valid count of colors the Theme class can use for certain
+            //UI and Chat roles.
+            UI_THEME_COLORS = 10,
         };
 
-        enum Games{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+        //Valid Password types.
+        enum class PwdTypes: int{ Server = 0, Admin = 1, Invalid = -1 };
+
+        //Valid Remote Administrator Ranks.
+        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner = 4 };
+
+        //Valid Remote Administrator commands.
+        enum class GMCmds: int{ Ban = 0, UnBan, Kick, Mute, UnMute, Message,
+                                Login, Register, ShutDown, ReStart, MkAdmin,
+                                RmAdmin, ChAdmin, ChRules, GetComments,
+                                ChSettings, Vanish, Version = 17,
+                                Invalid = -1 };
+
+        //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
-        enum Themes{ LIGHT = 0, DARK = 1 };
+
+        //Valid Game ID's that ReMix can call to.
+        enum class Games: int{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
+
+        //Valid methods ov banning Users.
+        enum class BanTypes: int{ SerNum = 0, IP, DV, WV = 3 };
+
+        //Valid forms of diconnecting Users.
+        enum class DCTypes: int{ IPDC = 0, DupDC, PktDC = 2 };
+
+        //Valid Theme ID's.
+        enum class Themes: int{ Light = 0, Dark = 1 };
+
+        //Valid Theme Colors
+        enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
+                                OwnerChat, Chat, Gossip, Shout, Emote = 9,
+                                Default = -1 };
+
+        //Valid columns within the PlrListWidget.
+        enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
+                                 BytesIn, BytesOut, BioData = 7, ColCount = 9 };
+
+        enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
+                                  Rank, Banned, BanDate, BanReason = 8,
+                                  ColCount = 9 };
+
+        //Used for converting time in seconds to a human readable format.
+        enum class TimeFormat{ Hours = 0, Minutes, Seconds = 3, Default = -1,
+                               HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
 
     #endif  // REMIX_GLOBALS
 

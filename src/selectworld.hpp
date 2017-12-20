@@ -17,12 +17,14 @@ class SelectWorld : public QDialog
 
         QStringListModel* worldModel{ nullptr };
         QString world{ "" };
+        bool requireWorld{ false };
 
     public:
         explicit SelectWorld(QWidget* parent = 0 );
         ~SelectWorld();
 
         QString& getSelectedWorld();
+        void setRequireWorld(const bool& value);
 
     private slots:
         void on_worldViewer_activated(const QModelIndex& index);

@@ -210,7 +210,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                       "//ReMix[ %7 ]" };
 
     if ( !sGameInfo.isEmpty() )
-        sGameInfo = " [" % sGameInfo % "]";
+        sGameInfo = " [world=" % sGameInfo % "]";
 
     response = response.arg( serverName,
                              sGameInfo,
@@ -250,17 +250,21 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
         if ( plr != nullptr
           && plr->getSernum_i() != 0 )
         {
-            if ( type == Q_Response ) //Standard 'Q' Response.
+            //Don't show Invisible Administrators on the User List.
+            if ( !plr->getIsInvisible() )
             {
-                response += filler_Q.arg( Helper::intToStr(
-                                              plr->getSernum_i(), 16 ) );
-            }
-            else if ( type == R_Response ) //Non-Standard 'R' Response
-            {
-                response += filler_R.arg( Helper::intToStr(
-                                              plr->getSernum_i(), 16 ) )
-                                    .arg( Helper::intToStr(
-                                              plr->getSlotPos(), 16, 8 ) );
+                if ( type == Q_Response ) //Standard 'Q' Response.
+                {
+                    response += filler_Q.arg( Helper::intToStr(
+                                                  plr->getSernum_i(), 16 ) );
+                }
+                else if ( type == R_Response ) //Non-Standard 'R' Response
+                {
+                    response += filler_R.arg( Helper::intToStr(
+                                                  plr->getSernum_i(), 16 ) )
+                                        .arg( Helper::intToStr(
+                                                  plr->getSlotPos(), 16, 8 ) );
+                }
             }
         }
     }
@@ -286,7 +290,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
                                      QString::number(
                                          this->getPlayerCount() ),
                                      QString::number(
-                                         this->getGameId() ),
+                                         static_cast<int>( this->getGameId() ) ),
                                      this->getGameName(),
                                      this->getHostInfo().localHostName(),
                                      this->getServerID(),
@@ -332,26 +336,23 @@ void ServerInfo::deletePlayer(const int& slot)
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
     {
-        if ( Settings::getLogFiles() )
+        QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
+                        "bytes in %4 packets, averaging %5 baud [ %6 ]" };
+        if ( plr != nullptr )
         {
-            QString log{ QDate::currentDate()
-                          .toString( "logs/UsageLog.txt" ) };
-            QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
-                            "bytes in %4 packets, averaging %5 baud [ %6 ]" };
-            if ( plr != nullptr )
-            {
-                logMsg = logMsg.arg( plr->getPublicIP(),
-                                     QString::number(
-                                         plr->getConnTime() / 60 ),
-                                     QString::number(
-                                         plr->getBytesIn() ),
-                                     QString::number(
-                                         plr->getPacketsIn() ),
-                                     QString::number(
-                                         plr->getAvgBaud( false ) ),
-                                     plr->getBioData() );
-                Helper::logToFile( log, logMsg, true, true );
-            }
+            logMsg = logMsg.arg( plr->getPublicIP(),
+                                 QString::number(
+                                     Helper::getTimeIntFormat(
+                                         plr->getConnTime(),
+                                         TimeFormat::Minutes ) ),
+                                 QString::number(
+                                     plr->getBytesIn() ),
+                                 QString::number(
+                                     plr->getPacketsIn() ),
+                                 QString::number(
+                                     plr->getAvgBaud( false ) ),
+                                 plr->getBioData() );
+            Helper::logToFile( Helper::USAGE, logMsg, true, true );
         }
 
         QTcpSocket* soc = plr->getSocket();
@@ -700,7 +701,7 @@ void ServerInfo::setPlayerCount(const quint32& value)
 {
     if ( value <= 0 )
     {
-        this->setGameInfo( "" );
+        this->setGameInfo( Rules::getWorldName( this->getName() ) );
         playerCount = 0;
     }
     else
@@ -1007,9 +1008,9 @@ void ServerInfo::setMasterPing()
 QString ServerInfo::getUsageString()
 {
     return QString( "%1.%2.%3" )
-                .arg( this->getUsageMins(),
-                      this->getUsageHours(),
-                      this->getUsageDays() );
+            .arg( QString::number( this->getUsageMins() ),
+                  QString::number( this->getUsageHours() ),
+                  QString::number( this->getUsageDays() ) );
 }
 
 qint32 ServerInfo::getUsageHours() const
