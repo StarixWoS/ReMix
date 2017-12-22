@@ -293,21 +293,32 @@ void CreateInstance::on_portNumber_textChanged(const QString& arg1)
 {
     //Reduce the User Inputted Port Number to within proper bounds.
     quint16 port{ arg1.toUShort() };
-    quint16 portMax{ std::numeric_limits<quint16>::max() };
-    quint16 portMin{ std::numeric_limits<quint16>::min() };
-
-    if ( ( port > portMin )
-      && ( port > portMax ) )
+    bool generated{ false };
+    if ( ui->randomizePorts->isChecked() )
     {
-        port = portMax - 1;
+        quint16 portMax{ std::numeric_limits<quint16>::max() };
+        quint16 portMin{ std::numeric_limits<quint16>::min() };
+
+        if ( ( port > portMin )
+          && ( port > portMax ) )
+        {
+            port = portMax - 1;
+        }
+
+        if ( port == portMin
+          || !this->testPort( port ) )
+        {
+            port = this->genPort();
+            generated = true;
+        }
     }
 
-    if ( port == portMin
-      || !this->testPort( port ) )
+    if ( ( !Helper::cmpStrings( arg1, "0" )
+      && !Helper::cmpStrings( arg1, "" ) )
+       || generated )
     {
-        port = this->genPort();
+        ui->portNumber->setText( Helper::intToStr( port ) );
     }
-    ui->portNumber->setText( Helper::intToStr( port ) );
 }
 
 void CreateInstance::on_servers_currentTextChanged(const QString& arg1)
