@@ -1,3 +1,14 @@
+Version 2.3.7:
+    Change:
+      * When creating a server the Create Instance dialog how has a checkbox to enable the ability to toggle port randomization.
+        * Randomization only occurs when the User inputs '0' or makes the input field blank.
+	  
+    Bugfixes:
+      * When creating a server the Create Instance dialog will no longer automatically generate ports when the User removes all text from the input field.
+
+
+
+
 Version 2.3.6:
     Change:
       * Disabled update checking.

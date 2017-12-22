@@ -4,6 +4,7 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
+<<<<<<< HEAD
 <<<<<<< .merge_file_a10732
     property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.6'; }
     property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.2.6'; }
@@ -11,6 +12,10 @@ CppApplication
     property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
     property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.6'; }
 >>>>>>> .merge_file_a08060
+=======
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.7'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.7'; }
+>>>>>>> develop
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
