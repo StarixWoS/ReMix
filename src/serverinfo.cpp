@@ -185,9 +185,7 @@ QUdpSocket* ServerInfo::getMasterSocket() const
 
 bool ServerInfo::initMasterSocket(const QHostAddress& addr, const quint16& port)
 {
-    if ( masterSocket->state() == QAbstractSocket::BoundState )
-        masterSocket->close();
-
+    masterSocket->close();
     return masterSocket->bind( addr, port );
 }
 

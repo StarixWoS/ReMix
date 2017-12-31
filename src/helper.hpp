@@ -10,7 +10,8 @@
 
 class Helper
 {
-        static const QString logType[ LOG_TYPE_COUNT ];
+    static const QString logType[ LOG_TYPE_COUNT ];
+    static const QList<qint32> blueCodedList;
 
     public:
         enum LogTypes{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC, MUTE,
@@ -40,6 +41,8 @@ class Helper
         static QString serNumToHexStr(QString sernum, int fillAmt = 8);
         static QString serNumToIntStr(QString sernum);
         static qint32 serNumtoInt(QString& sernum);
+
+        static bool isBlueCodedSerNum(const quint32& sernum);
 
         static void logToFile(const LogTypes& type, const QString& text,
                               const bool& timeStamp = false,

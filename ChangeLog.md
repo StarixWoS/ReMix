@@ -2,9 +2,24 @@ Version 2.3.7:
     Change:
       * When creating a server the Create Instance dialog how has a checkbox to enable the ability to toggle port randomization.
         * Randomization only occurs when the User inputs '0' or makes the input field blank.
+      * Add a new Setting toggle to disallow Users using a BlueCoded SerNum.
+        * The Setting is not enabled by default and unless enabled the following SerNums will remain valid and able to connect.
+          * 1004, 1024, 1043, 1046, 1052, 1054, 1055, 1062, 1068, 1072, 1099, 1112, 1120, 1123, 1125, 1138, 1163, 1166, 1170, 1172, 1173, 1189,
+          * 1204, 1210, 1217, 1275, 1292, 1307, 1308, 1312, 1332, 1338, 1367, 1369, 1370, 1520, 1547, 1551, 1565, 1600, 1607, 1611, 1656, 1675,
+          * 1681, 1695, 1706, 1715, 1751, 1754, 1840, 1965, 2003, 2058, 2062, 2144, 2205, 2217, 2264, 2268, 2359, 1008, 1017, 1051, 1054, 1082,
+          * 1099, 1104, 1105, 1181, 1199, 1222, 1279, 1343, 1358, 1388, 1456, 1528, 1677, 1773, 1777, 1778, 1780, 1796, 1799, 2156, 2167, 2241,
+          * 2248, 2362, 2421, 1098, 1220, 1264, 1342, 1361, 1823, 2302, 2488, 2585, 2372, 1492, 1576, 1100, 1347, 1050, 1015, 1666, 1745, 2043,
+          * 1200, 2628, 1016, 1739, 1853, 2708, 2757, 1498, 2448, 2801, 1031, 1265, 1414, 1420, 1429, 1214, 1489, 1707, 2543, 1101, 1283, 1604,
+          * 1428, 2707, 1023, 1069, 1071, 1132, 1286, 1854, 2910, 1005, 2682, 1348, 2615, 2617, 1884, 1169, 1540, 1645, 1939, 1179, 3053, 1803,
+          * 2377, 1000, 1021, 1500, 1501, 1515, 1547, 1803, 2377, 3111, 3202, 3191, 3149, 3,
 	  
     Bugfixes:
       * When creating a server the Create Instance dialog will no longer automatically generate ports when the User removes all text from the input field.
+      * When blocking an IP address from use ReMix will now properly refresh the network configuration and select another IP address.
+      * The Remote Administrator commands "Kick", "Ban", and "Disconnect" will no longer affect the Command Issuer or other Remote Administrators.
+
+    TODO:
+      * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
 
 
 

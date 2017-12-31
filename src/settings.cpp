@@ -61,6 +61,7 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "darkMode",
     "useUPNP",
     "checkForUpdates",
+    "dcBlueCodedSerNums"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -432,7 +433,7 @@ bool Settings::getMinimizeToTray()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::MinimizeToTray ] )
-              .toBool();
+            .toBool();
 }
 
 void Settings::setSaveWindowPositions(const bool& value)
@@ -458,6 +459,21 @@ bool Settings::getCheckForUpdates()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::CheckForUpdates ] )
+              .toBool();
+}
+
+void Settings::setDCBlueCodedSerNums(const bool& value)
+{
+
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::DCBlueCodedSerNums ], value );
+}
+
+bool Settings::getDCBlueCodedSerNums()
+{
+
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::DCBlueCodedSerNums ] )
               .toBool();
 }
 

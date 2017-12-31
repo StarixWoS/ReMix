@@ -68,6 +68,8 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
 
 //    this->setCheckedState( Toggles::CHECKFORUPDATES,
 //                           Settings::getCheckForUpdates() );
+    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS,
+                           Settings::getDCBlueCodedSerNums() );
 
     QString dir{ Settings::getWorldDir() };
     QString rowText{ "World Dir: [ %1 ]" };
@@ -211,34 +213,37 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case Toggles::REQSERNUM: //5
             Settings::setReqSernums( state );
         break;
-        case Toggles::DISCONNECTIDLES: //6
+        case Toggles::DCBLUECODEDSERNUMS: //6
+                Settings::setDCBlueCodedSerNums( state );
+        break;
+        case Toggles::DISCONNECTIDLES: //7
             Settings::setDisconnectIdles( state );
         break;
-        case Toggles::ALLOWSSV: //7
+        case Toggles::ALLOWSSV: //8
             Settings::setAllowSSV( state );
         break;
-        case Toggles::LOGCOMMENTS: //8
+        case Toggles::LOGCOMMENTS: //9
             Settings::setLogComments( state );
         break;
-        case Toggles::FWDCOMMENTS: //9
+        case Toggles::FWDCOMMENTS: //10
             Settings::setFwdComments( state );
         break;
-        case Toggles::ECHOCOMMENTS: //10
+        case Toggles::ECHOCOMMENTS: //11
             Settings::setEchoComments( state );
         break;
-        case Toggles::INFORMADMINLOGIN: //11
+        case Toggles::INFORMADMINLOGIN: //12
             Settings::setInformAdminLogin( state );
         break;
-        case Toggles::MINIMIZETOTRAY: //12
+        case Toggles::MINIMIZETOTRAY: //13
             Settings::setMinimizeToTray( state );
         break;
-        case Toggles::SAVEWINDOWPOSITIONS: //13
+        case Toggles::SAVEWINDOWPOSITIONS: //14
             Settings::setSaveWindowPositions( state );
         break;
-        case Toggles::LOGFILES: //14
+        case Toggles::LOGFILES: //15
             Settings::setLogFiles( state );
         break;
-        case Toggles::WORLDDIR: //15
+        case Toggles::WORLDDIR: //16
             {
                 QString directory{ Settings::getWorldDir() };
                 QString rowText{ "World Dir: [ %1 ]" };
@@ -289,10 +294,6 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                                         setText( rowText );
                     Settings::setWorldDir( directory );
                 }
-            }
-        break;
-        case Toggles::CHECKFORUPDATES:
-            {
             }
         break;
         default:

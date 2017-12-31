@@ -56,8 +56,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
     [=]()
     {
+        if ( server->getIsSetUp() )
+            server->setIsSetUp( false );
+
         server->setIsPublic( true );
-        this->setupServerInfo();
     });
 
     QObject::connect( chatView, &ChatView::sendChat, chatView,

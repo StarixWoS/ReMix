@@ -714,56 +714,80 @@ void Player::setNetworkMuted(const bool& value, const QString& msg)
 
 void Player::validateSerNum(ServerInfo* server, const quint32& id)
 {
+    QString message{ "" };
     QString reason{ "" };
 
+    bool isBlueCoded{ Helper::isBlueCodedSerNum( id ) };
     bool serNumChanged{ false };
     bool zeroSerNum{ false };
     bool disconnect{ false };
 
     if (( this->getSernum_i() != id
-       && id > 0 )
+      && id > 0 )
       || this->getSernum_i() == 0 )
     {
-        if ( this->getSernum_i() == 0 )
+        if ( !isBlueCoded
+          || !Settings::getDCBlueCodedSerNums() )
         {
-            //Disconnect the User if they have no SerNum, as we require SerNums.
-            if ( Settings::getReqSernums()
-              && id == 0 )
+            if ( this->getSernum_i() == 0 )
             {
-                zeroSerNum = true;
+                //Disconnect the User if they have no SerNum,
+                //as we require SerNums.
+                if ( Settings::getReqSernums()
+                  && id == 0 )
+                {
+                    zeroSerNum = true;
+                    disconnect = true;
+                }
+                this->setSernum_i( id );
+            }
+            else if (( id > 0 && this->getSernum_i() != id )
+                   && this->getSernum_i() > 0 )
+            {
+                //User's sernum has somehow changed. Disconnect them.
+                //This is a possible Ban event.
+                //TODO: Add Setting to enable banning.
+                serNumChanged = true;
                 disconnect = true;
             }
-            this->setSernum_i( id );
         }
-        else if (( id > 0 && this->getSernum_i() != id )
-               && this->getSernum_i() > 0 )
+
+        if ( disconnect == true
+          || ( isBlueCoded == true
+            && Settings::getDCBlueCodedSerNums() ) )
         {
-            //User's sernum has somehow changed. Disconnect them.
-            //This is a possible Ban event.
-            //TODO: Add Setting to enable banning.
-            serNumChanged = true;
-            disconnect = true;
-        }
-        if ( disconnect == true )
-        {
+            message = "";
             reason = "";
             if ( serNumChanged )
             {
-                reason = "Auto-Disconnect; SerNum Changed: "
-                         "[ %1 ] to [ %2 ], [ %3 ]";
-                reason = reason.arg( this->getSernum_s(),
+                message = "Auto-Disconnect; SerNum Changed";
+                reason = "%1: [ %2 ] to [ %3 ], [ %4 ]";
+                reason = reason.arg( message,
+                                     this->getSernum_s(),
                                      Helper::serNumToIntStr(
                                          Helper::intToStr( id, 16, 8 ) ),
                                      this->getBioData() );
             }
             else if ( zeroSerNum )
             {
-                reason = "Auto-Disconnect; Invalid SerNum: "
-                         "[ %1 ], [ %3 ]";
-                reason = reason.arg( Helper::serNumToIntStr(
+                message = "Auto-Disconnect; Invalid SerNum";
+                reason = "%1: [ %2 ], [ %3 ]";
+                reason = reason.arg( message,
+                                     Helper::serNumToIntStr(
                                          Helper::intToStr( id, 16, 8 ) ),
                                      this->getBioData() );
             }
+            else if ( isBlueCoded )
+            {
+                message = "Auto-Disconnect; BlueCoded SerNum";
+                reason = "%1: [ %2 ], [ %3 ]";
+                reason = reason.arg( message,
+                                     Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ),
+                                     this->getBioData() );
+            }
+
+            this->sendMessage( message, false );
             Helper::logToFile( Helper::DC, reason, true, true );
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -784,12 +808,6 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
                                  masterIP );
             this->setNetworkMuted( true, reason );
         }
-    }
-
-    if ( this->getDisconnected()
-      && server != nullptr )
-    {
-        server->setIpDc( server->getIpDc() + 1 );
     }
 }
 

@@ -16,10 +16,10 @@ class SettingsWidget : public QWidget
 
     enum Toggles{ REQPWD = 0, REQADMINPWD = 1, ALLOWDUPEDIP = 2,
                   BANDUPEDIP = 3, BANHACKERS = 4, REQSERNUM = 5,
-                  DISCONNECTIDLES = 6, ALLOWSSV = 7, LOGCOMMENTS = 8,
-                  FWDCOMMENTS = 9, ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13, LOGFILES = 14,
-                  WORLDDIR = 15, CHECKFORUPDATES = 16 };
+                  DCBLUECODEDSERNUMS = 6, DISCONNECTIDLES = 7, ALLOWSSV = 8,
+                  LOGCOMMENTS = 9, FWDCOMMENTS = 10, ECHOCOMMENTS = 11,
+                  INFORMADMINLOGIN = 12, MINIMIZETOTRAY = 13,
+                  SAVEWINDOWPOSITIONS = 14, LOGFILES = 15, WORLDDIR = 16, };
 
     bool pwdCheckState{ false };
 

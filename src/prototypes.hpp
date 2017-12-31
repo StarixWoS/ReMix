@@ -166,7 +166,7 @@
             SETTINGS_KEY_COUNT = 5,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 26,
+            SETTINGS_SUBKEY_COUNT = 27,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
@@ -220,7 +220,8 @@
         enum class PwdTypes: int{ Server = 0, Admin = 1, Invalid = -1 };
 
         //Valid Remote Administrator Ranks.
-        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner = 4 };
+        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner,
+                                 Creator = 5 };
 
         //Valid Remote Administrator commands.
         enum class GMCmds: int{ Ban = 0, UnBan, Kick, Mute, UnMute, Message,

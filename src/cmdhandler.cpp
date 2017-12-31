@@ -267,7 +267,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( this->validateAdmin( plr, GMRanks::GMaster )
                   && !arg1.isEmpty() )
                 {
-                    this->kickHandler( arg1, message, all );
+                    this->kickHandler( plr, arg1, message, all );
                 }
                 retn = true;
             }
@@ -421,6 +421,30 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     return retn;
 }
 
+bool CmdHandler::canIssueAction(Player* admin, Player* target,
+                                const QString& arg1, const bool& all)
+{
+    //Remote commands cannot affect the issuer.
+    if ( admin == target )
+        return false;
+
+    //Remote commands cannot affect other remote administrators.
+    if ( target->getIsAdmin() )
+        return false;
+
+    //The target matches the Remote-Administrators conditions.
+    QString sernum = Helper::serNumToHexStr( arg1 );
+    if ( target->getPublicIP() == arg1
+      || target->getSernumHex_s() == sernum
+      || all )
+    {
+        return true;
+    }
+
+    //Fallthrough, command cannot be issued.
+    return false;
+}
+
 bool CmdHandler::validateAdmin(Player* plr, const GMRanks& rank)
 {
     return  ( ( this->getAdminRank( plr ) >= rank )
@@ -448,9 +472,8 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
         {
-            if ( tmpPlr->getPublicIP() == arg1
-              || tmpPlr->getSernumHex_s() == sernum
-              || all )
+            //Check target validity.
+            if ( this->canIssueAction( plr, tmpPlr, arg1, all ) )
             {
                 ban = true;
             }
@@ -491,17 +514,17 @@ void CmdHandler::unBanhandler(const QString& argType, const QString& arg1)
         User::removeBan( sernum, 0 );
 }
 
-void CmdHandler::kickHandler(const QString& arg1, const QString& message,
-                             const bool& all)
+void CmdHandler::kickHandler(Player* plr, const QString& arg1,
+                             const QString& message, const bool& all)
 {
-    QString reason{ "A Remote-Administrator has [ Kicked ] you. "
-                    "Reason: [ %1 ]." };
+    QString reason{ "Remote-Admin [ %1 ] has [ Kicked ] you. "
+                    "Reason: [ %2 ]." };
 
     QString msg = message;
     if ( msg.isEmpty() )
         msg = "No Reason!";
 
-    reason = reason.arg( msg );
+    reason = reason.arg( plr->getSernum_s(), message );
 
     Player* tmpPlr{ nullptr };
     for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -509,9 +532,8 @@ void CmdHandler::kickHandler(const QString& arg1, const QString& message,
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
         {
-            if ( tmpPlr->getPublicIP() == arg1
-              || tmpPlr->getSernum_s() == arg1
-              || all )
+            //Check target validity.
+            if ( this->canIssueAction( plr, tmpPlr, arg1, all ) )
             {
                 tmpPlr->sendMessage( reason );
 
@@ -540,9 +562,8 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
         {
-            if ( tmpPlr->getPublicIP() == arg1
-              || tmpPlr->getSernum_s() == arg1
-              || all )
+            //Check target validity.
+            if ( this->canIssueAction( plr, tmpPlr, arg1, all ) )
             {
                 msg = msg.arg( plr->getSernum_s(),
                                argIndex == GMCmds::Mute

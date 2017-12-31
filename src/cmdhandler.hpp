@@ -24,6 +24,9 @@ class CmdHandler : public QObject
         void parseMix6Command(Player* plr, const QString& packet);
         bool parseCommandImpl(Player* plr, QString& packet);
 
+        bool canIssueAction(Player* admin, Player* target,
+                            const QString& arg1, const bool& all);
+
     private:
         bool validateAdmin(Player* plr, const GMRanks& rank);
         GMRanks getAdminRank(Player* plr);
@@ -32,8 +35,8 @@ class CmdHandler : public QObject
                         const QString& message, const bool& all);
 
         void unBanhandler(const QString& argType, const QString& arg1);
-        void kickHandler(const QString& arg1, const QString& message,
-                         const bool& all);
+        void kickHandler(Player* plr, const QString& arg1,
+                         const QString& message, const bool& all);
         void muteHandler(Player* plr, const QString& arg1,
                          const GMCmds& argIndex, const QString& message,
                          const bool& all);

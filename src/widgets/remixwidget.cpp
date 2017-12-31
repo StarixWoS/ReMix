@@ -179,9 +179,9 @@ void ReMixWidget::initUIUpdate()
                 if ( server->getMasterUDPResponse() )
                 {
                     QString msg2{ " ( Port forward from: %1:%2 ) "
-                                            "( Ping: %3 ms, "
-                                            "Avg: %4 ms, "
-                                            "Trend: %5 ms )" };
+                                  "( Ping: %3 ms, "
+                                  "Avg: %4 ms, "
+                                  "Trend: %5 ms )" };
                             msg2 = msg2.arg( server->getPublicIP(),
                                              QString::number(
                                                  server->getPublicPort() ),
@@ -204,8 +204,13 @@ void ReMixWidget::initUIUpdate()
                 }
                 else
                 {
-                    msg = "Sent UDP check-in to Master. "
+                    msg = "Sent UDP check-in to Master using:"
+                          "<a href=\"%1\"><span style=\" text-decoration: "
+                          "underline; color:#007af4;\">%1:%2</span></a>. "
                           "Waiting for response...";
+                    msg = msg.arg( server->getPrivateIP(),
+                                   QString::number(
+                                       server->getPrivatePort() ) );
 
                     if ( server->getMasterTimedOut() )
                     {

@@ -35,7 +35,7 @@ class Settings : public QDialog
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
                       GameName, LogFiles, DarkMode, UseUPNP,
-                      CheckForUpdates = 25 };
+                      CheckForUpdates, DCBlueCodedSerNums = 26 };
 
         enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
 
@@ -114,6 +114,9 @@ class Settings : public QDialog
 
         static void setCheckForUpdates(const bool& value);
         static bool getCheckForUpdates();
+
+        static void setDCBlueCodedSerNums(const bool& value);
+        static bool getDCBlueCodedSerNums();
 
         static void setWindowPositions(const QByteArray& geometry,
                                        const char* dialog);
