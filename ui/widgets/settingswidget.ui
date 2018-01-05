@@ -212,6 +212,9 @@
       <property name="text">
        <string>Require Password</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be required to know and enter a password when connecting.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -219,6 +222,9 @@
      <item row="1" column="0">
       <property name="text">
        <string>Require Remote-Admin Auth</string>
+      </property>
+      <property name="toolTip">
+       <string>Remote Administrators will be required to enter their password when connecting.</string>
       </property>
       <property name="checkState">
        <enum>Checked</enum>
@@ -228,6 +234,9 @@
       <property name="text">
        <string>Allow Duplicate IP's</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be able to connect to your servers with more than one client.</string>
+      </property>
       <property name="checkState">
        <enum>Checked</enum>
       </property>
@@ -235,6 +244,9 @@
      <item row="3" column="0">
       <property name="text">
        <string>Ban Duplicate IP's</string>
+      </property>
+      <property name="toolTip">
+       <string>Users attempting to connect with more than one client will be banned.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -244,6 +256,9 @@
       <property name="text">
        <string>Auto-Ban Deviants</string>
       </property>
+      <property name="toolTip">
+       <string>Any deviation from normal client behavior will result in the User being banned.</string>
+      </property>
       <property name="checkState">
        <enum>Checked</enum>
       </property>
@@ -251,6 +266,9 @@
      <item row="5" column="0">
       <property name="text">
        <string>Require Sernums</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be required to have a SerNum to see or connect to the server.</string>
       </property>
       <property name="checkState">
        <enum>Checked</enum>
@@ -260,6 +278,9 @@
       <property name="text">
        <string>Disconnect BlueCoded SerNums</string>
       </property>
+      <property name="toolTip">
+       <string>Hacked Golden Souls will be unable to connect to the server.</string>
+      </property>
       <property name="checkState">
        <enum>Checked</enum>
       </property>
@@ -267,6 +288,9 @@
      <item row="7" column="0">
       <property name="text">
        <string>Disconnect Idle Users</string>
+      </property>
+      <property name="toolTip">
+       <string>Users that have not sent a packet in a set amount of time will be disconnected.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -276,6 +300,9 @@
       <property name="text">
        <string>Allow Server Variables</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be able to freely read and edit server variables.</string>
+      </property>
       <property name="checkState">
        <enum>Checked</enum>
       </property>
@@ -283,6 +310,9 @@
      <item row="9" column="0">
       <property name="text">
        <string>Log Comments to File</string>
+      </property>
+      <property name="toolTip">
+       <string>Comments sent to the server by Users will be logged to file.</string>
       </property>
       <property name="checkState">
        <enum>Checked</enum>
@@ -292,6 +322,9 @@
       <property name="text">
        <string>Echo Comment to Admins</string>
       </property>
+      <property name="toolTip">
+       <string>Comments sent to the Server will be forwarded to online Remote Administrators.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -299,6 +332,9 @@
      <item row="11" column="0">
       <property name="text">
        <string>Echo Comment to Users (Sender)</string>
+      </property>
+      <property name="toolTip">
+       <string>Comments to the server will be forwarded back to the User.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -308,6 +344,9 @@
       <property name="text">
        <string>Inform Admins of Login Events</string>
       </property>
+      <property name="toolTip">
+       <string>Remote Administrators currently connected will be informed when a Remote Administrator logs in.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -315,6 +354,9 @@
      <item row="13" column="0">
       <property name="text">
        <string>Minimize to System Tray</string>
+      </property>
+      <property name="toolTip">
+       <string>The complete server dialog will be minimized to the notification bar if possible.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -324,6 +366,9 @@
       <property name="text">
        <string>Save Window Positions</string>
       </property>
+      <property name="toolTip">
+       <string>All dialog positions and sizes will be stored to file.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -332,6 +377,9 @@
       <property name="text">
        <string>Enable Logging Files</string>
       </property>
+      <property name="toolTip">
+       <string>All Ban, Mute, Disconnect, Usage, and UPNP logs will be logged to file.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -339,6 +387,9 @@
      <item row="16" column="0">
       <property name="text">
        <string>World Directory</string>
+      </property>
+      <property name="toolTip">
+       <string>Used to select a World directory in in conjunction with the World Name rule.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>

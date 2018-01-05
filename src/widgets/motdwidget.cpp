@@ -73,6 +73,12 @@ void MOTDWidget::setServerName(const QString& name)
     serverName = name;
 }
 
+void MOTDWidget::changeMotD(const QString& message)
+{
+    ui->motdEdit->setText( message );
+    motdUpdate.start();
+}
+
 void MOTDWidget::on_motdEdit_textChanged()
 {
     motdUpdate.start();

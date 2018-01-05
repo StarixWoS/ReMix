@@ -1,3 +1,27 @@
+TODO:
+  * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
+  * Implement other remote administrator commands and sub-commands.
+
+Version 2.3.8:
+    Change:
+      * Create and implemented a Command Table class (CmdTable).
+      * Restructured the Remote Administrator commands, and added functionality for several "Helper" commands.
+        * Commands added include: Help, List, MotD.
+          * Help shows the description or syntax of a command.
+          * List shows all commands available to the user.
+          * MotD allows the User to change the servers message of the day.
+        * Various sub-commands have also been added but are not yet completely implemented.
+      * The server logs are now stored in the path "logs/logType/[yy-mm-dd]/logType.txt".
+        * This allows for the User to more quickly browse to a certain log type for a specific day.
+          * This also makes it more obvious to the User if the log exists for a certain day.
+	  
+    Bugfixes:
+      * The World Selection UDP command will now check that the User setting the World information at least has a current connection to the server.
+      * The Random Device class (RandDev) once again properly generates a sufficiently random number and no longer re-seeds upon every use.
+
+
+
+
 Version 2.3.7:
     Change:
       * When creating a server the Create Instance dialog how has a checkbox to enable the ability to toggle port randomization.
@@ -17,9 +41,6 @@ Version 2.3.7:
       * When creating a server the Create Instance dialog will no longer automatically generate ports when the User removes all text from the input field.
       * When blocking an IP address from use ReMix will now properly refresh the network configuration and select another IP address.
       * The Remote Administrator commands "Kick", "Ban", and "Disconnect" will no longer affect the Command Issuer or other Remote Administrators.
-
-    TODO:
-      * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
 
 
 

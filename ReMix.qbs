@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.7'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.7'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.8'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.8'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -63,6 +63,7 @@ CppApplication
                  "src/cmdhandler.hpp",
                  "src/serverinfo.hpp",
                  "src/prototypes.hpp",
+                 "src/cmdtable.hpp",
                  "src/chatview.hpp",
                  "src/comments.hpp",
                  "src/settings.hpp",
@@ -105,6 +106,7 @@ CppApplication
             "src/selectworld.cpp",
             "src/cmdhandler.cpp",
             "src/serverinfo.cpp",
+            "src/cmdtable.cpp",
             "src/chatview.cpp",
             "src/comments.cpp",
             "src/settings.cpp",

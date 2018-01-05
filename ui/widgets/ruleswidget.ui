@@ -154,6 +154,9 @@
       <property name="text">
        <string>World Name</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be required to use the selected World when connecting to the Server.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -161,6 +164,9 @@
      <item row="1" column="0">
       <property name="text">
        <string>Server Home</string>
+      </property>
+      <property name="toolTip">
+       <string>A URL Address pointing Users to the Server's home website if relevant.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -170,6 +176,9 @@
       <property name="text">
        <string>All PKing</string>
       </property>
+      <property name="toolTip">
+       <string>Users are freely able to PK(Player Killing) regardless of other rules.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -177,6 +186,9 @@
      <item row="3" column="0">
       <property name="text">
        <string>Max Players</string>
+      </property>
+      <property name="toolTip">
+       <string>Up to # Users may connect to the Server at once.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -186,6 +198,9 @@
       <property name="text">
        <string>Max AFK</string>
       </property>
+      <property name="toolTip">
+       <string>Users may be AFK(Away From Keyboard) for up to # Minutes.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -193,6 +208,9 @@
      <item row="5" column="0">
       <property name="text">
        <string>Min Version</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be required to use A##(e.g. A97) versioned clients to connect to the Server.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -202,6 +220,9 @@
       <property name="text">
        <string>Report to Ladder</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be required to report all PK(Pkayer Killing) statistics to the Synthetic-Reality website.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -209,6 +230,9 @@
      <item row="7" column="0">
       <property name="text">
        <string>No Cursing</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be required to censor certain English profanities within Chat.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -218,6 +242,9 @@
       <property name="text">
        <string>No Cheating</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be unable to perform certain actions with other Users when flagged as a cheater.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -225,6 +252,9 @@
      <item row="9" column="0">
       <property name="text">
        <string>No Eavesdropping</string>
+      </property>
+      <property name="toolTip">
+       <string>Only chat within a certain radius or scene will be shown to the User.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -234,6 +264,9 @@
       <property name="text">
        <string>No Migrating</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be unable to use Characters that have been migrated to a new client version.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -241,6 +274,9 @@
      <item row="11" column="0">
       <property name="text">
        <string>No Modders</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be unable to use Characters used within a modified World.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -250,6 +286,9 @@
       <property name="text">
        <string>No Pets</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be unable to use Pets.</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -258,6 +297,9 @@
       <property name="text">
        <string>No PKing</string>
       </property>
+      <property name="toolTip">
+       <string>Users will be unable to use or create Characters capable of PK(Player Killing).</string>
+      </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
@@ -265,6 +307,9 @@
      <item row="14" column="0">
       <property name="text">
        <string>Arena PKing</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be able to freely PK(Pkayer Killing) within certain &quot;Arena&quot; areas dependant on the World selected.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>

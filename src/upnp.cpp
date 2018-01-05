@@ -258,7 +258,7 @@ void UPNP::getUdp()
                         else
                             reader.readNext();
                     }
-                    //this->getExternalIP();
+                    this->getExternalIP();
 
                     httpSocket->disconnect();
                 });
@@ -315,10 +315,16 @@ void UPNP::postSOAP(const QString& action, const QString& message,
     [=]()
     {
         QString reply = httpReply->readAll();
+        bool log{ true };
         if ( !Helper::strContainsStr( reply, "UPnPError" ) )
         {
             if ( Helper::strContainsStr( reply, "NewExternalIPAddress" ) )
-                this->extractExternalIP( reply );
+            {
+                this->extractExternalIP( action, reply );
+
+                //IP Extraction handles it's own log output.
+                log = false;
+            }
 
             if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {
@@ -341,11 +347,14 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 }
             }
 
-            QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
-            logMsg = logMsg.arg( action,
-                                 protocol,
-                                 QString::number( port ) );
-            Helper::logToFile( Helper::UPNP, logMsg, true, true );
+            if ( log )
+            {
+                QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
+                logMsg = logMsg.arg( action,
+                                     protocol,
+                                     QString::number( port ) );
+                Helper::logToFile( Helper::UPNP, logMsg, true, true );
+            }
         }
         else
         {
@@ -399,17 +408,24 @@ void UPNP::extractError(const QString& message, const qint32& port,
     Helper::logToFile( Helper::UPNP, logMsg, true, true );
 }
 
-void UPNP::extractExternalIP(const QString& message )
+void UPNP::extractExternalIP(const QString& action, const QString& message )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
+    while ( !Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
     {
         reader.readNext();
     }
 
     if ( Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
+    {
         externalAddress = QHostAddress( reader.readElementText() );
+
+        QString logMsg{ "Got Reply from Action[ %1 ] for [ %2 ]" };
+                logMsg = logMsg.arg( action,
+                                     externalAddress.toString() );
+        Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    }
 }
 
 void UPNP::checkPortForward(const QString& protocol, const qint32& port)

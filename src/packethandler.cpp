@@ -232,6 +232,28 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
             {
                 case 'G':   //Set the Server's gameInfoString.
                     {
+                        //Check if the IP Address is a properly connected User.
+                        //Or at least is in the User list...
+                        Player* tmpPlr{ nullptr };
+                        bool connected{ false };
+                        for ( int i = 0; i < MAX_PLAYERS; ++i )
+                        {
+                            tmpPlr = server->getPlayer( i );
+                            if ( tmpPlr != nullptr )
+                            {
+                                if ( Helper::cmpStrings( tmpPlr->getPublicIP(),
+                                                         ipAddr.toString() ) )
+                                {
+                                    connected = true;
+                                    break;
+                                }
+                            }
+                            connected = false;
+                        }
+
+                        if ( !connected )
+                            break;
+
                         QString svrInfo{ server->getGameInfo() };
                         QString usrInfo{ data.mid( 1 ) };
                         if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )

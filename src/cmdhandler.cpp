@@ -4,7 +4,9 @@
 
 //ReMix includes.
 #include "remixtabwidget.hpp"
+#include "motdwidget.hpp"
 #include "serverinfo.hpp"
+#include "cmdtable.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "player.hpp"
@@ -14,32 +16,10 @@
 //Qt includes.
 #include <QtCore>
 
-//Initialize our accepted Command List.
-const QString CmdHandler::commands[ GM_COMMAND_COUNT ] =
-{
-    "ban",
-    "unban",
-    "kick",
-    "mute",
-    "unmute",
-    "msg",
-    "login",
-    "register",
-    "shutdown",
-    "restart",
-    "mkadmin",
-    "rmadmin",
-    "dmadmin",
-    "chrules",
-    "getcomments",
-    "chsettings",
-    "vanish",
-    "version"
-};
-
 CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     : QObject(parent)
 {
+    cmdTable = CmdTable::getInstance();
     server = svr;
 }
 
@@ -201,17 +181,29 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
     stream >> cmd >> argType >> arg1 >> arg2 >> arg3;
 
-    GMCmds argIndex{ GMCmds::Invalid };
-    for ( int i = 0; i < GM_COMMAND_COUNT; ++i )
+    GMCmds argIndex{ cmdTable->getCmdIndex( cmd ) };
+
+    //The User entered a nonexistant command. Return gracefully.
+    if ( argIndex == GMCmds::Invalid )
+        return false;
+
+    GMRanks cmdRank{ cmdTable->getCmdRank( argIndex ) };
+    if ( this->getAdminRank( plr ) < cmdRank )
     {
-        if ( Helper::cmpStrings( commands[ i ], cmd ) )
-            argIndex = static_cast<GMCmds>( i );
+        plr->sendMessage( "Error: You do not have access to the command [ "
+                        % cmd
+                        % " ]. Please contact the Server Host if this is an "
+                          "error.", false );
+        return false;
     }
 
-    if ( !argType.isEmpty() )
+    QString message{ "" };
+    if ( cmdTable->isSubCommand( argIndex, argType ) )
     {
         if ( Helper::cmpStrings( argType, "all" ) )
         {
+            //Correctly handle "all" command reason/message.
+            message = packet.mid( Helper::getStrIndex( packet, arg1 ) );
             if ( this->getAdminRank( plr ) >= GMRanks::Admin
               || argIndex == GMCmds::Message )
             {
@@ -225,46 +217,84 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
                 arg1.prepend( "SOUL " );
         }
-    }
 
-    //Correctly handle "all" command reason/message.
-    QString message{ "" };
-    if ( Helper::cmpStrings( argType, "all" )
-      && !arg1.isEmpty() )
-    {
-        message = packet.mid( Helper::getStrIndex( packet, arg1 ) );
-    }
-    else if ( !arg2.isEmpty() )
+        //Command Parameter is a Sub-Command not 'All'.
+        if ( message.isEmpty() )
             message = packet.mid( Helper::getStrIndex( packet, arg2 ) );
+    }
+    else
+    {
+        //Command parameter is not a Sub-Command.
+        message = packet.mid( Helper::getStrIndex( packet, argType )
+                            + argType.length() ).simplified();
+    }
 
     bool canUseCommands{ false };
+    bool sendCommandInfo{ false };
+    bool getCommandSyntax{ false };
+    GMCmds index{ argIndex };
+
     switch ( argIndex )
     {
-        case GMCmds::Ban: //0
+        case GMCmds::Help:
             {
-                if ( this->validateAdmin( plr, GMRanks::GMaster )
-                  && ( !arg1.isEmpty()
-                    && !argType.isEmpty() ) )
+                if ( !argType.isEmpty() )
+                {
+                    index = cmdTable->getCmdIndex( argType );
+                    if ( !arg1.isEmpty() )
                     {
-                        this->banhandler( plr, arg1, message, all );
+                        getCommandSyntax = cmdTable->isSubCommand( argIndex,
+                                                                   arg1 );
                     }
-                retn = true;
+                }
             }
         break;
-        case GMCmds::UnBan: //1
+        case GMCmds::List:
             {
-                if ( this->validateAdmin( plr, GMRanks::GMaster )
+                plr->sendMessage(
+                            cmdTable->collateCmdList(
+                                this->getAdminRank( plr ) ), false );
+            }
+        break;
+        case GMCmds::MotD:
+            {
+                if ( this->validateAdmin( plr, cmdRank ) )
+                    this->motdHandler( plr, argType, arg1, message );
+            }
+        break;
+//        case GMCmds::Info:
+//            {
+//            }
+//        break;
+//        case GMCmds::NetStatus:
+//            {
+//            }
+//        break;
+        case GMCmds::Ban:
+            {
+                if ( this->validateAdmin( plr, cmdRank )
                   && ( !arg1.isEmpty()
                     && !argType.isEmpty() ) )
                 {
-                     this->unBanhandler( argType, arg1 );
+                    this->banhandler( plr, arg1, message, all );
                 }
                 retn = true;
             }
         break;
-        case GMCmds::Kick: //2
+        case GMCmds::UnBan:
             {
-                if ( this->validateAdmin( plr, GMRanks::GMaster )
+                if ( this->validateAdmin( plr, cmdRank )
+                  && ( !arg1.isEmpty()
+                    && !argType.isEmpty() ) )
+                {
+                    this->unBanhandler( argType, arg1 );
+                }
+                retn = true;
+            }
+        break;
+        case GMCmds::Kick:
+            {
+                if ( this->validateAdmin( plr, cmdRank )
                   && !arg1.isEmpty() )
                 {
                     this->kickHandler( plr, arg1, message, all );
@@ -272,10 +302,10 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 retn = true;
             }
         break;
-        case GMCmds::Mute: //3
-        case GMCmds::UnMute: //4
+        case GMCmds::Mute:
+        case GMCmds::UnMute:
             {
-                if ( this->validateAdmin( plr, GMRanks::GMaster )
+                if ( this->validateAdmin( plr, cmdRank )
                   && !arg1.isEmpty() )
                 {
                     this->muteHandler( plr, arg1, argIndex, message, all );
@@ -283,7 +313,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 retn = true;
             }
         break;
-        case GMCmds::Message: //5
+        case GMCmds::Message:
             {
                 QString tmpMsg{ "" };
                 if ( !message.isEmpty() )
@@ -294,7 +324,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                                          all ? "Everyone" : arg1 );
                 }
 
-                if ( this->validateAdmin( plr, GMRanks::GMaster )
+                if ( this->validateAdmin( plr, cmdRank )
                   && !arg1.isEmpty() )
                 {
                     this->msgHandler( arg1, tmpMsg, all );
@@ -302,14 +332,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 retn = true;
             }
         break;
-        case GMCmds::Login: //6
+        case GMCmds::Login:
             {
                 if ( !argType.isEmpty() )
                 {
                     if ( ( ( plr->getAdminPwdRequested()
-                       || !plr->getAdminPwdReceived() )
+                      || !plr->getAdminPwdReceived() )
                       || ( plr->getSvrPwdRequested()
-                       && !plr->getSvrPwdReceived() ) ) )
+                        && !plr->getSvrPwdReceived() ) ) )
                     {
                         this->loginHandler( plr, argType );
                     }
@@ -318,7 +348,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 logMsg = false;
             }
         break;
-        case GMCmds::Register: //7
+        case GMCmds::Register:
             {
                 if ( !argType.isEmpty()
                   && plr->getNewAdminPwdRequested() )
@@ -329,71 +359,78 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 logMsg = false;
             }
         break;
-        case GMCmds::ShutDown: //8
+        case GMCmds::ShutDown:
             {
-                if ( this->validateAdmin( plr, GMRanks::Owner ) )
+                if ( this->validateAdmin( plr, cmdRank ) )
                 {
                     this->shutDownHandler( plr, false );
                     retn = true;
                 }
             }
         break;
-        case GMCmds::ReStart: //9
+        case GMCmds::ReStart:
             {
-                if ( this->validateAdmin( plr, GMRanks::Owner ) )
+                if ( this->validateAdmin( plr, cmdRank ) )
                 {
                     this->shutDownHandler( plr, true );
                     retn = true;
                 }
             }
         break;
-//        case GMCmds::MKADMIN: //10
+//        case GMCmds::MKAdmin:
 //            {
 //                this->mkAdminHandler( plr, arg1, arg2 );
 //            }
 //        break;
-//        case GMCmds::RMADMIN: //11
+//        case GMCmds::RMAdmin:
 //            {
 //                this->rmAdminHandler( plr, arg1 );
 //            }
 //        break;
-//        case GMCmds::CHADMIN: //12
+//        case GMCmds::CHAdmin:
 //            {
 //                this->chAdminHandler( plr, arg1, arg2 );
 //            }
 //        break;
+//        case GMCmds::CHRules:
 //        case GMCmds::ChRules: //13
 //            {
 //                if ( this->validateAdmin( plr, GMRanks::CoAdmin ) )
 //                    this->chRulesHandler( plr, arg1, QVariant() );
 //            }
 //        break;
-//        case GMCmds::GETCOMMENTS: //14
-//            {
-//                this->getCommentsHandler( plr, arg1 );
-//            }
-//        break;
-//        case GMCmds::CHSETTINGS: //15
+//        case GMCmds::CHSettings:
 //            {
 //                this->chSettingsHandler( plr, arg1, arg2 );
 //            }
 //        break;
-        case GMCmds::Vanish: //16
+        case GMCmds::Vanish:
             {
-                if ( this->validateAdmin( plr, GMRanks::GMaster ) )
+                if ( this->validateAdmin( plr, cmdRank ) )
                     plr->setIsInvisible( !plr->getIsInvisible() );
             }
         break;
-        case GMCmds::Version: //17
+        case GMCmds::Version:
             {
                 QString ver{ "ReMix Version: [ %1 ]" };
-                        ver = ver.arg( QString( REMIX_VERSION ) );
+                ver = ver.arg( QString( REMIX_VERSION ) );
                 if ( plr != nullptr )
                     plr->sendMessage( ver );
+
+                //Version can be used by any User.
+                //Do not log usage to file.
+                logMsg = false;
             }
         break;
+        case GMCmds::Invalid:
         default:
         break;
+    }
+
+    if ( sendCommandInfo )
+    {
+        //Command lacked proper arguments. Send the command description.
+        plr->sendMessage( cmdTable->getCommandInfo( index, getCommandSyntax ) );
     }
 
     QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
@@ -429,16 +466,19 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target,
         return false;
 
     //Remote commands cannot affect other remote administrators.
-    if ( target->getIsAdmin() )
-        return false;
-
-    //The target matches the Remote-Administrators conditions.
-    QString sernum = Helper::serNumToHexStr( arg1 );
-    if ( target->getPublicIP() == arg1
-      || target->getSernumHex_s() == sernum
-      || all )
+    if ( target != nullptr )
     {
-        return true;
+        if ( target->getIsAdmin() )
+            return false;
+
+        //The target matches the Remote-Administrators conditions.
+        QString sernum = Helper::serNumToHexStr( arg1 );
+        if ( target->getPublicIP() == arg1
+          || target->getSernumHex_s() == sernum
+          || all )
+        {
+            return true;
+        }
     }
 
     //Fallthrough, command cannot be issued.
@@ -454,6 +494,41 @@ bool CmdHandler::validateAdmin(Player* plr, const GMRanks& rank)
 GMRanks CmdHandler::getAdminRank(Player* plr)
 {
     return static_cast<GMRanks>( plr->getAdminRank() );
+}
+
+void CmdHandler::motdHandler(Player* plr, const QString& argType,
+                             const QString& arg1,
+                             const QString& msg)
+{
+    MOTDWidget* motdWidget = MOTDWidget::getWidget( server );
+    if ( motdWidget != nullptr )
+    {
+        QString message{ "Admin [ %1 ] has changed the Message of the Day to: "
+                         "[ %2 ]" };
+        bool erase{ false };
+        if ( Helper::cmpStrings( argType, "change" ) )
+        {
+            message = message.arg( plr->getSernum_s(), msg );
+        }
+        else if ( Helper::cmpStrings( argType, "remove" ) )
+        {
+            message.clear();
+            if ( Helper::cmpStrings( arg1, "remove" ) )
+            {
+                message = "Admin [ %1 ] has removed the Message of the Day!";
+                message = message.arg( plr->getSernum_s() );
+
+                erase = true;
+            }
+        }
+
+        if ( !erase )
+            motdWidget->changeMotD( msg );
+        else
+            motdWidget->changeMotD( "" );
+
+        server->sendMasterMessage( message, nullptr, true );
+    }
 }
 
 void CmdHandler::banhandler(Player* plr, const QString& arg1,

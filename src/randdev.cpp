@@ -9,7 +9,7 @@
 #include <QDateTime>
 
 RandDev* RandDev::device{ nullptr };
-std::mt19937 RandDev::randDevice;
+std::mt19937_64 RandDev::randDevice;
 
 RandDev::RandDev()
 {
@@ -26,7 +26,7 @@ RandDev* RandDev::getDevice()
     return device;
 }
 
-unsigned int RandDev::getSeed()
+qint64 RandDev::getSeed()
 {
-    return static_cast<unsigned int>( QDateTime::currentMSecsSinceEpoch() );
+    return QDateTime::currentMSecsSinceEpoch();
 }

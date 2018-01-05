@@ -18,14 +18,14 @@
 
 const QString Helper::logType[ LOG_TYPE_COUNT ] =
 {
-    "AdminUsage.txt",
-    "Comments.txt",
-    "UsageLog.txt",
-    "UPNPLog.txt",
-    "BanLog.txt",
-    "DCLog.txt",
-    "MuteLog.txt",
-    "Ignored.txt",
+    "AdminUsage",
+    "Comments",
+    "UsageLog",
+    "UPNPLog",
+    "BanLog",
+    "DCLog",
+    "MuteLog",
+    "Ignored",
 };
 
 const QList<qint32> Helper::blueCodedList =
@@ -267,12 +267,14 @@ void Helper::logToFile(const LogTypes& type, const QString& text,
         QString logTxt = text;
 
         QFile log( "logs/"
-                 % QDate::currentDate().toString( "[yyyy-MM-dd]/")
-                 % logType[ type ] );
+                 % logType[ type ]
+                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
+                 % logType[ type ]
+                 % ".txt" );
 
         QFileInfo logInfo( log );
         if ( !logInfo.dir().exists() )
-            logInfo.dir().mkdir( "." );
+            logInfo.dir().mkpath( "." );
 
         if ( log.open( QFile::WriteOnly | QFile::Append ) )
         {
@@ -381,6 +383,7 @@ QString Helper::genPwdSalt(const qint32& length)
         salt.append( charList.at( chrPos ) );
     }
 
+    qDebug() << salt;
     if ( !validateSalt( salt ) )
         salt = genPwdSalt( length );
 

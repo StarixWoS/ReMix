@@ -98,6 +98,7 @@
     class PacketForge;
     class ServerInfo;
     class CmdHandler;
+    class CmdTable;
     class ChatView;
     class Settings;
     class Comments;
@@ -172,7 +173,10 @@
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            GM_COMMAND_COUNT = 18,
+            GM_COMMAND_COUNT = 22,
+
+            //Count of possible Sub-Commands each GM Command may posess.
+            GM_SUBCOMMAND_COUNT = 4,
 
             //Count of Keys accessed via the User class.
             USER_KEY_COUNT = 12,
@@ -221,14 +225,19 @@
 
         //Valid Remote Administrator Ranks.
         enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner,
-                                 Creator = 5 };
+                                 Creator = 5, Invalid = -1 };
 
         //Valid Remote Administrator commands.
-        enum class GMCmds: int{ Ban = 0, UnBan, Kick, Mute, UnMute, Message,
-                                Login, Register, ShutDown, ReStart, MkAdmin,
-                                RmAdmin, ChAdmin, ChRules, GetComments,
-                                ChSettings, Vanish, Version = 17,
+        enum class GMCmds: int{ Help = 0, List, MotD, Info, NetStatus, Ban,
+                                UnBan, Kick, Mute, UnMute, Message, Login,
+                                Register, ShutDown, ReStart, MKAdmin, RMAdmin,
+                                CHAdmin, CHRules, CHSettings, Vanish, Version,
                                 Invalid = -1 };
+
+        //Valid Command Structure Format.
+        enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,
+                                    CmdInfo, CmdSyntax, CmdRank,
+                                    CmdIsActive = 4 };
 
         //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

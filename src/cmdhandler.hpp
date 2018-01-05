@@ -2,6 +2,7 @@
 #define CMDHANDLER_HPP
 
 #include "prototypes.hpp"
+#include "cmdtable.hpp"
 
 //Required Qt Includes.
 #include <QObject>
@@ -10,9 +11,8 @@ class CmdHandler : public QObject
 {
     Q_OBJECT
 
+    CmdTable* cmdTable{ nullptr };
     ServerInfo* server{ nullptr };
-
-    static const QString commands[ GM_COMMAND_COUNT ];
 
     public:
         explicit CmdHandler(QObject* parent = nullptr,
@@ -30,6 +30,10 @@ class CmdHandler : public QObject
     private:
         bool validateAdmin(Player* plr, const GMRanks& rank);
         GMRanks getAdminRank(Player* plr);
+
+        void motdHandler(Player* plr, const QString& argType,
+                         const QString& arg1,
+                         const QString& msg);
 
         void banhandler(Player* plr, const QString& arg1,
                         const QString& message, const bool& all);
