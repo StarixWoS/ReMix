@@ -11,6 +11,7 @@ Version 2.3.8:
           * List shows all commands available to the user.
           * MotD allows the User to change the servers message of the day.
         * Various sub-commands have also been added but are not yet completely implemented.
+          * Commands with new subcommands include Shutdown, Restart, and Vanish.
       * The server logs are now stored in the path "logs/logType/[yy-mm-dd]/logType.txt".
         * This allows for the User to more quickly browse to a certain log type for a specific day.
           * This also makes it more obvious to the User if the log exists for a certain day.

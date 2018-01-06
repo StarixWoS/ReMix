@@ -59,7 +59,7 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
     return dialog;
 }
 
-qint32 Helper::strToInt(QString& str, int base)
+qint32 Helper::strToInt(const QString& str, const int& base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };

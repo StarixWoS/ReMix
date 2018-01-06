@@ -27,7 +27,7 @@ class Helper
         {
             return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
         }
-        static qint32 strToInt(QString& str, int base = 16);
+        static qint32 strToInt(const QString& str, const int& base = 16);
 
         static QString intSToStr(QString& val, int base = 16, int fill = 0,
                                  QChar filler = '0');
