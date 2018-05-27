@@ -6,8 +6,11 @@ Version 2.3.9:
     Change:
       * Added a third sub-command to the command "/vanish".
         * The added sub-command is "status" and the usage is "/vanish status" and will output the current visibility of the Admin for other users.
-      * The "/shutdown" and "/restyart" commands now have an aditional sub-command to stop an in-progress shutdown or restart.
+      * The "/shutdown" and "/restart" commands now have an aditional sub-command to stop an in-progress shutdown or restart.
         * The new sub-command is "stop" with the usage "/shutdown stop" or "/restart stop".
+
+    Buildsystem:
+      * Update the Appveyor project file.
 
     Bugfixes:
       * The "/vanish" command now correctly functions as an on/off toggle when no sub-commands are used in conjunction with it.
