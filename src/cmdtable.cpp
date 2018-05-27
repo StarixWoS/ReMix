@@ -128,7 +128,7 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "login",
         { "", "", "", "" },
         0,
-        "Login Description: Input command from the User to authenticate with the server as a Remote Administrator.",
+        "Login Description: Input command from the User to authenticate with the server.",
         "Login Usage: /login *Password",
         GMRanks::User,
         true,
@@ -209,10 +209,11 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "vanish",
-        { "hide", "show", "", "" },
-        2,
+        { "hide", "show", "status", "" },
+        3,
         "Vanish Description: Makes the Admin invisible to others. Poof!",
-        "Vanish Usage: /vanish hide|show",
+        "Vanish Usage: /vanish hide|show|status. When no sub-command is "
+        "entered the command acts as an on|off toggle.",
         GMRanks::GMaster,
         true,
     },

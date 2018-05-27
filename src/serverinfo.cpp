@@ -249,7 +249,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
           && plr->getSernum_i() != 0 )
         {
             //Don't show Invisible Administrators on the User List.
-            if ( !plr->getIsInvisible() )
+            if ( plr->getIsVisible() )
             {
                 if ( type == Q_Response ) //Standard 'Q' Response.
                 {

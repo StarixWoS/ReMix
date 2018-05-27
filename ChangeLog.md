@@ -2,6 +2,20 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.3.9:
+    Change:
+      * Added a third sub-command to the command "/vanish".
+        * The added sub-command is "status" and the usage is "/vanish status" and will output the current visibility of the Admin for other users.
+      * The "/shutdown" and "/restyart" commands now have an aditional sub-command to stop an in-progress shutdown or restart.
+        * The new sub-command is "stop" with the usage "/shutdown stop" or "/restart stop".
+
+    Bugfixes:
+      * The "/vanish" command now correctly functions as an on/off toggle when no sub-commands are used in conjunction with it.
+        * Previously the command would show that the Admin was invisible while it was not correct.
+
+
+
+
 Version 2.3.8:
     Change:
       * Create and implemented a Command Table class (CmdTable).
@@ -37,7 +51,7 @@ Version 2.3.7:
           * 1200, 2628, 1016, 1739, 1853, 2708, 2757, 1498, 2448, 2801, 1031, 1265, 1414, 1420, 1429, 1214, 1489, 1707, 2543, 1101, 1283, 1604,
           * 1428, 2707, 1023, 1069, 1071, 1132, 1286, 1854, 2910, 1005, 2682, 1348, 2615, 2617, 1884, 1169, 1540, 1645, 1939, 1179, 3053, 1803,
           * 2377, 1000, 1021, 1500, 1501, 1515, 1547, 1803, 2377, 3111, 3202, 3191, 3149, 3,
-	  
+
     Bugfixes:
       * When creating a server the Create Instance dialog will no longer automatically generate ports when the User removes all text from the input field.
       * When blocking an IP address from use ReMix will now properly refresh the network configuration and select another IP address.
@@ -54,7 +68,7 @@ Version 2.3.6:
       * Add a basic chat filter for the ReMix chat viewer.
         * The feature relies on the server host having the rule "No Cursing" enabled.
       * The RandDev class is now a static class and the device member can be accessed globally.
-	  
+
     Bugfixes:
       * Removed two emit and slot functions related to Remote Administrator authentication.
         * This improves the speed at which the User receives the notification.

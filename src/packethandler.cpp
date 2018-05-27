@@ -51,7 +51,7 @@ void PacketHandler::parsePacket(const QString& packet, Player* plr)
                 return;
 
             if ( !plr->getNetworkMuted()
-              && !plr->getIsInvisible() )
+              && plr->getIsVisible() )
             {
                 if ( !pktForge->validateSerNum( plr, packet ) )
                     return;

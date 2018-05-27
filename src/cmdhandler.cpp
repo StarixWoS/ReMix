@@ -369,7 +369,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::ShutDown:
             {
-                if ( arg2.isEmpty() )
+                if ( Helper::cmpStrings( subCmd, "stop" ) )
+                {
+                    message = packet.mid( Helper::getStrIndex( packet,
+                                                               subCmd )
+                                        + subCmd.length() ).simplified();
+                }
+                else if ( arg1.isEmpty() || arg2.isEmpty() )
                     message = "No reason provided.";
 
                 if ( this->validateAdmin( plr, cmdRank ) )
@@ -382,7 +388,13 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::ReStart:
             {
-                if ( arg2.isEmpty() )
+                if ( Helper::cmpStrings( subCmd, "stop" ) )
+                {
+                    message = packet.mid( Helper::getStrIndex( packet,
+                                                               subCmd )
+                                        + subCmd.length() ).simplified();
+                }
+                else if ( arg1.isEmpty() || arg2.isEmpty() )
                     message = "No reason provided.";
 
                 if ( this->validateAdmin( plr, cmdRank ) )
@@ -903,8 +915,13 @@ void CmdHandler::shutDownHandler(Player* plr, const GMCmds& index,
     QString message{ "Admin [ %1 ]: The Server will %2 in %3 %4..." };
 
     //Default to seconds.
+    bool stop{ false };
     qint32 time{ 30 };
     qint32 timeMul{ 1 };  //Do not multiply the base value if in seconds.
+
+    QString type{ "shut down" };
+    if ( restart )
+        type = "restart";
 
     QString timeText{ "seconds" };
     if ( cmdTable->isSubCommand( index, subCmd ) )
@@ -919,42 +936,62 @@ void CmdHandler::shutDownHandler(Player* plr, const GMCmds& index,
             timeText = "hours";
             timeMul = 60*60;
         }
+        else if ( Helper::cmpStrings( subCmd, "stop" ) )
+        {
+            //The current shutdown is being canceled.
+            stop = true;
+        }
 
         //Default shutdown time is 30 seconds.
         if ( !arg1.isEmpty() )
             time = Helper::strToInt( arg1, 10 );
     }
 
-    ServerInfo* plrServer = plr->getServerInfo();
-    QTimer* timer = new QTimer();
-    if ( plrServer != nullptr )
+    if ( !stop )
     {
-        QObject::connect( timer, &QTimer::timeout, timer,
-        [=]()
+        ServerInfo* plrServer = plr->getServerInfo();
+        if ( shutdownTimer == nullptr )
+            shutdownTimer = new QTimer();
+
+        if ( plrServer != nullptr )
         {
-            ReMixTabWidget::remoteCloseServer( plrServer, restart );
+            QObject::connect( shutdownTimer, &QTimer::timeout, shutdownTimer,
+                              [=]()
+            {
+                ReMixTabWidget::remoteCloseServer( plrServer, restart );
 
-            timer->disconnect();
-            timer->deleteLater();
-        });
+                shutdownTimer->disconnect();
+                shutdownTimer->deleteLater();
+
+                shutdownTimer = nullptr;
+            });
+        }
+
+        message = message.arg( plr->getSernum_s(),
+                               type,
+                               QString::number( time ),
+                               timeText );
+
+        shutdownTimer->start( time * timeMul * 1000 );
     }
-
-    QString type{ "shut down" };
-    if ( restart )
-        type = "restart";
-
-    message = message.arg( plr->getSernum_s(),
-                           type,
-                           QString::number( time ),
-                           timeText );
-    if ( !msg.isEmpty() )
+    else
     {
-        message.append( " < " % msg % " >" );
+        shutdownTimer->stop();
+        shutdownTimer->disconnect();
+
+        message = "Admin [ %1 ]: Has canceled the Server %2...";
+        message = message.arg( plr->getSernum_s(),
+                               type);
     }
 
-    timer->start( time * timeMul * 1000 );
     if ( !message.isEmpty() )
+    {
+        if ( !msg.isEmpty() )
+        {
+            message.append( " < " % msg % " >" );
+        }
         server->sendMasterMessage( message, nullptr, true );
+    }
 }
 
 void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
@@ -962,13 +999,16 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
     QString message{ "Admin [ %1 ]: You are now %2 to other Players..." };
     QString state{ "visible" };
 
-    bool isVisible{ !plr->getIsInvisible() };
+    bool isVisible{ plr->getIsVisible() };
+    if ( !isVisible )
+        state = "invisible";
+
     if ( subCmd.isEmpty() )
     {
         if ( isVisible )
             state = "invisible";
 
-        plr->setIsInvisible( !isVisible );
+        plr->setIsVisible( !isVisible );
     }
     else
     {
@@ -977,18 +1017,19 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
             if ( Helper::cmpStrings( subCmd, "hide" )
               && isVisible == true )
             {
-                if ( isVisible )
-                    state = "invisible";
-
-                plr->setIsInvisible( true );
+                state = "invisible";
+                plr->setIsVisible( false );
             }
             else if ( Helper::cmpStrings( subCmd, "show" )
                    && isVisible == false )
             {
-                if ( isVisible )
-                    state = "visible";
-
-                plr->setIsInvisible( false );
+                state = "visible";
+                plr->setIsVisible( true );
+            }
+            else if ( Helper::cmpStrings( subCmd, "status" ) )
+            {
+                message = "Admin [ %1 ]: You are currently %2 to "
+                          "other Players...";
             }
         }
     }

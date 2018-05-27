@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.8'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.8'; }
+    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.9'; }
+    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.9'; }
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -43,41 +43,42 @@ CppApplication
         name: "HPP"
 
         fileTags: ["hpp"]
-        files: [ "src/tblview/usersortproxymodel.hpp",
-                 "src/tblview/plrsortproxymodel.hpp",
-                 "src/widgets/commentviewwidget.hpp",
-                 "src/tblview/tbleventfilter.hpp",
-                 "src/widgets/settingswidget.hpp",
-                 "src/widgets/chatviewwidget.hpp",
-                 "src/widgets/remixtabwidget.hpp",
-                 "src/widgets/plrlistwidget.hpp",
-                 "src/widgets/userdelegate.hpp",
-                 "src/widgets/remixwidget.hpp",
-                 "src/widgets/ruleswidget.hpp",
-                 "src/widgets/motdwidget.hpp",
-                 "src/createinstance.hpp",
-                 "src/appeventfilter.hpp",
-                 "src/packethandler.hpp",
-                 "src/packetforge.hpp",
-                 "src/selectworld.hpp",
-                 "src/cmdhandler.hpp",
-                 "src/serverinfo.hpp",
-                 "src/prototypes.hpp",
-                 "src/cmdtable.hpp",
-                 "src/chatview.hpp",
-                 "src/comments.hpp",
-                 "src/settings.hpp",
-                 "src/runguard.hpp",
-                 "src/randdev.hpp",
-                 "src/sendmsg.hpp",
-                 "src/server.hpp",
-                 "src/player.hpp",
-                 "src/helper.hpp",
-                 "src/theme.hpp",
-                 "src/rules.hpp",
-                 "src/remix.hpp",
-                 "src/user.hpp",
-                 "src/upnp.hpp",
+        files: [
+            "src/tblview/usersortproxymodel.hpp",
+            "src/tblview/plrsortproxymodel.hpp",
+            "src/widgets/commentviewwidget.hpp",
+            "src/tblview/tbleventfilter.hpp",
+            "src/widgets/settingswidget.hpp",
+            "src/widgets/chatviewwidget.hpp",
+            "src/widgets/remixtabwidget.hpp",
+            "src/widgets/plrlistwidget.hpp",
+            "src/widgets/userdelegate.hpp",
+            "src/widgets/remixwidget.hpp",
+            "src/widgets/ruleswidget.hpp",
+            "src/widgets/motdwidget.hpp",
+            "src/createinstance.hpp",
+            "src/appeventfilter.hpp",
+            "src/packethandler.hpp",
+            "src/packetforge.hpp",
+            "src/selectworld.hpp",
+            "src/cmdhandler.hpp",
+            "src/serverinfo.hpp",
+            "src/prototypes.hpp",
+            "src/cmdtable.hpp",
+            "src/chatview.hpp",
+            "src/comments.hpp",
+            "src/settings.hpp",
+            "src/runguard.hpp",
+            "src/randdev.hpp",
+            "src/sendmsg.hpp",
+            "src/server.hpp",
+            "src/player.hpp",
+            "src/helper.hpp",
+            "src/theme.hpp",
+            "src/rules.hpp",
+            "src/remix.hpp",
+            "src/user.hpp",
+            "src/upnp.hpp",
         ]
     }
 

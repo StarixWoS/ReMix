@@ -268,7 +268,7 @@
                                   ColCount = 9 };
 
         //Used for converting time in seconds to a human readable format.
-        enum class TimeFormat{ Hours = 0, Minutes, Seconds = 3, Default = -1,
+        enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,
                                HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
 
     #endif  // REMIX_GLOBALS

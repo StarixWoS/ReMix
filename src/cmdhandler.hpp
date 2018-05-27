@@ -13,6 +13,7 @@ class CmdHandler : public QObject
 
     CmdTable* cmdTable{ nullptr };
     ServerInfo* server{ nullptr };
+    QTimer* shutdownTimer{ nullptr };
 
     public:
         explicit CmdHandler(QObject* parent = nullptr,

@@ -72,7 +72,7 @@ class Player : public QObject
     QTimer killTimer;
     bool pendingDisconnect{ false };
 
-    bool isInvisible{ false };
+    bool isVisible{ true };
     bool networkMuted{ false };
 
     public:
@@ -201,8 +201,11 @@ class Player : public QObject
         ServerInfo* getServerInfo() const;
         void setServerInfo(ServerInfo* value);
 
-        bool getIsInvisible() const;
-        void setIsInvisible(const bool& value);
+        bool getIsVisible() const;
+        void setIsVisible(const bool& value);
+
+        bool getHasSernum() const;
+        void setHasSernum(bool value);
 
     private:
         void setModelData(QStandardItem* model, const qint32& row,

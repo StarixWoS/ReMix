@@ -80,7 +80,7 @@ Player::Player()
             color = Colors::Default;
             if ( !this->getNetworkMuted() )
             {
-                if ( this->getIsInvisible() )
+                if ( !this->getIsVisible() )
                     color = Colors::Invisible;
                 else
                     color = Colors::Valid;
@@ -260,14 +260,14 @@ void Player::setServerInfo(ServerInfo* value)
     serverInfo = value;
 }
 
-bool Player::getIsInvisible() const
+bool Player::getIsVisible() const
 {
-    return isInvisible;
+    return isVisible;
 }
 
-void Player::setIsInvisible(const bool& value)
+void Player::setIsVisible(const bool& value)
 {
-    isInvisible = value;
+    isVisible = value;
 }
 
 void Player::setModelData(QStandardItem* model, const qint32& row,
@@ -295,6 +295,16 @@ void Player::setModelData(QStandardItem* model, const qint32& row,
     }
 }
 
+bool Player::getHasSernum() const
+{
+    return hasSernum;
+}
+
+void Player::setHasSernum(bool value)
+{
+    hasSernum = value;
+}
+
 quint32 Player::getSernum_i() const
 {
     return sernum_i;
@@ -302,7 +312,6 @@ quint32 Player::getSernum_i() const
 
 void Player::setSernum_i(quint32 value)
 {
-    hasSernum = true;
     if ( value != this->getSernum_i() )
     {
         QString sernum_s{ Helper::serNumToIntStr(
@@ -325,6 +334,7 @@ void Player::setSernum_i(quint32 value)
             }
         }
 
+        this->setHasSernum( true );
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
 
