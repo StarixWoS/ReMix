@@ -383,7 +383,6 @@ QString Helper::genPwdSalt(const qint32& length)
         salt.append( charList.at( chrPos ) );
     }
 
-    qDebug() << salt;
     if ( !validateSalt( salt ) )
         salt = genPwdSalt( length );
 

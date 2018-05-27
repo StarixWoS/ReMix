@@ -60,16 +60,7 @@ void PacketHandler::parsePacket(const QString& packet, Player* plr)
 
                 if ( chatView->getGameID() != Games::Invalid )
                 {
-                    if ( chatView->getGameID() == Games::W97 )
-                    {
-                        //Handle Warpath Packets.
-                        chatView->parsePacket( packet, plr->getAlias() );
-                    }
-                    else if ( chatView->getGameID() != Games::Invalid )
-                    {
-                        //Handle WoS and Arcadia Packets.
-                        chatView->parsePacket( packet );
-                    }
+                    chatView->parsePacket( packet, plr );
                 }
             }
         }

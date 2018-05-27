@@ -7,6 +7,7 @@
 #include "packetforge.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
+#include "player.hpp"
 #include "helper.hpp"
 #include "rules.hpp"
 
@@ -102,10 +103,14 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(const QString& packet, const QString& alias)
+void ChatView::parsePacket(const QString& packet, Player* plr)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
+        return;
+
+    //The Player object is invalid, return.
+    if ( plr == nullptr )
         return;
 
     QString pkt{ packet };
@@ -127,6 +132,7 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
                     pkt = pkt.left( pkt.length() - 4 );
                 }
                 this->parseChatEffect( pkt );
+                plr->chatPacketFound();
             }
         }
     }
@@ -143,10 +149,12 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
 
-            this->insertChat( alias % ": ",
+            this->insertChat( plr->getAlias() % ": ",
                               Colors::Name, true );
             this->insertChat( pkt,
                               Colors::Chat, false );
+
+            plr->chatPacketFound();
         }
     }
 }

@@ -8,6 +8,7 @@
 #include <QElapsedTimer>
 #include <QObject>
 #include <QTimer>
+#include <QIcon>
 
 class Player : public QObject
 {
@@ -74,6 +75,10 @@ class Player : public QObject
 
     bool isVisible{ true };
     bool networkMuted{ false };
+
+    QTimer afkTimer;
+    QIcon afkIcon;
+    bool isAFK{ false };
 
     public:
         explicit Player();
@@ -189,6 +194,14 @@ class Player : public QObject
 
         bool getNetworkMuted() const;
         void setNetworkMuted(const bool& value, const QString& msg);
+
+        void chatPacketFound();
+
+        QIcon getAfkIcon() const;
+        void setAfkIcon(const QString& value);
+
+        bool getIsAFK() const;
+        void setIsAFK(bool value);
 
         void validateSerNum(ServerInfo* server, const quint32& id);
 

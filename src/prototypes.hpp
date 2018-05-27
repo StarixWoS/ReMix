@@ -66,6 +66,7 @@
     class QDebug;
     class QEvent;
     class QPoint;
+    class QIcon;
     class QChar;
     class QFile;
     class QMenu;
@@ -133,6 +134,10 @@
             //Maximum time a User may remain inactive with "Disconnect
             //Idle Users" enabled. 10 minutes - 600,000 milliseconds.
             MAX_IDLE_TIME = 600000,
+
+            //Maximum time a User may remain inactive before being marked with
+            //an AFK icon. 5 minutes - 300,000 milliseconds.
+            MAX_AFK_TIME = 300000,
 
             //Maximum amount of time in MS (30 seconds) to allow for the
             //Master to respond to a checkin.

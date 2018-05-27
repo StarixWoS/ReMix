@@ -8,6 +8,8 @@ Version 2.3.9:
         * The added sub-command is "status" and the usage is "/vanish status" and will output the current visibility of the Admin for other users.
       * The "/shutdown" and "/restart" commands now have an aditional sub-command to stop an in-progress shutdown or restart.
         * The new sub-command is "stop" with the usage "/shutdown stop" or "/restart stop".
+      * Add icons next to a User's SerNum to show if they have spoken within the last 5 minutes.
+        * There are two states. One shows the User 'talking' and the other shows the User as being AFK.
 
     Buildsystem:
       * Update the Appveyor project file.

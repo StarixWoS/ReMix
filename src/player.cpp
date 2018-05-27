@@ -20,6 +20,18 @@ Player::Player()
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
+    //All connections start as ascive and not AFK.
+    this->setIsAFK( false );
+
+    //Connect to the afkTimer.
+    QObject::connect( &afkTimer, &QTimer::timeout, [this]()
+    {
+        this->setIsAFK( true );
+    });
+
+    //Start the AFK timer. - 300,000 milliseconds - 5 minutes.
+    afkTimer.start( MAX_AFK_TIME );
+
     QObject::connect( &connTimer, &QTimer::timeout, &connTimer,
     [=]()
     {
@@ -92,6 +104,12 @@ Player::Player()
                                 static_cast<int>( PlrCols::IPPort ),
                                 static_cast<int>( color ),
                                 Qt::ForegroundRole, true );
+
+            //Set the NPK/AFK icon.
+            this->setModelData( row, row->row(),
+                                static_cast<int>( PlrCols::SerNum ),
+                                this->getAfkIcon(),
+                                Qt::DecorationRole, false );
         }
 
         if ( Settings::getDisconnectIdles()
@@ -720,6 +738,37 @@ void Player::setNetworkMuted(const bool& value, const QString& msg)
         Helper::logToFile( Helper::MUTE, msg, true, true );
 
     networkMuted = value;
+}
+
+void Player::chatPacketFound()
+{
+    this->setIsAFK( false );
+    afkTimer.start( MAX_AFK_TIME );
+}
+
+bool Player::getIsAFK() const
+{
+    return isAFK;
+}
+
+void Player::setIsAFK(bool value)
+{
+    isAFK = value;
+
+    if ( isAFK )
+        this->setAfkIcon( "AFK" );
+    else
+        this->setAfkIcon( "NPK" );
+}
+
+QIcon Player::getAfkIcon() const
+{
+    return afkIcon;
+}
+
+void Player::setAfkIcon(const QString& value)
+{
+    afkIcon = QIcon( ":/icon/" + value + ".png" );
 }
 
 void Player::validateSerNum(ServerInfo* server, const quint32& id)
