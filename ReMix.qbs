@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.9'; }
-    property string ReMixVersion: { if (Environment.getEnv("CI")) return Environment.getEnv("APPVEYOR_REPO_TAG_NAME"); else return '2.3.9'; }
+    property string ReMixVersionDisplay: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.3.7";
+    property string ReMixVersion: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.3.7";
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
