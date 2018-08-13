@@ -124,8 +124,8 @@
             //will disconnect/ban the User.
             PACKET_FLOOD_TIME = 2000,
 
-            //Users are able to send 100 packets within PACKET_FLOOD_TIME.
-            PACKET_FLOOD_LIMIT = 100,
+            //Users are able to send 512 packets within PACKET_FLOOD_TIME.
+            PACKET_FLOOD_LIMIT = 512,
 
             //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
             //Via: sernum & MIN_HEX_SERNUM

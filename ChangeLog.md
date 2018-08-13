@@ -2,6 +2,16 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.0:
+    Change:
+      * Add more profanity words to the chat filter.
+
+    Bugfixes:
+      * Changed the packet flooding threshold to 521 packets within 2,000 milliseconds (2 seconds) up from 100.
+
+
+
+
 Version 2.3.9:
     Change:
       * Added a third sub-command to the command "/vanish".

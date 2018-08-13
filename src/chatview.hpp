@@ -18,7 +18,7 @@ class ChatView : public QDialog
     Q_OBJECT
 
     Games gameID{ Games::Invalid };
-    static QString bleepList[31];
+    static QString bleepList[ 439 ];
 
     PacketForge* pktForge{ nullptr };
     ServerInfo* server{ nullptr };
