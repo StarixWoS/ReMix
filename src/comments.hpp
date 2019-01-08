@@ -14,9 +14,11 @@ namespace Ui {
 class Comments : public QDialog
 {
         Q_OBJECT
+        ServerInfo* server{ nullptr };
 
     public:
-        explicit Comments(QWidget* parent = 0);
+        explicit Comments(QWidget* parent = nullptr,
+                          ServerInfo* serverInfo = nullptr);
         ~Comments();
 
         void setTitle(const QString& name);

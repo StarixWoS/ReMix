@@ -19,7 +19,7 @@ class CreateInstance : public QDialog
         QCollator collator;
 
     public:
-        explicit CreateInstance(QWidget* parent = 0);
+        explicit CreateInstance(QWidget* parent = nullptr);
         ~CreateInstance();
 
         void updateServerList(const bool& firstRun);

@@ -16,6 +16,7 @@
 #include "randdev.hpp"
 #include "server.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -102,7 +103,7 @@ void ReMixWidget::sendServerMessage(const QString& msg)
         server->sendMasterMessage( msg, nullptr, true );
 }
 
-qint32 ReMixWidget::getPlayerCount() const
+quint32 ReMixWidget::getPlayerCount() const
 {
     if ( server != nullptr )
         return server->getPlayerCount();
@@ -332,4 +333,19 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
         //For a more user-friendly method of removing them from the preferences.
     }
     //contextMenu->popup( this->mapToGlobal( pos ) );
+}
+
+void ReMixWidget::on_logButton_clicked()
+{
+    //Show the Logger Dialog.
+    Logger* logUi = Logger::getInstance();
+    if (logUi != nullptr )
+    {
+        if ( logUi->isVisible() )
+        {
+            logUi->hide();
+        }
+        else
+            logUi->show();
+    }
 }

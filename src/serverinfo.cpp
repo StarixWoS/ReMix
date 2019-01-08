@@ -10,6 +10,7 @@
 #include "player.hpp"
 #include "server.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "rules.hpp"
 #include "upnp.hpp"
 
@@ -75,7 +76,7 @@ ServerInfo::ServerInfo()
         usageMins = 0;
 
         quint32 usageCap{ 0 };
-        qint32 code{ 0 };
+        quint32 code{ 0 };
         for ( uint i = 0; i < SERVER_USAGE_48_HOURS; ++i )
         {
             code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
@@ -350,7 +351,9 @@ void ServerInfo::deletePlayer(const int& slot)
                                  QString::number(
                                      plr->getAvgBaud( false ) ),
                                  plr->getBioData() );
-            Helper::logToFile( Helper::USAGE, logMsg, true, true );
+
+            Logger::getInstance()->insertLog( this->getName(), logMsg,
+                                              LogTypes::USAGE, true, true );
         }
 
         QTcpSocket* soc = plr->getSocket();
@@ -431,9 +434,9 @@ void ServerInfo::sendServerRules(Player* plr)
     if ( bOut >= 1 )
     {
         plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + bOut );
+        plr->setBytesOut( plr->getBytesOut() + static_cast<quint64>( bOut ) );
 
-        this->setBytesOut( this->getBytesOut() + bOut );
+        this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
     }
 }
 
@@ -481,11 +484,11 @@ void ServerInfo::sendMasterMessage(const QString& packet, Player* plr,
         bOut = soc->write( msg.toLatin1(),
                            msg.length() );
         plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + bOut );
+        plr->setBytesOut( plr->getBytesOut() + static_cast<quint64>( bOut ) );
     }
 
     if ( bOut >= 1 )
-        this->setBytesOut( this->getBytesOut() + bOut );
+        this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
 }
 
 qint64 ServerInfo::sendToAllConnected(const QString& packet)
@@ -505,7 +508,8 @@ qint64 ServerInfo::sendToAllConnected(const QString& packet)
             {
                 tmpBOut = tmpSoc->write( packet.toLatin1(),
                                          packet.length() );
-                tmpPlr->setBytesOut( tmpPlr->getBytesOut() + tmpBOut );
+                tmpPlr->setBytesOut( tmpPlr->getBytesOut()
+                                     + static_cast<quint64>( tmpBOut ) );
                 tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
 
                 bOut += tmpBOut;
@@ -828,39 +832,39 @@ void ServerInfo::setIpDc(const quint32& value)
     ipDc = value;
 }
 
-qint64 ServerInfo::getBytesIn() const
+quint64 ServerInfo::getBytesIn() const
 {
     return bytesIn;
 }
 
-void ServerInfo::setBytesIn(const qint64& value)
+void ServerInfo::setBytesIn(const quint64& value)
 {
     bytesIn = value;
 }
 
-qint64 ServerInfo::getBytesOut() const
+quint64 ServerInfo::getBytesOut() const
 {
     return bytesOut;
 }
 
-void ServerInfo::setBytesOut(const qint64& value)
+void ServerInfo::setBytesOut(const quint64& value)
 {
     bytesOut = value;
 }
 
-void ServerInfo::setBaudIO(const qint64& bytes, qint64& baud)
+void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
 {
-    qint64 time = baudTime.elapsed();
+    quint64 time = static_cast<quint64>( baudTime.elapsed() );
     if ( bytes > 0 && time > 0 )
         baud = 10000 * bytes / time;
 }
 
-qint64 ServerInfo::getBaudIn() const
+quint64 ServerInfo::getBaudIn() const
 {
     return baudIn;
 }
 
-qint64 ServerInfo::getBaudOut() const
+quint64 ServerInfo::getBaudOut() const
 {
     return baudOut;
 }

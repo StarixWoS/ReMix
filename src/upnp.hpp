@@ -35,7 +35,7 @@ class UPNP : public QObject
         QString ctrlPort{ "" };
 
     public:
-        explicit UPNP(QObject* parent = 0);
+        explicit UPNP(QObject* parent = nullptr);
         ~UPNP();
 
     public:

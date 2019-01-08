@@ -4,14 +4,15 @@
 #include "ui_plrlistwidget.h"
 
 //Required ReMix Widget includes.
-#include "tblview/plrsortproxymodel.hpp"
-#include "tblview/tbleventfilter.hpp"
+#include "views/plrsortproxymodel.hpp"
+#include "views/tbleventfilter.hpp"
 
 //ReMix includes.
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -33,7 +34,7 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     contextMenu = new QMenu( this );
 
     //Setup the PlayerInfo TableView.
-    plrModel = new QStandardItemModel( 0, 8, 0 );
+    plrModel = new QStandardItemModel( 0, 8, nullptr );
     plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ),
                              Qt::Horizontal, "Player IP:Port" );
     plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ),
@@ -255,7 +256,9 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
             logMsg = logMsg.arg( reason,
                                  menuTarget->getSernum_s(),
                                  menuTarget->getBioData() );
-            Helper::logToFile( Helper::DC, logMsg, true, true );
+
+            Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                              LogTypes::DC, true, true );
         }
     }
     menuTarget = nullptr;
@@ -287,7 +290,9 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             logMsg = logMsg.arg( reason,
                                  menuTarget->getSernum_s(),
                                  menuTarget->getBioData() );
-            Helper::logToFile( Helper::BAN, logMsg, true, true );
+
+            Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                              LogTypes::BAN, true, true );
 
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )

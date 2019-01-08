@@ -4,9 +4,11 @@
 
 //Required Qt Includes. --Unable to prototype in most instances.
 //    #include <QElapsedTimer>
+//    #include <QtConcurrent>
 //    #include <QMainWindow>
 //    #include <QModelIndex>
 //    #include <QTcpServer>
+//    #include <QFuture>
 //    #include <QObject>
 //    #include <QDialog>
 //    #include <QTimer>
@@ -79,6 +81,7 @@
     #define REMIX_PROTOTYPES_HPP
 
     //Table-View Classes.
+    class LoggerSortProxyModel;
     class UserSortProxyModel;
     class PlrSortProxyModel;
     class TblEventFilter;
@@ -109,6 +112,7 @@
     class Player;
     class Server;
     class Helper;
+    class Logger;
     class Theme;
     class Rules;
     class ReMix;
@@ -165,14 +169,14 @@
             MAX_GAME_NAME_LENGTH = 256,
 
             //Count of possible logging types that ReMix uses.
-            LOG_TYPE_COUNT = 8,
+            LOG_TYPE_COUNT = 9,
 
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
-            SETTINGS_KEY_COUNT = 5,
+            SETTINGS_KEY_COUNT = 6,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 27,
+            SETTINGS_SUBKEY_COUNT = 28,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
@@ -268,9 +272,18 @@
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
                                  BytesIn, BytesOut, BioData = 7, ColCount = 9 };
 
+        //Valid columns within the User Dialog.
         enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
                                   Rank, Banned, BanDate, BanReason = 8,
                                   ColCount = 9 };
+
+        //Valid columns within the Logger Dialog.
+        enum class LogCols: int{ Date = 0, Source, Type, Message = 3,
+                                 ColCount = 4 };
+
+        //Valid Log types available to the Logger Class.
+        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
+                                  MUTE, IGNORE, MISC = 8 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,

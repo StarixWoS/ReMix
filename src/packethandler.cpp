@@ -9,6 +9,7 @@
 #include "settings.hpp"
 #include "chatview.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "player.hpp"
 #include "user.hpp"
 
@@ -140,8 +141,10 @@ void PacketHandler::parseSRPacket(const QString& packet, Player* plr)
                                               pkt.length() );
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
-                        tmpPlr->setBytesOut( tmpPlr->getBytesOut() + bOut );
-                        server->setBytesOut( server->getBytesOut() + bOut );
+                        tmpPlr->setBytesOut( tmpPlr->getBytesOut()
+                                             + static_cast<quint64>( bOut ) );
+                        server->setBytesOut( server->getBytesOut()
+                                             + static_cast<quint64>( bOut ) );
                     }
                 }
             }
@@ -374,7 +377,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     }
 
     if ( logMsg )
-        Helper::logToFile( Helper::IGNORE, logTxt, true, true );
+    {
+        Logger::getInstance()->insertLog( server->getName(), logTxt,
+                                          LogTypes::IGNORE, true, true );
+    }
 }
 
 bool PacketHandler::checkBannedInfo(Player* plr) const
@@ -398,8 +404,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
         reason = reason.arg( "Banned Info",
                              plr->getPublicIP(),
                              plr->getBioData() );
-        Helper::logToFile( Helper::DC, reason, true, true );
 
+        Logger::getInstance()->insertLog( server->getName(), reason,
+                                          LogTypes::DC, true, true );
         plr->setDisconnected( true, DCTypes::IPDC );
         badInfo = true;
     }
@@ -421,8 +428,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         reason = reason.arg( "Duplicate IP",
                                              plr->getPublicIP(),
                                              plr->getBioData() );
-                        Helper::logToFile( Helper::DC, reason,
-                                           true, true );
+
+                        Logger::getInstance()->insertLog( server->getName(),
+                                                          reason, LogTypes::DC,
+                                                          true, true );
 
                         if ( Settings::getBanDupedIP() )
                         {
@@ -432,8 +441,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                                  plr->getBioData() );
 
                             User::addBan( nullptr, plr, reason );
-                            Helper::logToFile( Helper::BAN, reason,
-                                               true, true );
+
+                            Logger::getInstance()->insertLog(
+                                        server->getName(), reason,
+                                        LogTypes::BAN, true, true );
                         }
                         plr->setDisconnected( true, DCTypes::DupDC );
                     };
@@ -470,7 +481,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         reason = reason.arg( "Duplicate SerNum",
                                              tmpPlr->getPublicIP(),
                                              tmpPlr->getBioData() );
-                        Helper::logToFile( Helper::DC, reason, true, true );
+
+                        Logger::getInstance()->insertLog( server->getName(),
+                                                          reason, LogTypes::DC,
+                                                          true, true );
 
                         plr->setDisconnected( true, DCTypes::DupDC );
                         badInfo = true;
@@ -505,7 +519,9 @@ void PacketHandler::detectFlooding(Player* plr)
                                              QString::number(
                                                  time ),
                                              plr->getBioData() );
-                Helper::logToFile( Helper::DC, logMsg, true, true );
+
+                Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                                  LogTypes::DC, true, true );
 
                 if ( Settings::getBanDeviants() )
                 {
@@ -515,7 +531,10 @@ void PacketHandler::detectFlooding(Player* plr)
                                          plr->getBioData() );
 
                     User::addBan( nullptr, plr, logMsg );
-                    Helper::logToFile( Helper::BAN, logMsg, true, true );
+
+                    Logger::getInstance()->insertLog( server->getName(),
+                                                      logMsg, LogTypes::BAN,
+                                                      true, true );
                 }
                 plr->setDisconnected( true, DCTypes::PktDC );
             }
@@ -533,14 +552,14 @@ void PacketHandler::readMIX0(const QString& packet, Player* plr)
     QString sernum = packet.mid( 2 ).left( 8 );
 
     //Send the next Packet to the Scene's Host.
-    plr->setTargetScene( sernum.toUInt( 0, 16 ) );
+    plr->setTargetScene( sernum.toUInt( nullptr, 16 ) );
     plr->setTargetType( Player::SCENE );
 }
 
 void PacketHandler::readMIX1(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
-    plr->setSceneHost( sernum.toUInt( 0, 16 ) );
+    plr->setSceneHost( sernum.toUInt( nullptr, 16 ) );
 }
 
 void PacketHandler::readMIX2(const QString&, Player* plr)
@@ -553,7 +572,7 @@ void PacketHandler::readMIX3(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->validateSerNum( server, sernum.toUInt( 0, 16 ) );
+    plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
     this->checkBannedInfo( plr );
 }
 
@@ -561,7 +580,7 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->setTargetSerNum( sernum.toUInt( 0, 16 ) );
+    plr->setTargetSerNum( sernum.toUInt( nullptr, 16 ) );
     plr->setTargetType( Player::PLAYER );
 }
 
@@ -585,7 +604,7 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
             pkt = pkt.left( pkt.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, pkt.toUInt( 0, 16 ) );
+    plr->validateSerNum( server, pkt.toUInt( nullptr, 16 ) );
     this->checkBannedInfo( plr );
 }
 

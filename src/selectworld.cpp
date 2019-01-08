@@ -28,7 +28,8 @@ SelectWorld::SelectWorld(QWidget* parent) :
         for (int i = 1; i < model->columnCount(); ++i)
             ui->worldViewer->hideColumn( i );
 
-        ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
+        ui->worldViewer->setRootIndex( model->index(
+                                           Settings::getWorldDir() ) );
     });
 }
 

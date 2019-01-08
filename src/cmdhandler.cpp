@@ -11,6 +11,7 @@
 #include "randdev.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt includes.
@@ -67,7 +68,9 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
             reason.append( append );
 
             User::addBan( nullptr, plr, reason );
-            Helper::logToFile( Helper::BAN, reason, true, true );
+
+            Logger::getInstance()->insertLog( server->getName(), reason,
+                                              LogTypes::BAN, true, true );
 
             plr->setDisconnected( true, DCTypes::IPDC );
         }
@@ -214,7 +217,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
-            if ( !( arg1.toInt( 0, 16 ) & MIN_HEX_SERNUM ) )
+            if ( !( arg1.toInt( nullptr, 16 ) & MIN_HEX_SERNUM ) )
                 arg1.prepend( "SOUL " );
         }
         else if ( Helper::cmpStrings( subCmd, "change" ) )
@@ -480,7 +483,10 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     }
 
     if ( logMsg )
-        Helper::logToFile( Helper::ADMIN, msg, true, true );
+    {
+        Logger::getInstance()->insertLog( server->getName(), msg,
+                                          LogTypes::ADMIN, true, true );
+    }
 
     return retn;
 }
@@ -633,7 +639,8 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
                 msg = msg.arg( plr->getSernum_s(),
                                plr->getBioData() );
 
-                Helper::logToFile( Helper::BAN, msg, true, true );
+                Logger::getInstance()->insertLog( server->getName(), msg,
+                                                  LogTypes::BAN, true, true );
 
                 tmpPlr->setDisconnected( true, DCTypes::IPDC );
             }
@@ -679,7 +686,9 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
                 reason = reason.arg( msg,
                                      tmpPlr->getSernum_s(),
                                      tmpPlr->getBioData() );
-                Helper::logToFile( Helper::DC, reason, true, true );
+
+                Logger::getInstance()->insertLog( server->getName(), reason,
+                                                  LogTypes::DC, true, true );
 
                 tmpPlr->setDisconnected( true, DCTypes::IPDC );
             }
@@ -833,7 +842,9 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
             reason = reason.arg( pwdTypes[ static_cast<int>( pwdType ) ],
                                  plr->getSernum_s(),
                                  plr->getBioData() );
-            Helper::logToFile( Helper::DC, reason, true, true );
+
+            Logger::getInstance()->insertLog( server->getName(), reason,
+                                              LogTypes::DC, true, true );
         }
         plr->setDisconnected( true, DCTypes::IPDC );
     }

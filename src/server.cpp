@@ -80,8 +80,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
                             qint64 bOut = tmpSoc->write( msg.toLatin1(),
                                                          msg.length() );
 
-                            plr->setBytesOut( plr->getBytesOut() + bOut );
-                            server->setBytesOut( server->getBytesOut() + bOut );
+                            plr->setBytesOut( plr->getBytesOut()
+                                            + static_cast<quint64>( bOut ) );
+                            server->setBytesOut( server->getBytesOut()
+                                               + static_cast<quint64>( bOut ) );
                         }
                     }
                 }
@@ -170,7 +172,7 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         plr->validateSerNum( plr->getServerInfo(),
                              Helper::serNumToHexStr( sernum )
-                                        .toUInt( 0, 16 ) );
+                                        .toUInt( nullptr, 16 ) );
 
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
@@ -288,7 +290,8 @@ void Server::userReadyRead(QTcpSocket* socket)
     qint64 bIn = data.length();
 
     data.append( socket->readAll() );
-    server->setBytesIn( server->getBytesIn() + (data.length() - bIn) );
+    server->setBytesIn( server->getBytesIn()
+                      + static_cast<quint64>(data.length() - bIn) );
 
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
@@ -307,7 +310,8 @@ void Server::userReadyRead(QTcpSocket* socket)
             plr->setOutBuff( data );
 
             plr->setPacketsIn( plr->getPacketsIn(), 1 );
-            plr->setBytesIn( plr->getBytesIn() + packet.length() );
+            plr->setBytesIn( plr->getBytesIn()
+                           + static_cast<quint64>( packet.length() ) );
 
             pktHandle->parsePacket( packet, plr );
             if ( socket->bytesAvailable() > 0

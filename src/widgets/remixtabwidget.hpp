@@ -27,11 +27,11 @@ class ReMixTabWidget : public QTabWidget
     bool nightMode{ false };
 
     public:
-        explicit ReMixTabWidget(QWidget* parent = 0);
+        explicit ReMixTabWidget(QWidget* parent = nullptr);
         ~ReMixTabWidget();
 
         void sendMultiServerMessage(const QString& msg);
-        qint32 getPlayerCount() const;
+        quint32 getPlayerCount() const;
         quint32 getServerCount() const;
 
         qint32 getPrevTabIndex() const;

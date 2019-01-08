@@ -20,7 +20,7 @@ class Settings : public QDialog
     static Settings* instance;
 
     public:
-        explicit Settings(QWidget* parent = 0);
+        explicit Settings(QWidget* parent = nullptr);
         ~Settings();
 
         static Settings* getInstance();
@@ -34,10 +34,11 @@ class Settings : public QDialog
                       ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
                       EchoComments, MinimizeToTray, SaveWindowPositions,
                       IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles, DarkMode, UseUPNP,
-                      CheckForUpdates, DCBlueCodedSerNums = 26 };
+                      GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates,
+                      DCBlueCodedSerNums, LoggerAutoScroll = 27 };
 
-        enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules = 4 };
+        enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules,
+                   Logger = 5 };
 
         static QSettings* prefs;
 
@@ -163,6 +164,10 @@ class Settings : public QDialog
                                 const QString& svrID);
 
         static QString getGameName(const QString& svrID);
+
+
+        static void setLoggerAutoScroll(const bool& value);
+        static bool getLoggerAutoScroll();
 
     private:
         Ui::Settings* ui;

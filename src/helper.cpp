@@ -88,8 +88,8 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
     if ( val_i > 0 )
         return QString( "%1" ).arg( val_i, fill, base, filler ).toUpper();
     else
-        return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler )
-                   .toUpper();
+        return QString( "%1" ).arg( val.toInt( nullptr, 16 ),
+                                    fill, base, filler ).toUpper();
 }
 
 QString Helper::getStrStr(const QString& str, QString indStr,
@@ -181,7 +181,7 @@ QString Helper::sanitizeSerNum(const QString& value)
     QString sernum{ value };
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         return value;
 
@@ -192,7 +192,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString result{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -224,7 +224,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString retn{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -244,7 +244,7 @@ qint32 Helper::serNumtoInt(QString& sernum)
 {
     stripSerNumHeader( sernum );
 
-    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         sernum_i = strToInt( sernum, 16 );
     else
@@ -255,7 +255,7 @@ qint32 Helper::serNumtoInt(QString& sernum)
 
 bool Helper::isBlueCodedSerNum(const quint32& sernum)
 {
-    return blueCodedList.contains( sernum );
+    return blueCodedList.contains( static_cast<int>( sernum ) );
 }
 
 void Helper::logToFile(const LogTypes& type, const QString& text,
@@ -607,11 +607,11 @@ QString Helper::getTimeAsString(const quint64& time)
     if ( date == 0 )
         date = QDateTime::currentDateTime().toTime_t();
 
-    return QDateTime::fromTime_t( date )
+    return QDateTime::fromTime_t( static_cast<uint>( date ) )
             .toString( "ddd MMM dd HH:mm:ss yyyy" );
 }
 
-QString Helper::getTimeFormat(const qint64& time)
+QString Helper::getTimeFormat(const quint64& time)
 {
     return QString( "%1:%2:%3" )
             .arg( getTimeIntFormat( time, TimeFormat::Hours ),
@@ -622,23 +622,23 @@ QString Helper::getTimeFormat(const qint64& time)
                   2, 10, QChar( '0' ) );
 }
 
-qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
+quint64 Helper::getTimeIntFormat(const quint64& time, const TimeFormat& format)
 {
     switch ( format )
     {
         case TimeFormat::Hours:
-        return ( time / static_cast<int>( TimeFormat::HoursDiv ) );
+            return ( time / static_cast<int>( TimeFormat::HoursDiv ) );
         break;
         case TimeFormat::Minutes:
-        return ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
-                 % static_cast<int>( TimeFormat::SecDiv ) );
+            return ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
+                     % static_cast<int>( TimeFormat::SecDiv ) );
         break;
         case TimeFormat::Seconds:
-        return ( time % static_cast<int>( TimeFormat::SecDiv ) );
+            return ( time % static_cast<int>( TimeFormat::SecDiv ) );
         break;
-        case TimeFormat::Default:
+            case TimeFormat::Default:
         default:
-        return time;
+            return time;
         break;
     }
 }

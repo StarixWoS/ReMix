@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.0";
-    property string ReMixVersion: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.0";
+    property string ReMixVersionDisplay: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.1";
+    property string ReMixVersion: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.1";
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -44,14 +44,15 @@ CppApplication
 
         fileTags: ["hpp"]
         files: [
-            "src/tblview/usersortproxymodel.hpp",
-            "src/tblview/plrsortproxymodel.hpp",
+            "src/views/loggersortproxymodel.hpp",
             "src/widgets/commentviewwidget.hpp",
-            "src/tblview/tbleventfilter.hpp",
+            "src/views/usersortproxymodel.hpp",
+            "src/views/plrsortproxymodel.hpp",
             "src/widgets/settingswidget.hpp",
             "src/widgets/chatviewwidget.hpp",
             "src/widgets/remixtabwidget.hpp",
             "src/widgets/plrlistwidget.hpp",
+            "src/views/tbleventfilter.hpp",
             "src/widgets/userdelegate.hpp",
             "src/widgets/remixwidget.hpp",
             "src/widgets/ruleswidget.hpp",
@@ -59,6 +60,7 @@ CppApplication
             "src/createinstance.hpp",
             "src/appeventfilter.hpp",
             "src/packethandler.hpp",
+            "src/worldshuffler.hpp",
             "src/packetforge.hpp",
             "src/selectworld.hpp",
             "src/cmdhandler.hpp",
@@ -74,6 +76,7 @@ CppApplication
             "src/server.hpp",
             "src/player.hpp",
             "src/helper.hpp",
+            "src/logger.hpp",
             "src/theme.hpp",
             "src/rules.hpp",
             "src/remix.hpp",
@@ -88,14 +91,15 @@ CppApplication
 
         fileTags: ["cpp"]
         files: [
-            "src/tblview/usersortproxymodel.cpp",
-            "src/tblview/plrsortproxymodel.cpp",
+            "src/views/loggersortproxymodel.cpp",
             "src/widgets/commentviewwidget.cpp",
-            "src/tblview/tbleventfilter.cpp",
+            "src/views/usersortproxymodel.cpp",
+            "src/views/plrsortproxymodel.cpp",
             "src/widgets/settingswidget.cpp",
             "src/widgets/chatviewwidget.cpp",
             "src/widgets/remixtabwidget.cpp",
             "src/widgets/plrlistwidget.cpp",
+            "src/views/tbleventfilter.cpp",
             "src/widgets/userdelegate.cpp",
             "src/widgets/remixwidget.cpp",
             "src/widgets/ruleswidget.cpp",
@@ -103,6 +107,7 @@ CppApplication
             "src/createinstance.cpp",
             "src/appeventfilter.cpp",
             "src/packethandler.cpp",
+            "src/worldshuffler.cpp",
             "src/packetforge.cpp",
             "src/selectworld.cpp",
             "src/cmdhandler.cpp",
@@ -117,6 +122,7 @@ CppApplication
             "src/server.cpp",
             "src/player.cpp",
             "src/helper.cpp",
+            "src/logger.cpp",
             "src/theme.cpp",
             "src/rules.cpp",
             "src/remix.cpp",
@@ -144,6 +150,7 @@ CppApplication
                  "ui/comments.ui",
                  "ui/settings.ui",
                  "ui/sendmsg.ui",
+                 "ui/logger.ui",
                  "ui/remix.ui",
                  "ui/user.ui",
                 ]

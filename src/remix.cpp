@@ -9,6 +9,7 @@
 //ReMix includes.
 #include "serverinfo.hpp"
 #include "settings.hpp"
+#include "logger.hpp"
 #include "helper.hpp"
 #include "user.hpp"
 
@@ -41,6 +42,7 @@ ReMix::ReMix(QWidget* parent) :
 
     //Setup Objects.
     Settings::setInstance( new Settings( this ) );
+    Logger::setInstance( new Logger( this ) );
     User::setInstance( new User( this ) );
 
     serverUI = ReMixTabWidget::getTabInstance( this );
@@ -72,6 +74,7 @@ ReMix::~ReMix()
         trayMenu->deleteLater();
 
     Settings::getInstance()->deleteLater();
+    Logger::getInstance()->deleteLater();
     User::getInstance()->deleteLater();
 
     serverUI->close();
@@ -86,6 +89,9 @@ ReMix::~ReMix()
 
 ReMix* ReMix::getInstance()
 {
+    if ( instance == nullptr )
+        instance = new ReMix();
+
     return instance;
 }
 

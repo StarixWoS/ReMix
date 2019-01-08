@@ -2,6 +2,21 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.1:
+    Change:
+      * Add a new Dialog to enable in-application viewing of Log events.
+        * Note: Not all events of note are yet logged to this Dialog. Only events logged to file are currently shown.
+      * Add the early base layout for a future WorldShuffler feature.
+        * This feature will eventually allow the Host to host a server that will change the selected Game/ToY/World without intervention from the Host.
+
+    Bugfixes:
+      * Converted many variable types to their proper (assumed) types.
+        * Note: Many of these variables were being incorrectly used and otherwise being truncated to a different type alltogether,
+      * Converted many uses of '0' to use the proper value of 'nullptr'.
+
+
+
+
 Version 2.4.0:
     Change:
       * Add more profanity words to the chat filter.

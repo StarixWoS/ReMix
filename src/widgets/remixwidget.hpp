@@ -38,7 +38,7 @@ class ReMixWidget : public QWidget
         void renameServer(const QString& newName);
 
         void sendServerMessage(const QString& msg);
-        qint32 getPlayerCount() const;
+        quint32 getPlayerCount() const;
         QString getServerName() const;
 
         Server* getTcpServer() const;
@@ -58,7 +58,9 @@ class ReMixWidget : public QWidget
         void on_networkStatus_customContextMenuRequested(const QPoint&);
         void on_openChatView_clicked();
 
-    signals:
+        void on_logButton_clicked();
+
+signals:
         void reValidateServerIP();
 
     private:

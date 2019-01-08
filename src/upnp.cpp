@@ -4,6 +4,7 @@
 
 //ReMix includes.
 #include "settings.hpp"
+#include "logger.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
@@ -34,7 +35,8 @@ UPNP* UPNP::getInstance()
         upnp = new UPNP();
 
     QString msg{ "Getting UPNP Object." };
-    Helper::logToFile( Helper::UPNP, msg, true, true );
+    //Helper::logToFile( Helper::UPNP, msg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", msg, LogTypes::UPNP, true, true);
 
     return upnp;
 }
@@ -81,8 +83,10 @@ UPNP::UPNP(QObject* parent )
             }
         });
 
-        QString msg{ "Creating UPNP Object." };
-        Helper::logToFile( Helper::UPNP, msg, true, true );
+        QString logMsg{ "Creating UPNP Object." };
+        //Helper::logToFile( Helper::UPNP, msg, true, true );
+        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                          true, true);
     }
     else    //Delete our object at the next oppertunity.
     {
@@ -121,7 +125,9 @@ void UPNP::makeTunnel()
 
     QString logMsg{ "Sent UDP Query Response [ %1 ]." };
     logMsg = logMsg.arg( discover.trimmed() );
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 }
 
 void UPNP::getUdp()
@@ -152,7 +158,9 @@ void UPNP::getUdp()
             {
                 logMsg = "Got UDP Query Response [ %1 ].";
                 logMsg = logMsg.arg( vs.trimmed() );
-                Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                Logger::getInstance()->insertLog( "UPNP", logMsg,
+                                                  LogTypes::UPNP, true, true);
             }
 
             int index = Helper::getStrIndex( vs, "Location" );
@@ -216,7 +224,10 @@ void UPNP::getUdp()
                                 logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
                                 logMsg = logMsg.arg( rtrSchema,
                                                      schema );
-                                Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                                Logger::getInstance()->insertLog(
+                                            "UPNP", logMsg, LogTypes::UPNP,
+                                            true, true);
 
                                 validSchema = false;
                                 if ( Helper::cmpStrings( rtrSchema, schema ) )
@@ -245,7 +256,10 @@ void UPNP::getUdp()
 
                                     logMsg = "Got ControlURL[ %1 ].";
                                     logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
-                                    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                                    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                                    Logger::getInstance()->insertLog(
+                                                "UPNP", logMsg, LogTypes::UPNP,
+                                                true, true);
 
                                     this->setTunneled( true );
                                     emit this->success();
@@ -265,7 +279,9 @@ void UPNP::getUdp()
 
                 logMsg = "Requesting Service Information from [ %1 ].";
                 logMsg = logMsg.arg( vs );
-                Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                Logger::getInstance()->insertLog( "UPNP", logMsg,
+                                                  LogTypes::UPNP, true, true);
 
                 httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
                 udpSocket->close();
@@ -287,7 +303,9 @@ void UPNP::getExternalIP()
     this->postSOAP( "GetExternalIPAddress", message, "" );
 
     QString logMsg{ "Getting ExternalIP." };
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 }
 
 void UPNP::postSOAP(const QString& action, const QString& message,
@@ -353,7 +371,9 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 logMsg = logMsg.arg( action,
                                      protocol,
                                      QString::number( port ) );
-                Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+                Logger::getInstance()->insertLog( "UPNP", logMsg,
+                                                  LogTypes::UPNP, true, true);
             }
         }
         else
@@ -405,7 +425,9 @@ void UPNP::extractError(const QString& message, const qint32& port,
     logMsg = logMsg.arg( protocol,
                          QString::number( port ),
                          message );
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 }
 
 void UPNP::extractExternalIP(const QString& action, const QString& message )
@@ -424,7 +446,9 @@ void UPNP::extractExternalIP(const QString& action, const QString& message )
         QString logMsg{ "Got Reply from Action[ %1 ] for [ %2 ]" };
                 logMsg = logMsg.arg( action,
                                      externalAddress.toString() );
-        Helper::logToFile( Helper::UPNP, logMsg, true, true );
+        //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                          true, true);
     }
 }
 
@@ -447,7 +471,9 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
     QString logMsg{ "Checking Port[ %1:%2 ]." };
     logMsg = logMsg.arg( protocol,
                          QString::number( port ) );
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 }
 
 void UPNP::addPortForward(const QString& protocol, const qint32& port)
@@ -483,7 +509,9 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port)
     QString logMsg{ "Adding Port[ %1:%2 ]." };
     logMsg = logMsg.arg( protocol,
                          QString::number( port ) );
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 }
 
 void UPNP::removePortForward(const QString& protocol, const qint32& port)
@@ -508,6 +536,8 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     QString logMsg{ "Removing Port[ %1:%2 ]." };
     logMsg = logMsg.arg( protocol,
                          QString::number( port ) );
-    Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 
 }

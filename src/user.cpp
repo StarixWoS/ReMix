@@ -7,7 +7,7 @@
 #include "widgets/userdelegate.hpp"
 
 //ReMix includes.
-#include "usersortproxymodel.hpp"
+#include "views/usersortproxymodel.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "helper.hpp"
@@ -61,7 +61,7 @@ User::User(QWidget* parent) :
 
     //Setup the ServerInfo TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>(
-                                           UserCols::ColCount ), 0 );
+                                           UserCols::ColCount ), nullptr );
     tblModel->setHeaderData( static_cast<int>( UserCols::SerNum ),
                              Qt::Horizontal,
                              "SerNum" );

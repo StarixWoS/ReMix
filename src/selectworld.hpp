@@ -20,7 +20,7 @@ class SelectWorld : public QDialog
         bool requireWorld{ false };
 
     public:
-        explicit SelectWorld(QWidget* parent = 0 );
+        explicit SelectWorld(QWidget* parent = nullptr);
         ~SelectWorld();
 
         QString& getSelectedWorld();

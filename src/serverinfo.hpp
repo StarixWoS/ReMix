@@ -33,7 +33,7 @@ class ServerInfo : public QObject
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    qint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
+    quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
     quint32 usageCounter{ 0 };
 
     qint32 usageHours{ 0 };
@@ -88,11 +88,11 @@ class ServerInfo : public QObject
     quint32 ipDc{ 0 };
 
     QElapsedTimer baudTime;
-    qint64 bytesIn{ 0 };
-    qint64 baudIn{ 0 };
+    quint64 bytesIn{ 0 };
+    quint64 baudIn{ 0 };
 
-    qint64 bytesOut{ 0 };
-    qint64 baudOut{ 0 };
+    quint64 bytesOut{ 0 };
+    quint64 baudOut{ 0 };
 
     public:
         ServerInfo();
@@ -200,15 +200,15 @@ class ServerInfo : public QObject
         quint32 getIpDc() const;
         void setIpDc(const quint32& value);
 
-        qint64 getBytesIn() const;
-        void setBytesIn(const qint64& value);
+        quint64 getBytesIn() const;
+        void setBytesIn(const quint64 &value);
 
-        qint64 getBytesOut() const;
-        void setBytesOut(const qint64& value);
+        quint64 getBytesOut() const;
+        void setBytesOut(const quint64 &value);
 
-        void setBaudIO(const qint64& bytes, qint64& baud);
-        qint64 getBaudIn() const;
-        qint64 getBaudOut() const;
+        void setBaudIO(const quint64 &bytes, quint64 &baud);
+        quint64 getBaudIn() const;
+        quint64 getBaudOut() const;
 
         QUdpSocket* getMasterSocket() const;
         bool initMasterSocket(const QHostAddress& addr, const quint16& port);

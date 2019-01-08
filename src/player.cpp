@@ -7,6 +7,7 @@
 #include "settings.hpp"
 #include "sendmsg.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "theme.hpp"
 #include "user.hpp"
 
@@ -119,7 +120,9 @@ Player::Player()
                             "[ %1 ], [ %2 ]" };
             reason = reason.arg( this->getSernum_s(),
                                  this->getBioData() );
-            Helper::logToFile( Helper::DC, reason, true, true );
+
+            Logger::getInstance()->insertLog( serverInfo->getName(), reason,
+                                              LogTypes::DC, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -243,7 +246,7 @@ void Player::sendMessage(const QString& msg, const bool& toAll)
     }
 }
 
-qint64 Player::getConnTime() const
+quint64 Player::getConnTime() const
 {
     return connTime;
 }
@@ -548,12 +551,12 @@ void Player::setPacketsIn(const int& value, const int& incr)
     this->setPacketFloodCount( this->getPacketFloodCount() + incr );
 }
 
-qint64 Player::getBytesIn() const
+quint64 Player::getBytesIn() const
 {
     return bytesIn;
 }
 
-void Player::setBytesIn(const qint64& value)
+void Player::setBytesIn(const quint64& value)
 {
     bytesIn = value;
     this->setAvgBaud( bytesIn, false );
@@ -569,18 +572,18 @@ void Player::setPacketsOut(const int& value)
     packetsOut = value;
 }
 
-qint64 Player::getBytesOut() const
+quint64 Player::getBytesOut() const
 {
     return bytesOut;
 }
 
-void Player::setBytesOut(const qint64& value)
+void Player::setBytesOut(const quint64& value)
 {
     bytesOut = value;
     this->setAvgBaud( bytesOut, true );
 }
 
-qint64 Player::getAvgBaud(const bool& out) const
+quint64 Player::getAvgBaud(const bool& out) const
 {
     if ( out )
         return avgBaudOut;
@@ -588,10 +591,10 @@ qint64 Player::getAvgBaud(const bool& out) const
         return avgBaudIn;
 }
 
-void Player::setAvgBaud(const qint64& bytes, const bool& out)
+void Player::setAvgBaud(const quint64& bytes, const bool& out)
 {
-    qint64 time = this->getConnTime();
-    qint64 baud{ 0 };
+    quint64 time = this->getConnTime();
+    quint64 baud{ 0 };
 
     if ( bytes > 0 && time > 0 )
         baud = 10 * bytes / time;
@@ -735,7 +738,10 @@ bool Player::getNetworkMuted() const
 void Player::setNetworkMuted(const bool& value, const QString& msg)
 {
     if ( !msg.isEmpty() )
-        Helper::logToFile( Helper::MUTE, msg, true, true );
+    {
+        Logger::getInstance()->insertLog( serverInfo->getName(), msg,
+                                          LogTypes::MUTE, true, true );
+    }
 
     networkMuted = value;
 }
@@ -847,7 +853,10 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             }
 
             this->sendMessage( message, false );
-            Helper::logToFile( Helper::DC, reason, true, true );
+
+            Logger::getInstance()->insertLog( serverInfo->getName(), reason,
+                                              LogTypes::DC, true, true );
+
             this->setDisconnected( true, DCTypes::IPDC );
         }
     }

@@ -30,7 +30,8 @@ const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
     "WrongIPs",
     "Messages",
     "Positions",
-    "Rules"
+    "Rules",
+    "Logger"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
@@ -61,7 +62,8 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "darkMode",
     "useUPNP",
     "checkForUpdates",
-    "dcBlueCodedSerNums"
+    "dcBlueCodedSerNums",
+    "loggerAutoScroll"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
@@ -120,7 +122,7 @@ Settings::~Settings()
     delete ui;
 }
 
-Settings*Settings::getInstance()
+Settings* Settings::getInstance()
 {
     if ( instance == nullptr )
         instance = new Settings( nullptr );
@@ -611,5 +613,18 @@ QString Settings::getGameName(const QString& svrID)
 {
     return getServerSetting( keys[ Keys::Setting ],
                              subKeys[ SubKeys::GameName ], svrID )
-                    .toString();
+            .toString();
+}
+
+void Settings::setLoggerAutoScroll(const bool& value)
+{
+    setSetting( keys[ Keys::Logger ],
+                subKeys[ SubKeys::LoggerAutoScroll ], value );
+}
+
+bool Settings::getLoggerAutoScroll()
+{
+    return getSetting( keys[ Keys::Logger ],
+                       subKeys[ SubKeys::LoggerAutoScroll ] )
+              .toBool();
 }
