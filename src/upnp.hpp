@@ -42,7 +42,8 @@ class UPNP : public QObject
         void makeTunnel();
 
         void checkPortForward(const QString& protocol, const qint32& port);
-        void addPortForward(const QString& protocol, const qint32& port);
+        void addPortForward(const QString& protocol, const qint32& port,
+                            const bool& lifetime = false);
         void removePortForward(const QString& protocol, const qint32& port);
 
         static UPNP* getInstance();

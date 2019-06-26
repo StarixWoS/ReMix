@@ -344,6 +344,7 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 log = false;
             }
 
+
             if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {
                 emit this->removedPortForward( port, protocol );
@@ -383,7 +384,9 @@ void UPNP::postSOAP(const QString& action, const QString& message,
             //reply to a "GetSpecificPortMapping" request.
             //Try and add port forwards if our response holds this value.
             if ( Helper::strContainsStr( reply, "Invalid Args" ) )
+            {
                 this->addPortForward( protocol, port );
+            }
             else
                 this->extractError( reply, port, protocol );
         }
@@ -397,10 +400,18 @@ void UPNP::extractError(const QString& message, const qint32& port,
 {
     QXmlStreamReader reader( message );
     reader.readNext();
-    while ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
+    while ( !Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
         reader.readNext();
     }
+
+
+    QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
+    logMsg = logMsg.arg( protocol,
+                         QString::number( port ),
+                         message );
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                      true, true);
 
     if ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
@@ -412,6 +423,17 @@ void UPNP::extractError(const QString& message, const qint32& port,
             emit this->checkedPortForward( port, protocol );
         }
 
+        if ( Helper::cmpStrings( elementText, "OnlyPermanentLeasesSupported" ) )
+        {
+            logMsg = "Re-attempting port forward for Port[ %1:%2 ] "
+                     "as a permanent lease.";
+            logMsg = logMsg.arg( protocol,
+                                 QString::number( port ) );
+            Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
+                                              true, true);
+            this->addPortForward( protocol, port, true );
+        }
+
         if ( Helper::cmpStrings( reader.readElementText(), "errorDescription" ) )
         {
             this->addPortForward( protocol, port );
@@ -420,14 +442,6 @@ void UPNP::extractError(const QString& message, const qint32& port,
         else
             emit this->error( reader.readElementText() );
     }
-
-    QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
-    logMsg = logMsg.arg( protocol,
-                         QString::number( port ),
-                         message );
-    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
 }
 
 void UPNP::extractExternalIP(const QString& action, const QString& message )
@@ -476,7 +490,8 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
                                       true, true);
 }
 
-void UPNP::addPortForward(const QString& protocol, const qint32& port)
+void UPNP::addPortForward(const QString& protocol, const qint32& port,
+                          const bool& lifetime)
 {
     if ( !ports.contains( port ) )
     {
@@ -496,13 +511,18 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port)
                      "<NewLeaseDuration xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">%7</NewLeaseDuration></m:AddPortMapping>"
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
+    //Support for routers that only support lifetime leases.
+    qint32 timeout{ UPNP_TIME_OUT_S };
+    if ( lifetime == true )
+        timeout = 0;
+
     message = message.arg( rtrSchema,
                            QString::number( port ),
                            protocol,
                            QString::number( port ),
                            localAddress.ip().toString(),
                            "ReMix_" % QString::number( port ) % protocol,
-                           QString::number( UPNP_TIME_OUT_S ) );
+                            QString::number( timeout ) );
 
     this->postSOAP( "AddPortMapping", message, protocol, port );
 

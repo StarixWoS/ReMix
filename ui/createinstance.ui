@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>243</width>
+    <width>270</width>
     <height>150</height>
    </rect>
   </property>
@@ -80,14 +80,14 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="nameLabel">
         <property name="text">
          <string>Server Name:</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="gameLabel">
         <property name="maximumSize">
          <size>
           <width>150</width>
@@ -165,13 +165,20 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QCheckBox" name="randomizePorts">
-        <property name="toolTip">
-         <string>When toggled the port numbers will be randomized when blank or '0'.</string>
-        </property>
+      <item row="2" column="0">
+       <widget class="QLabel" name="portLabel">
         <property name="text">
          <string>Port:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="randomizePort">
+        <property name="text">
+         <string>Randomize</string>
         </property>
        </widget>
       </item>
