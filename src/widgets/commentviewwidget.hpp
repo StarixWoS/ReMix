@@ -12,7 +12,7 @@ class CommentViewWidget : public QWidget
     Q_OBJECT
 
     public:
-        explicit CommentViewWidget(QWidget *parent = 0);
+        explicit CommentViewWidget(QWidget *parent = nullptr);
         ~CommentViewWidget();
 
         void setTitle(const QString& name);

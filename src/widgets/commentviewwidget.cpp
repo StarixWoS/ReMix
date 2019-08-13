@@ -6,6 +6,7 @@
 //ReMix includes.
 #include "settings.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 
 //Qt Includes.
 #include <QScrollBar>

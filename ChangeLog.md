@@ -2,6 +2,12 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.3:
+
+    Bugfixes:
+      * Fixed a crash when recieving comments from players.
+      * Duplicate SerNums will now correctly be disconnected with prejudice.
+
 Version 2.4.2:
     Change:
       * Added a port randomizing button to the server creation dialog in an effort to be more intuitive.

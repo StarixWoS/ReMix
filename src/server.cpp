@@ -32,7 +32,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     plrViewModel = plrView;
 
     //Setup Objects.
-    serverComments = new Comments( parent );
+    serverComments = new Comments( parent, svr );
     serverComments->setTitle( svr->getName() );
 
     chatView = new ChatView( parent, server );

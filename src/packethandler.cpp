@@ -462,7 +462,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //This is an un-optional disconnect
     //due to how Private chat is handled.
     //Perhaps once a better fix is found we can remove this.
-    if ( !badInfo )
+    if ( badInfo )
     {
         //The User has the same SerNum as another User
         //and is connecting from a different IP Address.
