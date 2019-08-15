@@ -170,7 +170,7 @@ Player::Player()
         QTcpSocket* soc{ this->getSocket() };
         if ( soc != nullptr )
         {
-            if ( this->getDisconnected() )
+            if ( this->getIsDisconnected() )
             {
                 //Gracefully Disconnect the User.
                 soc->flush();
@@ -686,47 +686,41 @@ void Player::setNewAdminPwdReceived(const bool& value)
     newAdminPwdReceived = value;
 }
 
-bool Player::getDisconnected() const
+bool Player::getIsDisconnected() const
 {
-    return pendingDisconnect;
+    return isDisconnected;
 }
 
 void Player::setDisconnected(const bool& value, const DCTypes& dcType)
 {
-    auto* server = this->getServerInfo();
-    if ( server != nullptr )
+    isDisconnected = value;
+    if ( isDisconnected )
     {
-        //Increment the disconnect count for the specific type.
-        switch ( dcType )
+        auto* server = this->getServerInfo();
+        if ( server != nullptr )
         {
-            case DCTypes::IPDC:
-            default:
-                {
-                    server->setIpDc( server->getIpDc() + 1 );
-                }
-            break;
-            case DCTypes::DupDC:
-                {
-                    server->setDupDc( server->getDupDc() + 1 );
-                }
-            break;
-            case DCTypes::PktDC:
-                {
-                    server->setPktDc( server->getPktDc() + 1 );
-                }
-            break;
+            //Increment the disconnect count for the specific type.
+            switch ( dcType )
+            {
+                case DCTypes::IPDC:
+                default:
+                    {
+                        server->setIpDc( server->getIpDc() + 1 );
+                    }
+                break;
+                case DCTypes::DupDC:
+                    {
+                        server->setDupDc( server->getDupDc() + 1 );
+                    }
+                break;
+                case DCTypes::PktDC:
+                    {
+                        server->setPktDc( server->getPktDc() + 1 );
+                    }
+                break;
+            }
         }
-    }
-
-    pendingDisconnect = value;
-    if ( pendingDisconnect )
-    {
-        killTimer.start( 250 );
-    }
-    else  //The User is no longer being disconnected. Kill the timer.
-    {
-        if ( killTimer.isActive() )
-            killTimer.stop();
+        killTimer.start( MAX_DISCONNECT_TTL );
     }
 }
 

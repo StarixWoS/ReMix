@@ -33,8 +33,8 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( Toggles::BANDUPEDIP,
                            Settings::getBanDupedIP() );
 
-    this->setCheckedState( Toggles::BANHACKERS,
-                           Settings::getBanDeviants() );
+    //this->setCheckedState( Toggles::BANHACKERS,
+    //                       Settings::getBanDeviants() );
 
     this->setCheckedState( Toggles::REQSERNUM,
                            Settings::getReqSernums() );
@@ -207,9 +207,9 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case Toggles::BANDUPEDIP: //3
             Settings::setBanDupedIP( state );
         break;
-        case Toggles::BANHACKERS: //4
-            Settings::setBanHackers( state );
-        break;
+        //case Toggles::BANHACKERS: //4
+        //    Settings::setBanHackers( state );
+        //break;
         case Toggles::REQSERNUM: //5
             Settings::setReqSernums( state );
         break;

@@ -329,7 +329,8 @@ bool User::addBan(const Player* admin, const Player* target,
     return true;
 }
 
-bool User::getIsBanned(const QString& value, const BanTypes& type)
+bool User::getIsBanned(const QString& value, const BanTypes& type,
+                       const QString& plrSernum)
 {
     if ( value.isEmpty() )
         return false;
@@ -341,9 +342,18 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
     bool banned{ false };
 
     QStringList sernums = userData->childGroups();
+
+    bool skip{ false };
+
     for ( int i = 0; i < sernums.count(); ++i )
     {
         sernum = sernums.at( i );
+        if ( !plrSernum.isEmpty() )
+        {
+            if ( Helper::cmpStrings( sernum, plrSernum ) )
+                skip = true;
+        }
+
         switch ( type )
         {
             case BanTypes::SerNum:
@@ -354,6 +364,9 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
             break;
             case BanTypes::IP:
             {
+                if ( skip )
+                    break;
+
                 var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
@@ -361,6 +374,9 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
             break;
             case BanTypes::DV:
             {
+                if ( skip )
+                    break;
+
                 var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
@@ -368,6 +384,9 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
             break;
             case BanTypes::WV:
             {
+                if ( skip )
+                    break;
+
                 var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                     isValue = true;
@@ -381,6 +400,7 @@ bool User::getIsBanned(const QString& value, const BanTypes& type)
             break;
         }
 
+        skip = false;
         if ( isValue )
             break;
         else

@@ -81,13 +81,13 @@ ServerInfo::ServerInfo()
         {
             code = usageArray[ ( i + usageCounter ) % SERVER_USAGE_48_HOURS ];
             usageCap = ( SERVER_USAGE_48_HOURS - 1 ) - i;
-            if ( usageCap < 156 )
+            if ( usageCap < SERVER_USAGE_DAYS )
             {
                 usageDays += code;
-                if ( usageCap < 7 )
+                if ( usageCap < SERVER_USAGE_HOURS )
                 {
                     usageHours += code;
-                    if ( usageCap < 3 )
+                    if ( usageCap < SERVER_USAGE_MINUTES )
                         usageMins += code;
                 }
             }

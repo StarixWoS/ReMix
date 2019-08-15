@@ -71,7 +71,7 @@ class Player : public QObject
     QElapsedTimer idleTime;
 
     QTimer killTimer;
-    bool pendingDisconnect{ false };
+    bool isDisconnected{ false };
 
     bool isVisible{ true };
     bool networkMuted{ false };
@@ -187,8 +187,8 @@ class Player : public QObject
         void setNewAdminPwdReceived(const bool& value);
 
         //Note: A User will be disconnected on their next update.
-        //Usually every 1,000 MS.
-        bool getDisconnected() const;
+        //Usually every 250 MS or as defined by MAX_DISCONNECT_TTL.
+        bool getIsDisconnected() const;
         void setDisconnected(const bool& value,
                              const DCTypes& dcType = DCTypes::IPDC);
 

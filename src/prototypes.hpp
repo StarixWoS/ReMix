@@ -124,12 +124,12 @@
 
         enum Globals
         {
-            //Anything above PACKET_FLOOD_LIMIT (2000MS)
+            //Anything above PACKET_FLOOD_LIMIT (1024 packets)
             //will disconnect/ban the User.
-            PACKET_FLOOD_TIME = 2000,
+            PACKET_FLOOD_TIME = 1000,
 
-            //Users are able to send 512 packets within PACKET_FLOOD_TIME.
-            PACKET_FLOOD_LIMIT = 512,
+            //Users are able to send 1024 packets within PACKET_FLOOD_TIME.
+            PACKET_FLOOD_LIMIT = 1024,
 
             //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
             //Via: sernum & MIN_HEX_SERNUM
@@ -196,6 +196,15 @@
             //Size of the Server Usage array corresponding to 48 hours.
             SERVER_USAGE_48_HOURS = 288,
 
+            //Size of the Server Usage array corresponding to Days.
+            SERVER_USAGE_DAYS = 156,
+
+            //Size of the Server Usage array corresponding to Hours.
+            SERVER_USAGE_HOURS = 7,
+
+            //Size of the Server Usage array corresponding to Minutes.
+            SERVER_USAGE_MINUTES = 3,
+
             //Maximum Server Count a User can have at any time.
             MAX_SERVER_COUNT = 19,
 
@@ -227,6 +236,10 @@
             //Valid count of colors the Theme class can use for certain
             //UI and Chat roles.
             UI_THEME_COLORS = 10,
+
+            //Maximum time a User may remain connected after having a
+            //"disconnect" initiated on their socket. (250MS|
+            MAX_DISCONNECT_TTL = 250,
         };
 
         //Valid Password types.

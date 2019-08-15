@@ -2,11 +2,33 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.4:
+    Change:
+      * The threshold for disconnecting a player has been increased to 1024 packets within 1,000MS ( 1 Second ).
+        * The previous threshold was 512 packets within 2,000MS ( 2 Seconds ).
+      * Players will no longer be automatically banned for packet flooding. They will however be disconnected.
+        * This is due to WoS scenes, and the ability to unintentionally fill a scene with 148 entities.
+      * The Option within the Settings UI related to "Banning Deviants" has been removed, and will no longer have an effect within the Settings class.
+        * This is related to the Packet Flooding change.
+
+
+    Bugfixes:
+      * Now correctly check if an IP address is Banned when the User's BIO Information is obtained.
+        * Previously a User with Banned Information could connect to a ReMix server with only their SerNum changed.
+      * When comparing and searching connected Players for Banned Information we will now skip the currently connecting SerNum for all ban times excluding SerNum bans.
+        * Previously some Banned Information was not checked.
+
+
+
+
 Version 2.4.3:
 
     Bugfixes:
       * Fixed a crash when recieving comments from players.
       * Duplicate SerNums will now correctly be disconnected with prejudice.
+
+
+
 
 Version 2.4.2:
     Change:
