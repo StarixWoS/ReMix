@@ -111,6 +111,7 @@ void ReMix::updateTitleBars(ServerInfo* server)
                                server->getName(),
                                QString::number(
                                    server->getPrivatePort() ) );
+
     ReMix::getInstance()->setWindowTitle( title );
 }
 

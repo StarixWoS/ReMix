@@ -3,6 +3,7 @@
 #include "packetforge.hpp"
 
 //ReMix includes.
+#include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
 
@@ -12,15 +13,28 @@
 PacketForge* PacketForge::instance{ nullptr };
 PacketForge::PacketForge()
 {
+    QString message{ "Initializing PacketForge module." };
+    Logger::getInstance()->insertLog( "PacketForge", message,
+                                      LogTypes::PktForge, true, true );
+
     pktDecrypt.setFileName( "PacketForge.dll" );
     if ( pktDecrypt.load() )
     {
         decryptPkt = reinterpret_cast<Decrypt>(
                             pktDecrypt.resolve( "decryptPacket" ) );
         initialized = true;
+        message =  "Initialized PacketForge module with method "
+                   "[ decryptPacket ].";
+        Logger::getInstance()->insertLog( "PacketForge", message,
+                                          LogTypes::PktForge, true, true );
     }
     else
-        qDebug() << pktDecrypt.errorString();
+    {
+        message = "Unable to initialize PacketForge; Error[ %1 ].";
+        message = message.arg( pktDecrypt.errorString() );
+        Logger::getInstance()->insertLog( "PacketForge", message,
+                                          LogTypes::PktForge, true, true );
+    }
 }
 
 PacketForge::~PacketForge()

@@ -33,6 +33,7 @@ const QString Logger::logType[ LOG_TYPE_COUNT ] =
     "MuteLog",
     "Ignored",
     "Misc",
+    "PacketForge",
 };
 
 Logger::Logger(QWidget *parent) :

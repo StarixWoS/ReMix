@@ -6,6 +6,7 @@
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -258,38 +259,38 @@ bool Helper::isBlueCodedSerNum(const quint32& sernum)
     return blueCodedList.contains( static_cast<int>( sernum ) );
 }
 
-void Helper::logToFile(const LogTypes& type, const QString& text,
-                       const bool& timeStamp,
-                       const bool& newLine)
-{
-    if ( Settings::getLogFiles() )
-    {
-        QString logTxt = text;
+//void Helper::logToFile(const LogTypes& type, const QString& text,
+//                       const bool& timeStamp,
+//                       const bool& newLine)
+//{
+//    if ( Settings::getLogFiles() )
+//    {
+//        QString logTxt = text;
 
-        QFile log( "logs/"
-                 % logType[ type ]
-                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
-                 % logType[ type ]
-                 % ".txt" );
+//        QFile log( "logs/"
+//                 % logType[ type ]
+//                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
+//                 % logType[ type ]
+//                 % ".txt" );
 
-        QFileInfo logInfo( log );
-        if ( !logInfo.dir().exists() )
-            logInfo.dir().mkpath( "." );
+//        QFileInfo logInfo( log );
+//        if ( !logInfo.dir().exists() )
+//            logInfo.dir().mkpath( "." );
 
-        if ( log.open( QFile::WriteOnly | QFile::Append ) )
-        {
-            if ( timeStamp )
-                logTxt.prepend( "[ " % getTimeAsString() % " ] " );
+//        if ( log.open( QFile::WriteOnly | QFile::Append ) )
+//        {
+//            if ( timeStamp )
+//                logTxt.prepend( "[ " % getTimeAsString() % " ] " );
 
-            if ( newLine )
-                logTxt.prepend( "\r\n" );
+//            if ( newLine )
+//                logTxt.prepend( "\r\n" );
 
-            log.write( logTxt.toLatin1() );
+//            log.write( logTxt.toLatin1() );
 
-            log.close();
-        }
-    }
-}
+//            log.close();
+//        }
+//    }
+//}
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
@@ -499,6 +500,11 @@ void Helper::getSynRealData(ServerInfo* svr)
     if ( svr == nullptr )
         return;
 
+    QString message{ "Fetching Master Info from [ %1 ]." };
+            message = message.arg( svr->getMasterInfoHost() );
+    Logger::getInstance()->insertLog( svr->getName(), message,
+                                      LogTypes::USAGE, true, true );
+
     QFileInfo synRealFile( "synReal.ini" );
 
     bool downloadFile = true;
@@ -552,6 +558,13 @@ void Helper::getSynRealData(ServerInfo* svr)
                 svr->setMasterPort(
                             static_cast<quint16>(
                                 str.mid( index + 1 ).toInt() ) );
+
+                QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
+                        msg = msg.arg( svr->getMasterIP() )
+                                 .arg( svr->getMasterPort() )
+                                 .arg( svr->getGameName() );
+                Logger::getInstance()->insertLog( svr->getName(), msg,
+                                                  LogTypes::USAGE, true, true );
             }
         });
 
@@ -572,6 +585,13 @@ void Helper::getSynRealData(ServerInfo* svr)
                 svr->setMasterPort(
                             static_cast<quint16>(
                                 str.mid( index + 1 ).toInt() ) );
+
+                message = "Got Master Server [ %1:%2 ] for Game [ %3 ].";
+                message = message.arg( svr->getMasterIP() )
+                                 .arg( svr->getMasterPort() )
+                                 .arg( svr->getGameName() );
+                Logger::getInstance()->insertLog( svr->getName(), message,
+                                                  LogTypes::USAGE, true, true );
             }
         }
     }

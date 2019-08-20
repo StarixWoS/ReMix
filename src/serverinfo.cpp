@@ -221,7 +221,15 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                              QString( REMIX_VERSION ) );
 
     if ( !response.isEmpty() )
+    {
         this->sendUDPData( addr, port, response );
+        QString msg{ "Sending Server Info to [ %1:%2 ]; %3" };
+                msg = msg.arg( addr.toString() )
+                         .arg( port )
+                         .arg( response );
+        Logger::getInstance()->insertLog( this->getName(), msg,
+                                          LogTypes::USAGE, true, true );
+    }
 }
 
 void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
@@ -269,7 +277,15 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
     }
 
     if ( !response.isEmpty() )
+    {
         this->sendUDPData( addr, port, response );
+        QString msg{ "Sending User List to [ %1:%2 ]; %3" };
+                msg = msg.arg( addr.toString() )
+                         .arg( port )
+                         .arg( response );
+        Logger::getInstance()->insertLog( this->getName(), msg,
+                                          LogTypes::USAGE, true, true );
+    }
 }
 
 void ServerInfo::sendMasterInfo(const bool& disconnect)
@@ -303,6 +319,17 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     if ( !response.isEmpty()
       && this->getIsSetUp() )
     {
+        QString msg{ "Sending Master Check-In to [ %1:%2 ]; %3" };
+                msg = msg.arg( addr.toString() )
+                         .arg( port )
+                         .arg( response );
+        if ( response == "X" )
+        {
+            msg.append( " [ Disconnect ]." );
+        }
+        Logger::getInstance()->insertLog( this->getName(), msg,
+                                          LogTypes::USAGE, true, true );
+
         //Store the Master Server Check-In time.
         this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
 

@@ -169,7 +169,7 @@
             MAX_GAME_NAME_LENGTH = 256,
 
             //Count of possible logging types that ReMix uses.
-            LOG_TYPE_COUNT = 9,
+            LOG_TYPE_COUNT = 10,
 
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
@@ -296,7 +296,7 @@
 
         //Valid Log types available to the Logger Class.
         enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
-                                  MUTE, IGNORE, MISC = 8 };
+                                  MUTE, IGNORE, MISC, PktForge = 9 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,

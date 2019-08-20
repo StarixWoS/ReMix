@@ -60,7 +60,7 @@ class ReMixWidget : public QWidget
 
         void on_logButton_clicked();
 
-signals:
+    signals:
         void reValidateServerIP();
 
     private:

@@ -14,8 +14,8 @@ class Helper
     static const QList<qint32> blueCodedList;
 
     public:
-        enum LogTypes{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC, MUTE,
-                       IGNORE = 7 };
+        //enum LogTypes{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC, MUTE,
+        //               IGNORE = 7 };
 
         static QInputDialog* createInputDialog(QWidget* parent, QString& label,
                                                QInputDialog::InputMode mode,
@@ -44,9 +44,9 @@ class Helper
 
         static bool isBlueCodedSerNum(const quint32& sernum);
 
-        static void logToFile(const LogTypes& type, const QString& text,
-                              const bool& timeStamp = false,
-                              const bool& newLine = false);
+//        static void logToFile(const LogTypes& type, const QString& text,
+//                              const bool& timeStamp = false,
+//                              const bool& newLine = false);
 
         static bool confirmAction(QWidget* parent, QString& title,
                                   QString& prompt);

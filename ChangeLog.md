@@ -2,6 +2,18 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.5:
+    Change:
+      * Moved Server specific information from the main ReMix UI to a ToolTip that is shown when hovering over a Server tab instance.
+      * Added various log messages to further inform the Server Host as to what is happening in the background.
+
+
+    Bugfixes:
+      * The Server Host will now be informed when the PacketForge Module is or is not able to be loaded.
+
+
+
+
 Version 2.4.4:
     Change:
       * The threshold for disconnecting a player has been increased to 1024 packets within 1,000MS ( 1 Second ).

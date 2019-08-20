@@ -77,5 +77,5 @@ void CommentViewWidget::insertComment(const QString& sernum,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    Helper::logToFile( Helper::COMMENT, comment, false, false );
+    //Helper::logToFile( Helper::COMMENT, comment, false, false );
 }

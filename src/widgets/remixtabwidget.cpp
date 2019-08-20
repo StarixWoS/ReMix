@@ -227,6 +227,29 @@ void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)
     }
 }
 
+void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
+{
+    ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
+    if ( tabWidget != nullptr
+      && widget != nullptr )
+    {
+        qint32 index{ serverMap.key( widget ) };
+
+        ServerInfo* server{ widget->getServerInfo() };
+        QString toolTip{ "#Calls: %1 #Pings: %2 #Pkt-DC: %3 #Dup-DC: %4 "
+                         "#IP-DC: %5 #IN: %6 Bd #OUT: %7 Bd" };
+                toolTip = toolTip.arg( server->getUserCalls() )
+                                 .arg( server->getUserPings() )
+                                 .arg( server->getPktDc() )
+                                 .arg( server->getDupDc() )
+                                 .arg( server->getIpDc() )
+                                 .arg( server->getBaudIn() )
+                                 .arg( server->getBaudOut() );
+
+        tabWidget->setTabToolTip( index, toolTip );
+    }
+}
+
 void ReMixTabWidget::removeServer(const qint32& index,
                                   const bool& remote,
                                   const bool& restart)

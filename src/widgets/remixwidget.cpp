@@ -9,6 +9,7 @@
 #include "widgets/motdwidget.hpp"
 
 //ReMix includes.
+#include "remixtabwidget.hpp"
 #include "serverinfo.hpp"
 #include "chatview.hpp"
 #include "comments.hpp"
@@ -137,33 +138,7 @@ void ReMixWidget::initUIUpdate()
     [=]()
     {
         ui->onlineTime->setText( Helper::getTimeFormat( server->getUpTime() ) );
-        ui->callCount->setText(
-                    QString( "#Calls: %1" )
-                        .arg( server->getUserCalls() ) );
-
-        ui->pingCount->setText(
-                    QString( "#Pings: %1" )
-                        .arg( server->getUserPings() ) );
-
-        ui->packetDCCount->setText(
-                    QString( "#Pkt-DC: %1" )
-                        .arg( server->getPktDc() ) );
-
-        ui->dupDCCount->setText(
-                    QString( "#Dup-DC: %1" )
-                        .arg( server->getDupDc() ) );
-
-        ui->ipDCCount->setText(
-                    QString( "#IP-DC: %1" )
-                        .arg( server->getIpDc() ) );
-
-        ui->packetINBD->setText(
-                    QString( "#IN: %1 Bd" )
-                        .arg( server->getBaudIn() ) );
-
-        ui->packetOUTBD->setText(
-                    QString( "#OUT: %1 Bd" )
-                        .arg( server->getBaudOut() ) );
+        ReMixTabWidget::setToolTipString( this );
 
         //Update other Info as well.
         QString msg{ "Toggle \"Public Servers\" when ready!" };
