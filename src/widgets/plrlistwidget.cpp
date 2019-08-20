@@ -4,14 +4,15 @@
 #include "ui_plrlistwidget.h"
 
 //Required ReMix Widget includes.
-#include "tblview/plrsortproxymodel.hpp"
-#include "tblview/tbleventfilter.hpp"
+#include "views/plrsortproxymodel.hpp"
+#include "views/tbleventfilter.hpp"
 
 //ReMix includes.
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -33,15 +34,23 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     contextMenu = new QMenu( this );
 
     //Setup the PlayerInfo TableView.
-    plrModel = new QStandardItemModel( 0, 8, 0 );
-    plrModel->setHeaderData( 0, Qt::Horizontal, "Player IP:Port" );
-    plrModel->setHeaderData( 1, Qt::Horizontal, "SerNum" );
-    plrModel->setHeaderData( 2, Qt::Horizontal, "Age" );
-    plrModel->setHeaderData( 3, Qt::Horizontal, "Alias" );
-    plrModel->setHeaderData( 4, Qt::Horizontal, "Time" );
-    plrModel->setHeaderData( 5, Qt::Horizontal, "IN" );
-    plrModel->setHeaderData( 6, Qt::Horizontal, "OUT" );
-    plrModel->setHeaderData( 7, Qt::Horizontal, "BIO" );
+    plrModel = new QStandardItemModel( 0, 8, nullptr );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ),
+                             Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ),
+                             Qt::Horizontal, "SerNum" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Age ),
+                             Qt::Horizontal, "Age" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Alias ),
+                             Qt::Horizontal, "Alias" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Time ),
+                             Qt::Horizontal, "Time" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesIn ),
+                             Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesOut ),
+                             Qt::Horizontal, "OUT" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BioData ),
+                             Qt::Horizontal, "BIO" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -159,11 +168,11 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
                   "\r\n\r\nPlease make sure you trust [ %1 ] as this will "
                   "allow the them to utilize Admin commands that can remove "
                   "the ability for other users to connect to the Server.";
-        prompt = prompt.arg( sernum );
+        prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            User::setAdminRank( sernum, User::rGAMEMASTER );
+            User::setAdminRank( sernum, GMRanks::GMaster );
             menuTarget->setNewAdminPwdRequested( true );
         }
     }
@@ -175,7 +184,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            User::setAdminRank( sernum, User::rUSER );
+            User::setAdminRank( sernum, GMRanks::User );
             send = true;
         }
     }
@@ -209,7 +218,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            QString msg{ "Manual %1 of [ %2 ] by Server Owner." };
+            QString msg{ "Manual Network %1 of [ %2 ] by Server Owner." };
                     msg = msg.arg( mute ? "Mute" : "UnMute",
                                    menuTarget->getSernum_s() );
             menuTarget->setNetworkMuted( mute, msg );
@@ -241,20 +250,15 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
-            {
-                menuTarget->setDisconnected( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
+                menuTarget->setDisconnected( true, DCTypes::IPDC );
 
-            if ( Settings::getLogFiles() )
-            {
-                QString log{ "logs/DCLog.txt" };
-                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                logMsg = logMsg.arg( reason,
-                                     menuTarget->getSernum_s(),
-                                     menuTarget->getBioData() );
-                Helper::logToFile( log, logMsg, true, true );
-            }
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+            logMsg = logMsg.arg( reason,
+                                 menuTarget->getSernum_s(),
+                                 menuTarget->getBioData() );
+
+            Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                              LogTypes::DC, true, true );
         }
     }
     menuTarget = nullptr;
@@ -281,22 +285,18 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             inform = inform.arg( reason );
 
             User::addBan( nullptr, menuTarget, reason );
+
+            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+            logMsg = logMsg.arg( reason,
+                                 menuTarget->getSernum_s(),
+                                 menuTarget->getBioData() );
+
+            Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                              LogTypes::BAN, true, true );
+
             menuTarget->sendMessage( inform );
             if ( sock->waitForBytesWritten() )
-            {
-                menuTarget->setDisconnected( true );
-                server->setIpDc( server->getIpDc() + 1 );
-            }
-
-            if ( Settings::getLogFiles() )
-            {
-                QString log{ "logs/BanLog.txt" };
-                QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                        logMsg = logMsg.arg( reason,
-                                             menuTarget->getSernum_s(),
-                                             menuTarget->getBioData() );
-                Helper::logToFile( log, logMsg, true, true );
-            }
+                menuTarget->setDisconnected( true, DCTypes::IPDC );
         }
     }
     menuTarget = nullptr;

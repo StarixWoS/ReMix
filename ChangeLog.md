@@ -1,10 +1,130 @@
+TODO:
+  * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
+  * Implement other remote administrator commands and sub-commands.
+
+Version 2.4.4:
+    Change:
+      * The threshold for disconnecting a player has been increased to 1024 packets within 1,000MS ( 1 Second ).
+        * The previous threshold was 512 packets within 2,000MS ( 2 Seconds ).
+      * Players will no longer be automatically banned for packet flooding. They will however be disconnected.
+        * This is due to WoS scenes, and the ability to unintentionally fill a scene with 148 entities.
+      * The Option within the Settings UI related to "Banning Deviants" has been removed, and will no longer have an effect within the Settings class.
+        * This is related to the Packet Flooding change.
+
+
+    Bugfixes:
+      * Now correctly check if an IP address is Banned when the User's BIO Information is obtained.
+        * Previously a User with Banned Information could connect to a ReMix server with only their SerNum changed.
+      * When comparing and searching connected Players for Banned Information we will now skip the currently connecting SerNum for all ban times excluding SerNum bans.
+        * Previously some Banned Information was not checked.
+
+
+
+
+Version 2.4.3:
+
+    Bugfixes:
+      * Fixed a crash when recieving comments from players.
+      * Duplicate SerNums will now correctly be disconnected with prejudice.
+
+
+
+
+Version 2.4.2:
+    Change:
+      * Added a port randomizing button to the server creation dialog in an effort to be more intuitive.
+      * Added more logging information from the UPNP class to the Logger UI.
+
+    Bugfixes:
+      * Fixed an oversight related to UPNP where the Modem or Router would only support certain lease times.
+
+
+
+
+Version 2.4.1:
+    Change:
+      * Add a new Dialog to enable in-application viewing of Log events.
+        * Note: Not all events of note are yet logged to this Dialog. Only events logged to file are currently shown.
+      * Add the early base layout for a future WorldShuffler feature.
+        * This feature will eventually allow the Host to host a server that will change the selected Game/ToY/World without intervention from the Host.
+
+    Bugfixes:
+      * Converted many variable types to their proper (assumed) types.
+        * Note: Many of these variables were being incorrectly used and otherwise being truncated to a different type alltogether,
+      * Converted many uses of '0' to use the proper value of 'nullptr'.
+
+
+
+
+Version 2.4.0:
+    Change:
+      * Add more profanity words to the chat filter.
+
+    Bugfixes:
+      * Changed the packet flooding threshold to 521 packets within 2,000 milliseconds (2 seconds) up from 100.
+
+
+
+
+Version 2.3.9:
+    Change:
+      * Added a third sub-command to the command "/vanish".
+        * The added sub-command is "status" and the usage is "/vanish status" and will output the current visibility of the Admin for other users.
+      * The "/shutdown" and "/restart" commands now have an aditional sub-command to stop an in-progress shutdown or restart.
+        * The new sub-command is "stop" with the usage "/shutdown stop" or "/restart stop".
+      * Add icons next to a User's SerNum to show if they have spoken within the last 5 minutes.
+        * There are two states. One shows the User 'talking' and the other shows the User as being AFK.
+
+    Buildsystem:
+      * Update the Appveyor project file.
+
+    Bugfixes:
+      * The "/vanish" command now correctly functions as an on/off toggle when no sub-commands are used in conjunction with it.
+        * Previously the command would show that the Admin was invisible while it was not correct.
+
+
+
+
+Version 2.3.8:
+    Change:
+      * Create and implemented a Command Table class (CmdTable).
+      * Restructured the Remote Administrator commands, and added functionality for several "Helper" commands.
+        * Commands added include: Help, List, MotD.
+          * Help shows the description or syntax of a command.
+          * List shows all commands available to the user.
+          * MotD allows the User to change the servers message of the day.
+        * Various sub-commands have also been added but are not yet completely implemented.
+          * Commands with new subcommands include Shutdown, Restart, and Vanish.
+      * The server logs are now stored in the path "logs/logType/[yy-mm-dd]/logType.txt".
+        * This allows for the User to more quickly browse to a certain log type for a specific day.
+          * This also makes it more obvious to the User if the log exists for a certain day.
+	  
+    Bugfixes:
+      * The World Selection UDP command will now check that the User setting the World information at least has a current connection to the server.
+      * The Random Device class (RandDev) once again properly generates a sufficiently random number and no longer re-seeds upon every use.
+
+
+
+
 Version 2.3.7:
     Change:
       * When creating a server the Create Instance dialog how has a checkbox to enable the ability to toggle port randomization.
         * Randomization only occurs when the User inputs '0' or makes the input field blank.
-	  
+      * Add a new Setting toggle to disallow Users using a BlueCoded SerNum.
+        * The Setting is not enabled by default and unless enabled the following SerNums will remain valid and able to connect.
+          * 1004, 1024, 1043, 1046, 1052, 1054, 1055, 1062, 1068, 1072, 1099, 1112, 1120, 1123, 1125, 1138, 1163, 1166, 1170, 1172, 1173, 1189,
+          * 1204, 1210, 1217, 1275, 1292, 1307, 1308, 1312, 1332, 1338, 1367, 1369, 1370, 1520, 1547, 1551, 1565, 1600, 1607, 1611, 1656, 1675,
+          * 1681, 1695, 1706, 1715, 1751, 1754, 1840, 1965, 2003, 2058, 2062, 2144, 2205, 2217, 2264, 2268, 2359, 1008, 1017, 1051, 1054, 1082,
+          * 1099, 1104, 1105, 1181, 1199, 1222, 1279, 1343, 1358, 1388, 1456, 1528, 1677, 1773, 1777, 1778, 1780, 1796, 1799, 2156, 2167, 2241,
+          * 2248, 2362, 2421, 1098, 1220, 1264, 1342, 1361, 1823, 2302, 2488, 2585, 2372, 1492, 1576, 1100, 1347, 1050, 1015, 1666, 1745, 2043,
+          * 1200, 2628, 1016, 1739, 1853, 2708, 2757, 1498, 2448, 2801, 1031, 1265, 1414, 1420, 1429, 1214, 1489, 1707, 2543, 1101, 1283, 1604,
+          * 1428, 2707, 1023, 1069, 1071, 1132, 1286, 1854, 2910, 1005, 2682, 1348, 2615, 2617, 1884, 1169, 1540, 1645, 1939, 1179, 3053, 1803,
+          * 2377, 1000, 1021, 1500, 1501, 1515, 1547, 1803, 2377, 3111, 3202, 3191, 3149, 3,
+
     Bugfixes:
       * When creating a server the Create Instance dialog will no longer automatically generate ports when the User removes all text from the input field.
+      * When blocking an IP address from use ReMix will now properly refresh the network configuration and select another IP address.
+      * The Remote Administrator commands "Kick", "Ban", and "Disconnect" will no longer affect the Command Issuer or other Remote Administrators.
 
 
 
@@ -17,7 +137,7 @@ Version 2.3.6:
       * Add a basic chat filter for the ReMix chat viewer.
         * The feature relies on the server host having the rule "No Cursing" enabled.
       * The RandDev class is now a static class and the device member can be accessed globally.
-	  
+
     Bugfixes:
       * Removed two emit and slot functions related to Remote Administrator authentication.
         * This improves the speed at which the User receives the notification.

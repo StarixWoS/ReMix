@@ -32,10 +32,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     plrViewModel = plrView;
 
     //Setup Objects.
-    serverComments = new Comments( parent );
+    serverComments = new Comments( parent, svr );
     serverComments->setTitle( svr->getName() );
 
-    chatView = new ChatView( parent );
+    chatView = new ChatView( parent, server );
     chatView->setTitle( svr->getName() );
 
     chatView->setGameID( server->getGameId() );
@@ -56,8 +56,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
     [=]()
     {
+        if ( server->getIsSetUp() )
+            server->setIsSetUp( false );
+
         server->setIsPublic( true );
-        this->setupServerInfo();
     });
 
     QObject::connect( chatView, &ChatView::sendChat, chatView,
@@ -78,8 +80,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
                             qint64 bOut = tmpSoc->write( msg.toLatin1(),
                                                          msg.length() );
 
-                            plr->setBytesOut( plr->getBytesOut() + bOut );
-                            server->setBytesOut( server->getBytesOut() + bOut );
+                            plr->setBytesOut( plr->getBytesOut()
+                                            + static_cast<quint64>( bOut ) );
+                            server->setBytesOut( server->getBytesOut()
+                                               + static_cast<quint64>( bOut ) );
                         }
                     }
                 }
@@ -110,13 +114,11 @@ Server::~Server()
 void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
                                const quint16& port)
 {
-    QString ip{ peerAddr.toString() };
+    QString ip{ peerAddr.toString() % ":%1" };
+            ip = ip.arg( port );
 
-    plr->setPublicIP( ip );
+    plr->setPublicIP( peerAddr.toString() );
     plr->setPublicPort( port );
-
-    ip = ip.append( ":%1" )
-           .arg( QString::number( port ) );
 
     QByteArray data = bioHash.value( peerAddr );
     if ( data.isEmpty() )
@@ -168,8 +170,10 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        plr->setSernum_i( Helper::serNumToHexStr( sernum )
-                                     .toUInt( 0, 16 ) );
+        plr->validateSerNum( plr->getServerInfo(),
+                             Helper::serNumToHexStr( sernum )
+                                        .toUInt( nullptr, 16 ) );
+
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
         QString alias = Helper::getStrStr( bio, "alias", "=", "," );
@@ -253,13 +257,6 @@ void Server::newConnectionSlot()
     //Set the Player's reference to the ServerInfo class.
     plr->setServerInfo( server );
 
-    //Connect to our Password Request Signal. This signal is
-    //turned on or off by enabling or disabling Admin Auth requirements.
-    QObject::connect( plr, &Player::newAdminPwdRequestedSignal,
-                      this, &Server::newRemotePwdRequestedSlot );
-    QObject::connect( plr, &Player::newRemoteAdminRegisterSignal,
-                      this, &Server::newRemoteAdminRegisterSlot );
-
     //Connect the pending Connection to a Disconnected lambda.
     QObject::connect( peer, &QTcpSocket::disconnected, peer,
     [=]()
@@ -293,7 +290,8 @@ void Server::userReadyRead(QTcpSocket* socket)
     qint64 bIn = data.length();
 
     data.append( socket->readAll() );
-    server->setBytesIn( server->getBytesIn() + (data.length() - bIn) );
+    server->setBytesIn( server->getBytesIn()
+                      + static_cast<quint64>(data.length() - bIn) );
 
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
@@ -312,7 +310,8 @@ void Server::userReadyRead(QTcpSocket* socket)
             plr->setOutBuff( data );
 
             plr->setPacketsIn( plr->getPacketsIn(), 1 );
-            plr->setBytesIn( plr->getBytesIn() + packet.length() );
+            plr->setBytesIn( plr->getBytesIn()
+                           + static_cast<quint64>( packet.length() ) );
 
             pktHandle->parsePacket( packet, plr );
             if ( socket->bytesAvailable() > 0
@@ -374,36 +373,4 @@ void Server::readyReadUDPSlot()
         if ( socket->hasPendingDatagrams() )
             emit socket->readyRead();
     }
-}
-
-void Server::newRemotePwdRequestedSlot(Player* plr)
-{
-    if ( plr == nullptr )
-        return;
-
-    QString msg{ "The server Admin requires all Remote Administrators to "
-                 "authenticate themselves with their password. "
-                 "Please enter your password with the command (/login *PASS) "
-                 "or be denied access to the server. Thank you!" };
-
-    if ( Settings::getReqAdminAuth()
-      && plr->getIsAdmin() )
-    {
-        plr->setAdminPwdRequested( true );
-        plr->sendMessage( msg );
-    }
-}
-
-void Server::newRemoteAdminRegisterSlot(Player* plr)
-{
-    if ( plr == nullptr )
-        return;
-
-    QString msg{ "The Server Host is attempting to register you as an "
-                 "Admin with the server. Please reply to this message with "
-                 "(/register *YOURPASS). Note: The server Host and other "
-                 "Admins will not have access to this information." };
-
-    if ( plr->getIsAdmin() )
-        plr->sendMessage( msg );
 }

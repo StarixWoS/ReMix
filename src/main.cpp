@@ -15,7 +15,7 @@ int main(int argc, char* [])
     if ( !guard.tryToRun() )
         return 0;
 
-    QApplication a(argc, 0);
+    QApplication a(argc, nullptr);
                  a.setApplicationName( "ReMix" );
                  a.setApplicationVersion( REMIX_VERSION );
                  a.setQuitOnLastWindowClosed( false );

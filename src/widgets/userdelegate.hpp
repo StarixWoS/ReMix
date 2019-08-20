@@ -13,7 +13,7 @@ class UserDelegate : public QItemDelegate
     Q_OBJECT
 
     public:
-        UserDelegate(QObject* parent  =0);
+        UserDelegate(QObject* parent = nullptr);
         ~UserDelegate();
 
         void paint(QPainter* painter,

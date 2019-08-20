@@ -14,12 +14,12 @@ class SettingsWidget : public QWidget
 {
     Q_OBJECT
 
-    enum Toggles{ REQPWD = 0, REQADMINPWD = 1, ALLOWDUPEDIP = 2,
-                  BANDUPEDIP = 3, BANHACKERS = 4, REQSERNUM = 5,
-                  DISCONNECTIDLES = 6, ALLOWSSV = 7, LOGCOMMENTS = 8,
-                  FWDCOMMENTS = 9, ECHOCOMMENTS = 10, INFORMADMINLOGIN = 11,
-                  MINIMIZETOTRAY = 12, SAVEWINDOWPOSITIONS = 13, LOGFILES = 14,
-                  WORLDDIR = 15, CHECKFORUPDATES = 16 };
+    enum Toggles{ REQPWD = 0, REQADMINPWD, ALLOWDUPEDIP,
+                  BANDUPEDIP,/* BANHACKERS,*/ REQSERNUM,
+                  DCBLUECODEDSERNUMS, DISCONNECTIDLES, ALLOWSSV,
+                  LOGCOMMENTS, FWDCOMMENTS, ECHOCOMMENTS,
+                  INFORMADMINLOGIN, MINIMIZETOTRAY,
+                  SAVEWINDOWPOSITIONS, LOGFILES, WORLDDIR = 15, };
 
     bool pwdCheckState{ false };
 

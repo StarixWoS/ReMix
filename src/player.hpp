@@ -8,6 +8,7 @@
 #include <QElapsedTimer>
 #include <QObject>
 #include <QTimer>
+#include <QIcon>
 
 class Player : public QObject
 {
@@ -58,21 +59,26 @@ class Player : public QObject
     int packetFloodCount{ 0 };
 
     int packetsIn{ 0 };
-    qint64 bytesIn{ 0 };
-    qint64 avgBaudIn{ 0 };
+    quint64 bytesIn{ 0 };
+    quint64 avgBaudIn{ 0 };
 
     int packetsOut{ 0 };
-    qint64 bytesOut{ 0 };
-    qint64 avgBaudOut{ 0 };
+    quint64 bytesOut{ 0 };
+    quint64 avgBaudOut{ 0 };
 
     QTimer connTimer;
-    qint64 connTime{ 0 };
+    quint64 connTime{ 0 };
     QElapsedTimer idleTime;
 
     QTimer killTimer;
-    bool pendingDisconnect{ false };
+    bool isDisconnected{ false };
 
+    bool isVisible{ true };
     bool networkMuted{ false };
+
+    QTimer afkTimer;
+    QIcon afkIcon;
+    bool isAFK{ false };
 
     public:
         explicit Player();
@@ -80,9 +86,9 @@ class Player : public QObject
 
         void sendMessage(const QString& msg = "", const bool& toAll = false);
 
-        enum Target{ ALL = 0, PLAYER = 1, SCENE = 2 };
+        enum Target{ ALL = 0, PLAYER, SCENE = 2 };
 
-        qint64 getConnTime() const;
+        quint64 getConnTime() const;
         void startConnTimer();
 
         QStandardItem* getTableRow() const;
@@ -148,17 +154,17 @@ class Player : public QObject
         int getPacketsIn() const;
         void setPacketsIn(const int& value, const int& incr);
 
-        qint64 getBytesIn() const;
-        void setBytesIn(const qint64& value);
+        quint64 getBytesIn() const;
+        void setBytesIn(const quint64 &value);
 
         int getPacketsOut() const;
         void setPacketsOut(const int& value);
 
-        qint64 getBytesOut() const;
-        void setBytesOut(const qint64& value);
+        quint64 getBytesOut() const;
+        void setBytesOut(const quint64 &value);
 
-        qint64 getAvgBaud(const bool& out) const;
-        void setAvgBaud(const qint64& bytes, const bool& out);
+        quint64 getAvgBaud(const bool& out) const;
+        void setAvgBaud(const quint64 &bytes, const bool& out);
 
         void resetAdminAuth();
 
@@ -181,12 +187,21 @@ class Player : public QObject
         void setNewAdminPwdReceived(const bool& value);
 
         //Note: A User will be disconnected on their next update.
-        //Usually every 1,000 MS.
-        bool getDisconnected() const;
-        void setDisconnected(const bool& value);
+        //Usually every 250 MS or as defined by MAX_DISCONNECT_TTL.
+        bool getIsDisconnected() const;
+        void setDisconnected(const bool& value,
+                             const DCTypes& dcType = DCTypes::IPDC);
 
         bool getNetworkMuted() const;
         void setNetworkMuted(const bool& value, const QString& msg);
+
+        void chatPacketFound();
+
+        QIcon getAfkIcon() const;
+        void setAfkIcon(const QString& value);
+
+        bool getIsAFK() const;
+        void setIsAFK(bool value);
 
         void validateSerNum(ServerInfo* server, const quint32& id);
 
@@ -199,9 +214,16 @@ class Player : public QObject
         ServerInfo* getServerInfo() const;
         void setServerInfo(ServerInfo* value);
 
-    signals:
-            void newAdminPwdRequestedSignal(Player* plr);
-            void newRemoteAdminRegisterSignal(Player* plr);
+        bool getIsVisible() const;
+        void setIsVisible(const bool& value);
+
+        bool getHasSernum() const;
+        void setHasSernum(bool value);
+
+    private:
+        void setModelData(QStandardItem* model, const qint32& row,
+                          const qint32& column, const QVariant& data,
+                          const qint32& role, const bool& isColor = false);
 };
 
 #endif // PLAYER_HPP

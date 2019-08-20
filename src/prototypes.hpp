@@ -4,9 +4,11 @@
 
 //Required Qt Includes. --Unable to prototype in most instances.
 //    #include <QElapsedTimer>
+//    #include <QtConcurrent>
 //    #include <QMainWindow>
 //    #include <QModelIndex>
 //    #include <QTcpServer>
+//    #include <QFuture>
 //    #include <QObject>
 //    #include <QDialog>
 //    #include <QTimer>
@@ -66,6 +68,7 @@
     class QDebug;
     class QEvent;
     class QPoint;
+    class QIcon;
     class QChar;
     class QFile;
     class QMenu;
@@ -78,6 +81,7 @@
     #define REMIX_PROTOTYPES_HPP
 
     //Table-View Classes.
+    class LoggerSortProxyModel;
     class UserSortProxyModel;
     class PlrSortProxyModel;
     class TblEventFilter;
@@ -98,6 +102,7 @@
     class PacketForge;
     class ServerInfo;
     class CmdHandler;
+    class CmdTable;
     class ChatView;
     class Settings;
     class Comments;
@@ -107,6 +112,7 @@
     class Player;
     class Server;
     class Helper;
+    class Logger;
     class Theme;
     class Rules;
     class ReMix;
@@ -118,12 +124,12 @@
 
         enum Globals
         {
-            //Anything above PACKET_FLOOD_LIMIT (2000MS)
+            //Anything above PACKET_FLOOD_LIMIT (1024 packets)
             //will disconnect/ban the User.
-            PACKET_FLOOD_TIME = 2000,
+            PACKET_FLOOD_TIME = 1000,
 
-            //Users are able to send 100 packets within PACKET_FLOOD_TIME.
-            PACKET_FLOOD_LIMIT = 100,
+            //Users are able to send 1024 packets within PACKET_FLOOD_TIME.
+            PACKET_FLOOD_LIMIT = 1024,
 
             //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
             //Via: sernum & MIN_HEX_SERNUM
@@ -132,6 +138,10 @@
             //Maximum time a User may remain inactive with "Disconnect
             //Idle Users" enabled. 10 minutes - 600,000 milliseconds.
             MAX_IDLE_TIME = 600000,
+
+            //Maximum time a User may remain inactive before being marked with
+            //an AFK icon. 5 minutes - 300,000 milliseconds.
+            MAX_AFK_TIME = 300000,
 
             //Maximum amount of time in MS (30 seconds) to allow for the
             //Master to respond to a checkin.
@@ -159,20 +169,23 @@
             MAX_GAME_NAME_LENGTH = 256,
 
             //Count of possible logging types that ReMix uses.
-            LOG_TYPE_COUNT = 8,
+            LOG_TYPE_COUNT = 9,
 
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
-            SETTINGS_KEY_COUNT = 5,
+            SETTINGS_KEY_COUNT = 6,
 
             //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 26,
+            SETTINGS_SUBKEY_COUNT = 28,
 
             //Count of Settings Sub-Kets Accessed via the Helper namespace.
             RULES_SUBKEY_COUNT = 16,
 
             //Count of currently supported Remote-Admin commands.
-            GM_COMMAND_COUNT = 18,
+            GM_COMMAND_COUNT = 22,
+
+            //Count of possible Sub-Commands each GM Command may posess.
+            GM_SUBCOMMAND_COUNT = 4,
 
             //Count of Keys accessed via the User class.
             USER_KEY_COUNT = 12,
@@ -182,6 +195,15 @@
 
             //Size of the Server Usage array corresponding to 48 hours.
             SERVER_USAGE_48_HOURS = 288,
+
+            //Size of the Server Usage array corresponding to Days.
+            SERVER_USAGE_DAYS = 156,
+
+            //Size of the Server Usage array corresponding to Hours.
+            SERVER_USAGE_HOURS = 7,
+
+            //Size of the Server Usage array corresponding to Minutes.
+            SERVER_USAGE_MINUTES = 3,
 
             //Maximum Server Count a User can have at any time.
             MAX_SERVER_COUNT = 19,
@@ -214,20 +236,30 @@
             //Valid count of colors the Theme class can use for certain
             //UI and Chat roles.
             UI_THEME_COLORS = 10,
+
+            //Maximum time a User may remain connected after having a
+            //"disconnect" initiated on their socket. (250MS|
+            MAX_DISCONNECT_TTL = 250,
         };
 
         //Valid Password types.
         enum class PwdTypes: int{ Server = 0, Admin = 1, Invalid = -1 };
 
         //Valid Remote Administrator Ranks.
-        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner = 4 };
+        enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner,
+                                 Creator = 5, Invalid = -1 };
 
         //Valid Remote Administrator commands.
-        enum class GMCmds: int{ Ban = 0, UnBan, Kick, Mute, UnMute, Message,
-                                Login, Register, ShutDown, ReStart, MkAdmin,
-                                RmAdmin, ChAdmin, ChRules, GetComments,
-                                ChSettings, Vanish, Version = 17,
+        enum class GMCmds: int{ Help = 0, List, MotD, Info, NetStatus, Ban,
+                                UnBan, Kick, Mute, UnMute, Message, Login,
+                                Register, ShutDown, ReStart, MKAdmin, RMAdmin,
+                                CHAdmin, CHRules, CHSettings, Vanish, Version,
                                 Invalid = -1 };
+
+        //Valid Command Structure Format.
+        enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,
+                                    CmdInfo, CmdSyntax, CmdRank,
+                                    CmdIsActive = 4 };
 
         //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };
@@ -253,12 +285,21 @@
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
                                  BytesIn, BytesOut, BioData = 7, ColCount = 9 };
 
+        //Valid columns within the User Dialog.
         enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
                                   Rank, Banned, BanDate, BanReason = 8,
                                   ColCount = 9 };
 
+        //Valid columns within the Logger Dialog.
+        enum class LogCols: int{ Date = 0, Source, Type, Message = 3,
+                                 ColCount = 4 };
+
+        //Valid Log types available to the Logger Class.
+        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
+                                  MUTE, IGNORE, MISC = 8 };
+
         //Used for converting time in seconds to a human readable format.
-        enum class TimeFormat{ Hours = 0, Minutes, Seconds = 3, Default = -1,
+        enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,
                                HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
 
     #endif  // REMIX_GLOBALS

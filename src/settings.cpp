@@ -30,7 +30,8 @@ const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
     "WrongIPs",
     "Messages",
     "Positions",
-    "Rules"
+    "Rules",
+    "Logger"
 };
 
 const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
@@ -60,11 +61,12 @@ const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
     "logFiles",
     "darkMode",
     "useUPNP",
+    "checkForUpdates",
+    "dcBlueCodedSerNums",
+    "loggerAutoScroll"
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
-QHash<ServerInfo*, RulesWidget*> Settings::ruleWidgets;
-QHash<ServerInfo*, MOTDWidget*> Settings::msgWidgets;
 SettingsWidget* Settings::settings;
 QTabWidget* Settings::tabWidget;
 Settings* Settings::instance;
@@ -120,7 +122,7 @@ Settings::~Settings()
     delete ui;
 }
 
-Settings*Settings::getInstance()
+Settings* Settings::getInstance()
 {
     if ( instance == nullptr )
         instance = new Settings( nullptr );
@@ -133,33 +135,6 @@ void Settings::setInstance(Settings* value)
     instance = value;
 }
 
-void Settings::addTabObjects(MOTDWidget* msgWidget, RulesWidget* ruleWidget,
-                             ServerInfo* server)
-{
-    if ( msgWidget != nullptr )
-        msgWidgets.insert( server, msgWidget );
-
-    if ( ruleWidget != nullptr )
-        ruleWidgets.insert( server, ruleWidget );
-}
-
-void Settings::remTabObjects(ServerInfo* server)
-{
-    MOTDWidget* msgWidget{ msgWidgets.take( server ) };
-    if ( msgWidget != nullptr )
-    {
-        msgWidget->setParent( nullptr );
-        msgWidget->deleteLater();
-    }
-
-    RulesWidget* ruleWidget{ ruleWidgets.take( server ) };
-    if ( ruleWidget != nullptr )
-    {
-        ruleWidget->setParent( nullptr );
-        ruleWidget->deleteLater();
-    }
-}
-
 void Settings::updateTabBar(ServerInfo* server)
 {
     qint32 index{ tabWidget->currentIndex() };
@@ -170,8 +145,8 @@ void Settings::updateTabBar(ServerInfo* server)
 
     getInstance()->setWindowTitle( "[ " % server->getName() % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
-    tabWidget->insertTab( 1, ruleWidgets.value( server ), "Rules" );
-    tabWidget->insertTab( 2, msgWidgets.value( server ), "MotD" );
+    tabWidget->insertTab( 1, RulesWidget::getWidget( server ), "Rules" );
+    tabWidget->insertTab( 2, MOTDWidget::getWidget( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
 }
@@ -460,7 +435,7 @@ bool Settings::getMinimizeToTray()
 {
     return getSetting( keys[ Keys::Setting ],
                        subKeys[ SubKeys::MinimizeToTray ] )
-              .toBool();
+            .toBool();
 }
 
 void Settings::setSaveWindowPositions(const bool& value)
@@ -476,6 +451,34 @@ bool Settings::getSaveWindowPositions()
               .toBool();
 }
 
+void Settings::setCheckForUpdates(const bool& value)
+{
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::CheckForUpdates ], value );
+}
+
+bool Settings::getCheckForUpdates()
+{
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::CheckForUpdates ] )
+              .toBool();
+}
+
+void Settings::setDCBlueCodedSerNums(const bool& value)
+{
+
+    setSetting( keys[ Keys::Setting ],
+                subKeys[ SubKeys::DCBlueCodedSerNums ], value );
+}
+
+bool Settings::getDCBlueCodedSerNums()
+{
+
+    return getSetting( keys[ Keys::Setting ],
+                       subKeys[ SubKeys::DCBlueCodedSerNums ] )
+              .toBool();
+}
+
 void Settings::setWindowPositions(const QByteArray& geometry,
                                   const char* dialog)
 {
@@ -485,7 +488,7 @@ void Settings::setWindowPositions(const QByteArray& geometry,
 QByteArray Settings::getWindowPositions(const char* dialog)
 {
     return getSetting( keys[ Keys::Positions ], dialog )
-            .toByteArray();
+              .toByteArray();
 }
 
 void Settings::setIsInvalidIPAddress(const QString& value)
@@ -525,7 +528,7 @@ QString Settings::getServerID(const QString& svrID)
                          .toInt();
     if ( id <= 0 )
     {
-        RandDev* randDev = new RandDev();
+        RandDev* randDev{ RandDev::getDevice() };
         if ( randDev != nullptr )
             id = randDev->genRandNum( 1, 0x7FFFFFFE );
 
@@ -610,5 +613,18 @@ QString Settings::getGameName(const QString& svrID)
 {
     return getServerSetting( keys[ Keys::Setting ],
                              subKeys[ SubKeys::GameName ], svrID )
-                    .toString();
+            .toString();
+}
+
+void Settings::setLoggerAutoScroll(const bool& value)
+{
+    setSetting( keys[ Keys::Logger ],
+                subKeys[ SubKeys::LoggerAutoScroll ], value );
+}
+
+bool Settings::getLoggerAutoScroll()
+{
+    return getSetting( keys[ Keys::Logger ],
+                       subKeys[ SubKeys::LoggerAutoScroll ] )
+              .toBool();
 }

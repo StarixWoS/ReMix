@@ -5,18 +5,95 @@
 
 //ReMix includes.
 #include "packetforge.hpp"
+#include "serverinfo.hpp"
 #include "settings.hpp"
+#include "player.hpp"
 #include "helper.hpp"
+#include "rules.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
 #include <QtCore>
 
-ChatView::ChatView(QWidget* parent) :
+QString ChatView::bleepList[ 439 ]
+{
+    "4r5e", "5h1t", "5hit", "a55", "anal", "anus", "ar5e", "arrse", "arse",
+    "ass", "ass-fucker", "asses", "assfucker", "assfukka", "asshole",
+    "assholes", "asswhole", "a_s_s", "b!tch", "b00bs", "b17ch", "b1tch",
+    "ballbag" "ballsack", "bastard", "beastial", "beastiality", "bestial",
+    "bestiality", "bi+ch", "biatch", "bitch", "bitcher", "bitchers", "bitches",
+    "bitchin", "bitching", "blow job", "blowjob", "blowjobs", "boiolas",
+    "bollock", "bollok", "boner", "boob", "boobs", "booobs", "boooobs",
+    "booooobs", "booooooobs", "breasts", "buceta", "bunny fucker", "butthole",
+    "buttmuch", "buttplug", "c0ck", "c0cksucker", "carpet muncher", "cawk",
+    "chink", "cipa", "cl1t", "clit", "clitoris", "clits", "cnut", "cock",
+    "cock-sucker", "cockface", "cockhead", "cockmunch", "cockmuncher", "cocks",
+    "cocksuck", "cocksucked", "cocksucker", "cocksucking", "cocksucks",
+    "cocksuka", "cocksukka", "cokmuncher", "coksucka", "coon", "cox", "crap",
+    "cum", "cummer", "cumming", "cums", "cumshot", "cunilingus", "cunillingus",
+    "cunnilingus", "cunt", "cuntlick", "cuntlicker", "cuntlicking", "cunts",
+    "cyalis", "cyberfuc", "cyberfuck", "cyberfucked", "cyberfucker",
+    "cyberfuckers", "cyberfucking", "d1ck", "damn", "dick", "dickhead",
+    "dildo", "dildos", "dink", "dinks", "dirsa", "dlck", "dog-fucker", "doggin",
+    "dogging", "donkeyribber", "doosh", "duche", "dyke", "ejaculate",
+    "ejaculated", "ejaculates", "ejaculating", "ejaculatings", "ejaculation",
+    "ejakulate", "f u c k", "f u c k e r", "f4nny", "fag", "fagging", "faggitt",
+    "faggot", "faggs", "fagot", "fagots", "fags", "fanny", "fannyflaps",
+    "fannyfucker", "fanyy", "fatass", "fcuk", "fcuker", "fcuking", "feck",
+    "fecker", "felching", "fellate", "fellatio", "fingerfuck", "fingerfucked",
+    "fingerfucker", "fingerfuckers", "fingerfucking", "fingerfucks",
+    "fistfuck", "fistfucked", "fistfucker", "fistfuckers", "fistfucking",
+    "fistfuckings", "fistfucks", "fook", "fooker", "fuck", "fucka", "fucked",
+    "fucker", "fuckers", "fuckhead", "fuckheads", "fuckin", "fucking",
+    "fuckings", "fuckme", "fucks", "fuckwhit", "fuckwit", "fudge packer",
+    "fudgepacker", "fuk", "fuker", "fukker", "fukkin", "fuks", "fukwhit",
+    "fukwit", "fux", "fux0r", "f_u_c_k", "gangbang", "gangbanged",
+    "gangbangs", "gaylord", "gaysex", "goatse", "god-dam", "god-damned",
+    "goddamn", "goddamned", "hell ", "heshe", "hoar", "hoare",
+    "hoer", "homo", "hore", "horniest", "horny", "hotsex", "jack-off",
+    "jackoff", "jap", "jerk-off", "jism", "jiz", "jizm", "jizz", "kawk",
+    "knob", "knobead", "knobed", "knobend", "knobhead", "knobjocky",
+    "knobjokey", "kock", "kondum", "kondums", "kum", "kummer", "kumming",
+    "kums", "kunilingus", "l3i+ch", "l3itch", "labia", "lmfao", "lust",
+    "lusting", "m0f0", "m0fo", "m45terbate", "ma5terb8", "ma5terbate",
+    "masochist", "master-bate", "masterb8", "masterbat*", "masterbat3",
+    "masterbate", "masterbation", "masterbations", "masturbate", "mo-fo",
+    "mof0", "mofo", "mothafuck", "mothafucka", "mothafuckas", "mothafuckaz",
+    "mothafucked", "mothafucker", "mothafuckers", "mothafuckin",
+    "mothafucking", "mothafuckings", "mothafucks", "mother fucker",
+    "motherfuck", "motherfucked", "motherfucker", "motherfuckers",
+    "motherfuckin", "motherfucking", "motherfuckings", "motherfuckka",
+    "motherfucks", "muff", "mutha", "muthafecker", "muthafuckker", "muther",
+    "mutherfucker", "n1gga", "n1gger", "nazi", "nigg3r", "nigg4h", "nigga",
+    "niggah", "niggas", "niggaz", "nigger", "niggers", "nob", "nob jokey",
+    "nobhead", "nobjocky", "nobjokey", "numbnuts", "nutsack", "orgasim",
+    "orgasims", "orgasm", "orgasms", "p0rn", "pawn", "pecker", "penis",
+    "penisfucker", "phonesex", "phuck", "phuk", "phuked", "phuking", "phukked",
+    "phukking", "phuks", "phuq", "pigfucker", "pimpis", "piss", "pissed",
+    "pisser", "pissers", "pisses", "pissflaps", "pissin", "pissing",
+    "pissoff", "poop", "porn", "porno", "pornography", "pornos", "prick",
+    "pricks", "pron", "pube", "pusse", "pussi", "pussies", "pussy", "pussys",
+    "rectum", "retard", "rimjaw", "rimming", "s hit", "s.o.b.", "sadist",
+    "schlong", "screwing", "scroat", "scrote", "scrotum", "semen", "sex",
+    "sh!+", "sh!t", "sh1t", "shag", "shagger", "shaggin", "shagging", "shemale",
+    "shi+", "shit", "shitdick", "shite", "shited", "shitey", "shitfuck",
+    "shitfull", "shithead", "shiting", "shitings", "shits", "shitted",
+    "shitter", "shitters", "shitting", "shittings", "shitty", "skank", "slut",
+    "sluts", "smegma", "smut", "snatch", "son-of-a-bitch", "spac", "spunk",
+    "s_h_i_t", "t1tt1e5", "t1tties", "teets", "teez", "testical", "testicle",
+    "tit", "titfuck", "tits", "titt", "tittie5", "tittiefucker", "titties",
+    "tittyfuck", "tittywank", "titwank", "tosser", "turd", "tw4t", "twat",
+    "twathead", "twatty", "twunt", "twunter", "v14gra", "v1gra", "vagina",
+    "viagra", "vulva", "w00se", "wang", "wank", "wanker", "wanky", "whoar",
+    "whore", "willies"
+};
+
+ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     QDialog(parent),
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
+    server = svr;
 
     pktForge = PacketForge::getInstance();
 
@@ -64,10 +141,14 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(const QString& packet, const QString& alias)
+void ChatView::parsePacket(const QString& packet, Player* plr)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
+        return;
+
+    //The Player object is invalid, return.
+    if ( plr == nullptr )
         return;
 
     QString pkt{ packet };
@@ -89,6 +170,7 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
                     pkt = pkt.left( pkt.length() - 4 );
                 }
                 this->parseChatEffect( pkt );
+                plr->chatPacketFound();
             }
         }
     }
@@ -105,10 +187,12 @@ void ChatView::parsePacket(const QString& packet, const QString& alias)
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
 
-            this->insertChat( alias % ": ",
-                              "limegreen", true );
+            this->insertChat( plr->getAlias() % ": ",
+                              Colors::Name, true );
             this->insertChat( pkt,
-                              "yellow", false );
+                              Colors::Chat, false );
+
+            plr->chatPacketFound();
         }
     }
 }
@@ -135,37 +219,59 @@ void ChatView::parseChatEffect(const QString& packet)
     if ( packet.at( 3 ) == 'C' )
     {
         QString message{ packet.mid( 31 ) };
+
+        //TODO: Change into something more complex and better.
+
+        //Quick and dirty word replacement.
+        if ( server != nullptr )
+        {
+            //Check if the bleeping rule is set.
+            //There's no pint in censoring our chat if we aren't censoring chat
+            //for other people.
+            if ( Rules::getNoCursing( server->getName() ) )
+                this->bleepChat( message );
+        }
+
         QChar type{ packet.at( 31 ) };
 
         if ( type == '\'' )
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " gossips: " % message,
-                              "goldenrod", true );
+                              Colors::Gossip, true );
         }
         else if ( type == '!' )
         {
             message = message.mid( 1 );
             this->insertChat( srcSerNum % " shouts: " % message,
-                              "sienna", true );
+                              Colors::Shout, true );
         }
         else if ( type == '/' )
         {
             message = message.mid( 2 );
             this->insertChat( srcSerNum % message,
-                              "seagreen", true );
+                              Colors::Emote, true );
         }
         else
         {
             this->insertChat( srcSerNum % ": ",
-                              "limegreen", true );
+                              Colors::Name, true );
             this->insertChat( message,
-                              "yellow", false );
+                              Colors::Chat, false );
         }
     }
 }
 
-void ChatView::insertChat(const QString& msg, const QString& color,
+void ChatView::bleepChat(QString& message)
+{
+    for ( int i = 0; i <= 439; ++i )
+    {
+        message = message.replace( bleepList[ i ], "bleep",
+                                   Qt::CaseInsensitive );
+    }
+}
+
+void ChatView::insertChat(const QString& msg, const Colors& color,
                           const bool& newLine)
 {
     QTextEdit* obj{ ui->chatView };
@@ -182,7 +288,7 @@ void ChatView::insertChat(const QString& msg, const QString& color,
     cursor.movePosition( QTextCursor::End );
 
     QTextCharFormat format;
-                    format.setForeground( QBrush( QColor( color ) ) );
+                    format.setForeground( Theme::getThemeColor( color ) );
     cursor.setCharFormat( format );
     if ( newLine )
         cursor.insertText( "\r\n" );
@@ -221,9 +327,9 @@ void ChatView::on_chatInput_returnPressed()
     }
 
     this->insertChat( "Owner: ",
-                      "limegreen", true );
+                      Colors::OwnerName, true );
     this->insertChat( message,
-                      "cyan", false );
+                      Colors::OwnerChat, false );
 
     if ( gameID == Games::W97 )
     {

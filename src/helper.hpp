@@ -10,7 +10,13 @@
 
 class Helper
 {
+    static const QString logType[ LOG_TYPE_COUNT ];
+    static const QList<qint32> blueCodedList;
+
     public:
+        enum LogTypes{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC, MUTE,
+                       IGNORE = 7 };
+
         static QInputDialog* createInputDialog(QWidget* parent, QString& label,
                                                QInputDialog::InputMode mode,
                                                int width, int height);
@@ -21,7 +27,7 @@ class Helper
         {
             return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
         }
-        static qint32 strToInt(QString& str, int base = 16);
+        static qint32 strToInt(const QString& str, const int& base = 16);
 
         static QString intSToStr(QString& val, int base = 16, int fill = 0,
                                  QChar filler = '0');
@@ -36,25 +42,28 @@ class Helper
         static QString serNumToIntStr(QString sernum);
         static qint32 serNumtoInt(QString& sernum);
 
-        static void logToFile(const QString& file, const QString& text,
+        static bool isBlueCodedSerNum(const quint32& sernum);
+
+        static void logToFile(const LogTypes& type, const QString& text,
                               const bool& timeStamp = false,
                               const bool& newLine = false);
 
         static bool confirmAction(QWidget* parent, QString& title,
                                   QString& prompt);
 
-        static qint32 warningMessage(QWidget* parent, QString& title,
-                                     QString& prompt );
+        static qint32 warningMessage(QWidget* parent, const QString& title,
+                                     const QString& prompt);
 
-        static QString getTextResponse(QWidget* parent, QString& title,
-                                       QString& prompt, bool* ok, int type = 0);
+        static QString getTextResponse(QWidget* parent, const QString& title,
+                                       const QString& prompt,
+                                       const QString& defaultInput,
+                                       bool* ok, int type = 0);
 
         static QString getBanishReason(QWidget* parent = nullptr);
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(QString& password);
-        static QString genPwdSalt(RandDev* randGen,
-                                  const qint32& length = SALT_LENGTH);
+        static QString genPwdSalt(const qint32& length = SALT_LENGTH);
 
         static bool validateSalt(QString& salt);
 
@@ -70,6 +79,9 @@ class Helper
         static bool cmpStrings(const QString& strA, const QString& strB );
         static qint32 getStrIndex(const QString& strA, const QString& strB);
         static QString getTimeAsString(const quint64& time = 0);
+        static QString getTimeFormat(const quint64 &time);
+        static quint64 getTimeIntFormat(const quint64 &time,
+                                        const TimeFormat& format);
 };
 
 #endif // PREFERENCES_HPP

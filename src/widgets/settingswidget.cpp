@@ -6,8 +6,10 @@
 //ReMix includes.
 #include "settings.hpp"
 #include "helper.hpp"
+#include "remix.hpp"
 
 //Qt Includes.
+#include <QNetworkAccessManager>
 #include <QFileDialog>
 #include <QtCore>
 
@@ -31,8 +33,8 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( Toggles::BANDUPEDIP,
                            Settings::getBanDupedIP() );
 
-    this->setCheckedState( Toggles::BANHACKERS,
-                           Settings::getBanDeviants() );
+    //this->setCheckedState( Toggles::BANHACKERS,
+    //                       Settings::getBanDeviants() );
 
     this->setCheckedState( Toggles::REQSERNUM,
                            Settings::getReqSernums() );
@@ -64,6 +66,11 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( Toggles::LOGFILES,
                            Settings::getLogFiles() );
 
+//    this->setCheckedState( Toggles::CHECKFORUPDATES,
+//                           Settings::getCheckForUpdates() );
+    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS,
+                           Settings::getDCBlueCodedSerNums() );
+
     QString dir{ Settings::getWorldDir() };
     QString rowText{ "World Dir: [ %1 ]" };
             rowText = rowText.arg( dir );
@@ -85,7 +92,13 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    ui->settingsView->item( option, 0 )->setCheckState( state );
+    QTableWidgetItem* item = ui->settingsView->item(
+                                 static_cast<int>( option ), 0 );
+    if ( item != nullptr )
+    {
+        ui->settingsView->item(
+                    static_cast<int>( option ), 0 )->setCheckState( state );
+    }
 }
 
 void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
@@ -120,7 +133,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
     QString title{ "" };
     QString prompt{ "" };
 
-    switch ( row )
+    switch ( static_cast<Toggles>( row ) )
     {
         case Toggles::REQPWD: //0
             {
@@ -149,8 +162,8 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         {
                             title = "Server Password:";
                             prompt = "Password:";
-                            pwd = Helper::getTextResponse( this, title,
-                                                           prompt, &ok, 0 );
+                            pwd = Helper::getTextResponse( this, title, prompt,
+                                                           "", &ok, 0 );
                         }
 
                         if (( !pwd.isEmpty()
@@ -194,40 +207,43 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case Toggles::BANDUPEDIP: //3
             Settings::setBanDupedIP( state );
         break;
-        case Toggles::BANHACKERS: //4
-            Settings::setBanHackers( state );
-        break;
+        //case Toggles::BANHACKERS: //4
+        //    Settings::setBanHackers( state );
+        //break;
         case Toggles::REQSERNUM: //5
             Settings::setReqSernums( state );
         break;
-        case Toggles::DISCONNECTIDLES: //6
+        case Toggles::DCBLUECODEDSERNUMS: //6
+                Settings::setDCBlueCodedSerNums( state );
+        break;
+        case Toggles::DISCONNECTIDLES: //7
             Settings::setDisconnectIdles( state );
         break;
-        case Toggles::ALLOWSSV: //7
+        case Toggles::ALLOWSSV: //8
             Settings::setAllowSSV( state );
         break;
-        case Toggles::LOGCOMMENTS: //8
+        case Toggles::LOGCOMMENTS: //9
             Settings::setLogComments( state );
         break;
-        case Toggles::FWDCOMMENTS: //9
+        case Toggles::FWDCOMMENTS: //10
             Settings::setFwdComments( state );
         break;
-        case Toggles::ECHOCOMMENTS: //10
+        case Toggles::ECHOCOMMENTS: //11
             Settings::setEchoComments( state );
         break;
-        case Toggles::INFORMADMINLOGIN: //11
+        case Toggles::INFORMADMINLOGIN: //12
             Settings::setInformAdminLogin( state );
         break;
-        case Toggles::MINIMIZETOTRAY: //12
+        case Toggles::MINIMIZETOTRAY: //13
             Settings::setMinimizeToTray( state );
         break;
-        case Toggles::SAVEWINDOWPOSITIONS: //13
+        case Toggles::SAVEWINDOWPOSITIONS: //14
             Settings::setSaveWindowPositions( state );
         break;
-        case Toggles::LOGFILES: //14
+        case Toggles::LOGFILES: //15
             Settings::setLogFiles( state );
         break;
-        case Toggles::WORLDDIR: //15
+        case Toggles::WORLDDIR: //16
             {
                 QString directory{ Settings::getWorldDir() };
                 QString rowText{ "World Dir: [ %1 ]" };

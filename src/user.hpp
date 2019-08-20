@@ -58,7 +58,8 @@ class User : public QDialog
         static bool addBan(const Player* admin, const Player* target,
                            const QString& reason, const bool remote = false);
 
-        static bool getIsBanned(const QString& value, const BanTypes& type);
+        static bool getIsBanned(const QString& value, const BanTypes& type,
+                                const QString& plrSernum = "");
 
         static void updateCallCount(const QString& serNum);
         static void logBIO(const QString& serNum, const QHostAddress& ip,

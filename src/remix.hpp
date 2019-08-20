@@ -33,7 +33,7 @@ class ReMix : public QMainWindow
         void initUIUpdate();
 
     public:
-        explicit ReMix(QWidget* parent = 0);
+        explicit ReMix(QWidget* parent = nullptr);
         ~ReMix();
 
         static ReMix* getInstance();

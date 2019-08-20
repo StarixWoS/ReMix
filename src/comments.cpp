@@ -4,18 +4,22 @@
 #include "ui_comments.h"
 
 //ReMix includes.
+#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
 #include <QtCore>
 
-Comments::Comments(QWidget* parent) :
+Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
     QDialog(parent),
     ui(new Ui::Comments)
 {
     ui->setupUi(this);
+
+    server = serverInfo;
 
     if ( Settings::getSaveWindowPositions() )
     {
@@ -91,7 +95,9 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    Helper::logToFile( Helper::COMMENT, comment, false, false );
+    //Helper::logToFile( Helper::COMMENT, comment, false, false );
+    Logger::getInstance()->insertLog( server->getName(), comment,
+                                      LogTypes::COMMENT, true, true );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

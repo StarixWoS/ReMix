@@ -3,5 +3,7 @@
         <file>ReMix.ico</file>
         <file>ReMix.png</file>
         <file>newtab.png</file>
+        <file>AFK.png</file>
+        <file>NPK.png</file>
     </qresource>
 </RCC>

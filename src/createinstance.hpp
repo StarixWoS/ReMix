@@ -20,7 +20,7 @@ class CreateInstance : public QDialog
         QCollator collator;
 
     public:
-        explicit CreateInstance(QWidget* parent = 0);
+        explicit CreateInstance(QWidget* parent = nullptr);
         ~CreateInstance();
 
         void updateServerList(const bool& firstRun);
@@ -35,6 +35,8 @@ class CreateInstance : public QDialog
         void on_initializeServer_clicked();
         void showEvent(QShowEvent* event);
         void on_close_clicked();
+
+        void on_randomizePort_clicked();
 
     signals:
         void createServerAcceptedSignal(ServerInfo* server);

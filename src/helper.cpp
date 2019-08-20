@@ -16,6 +16,38 @@
 #include <QTcpSocket>
 #include <QtCore>
 
+const QString Helper::logType[ LOG_TYPE_COUNT ] =
+{
+    "AdminUsage",
+    "Comments",
+    "UsageLog",
+    "UPNPLog",
+    "BanLog",
+    "DCLog",
+    "MuteLog",
+    "Ignored",
+};
+
+const QList<qint32> Helper::blueCodedList =
+{
+    1004, 1024, 1043, 1046, 1052, 1054, 1055, 1062, 1068, 1072, 1099,
+    1112, 1120, 1123, 1125, 1138, 1163, 1166, 1170, 1172, 1173, 1189,
+    1204, 1210, 1217, 1275, 1292, 1307, 1308, 1312, 1332, 1338, 1367,
+    1369, 1370, 1520, 1547, 1551, 1565, 1600, 1607, 1611, 1656, 1675,
+    1681, 1695, 1706, 1715, 1751, 1754, 1840, 1965, 2003, 2058, 2062,
+    2144, 2205, 2217, 2264, 2268, 2359, 1008, 1017, 1051, 1054, 1082,
+    1099, 1104, 1105, 1181, 1199, 1222, 1279, 1343, 1358, 1388, 1456,
+    1528, 1677, 1773, 1777, 1778, 1780, 1796, 1799, 2156, 2167, 2241,
+    2248, 2362, 2421, 1098, 1220, 1264, 1342, 1361, 1823, 2302, 2488,
+    2585, 2372, 1492, 1576, 1100, 1347, 1050, 1015, 1666, 1745, 2043,
+    1200, 2628, 1016, 1739, 1853, 2708, 2757, 1498, 2448, 2801, 1031,
+    1265, 1414, 1420, 1429, 1214, 1489, 1707, 2543, 1101, 1283, 1604,
+    1428, 2707, 1023, 1069, 1071, 1132, 1286, 1854, 2910, 1005, 2682,
+    1348, 2615, 2617, 1884, 1169, 1540, 1645, 1939, 1179, 3053, 1803,
+    2377, 1000, 1021, 1500, 1501, 1515, 1547, 1803, 2377, 3111, 3202,
+    3191, 3149, 3,
+};
+
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
                                         QInputDialog::InputMode mode,
                                         int width, int height)
@@ -27,7 +59,7 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
     return dialog;
 }
 
-qint32 Helper::strToInt(QString& str, int base)
+qint32 Helper::strToInt(const QString& str, const int& base)
 {
     bool base16 = ( base != 10 );
     bool ok{ false };
@@ -56,8 +88,8 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
     if ( val_i > 0 )
         return QString( "%1" ).arg( val_i, fill, base, filler ).toUpper();
     else
-        return QString( "%1" ).arg( val.toInt( 0, 16 ), fill, base, filler )
-                   .toUpper();
+        return QString( "%1" ).arg( val.toInt( nullptr, 16 ),
+                                    fill, base, filler ).toUpper();
 }
 
 QString Helper::getStrStr(const QString& str, QString indStr,
@@ -149,7 +181,7 @@ QString Helper::sanitizeSerNum(const QString& value)
     QString sernum{ value };
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         return value;
 
@@ -160,7 +192,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString result{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -192,7 +224,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(QString sernum)
 {
-    quint32 sernum_i{ sernum.toUInt( 0, 16 ) };
+    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString retn{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -212,7 +244,7 @@ qint32 Helper::serNumtoInt(QString& sernum)
 {
     stripSerNumHeader( sernum );
 
-    qint32 sernum_i{ sernum.toInt( 0, 16 ) };
+    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
         sernum_i = strToInt( sernum, 16 );
     else
@@ -221,27 +253,41 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-void Helper::logToFile(const QString& file, const QString& text,
+bool Helper::isBlueCodedSerNum(const quint32& sernum)
+{
+    return blueCodedList.contains( static_cast<int>( sernum ) );
+}
+
+void Helper::logToFile(const LogTypes& type, const QString& text,
                        const bool& timeStamp,
                        const bool& newLine)
 {
-    QString logTxt = text;
-    QFile log( file );
-    QFileInfo logInfo( log );
-    if ( !logInfo.dir().exists() )
-        logInfo.dir().mkdir( "." );
-
-    if ( log.open( QFile::WriteOnly | QFile::Append ) )
+    if ( Settings::getLogFiles() )
     {
-        if ( timeStamp )
-            logTxt.prepend( "[ " % getTimeAsString() % " ] " );
+        QString logTxt = text;
 
-        if ( newLine )
-            logTxt.prepend( "\r\n" );
+        QFile log( "logs/"
+                 % logType[ type ]
+                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
+                 % logType[ type ]
+                 % ".txt" );
 
-        log.write( logTxt.toLatin1() );
+        QFileInfo logInfo( log );
+        if ( !logInfo.dir().exists() )
+            logInfo.dir().mkpath( "." );
 
-        log.close();
+        if ( log.open( QFile::WriteOnly | QFile::Append ) )
+        {
+            if ( timeStamp )
+                logTxt.prepend( "[ " % getTimeAsString() % " ] " );
+
+            if ( newLine )
+                logTxt.prepend( "\r\n" );
+
+            log.write( logTxt.toLatin1() );
+
+            log.close();
+        }
     }
 }
 
@@ -253,27 +299,30 @@ bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
     return value == QMessageBox::Yes;
 }
 
-qint32 Helper::warningMessage(QWidget* parent, QString& title, QString& prompt )
+qint32 Helper::warningMessage(QWidget* parent, const QString& title,
+                              const QString& prompt)
 {
     return QMessageBox::warning( parent, title, prompt,
                                  QMessageBox::NoButton,
                                  QMessageBox::Ok );
 }
 
-QString Helper::getTextResponse(QWidget* parent, QString& title,
-                                QString& prompt, bool* ok, int type)
+QString Helper::getTextResponse(QWidget* parent, const QString& title,
+                                const QString& prompt,
+                                const QString& defaultInput,
+                                bool* ok, int type)
 {
     QString response{ "" };
     if ( type == 0 )    //Single-line message.
     {
         response = QInputDialog::getText( parent, title, prompt,
                                           QLineEdit::Normal,
-                                          "", ok );
+                                          defaultInput, ok );
     }
     else if ( type == 1 )   //Multi-line message.
     {
         response = QInputDialog::getMultiLineText( parent, title, prompt,
-                                                   "", ok );
+                                                   defaultInput, ok );
     }
     return response;
 }
@@ -314,14 +363,9 @@ QString Helper::hashPassword(QString& password)
     return QString( hash.result().toHex() );
 }
 
-QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
+QString Helper::genPwdSalt(const qint32& length)
 {
-    bool newRNG{ false };
-    if ( randGen == nullptr )
-    {
-        randGen = new RandDev();
-        newRNG = true;
-    }
+    RandDev* randGen{ RandDev::getDevice() };
 
     QString salt{ "" };
     QString charList
@@ -339,11 +383,8 @@ QString Helper::genPwdSalt(RandDev* randGen, const qint32& length)
         salt.append( charList.at( chrPos ) );
     }
 
-    if ( newRNG )
-        delete randGen;
-
     if ( !validateSalt( salt ) )
-        salt = genPwdSalt( randGen, length );
+        salt = genPwdSalt( length );
 
     return salt;
 }
@@ -427,8 +468,7 @@ QHostAddress Helper::getPrivateIP()
     QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
 
     //Default to our localhost address if nothing valid is found.
-    QHostAddress ipAddress{ QHostAddress::LocalHost };
-
+    QHostAddress ipAddress{ QHostAddress::Null };
     for ( int i = 0; i < ipList.size(); ++i )
     {
         QString tmp = ipList.at( i ).toString();
@@ -567,6 +607,38 @@ QString Helper::getTimeAsString(const quint64& time)
     if ( date == 0 )
         date = QDateTime::currentDateTime().toTime_t();
 
-    return QDateTime::fromTime_t( date )
-                .toString( "ddd MMM dd HH:mm:ss yyyy" );
+    return QDateTime::fromTime_t( static_cast<uint>( date ) )
+            .toString( "ddd MMM dd HH:mm:ss yyyy" );
+}
+
+QString Helper::getTimeFormat(const quint64& time)
+{
+    return QString( "%1:%2:%3" )
+            .arg( getTimeIntFormat( time, TimeFormat::Hours ),
+                  2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Minutes ),
+                  2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Seconds ),
+                  2, 10, QChar( '0' ) );
+}
+
+quint64 Helper::getTimeIntFormat(const quint64& time, const TimeFormat& format)
+{
+    switch ( format )
+    {
+        case TimeFormat::Hours:
+            return ( time / static_cast<int>( TimeFormat::HoursDiv ) );
+        break;
+        case TimeFormat::Minutes:
+            return ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
+                     % static_cast<int>( TimeFormat::SecDiv ) );
+        break;
+        case TimeFormat::Seconds:
+            return ( time % static_cast<int>( TimeFormat::SecDiv ) );
+        break;
+            case TimeFormat::Default:
+        default:
+            return time;
+        break;
+    }
 }

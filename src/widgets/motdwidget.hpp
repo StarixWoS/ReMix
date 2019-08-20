@@ -27,6 +27,7 @@ class MOTDWidget : public QWidget
         static void deleteWidget(ServerInfo* server);
 
         void setServerName(const QString& name);
+        void changeMotD(const QString& message);
 
     private slots:
         void on_motdEdit_textChanged();

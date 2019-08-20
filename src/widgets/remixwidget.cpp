@@ -16,6 +16,7 @@
 #include "randdev.hpp"
 #include "server.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -29,17 +30,16 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 
     server = svrInfo;
 
-    //Setup our Random Device
-    randDev = new RandDev();
-
     //Setup Objects.
-    motdWidget = new MOTDWidget();
-    motdWidget->setServerName( server->getName() );
+    motdWidget = MOTDWidget::getWidget( server );
 
-    rules = new RulesWidget();
+    rules = RulesWidget::getWidget( server );
+    QObject::connect( rules, &RulesWidget::gameInfoChanged,
+    [=](const QString& gameInfo)
+    {
+        server->setGameInfo( gameInfo );
+    });
     rules->setServerName( server->getName() );
-
-    Settings::addTabObjects( motdWidget, rules, server );
 
     plrWidget = new PlrListWidget( this, server );
     ui->tmpWidget->setLayout( plrWidget->layout() );
@@ -73,9 +73,9 @@ ReMixWidget::~ReMixWidget()
 
     plrWidget->deleteLater();
 
-    Settings::remTabObjects( server );
+    RulesWidget::deleteWidget( server );
+    MOTDWidget::deleteWidget( server );
 
-    delete randDev;
     delete server;
     delete ui;
 }
@@ -103,7 +103,7 @@ void ReMixWidget::sendServerMessage(const QString& msg)
         server->sendMasterMessage( msg, nullptr, true );
 }
 
-qint32 ReMixWidget::getPlayerCount() const
+quint32 ReMixWidget::getPlayerCount() const
 {
     if ( server != nullptr )
         return server->getPlayerCount();
@@ -136,14 +136,7 @@ void ReMixWidget::initUIUpdate()
                       server->getUpTimer(),
     [=]()
     {
-        quint64 time = server->getUpTime();
-
-        QString time_s = QString( "%1:%2:%3" )
-                             .arg( time / 3600, 2, 10, QChar( '0' ) )
-                             .arg(( time / 60 ) % 60, 2, 10, QChar( '0' ) )
-                             .arg( time % 60, 2, 10, QChar( '0' ) );
-
-        ui->onlineTime->setText( time_s );
+        ui->onlineTime->setText( Helper::getTimeFormat( server->getUpTime() ) );
         ui->callCount->setText(
                     QString( "#Calls: %1" )
                         .arg( server->getUserCalls() ) );
@@ -187,9 +180,9 @@ void ReMixWidget::initUIUpdate()
                 if ( server->getMasterUDPResponse() )
                 {
                     QString msg2{ " ( Port forward from: %1:%2 ) "
-                                            "( Ping: %3 ms, "
-                                            "Avg: %4 ms, "
-                                            "Trend: %5 ms )" };
+                                  "( Ping: %3 ms, "
+                                  "Avg: %4 ms, "
+                                  "Trend: %5 ms )" };
                             msg2 = msg2.arg( server->getPublicIP(),
                                              QString::number(
                                                  server->getPublicPort() ),
@@ -212,8 +205,13 @@ void ReMixWidget::initUIUpdate()
                 }
                 else
                 {
-                    msg = "Sent UDP check-in to Master. "
+                    msg = "Sent UDP check-in to Master using:"
+                          "<a href=\"%1\"><span style=\" text-decoration: "
+                          "underline; color:#007af4;\">%1:%2</span></a>. "
                           "Waiting for response...";
+                    msg = msg.arg( server->getPrivateIP(),
+                                   QString::number(
+                                       server->getPrivatePort() ) );
 
                     if ( server->getMasterTimedOut() )
                     {
@@ -335,4 +333,19 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
         //For a more user-friendly method of removing them from the preferences.
     }
     //contextMenu->popup( this->mapToGlobal( pos ) );
+}
+
+void ReMixWidget::on_logButton_clicked()
+{
+    //Show the Logger Dialog.
+    Logger* logUi = Logger::getInstance();
+    if (logUi != nullptr )
+    {
+        if ( logUi->isVisible() )
+        {
+            logUi->hide();
+        }
+        else
+            logUi->show();
+    }
 }
