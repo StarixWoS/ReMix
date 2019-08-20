@@ -16,7 +16,6 @@ class CreateInstance : public QDialog
         Q_OBJECT
 
         static const QString gameNames[ GAME_NAME_COUNT ];
-        RandDev* randDev{ nullptr };
         QCollator collator;
 
     public:
@@ -26,6 +25,10 @@ class CreateInstance : public QDialog
         void updateServerList(const bool& firstRun);
         bool testPort(const quint16& port);
         quint16 genPort();
+
+        void restartServer(const QString& name, const QString& gameName,
+                           const quint16& port, const bool& useUPNP,
+                           const bool& isPublic);
 
     private slots:
         void on_servers_currentTextChanged(const QString& arg1);

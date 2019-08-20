@@ -2,6 +2,8 @@
 #define USER_HPP
 
 #include "prototypes.hpp"
+
+//Required Qt Includes.
 #include <QDialog>
 
 namespace Ui {
@@ -15,22 +17,13 @@ class User : public QDialog
     static QSortFilterProxyModel* tblProxy;
     static QStandardItemModel* tblModel;
     static QSettings* userData;
-    static RandDev* randDev;
     static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];
 
     public:
-        enum UserColumns{ cSERNUM = 0, cPINGS, cCALLS, cSEENDATE, cIP,
-                          cRANK, cBANNED, cBANDATE, cREASON, cCOLS = 9 };
-
-        enum PlayerRanks{ rUSER = 0, rGAMEMASTER, rCOADMIN, rADMIN,
-                          rOWNER = 4 };
-
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
                        kREASON, kBANNED, kPINGS, kCALLS = 11 };
-
-        enum BanTypes{ tSERNUM = 0, tIP, tDV, tWV = 3 };
 
         explicit User(QWidget* parent = nullptr);
         ~User();
@@ -52,7 +45,7 @@ class User : public QDialog
         static bool cmpAdminPwd(const QString& sernum, const QString& value);
 
         static qint32 getAdminRank(const QString& sernum);
-        static void setAdminRank(const QString& sernum, const qint32& rank);
+        static void setAdminRank(const QString& sernum, const GMRanks& rank);
 
         static void removeBan(const QString& value, const qint32& type);
         static bool addBan(const Player* admin, const Player* target,
@@ -68,7 +61,7 @@ class User : public QDialog
 
     private:
         QModelIndex findModelIndex(const QString& value,
-                                   const UserColumns& col);
+                                   const UserCols& col);
         void loadUserInfo();
         void updateRowData(const qint32& row, const qint32& col,
                            const QVariant& data);

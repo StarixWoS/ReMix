@@ -9,6 +9,7 @@
 
 //Qt Includes.
 #include <QFileSystemModel>
+#include <QDebug>
 
 SelectWorld::SelectWorld(QWidget* parent) :
     QDialog(parent),

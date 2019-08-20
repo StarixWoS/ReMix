@@ -545,6 +545,8 @@ void PacketHandler::detectFlooding(Player* plr)
                 Logger::getInstance()->insertLog( server->getName(), logMsg,
                                                   LogTypes::DC, true, true );
 
+                QString plrMessage{ "Auto-Disconnect; Packet Flooding" };
+                plr->sendMessage( plrMessage, false );
 //                if ( Settings::getBanDeviants() )
 //                {
 //                    logMsg = "Auto-Banish; Suspicious data from: "

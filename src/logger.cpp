@@ -151,9 +151,7 @@ void Logger::insertLog(const QString& source, const QString& message,
     QAbstractItemModel* tblModel = ui->logView->model();
     QString time = Helper::getTimeAsString();
 
-    if ( tblModel != nullptr
-      && type != LogTypes::COMMENT ) //Prevent formatted comments
-                                     //from appearing within the UI.
+    if ( tblModel != nullptr )
     {
         qint32 row = tblModel->rowCount();
         tblModel->insertRow( row );

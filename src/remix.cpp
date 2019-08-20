@@ -14,12 +14,13 @@
 #include "user.hpp"
 
 //Qt Includes.
+#include <QNetworkAccessManager>
 #include <QSystemTrayIcon>
 #include <QCloseEvent>
 #include <QSettings>
 #include <QMenu>
 
-ReMix* ReMix::instance;
+ReMix* ReMix::instance{ nullptr };
 
 ReMix::ReMix(QWidget* parent) :
     QMainWindow(parent),
