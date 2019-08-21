@@ -33,8 +33,9 @@ PacketHandler::~PacketHandler()
     cmdHandle->deleteLater();
 }
 
-void PacketHandler::parsePacket(const QString& packet, Player* plr)
+void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 {
+    QString pkt{ packet };
     if ( plr == nullptr )
         return;
 
@@ -44,20 +45,25 @@ void PacketHandler::parsePacket(const QString& packet, Player* plr)
         if ( !this->checkBannedInfo( plr ) )
         {
             //Prevent Users from Impersonating the Server Admin.
-            if ( Helper::strStartsWithStr( packet, ":SR@" ) )
+            if ( Helper::strStartsWithStr( pkt, ":SR@" ) )
                 return;
 
             //Prevent Users from changing the Server's rules.
-            if ( Helper::strStartsWithStr( packet, ":SR$" ) )
+            if ( Helper::strStartsWithStr( pkt, ":SR$" ) )
                 return;
 
             if ( !plr->getNetworkMuted()
               && plr->getIsVisible() )
             {
-                if ( !pktForge->validateSerNum( plr, packet ) )
-                    return;
+                //Warpath doesn't send packets using SerNums.
+                //Check and skip the validation if this is Warpath.
+                if ( server->getGameId() != Games::W97 )
+                {
+                    if ( !pktForge->validateSerNum( plr, packet ) )
+                        return;
+                }
 
-                this->parseSRPacket( packet, plr );
+                this->parseSRPacket( pkt, plr );
 
                 if ( chatView->getGameID() != Games::Invalid )
                 {

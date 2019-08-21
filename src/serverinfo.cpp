@@ -653,6 +653,13 @@ void ServerInfo::setIsPublic(const bool& value)
     Settings::setIsPublic( value, this->getName() );
 
     this->setMasterUDPResponse( false );
+
+    //Warpath Master Mix Servers do not send a UDP response.
+    //To prevent spamming the Master Mix with check-in packets
+    //Force the UDP response to true.
+    if ( this->getGameId() == Games::W97 )
+        this->setMasterUDPResponse( true );
+
     this->setSentUDPCheckIn( false );
 
     if ( value )

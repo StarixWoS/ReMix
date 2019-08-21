@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>663</width>
-    <height>212</height>
+    <width>698</width>
+    <height>205</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -84,12 +84,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>130</width>
-       <height>0</height>
-      </size>
-     </property>
      <property name="maximumSize">
       <size>
        <width>130</width>
@@ -124,8 +118,8 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="1" column="0" colspan="3">
-       <widget class="QPushButton" name="openSettings">
+      <item row="4" column="0" colspan="3">
+       <widget class="QPushButton" name="openUserComments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -145,7 +139,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Settings</string>
+         <string>User Comments</string>
         </property>
        </widget>
       </item>
@@ -174,8 +168,8 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QPushButton" name="openUserComments">
+      <item row="1" column="0" colspan="3">
+       <widget class="QPushButton" name="openSettings">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -195,7 +189,7 @@
          </size>
         </property>
         <property name="text">
-         <string>User Comments</string>
+         <string>Settings</string>
         </property>
        </widget>
       </item>
@@ -208,6 +202,12 @@
       </item>
       <item row="6" column="0" colspan="3">
        <widget class="QPushButton" name="logButton">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
         <property name="text">
          <string>Log View</string>
         </property>
@@ -215,6 +215,12 @@
       </item>
       <item row="5" column="0" colspan="3">
        <widget class="QPushButton" name="openChatView">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
         <property name="text">
          <string>Chat View</string>
         </property>
@@ -225,160 +231,6 @@
         <property name="text">
          <string>UPNP</string>
         </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>Stats</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignHCenter|Qt::AlignTop</set>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>5</number>
-         </property>
-         <property name="leftMargin">
-          <number>10</number>
-         </property>
-         <property name="topMargin">
-          <number>10</number>
-         </property>
-         <property name="rightMargin">
-          <number>10</number>
-         </property>
-         <property name="bottomMargin">
-          <number>10</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="callCount">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#Calls: 0</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="pingCount">
-           <property name="text">
-            <string>#Pings: 0</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="packetDCCount">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#Pkt-DC: 0</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="dupDCCount">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#Dup-DC: 0</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="ipDCCount">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#IP-DC: 0</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="packetINBD">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#IN: 0 BD</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="packetOUTBD">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>#OUT: 0 BD</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </widget>
       </item>
      </layout>

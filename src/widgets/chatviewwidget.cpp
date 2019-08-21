@@ -86,7 +86,7 @@ Games ChatViewWidget::getGameID() const
     return gameID;
 }
 
-void ChatViewWidget::parsePacket(const QString& packet, const QString& alias)
+void ChatViewWidget::parsePacket(const QByteArray& packet, const QString& alias)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
@@ -96,7 +96,7 @@ void ChatViewWidget::parsePacket(const QString& packet, const QString& alias)
     if ( this->getGameID() != Games::W97 )
     {
         //WoS and Arcadia distort Packets in the same manner.
-        pkt = pktForge->decryptPacket( pkt );
+        pkt = pktForge->decryptPacket( packet );
         if ( !pkt.isEmpty() )
         {
             //WoS and Arcadia both use the opCode 'C' at position '3'

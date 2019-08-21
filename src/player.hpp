@@ -22,6 +22,7 @@ class Player : public QObject
     QString publicIP{ "" };
     quint32 publicPort{ 0 };
 
+    QString plrName{ "Unincarnated" };
     QString alias{ "" };
     QString playTime{ "" };
     QString dVar{ "" };
@@ -120,6 +121,9 @@ class Player : public QObject
 
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
+
+        QString getPlrName() const;
+        void setPlrName(const QString& value);
 
         QString getAlias() const;
         void setAlias(const QString& value);

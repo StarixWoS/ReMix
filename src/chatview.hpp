@@ -31,7 +31,7 @@ class ChatView : public QDialog
         void setGameID(const Games& gID);
         Games getGameID() const;
 
-        void parsePacket(const QString& packet, Player* plr = nullptr);
+        void parsePacket(const QByteArray& packet, Player* plr = nullptr);
         void parseChatEffect(const QString& packet);
         void insertChat(const QString& msg, const Colors& color,
                         const bool& newLine);

@@ -433,6 +433,16 @@ void Player::setPlayTime(const QString& value)
     playTime = value;
 }
 
+QString Player::getPlrName() const
+{
+    return plrName;
+}
+
+void Player::setPlrName(const QString& value)
+{
+    plrName = value;
+}
+
 QString Player::getAlias() const
 {
     return alias;

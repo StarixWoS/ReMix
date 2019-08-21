@@ -7,6 +7,7 @@
 
 //ReMix includes.
 #include "packethandler.hpp"
+#include "packetforge.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "comments.hpp"
@@ -304,7 +305,9 @@ void Server::userReadyRead(QTcpSocket* socket)
 
         if ( bytes > 0 )
         {
-            QString packet = data.left( bytes + 1 ).trimmed();
+            QByteArray packet = data.left( bytes + 1 );
+                       packet = packet.left( packet.length() - 1 );
+
             data = data.mid( bytes + 1 ).data();
 
             plr->setOutBuff( data );

@@ -26,7 +26,7 @@ class PacketHandler : public QObject
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        void parsePacket(const QString& packet, Player* plr = nullptr);
+        void parsePacket(const QByteArray& packet, Player* plr = nullptr);
         void parseSRPacket(const QString& packet, Player* plr = nullptr);
         void parseMIXPacket(const QString& packet, Player* plr = nullptr);
 

@@ -141,7 +141,7 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(const QString& packet, Player* plr)
+void ChatView::parsePacket(const QByteArray& packet, Player* plr)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
@@ -155,22 +155,38 @@ void ChatView::parsePacket(const QString& packet, Player* plr)
     if ( this->getGameID() != Games::W97 )
     {
         //WoS and Arcadia distort Packets in the same manner.
-        pkt = pktForge->decryptPacket( pkt );
+        pkt = pktForge->decryptPacket( packet );
         if ( !pkt.isEmpty() )
         {
             //WoS and Arcadia both use the opCode 'C' at position '3'
             //in the packet to denote Chat packets.
+
+            //Remove checksum from Arcadia chat packet.
+            if ( this->getGameID() == Games::ToY )
+            {
+                //Arcadia Packets have a longer checksum than WoS packets.
+                //Remove the extra characters.
+                pkt = pkt.left( pkt.length() - 4 );
+            }
+
             if ( pkt.at( 3 ) == 'C' )
             {
-                //Remove checksum from Arcadia chat packet.
-                if ( this->getGameID() == Games::ToY )
-                {
-                    //Arcadia Packets have a longer checksum than WoS packets.
-                    //Remove the extra characters.
-                    pkt = pkt.left( pkt.length() - 4 );
-                }
                 this->parseChatEffect( pkt );
                 plr->chatPacketFound();
+            }
+            else if ( pkt.at( 3 ) == '3'
+                   || ( ( this->getGameID() == Games::ToY )
+                     && ( pkt.at( 3 ) == 'N' ) ) )
+            {
+                QStringList varList;
+                if ( this->getGameID() == Games::ToY )
+                    varList = pkt.mid( 39 ).split( "," );
+                else
+                    varList = pkt.mid( 47 ).split( "," );
+
+                QString plrName{ varList.at( 0 ) };
+                if ( !plrName.isEmpty() )
+                    plr->setPlrName( plrName );
             }
         }
     }
@@ -187,12 +203,19 @@ void ChatView::parsePacket(const QString& packet, Player* plr)
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
 
-            this->insertChat( plr->getAlias() % ": ",
+            this->insertChat( plr->getPlrName() % ": ",
                               Colors::Name, true );
             this->insertChat( pkt,
                               Colors::Chat, false );
 
             plr->chatPacketFound();
+        }
+        else if ( pkt.at( 7 ) == '4' )
+        {
+            QString plrName{ pkt.mid( 20 ) };
+                    plrName = plrName.left( plrName.length() - 2 );
+            if ( !plrName.isEmpty() )
+                plr->setPlrName( plrName );
         }
     }
 }
@@ -218,6 +241,24 @@ void ChatView::parseChatEffect(const QString& packet)
 
     if ( packet.at( 3 ) == 'C' )
     {
+        QString plrName{ "Unincarnated [ %1 ]" };
+        Player* plr{ nullptr };
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            plr = server->getPlayer( i );
+            if ( plr != nullptr )
+            {
+                if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
+                {
+                    plrName = plr->getPlrName().append( " [ %1 ]" );
+                }
+                else
+                    plr = nullptr;
+            }
+        }
+
+        plrName = plrName.arg( srcSerNum );
+
         QString message{ packet.mid( 31 ) };
 
         //TODO: Change into something more complex and better.
@@ -237,24 +278,24 @@ void ChatView::parseChatEffect(const QString& packet)
         if ( type == '\'' )
         {
             message = message.mid( 1 );
-            this->insertChat( srcSerNum % " gossips: " % message,
+            this->insertChat( plrName % " gossips: " % message,
                               Colors::Gossip, true );
         }
         else if ( type == '!' )
         {
             message = message.mid( 1 );
-            this->insertChat( srcSerNum % " shouts: " % message,
+            this->insertChat( plrName % " shouts: " % message,
                               Colors::Shout, true );
         }
         else if ( type == '/' )
         {
             message = message.mid( 2 );
-            this->insertChat( srcSerNum % message,
+            this->insertChat( plrName % message,
                               Colors::Emote, true );
         }
         else
         {
-            this->insertChat( srcSerNum % ": ",
+            this->insertChat( plrName % ": ",
                               Colors::Name, true );
             this->insertChat( message,
                               Colors::Chat, false );

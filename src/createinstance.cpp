@@ -114,9 +114,9 @@ void CreateInstance::on_initializeServer_clicked()
         if ( server == nullptr )    //Failed to create the ServerInfo instance.
             return;
 
-        Helper::getSynRealData( server );
         server->setName( svrName );
         server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
+        Helper::getSynRealData( server );
         server->setPrivatePort( ui->portNumber->text( ).toUShort() );
         server->setServerID( Settings::getServerID( svrName ) );
         server->setUseUPNP( ui->useUPNP->isChecked() );
@@ -175,9 +175,9 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         if ( server == nullptr )
             return;
 
-        Helper::getSynRealData( server );
         server->setName( name );
         server->setGameName( gameName );
+        Helper::getSynRealData( server );
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );
         server->setUseUPNP( useUPNP );
