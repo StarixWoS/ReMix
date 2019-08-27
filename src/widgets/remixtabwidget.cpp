@@ -413,7 +413,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
                                   "certain?" );
 
         for ( int i = 0; ( i < MAX_SERVER_COUNT )
-                      || ( i < serverMap.size() ); ++i )
+           || ( i < serverMap.size() ); ++i )
         {
             instance = serverMap.value( i );
             if ( instance != nullptr )
@@ -429,6 +429,17 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
                     {
+                        //Correctly switch the tab to a valid server instance
+                        //before closing the current instance.
+                        if ( i == 0 )
+                        {
+                            qint32 servercount{ serverMap.size() };
+                            if ( servercount >= 1 )
+                                this->setCurrentIndex( i + 1 );
+                        }
+                        else
+                            this->setCurrentIndex( i - 1 );
+
                         this->removeServer( i );
                         break;
                     }

@@ -23,6 +23,7 @@ QString Theme::themeColors[ UI_THEME_COUNT ][ UI_THEME_COLORS ]
         "goldenrod",      //Gossip.
         "darkgoldenrod",  //Shout.
         "darkolivegreen", //Emote;
+        "goldenrod",      //Golden Soul.
     },
     {   //Dark.
         "limegreen", //Valid.
@@ -35,6 +36,7 @@ QString Theme::themeColors[ UI_THEME_COUNT ][ UI_THEME_COLORS ]
         "goldenrod", //Gossip.
         "sienna",    //Shout.
         "seagreen",  //Emote;
+        "goldenrod", //Golden Soul.
     }
 };
 

@@ -300,19 +300,15 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
         {
             response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
                        "port=%7,info=%8,name=%9";
-            response = response.arg( QString::number(
-                                         this->getVersionID() ),
-                                     QString::number(
-                                         this->getPlayerCount() ),
-                                     QString::number(
-                                         static_cast<int>( this->getGameId() ) ),
-                                     this->getGameName(),
-                                     this->getHostInfo().localHostName(),
-                                     this->getServerID(),
-                                     QString::number(
-                                         this->getPrivatePort() ),
-                                     this->getGameInfo(),
-                                     this->getName() );
+            response = response.arg( this->getVersionID() )
+                               .arg( this->getPlayerCount() )
+                               .arg( static_cast<int>( this->getGameId() ) )
+                               .arg( this->getGameName() )
+                               .arg( this->getHostInfo().localHostName() )
+                               .arg( this->getServerID() )
+                               .arg( this->getPrivatePort() )
+                               .arg( this->getGameInfo() )
+                               .arg( this->getName() );
         }
     }
 
@@ -338,6 +334,12 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     }
     else
         this->setSentUDPCheckIn( false );
+
+    if ( this->getGameId() == Games::W97 )
+    {
+        masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
+        this->setMasterTimedOut( false );
+    }
 }
 
 Player* ServerInfo::createPlayer(const int& slot)
@@ -366,18 +368,14 @@ void ServerInfo::deletePlayer(const int& slot)
                         "bytes in %4 packets, averaging %5 baud [ %6 ]" };
         if ( plr != nullptr )
         {
-            logMsg = logMsg.arg( plr->getPublicIP(),
-                                 QString::number(
-                                     Helper::getTimeIntFormat(
-                                         plr->getConnTime(),
-                                         TimeFormat::Minutes ) ),
-                                 QString::number(
-                                     plr->getBytesIn() ),
-                                 QString::number(
-                                     plr->getPacketsIn() ),
-                                 QString::number(
-                                     plr->getAvgBaud( false ) ),
-                                 plr->getBioData() );
+            logMsg = logMsg.arg( plr->getPublicIP() )
+                           .arg( Helper::getTimeIntFormat(
+                                     plr->getConnTime(),
+                                     TimeFormat::Minutes ) )
+                           .arg( plr->getBytesIn() )
+                           .arg( plr->getPacketsIn() )
+                           .arg( plr->getAvgBaud( false ) )
+                           .arg( plr->getBioData() );
 
             Logger::getInstance()->insertLog( this->getName(), logMsg,
                                               LogTypes::USAGE, true, true );
@@ -653,13 +651,6 @@ void ServerInfo::setIsPublic(const bool& value)
     Settings::setIsPublic( value, this->getName() );
 
     this->setMasterUDPResponse( false );
-
-    //Warpath Master Mix Servers do not send a UDP response.
-    //To prevent spamming the Master Mix with check-in packets
-    //Force the UDP response to true.
-    if ( this->getGameId() == Games::W97 )
-        this->setMasterUDPResponse( true );
-
     this->setSentUDPCheckIn( false );
 
     if ( value )
@@ -672,6 +663,8 @@ void ServerInfo::setIsPublic(const bool& value)
         Server* server{ this->getTcpServer() };
         if ( server != nullptr )
             server->setupServerInfo();
+
+        this->sendMasterInfo();
     }
     else
     {
@@ -927,7 +920,12 @@ void ServerInfo::setMasterUDPResponse(const bool& value)
         masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
     }
     else if ( this->getMasterTimedOut() )
+    {
         masterCheckIn.setInterval( MIN_MASTER_CHECK_IN_TIME );
+
+        if ( this->getGameId() == Games::W97 )
+            masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
+    }
 }
 
 bool ServerInfo::getMasterTimedOut() const
@@ -1044,9 +1042,9 @@ void ServerInfo::setMasterPing()
 QString ServerInfo::getUsageString()
 {
     return QString( "%1.%2.%3" )
-            .arg( QString::number( this->getUsageMins() ),
-                  QString::number( this->getUsageHours() ),
-                  QString::number( this->getUsageDays() ) );
+            .arg( this->getUsageMins() )
+            .arg( this->getUsageHours() )
+            .arg( this->getUsageDays() );
 }
 
 qint32 ServerInfo::getUsageHours() const

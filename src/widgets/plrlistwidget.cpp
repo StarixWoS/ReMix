@@ -219,8 +219,8 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             QString msg{ "Manual Network %1 of [ %2 ] by Server Owner." };
-                    msg = msg.arg( mute ? "Mute" : "UnMute",
-                                   menuTarget->getSernum_s() );
+                    msg = msg.arg( mute ? "Mute" : "UnMute" )
+                             .arg( menuTarget->getSernum_s() );
             menuTarget->setNetworkMuted( mute, msg );
         }
     }
@@ -253,9 +253,9 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                 menuTarget->setDisconnected( true, DCTypes::IPDC );
 
             QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-            logMsg = logMsg.arg( reason,
-                                 menuTarget->getSernum_s(),
-                                 menuTarget->getBioData() );
+            logMsg = logMsg.arg( reason )
+                           .arg( menuTarget->getSernum_s() )
+                           .arg( menuTarget->getBioData() );
 
             Logger::getInstance()->insertLog( server->getName(), logMsg,
                                               LogTypes::DC, true, true );
@@ -281,15 +281,15 @@ void PlrListWidget::on_actionBANISHUser_triggered()
     {
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            reason = reason.arg( Helper::getBanishReason( this ) );
+            reason = reason.arg( User::requestBanishReason( this ) );
             inform = inform.arg( reason );
 
             User::addBan( nullptr, menuTarget, reason );
 
             QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-            logMsg = logMsg.arg( reason,
-                                 menuTarget->getSernum_s(),
-                                 menuTarget->getBioData() );
+            logMsg = logMsg.arg( reason )
+                           .arg( menuTarget->getSernum_s() )
+                           .arg( menuTarget->getBioData() );
 
             Logger::getInstance()->insertLog( server->getName(), logMsg,
                                               LogTypes::BAN, true, true );

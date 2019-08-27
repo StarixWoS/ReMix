@@ -86,11 +86,12 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
     QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to a "
                  "SerNum Missmatch; Tried sending [ %3 ] as "
                  "[ %4 ] while connected as [ %5 ]." };
-            msg = msg.arg( plr->getSernum_s(),
-                           plr->getPublicIP(),
-                           packet,  //Encrypted packet into the log file.
-                           srcSerNum,
-                           plr->getSernumHex_s() );
+            msg = msg.arg( plr->getSernum_s() )
+                     .arg( plr->getPublicIP() )
+                     .arg( QString( packet ) )  //Encrypted packet into the log file.
+                     .arg( srcSerNum )
+                     .arg( plr->getSernumHex_s() );
+
     plr->setNetworkMuted( true, msg );
 
     return false;

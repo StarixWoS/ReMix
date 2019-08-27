@@ -34,6 +34,7 @@ const QString Logger::logType[ LOG_TYPE_COUNT ] =
     "Ignored",
     "Misc",
     "PacketForge",
+    "ChatLog",
 };
 
 Logger::Logger(QWidget *parent) :

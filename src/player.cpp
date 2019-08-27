@@ -39,6 +39,8 @@ Player::Player()
         ++connTime;
 
         QStandardItem* row = this->getTableRow();
+        QString baudIn{ "%1Bd, %2B, %3 Pkts" };
+        QString baudOut{ "%1Bd, %2B, %3 Pkts" };
         if ( row != nullptr )
         {
             this->setModelData( row, row->row(),
@@ -47,27 +49,23 @@ Player::Player()
                                 Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesIn(), false );
+            baudIn = baudIn.arg( this->getAvgBaud( false ) )
+                           .arg( this->getBytesIn() )
+                           .arg( this->getPacketsIn() );
+
             this->setModelData( row, row->row(),
                                 static_cast<int>( PlrCols::BytesIn ),
-                                QString( "%1Bd, %2B, %3 Pkts" )
-                                 .arg( QString::number(
-                                           this->getAvgBaud( false ) ),
-                                       QString::number(
-                                           this->getBytesIn() ),
-                                       QString::number(
-                                           this->getPacketsIn() ) ),
+                                baudIn,
                                 Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesOut(), true );
+
+            baudOut = baudOut.arg( this->getAvgBaud( true ) )
+                             .arg( this->getBytesOut() )
+                             .arg( this->getPacketsOut() );
             this->setModelData( row, row->row(),
                                 static_cast<int>( PlrCols::BytesOut ),
-                                QString( "%1Bd, %2B, %3 Pkts" )
-                                 .arg( QString::number(
-                                           this->getAvgBaud( true ) ),
-                                       QString::number(
-                                           this->getBytesOut() ),
-                                       QString::number(
-                                           this->getPacketsOut() ) ),
+                                baudOut,
                                 Qt::DisplayRole );
 
             //Color the User's IP address Green if the Admin is authed
@@ -81,7 +79,11 @@ Player::Player()
                     color = Colors::Invalid;
             }
             else
+            {
                 color = Colors::Default;
+                if ( !( this->getSernum_i() & MIN_HEX_SERNUM ) )
+                    color = Colors::GoldenSoul;
+            }
 
             this->setModelData( row, row->row(),
                                 static_cast<int>( PlrCols::SerNum ),
@@ -118,8 +120,8 @@ Player::Player()
         {
             QString reason{ "Auto-Disconnect; Idle timeout: "
                             "[ %1 ], [ %2 ]" };
-            reason = reason.arg( this->getSernum_s(),
-                                 this->getBioData() );
+            reason = reason.arg( this->getSernum_s() )
+                           .arg( this->getBioData() );
 
             Logger::getInstance()->insertLog( serverInfo->getName(), reason,
                                               LogTypes::DC, true, true );
@@ -831,29 +833,29 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             {
                 message = "Auto-Disconnect; SerNum Changed";
                 reason = "%1: [ %2 ] to [ %3 ], [ %4 ]";
-                reason = reason.arg( message,
-                                     this->getSernum_s(),
-                                     Helper::serNumToIntStr(
-                                         Helper::intToStr( id, 16, 8 ) ),
-                                     this->getBioData() );
+                reason = reason.arg( message )
+                               .arg( this->getSernum_s() )
+                               .arg( Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( this->getBioData() );
             }
             else if ( zeroSerNum )
             {
                 message = "Auto-Disconnect; Invalid SerNum";
                 reason = "%1: [ %2 ], [ %3 ]";
-                reason = reason.arg( message,
-                                     Helper::serNumToIntStr(
-                                         Helper::intToStr( id, 16, 8 ) ),
-                                     this->getBioData() );
+                reason = reason.arg( message )
+                               .arg( Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( this->getBioData() );
             }
             else if ( isBlueCoded )
             {
                 message = "Auto-Disconnect; BlueCoded SerNum";
                 reason = "%1: [ %2 ], [ %3 ]";
-                reason = reason.arg( message,
-                                     Helper::serNumToIntStr(
-                                         Helper::intToStr( id, 16, 8 ) ),
-                                     this->getBioData() );
+                reason = reason.arg( message )
+                               .arg( Helper::serNumToIntStr(
+                                         Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( this->getBioData() );
             }
 
             this->sendMessage( message, false );
@@ -875,9 +877,9 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the "
                      "usage of <[ Soul 1 ][ %3 ]> while connecting from an "
                      "improper IP Address.";
-            reason = reason.arg( this->getSernum_s(),
-                                 socketIP,
-                                 masterIP );
+            reason = reason.arg( this->getSernum_s() )
+                           .arg( socketIP )
+                           .arg( masterIP );
             this->setNetworkMuted( true, reason );
         }
     }

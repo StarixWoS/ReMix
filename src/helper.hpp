@@ -25,7 +25,9 @@ class Helper
         static QString intToStr(const T& val, const int& base = 10,
                                 const int& fill = 0, const QChar& filler = '0')
         {
-            return QString( "%1" ).arg( val, fill, base, filler ).toUpper();
+            QString str{ "%1" };
+                    str = str.arg( val, fill, base, filler ).toUpper();
+            return str;
         }
         static qint32 strToInt(const QString& str, const int& base = 16);
 
@@ -59,7 +61,6 @@ class Helper
                                        const QString& defaultInput,
                                        bool* ok, int type = 0);
 
-        static QString getBanishReason(QWidget* parent = nullptr);
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(QString& password);

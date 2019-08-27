@@ -4,8 +4,8 @@ import qbs.Environment
 CppApplication
 {
     consoleApplication: false
-    property string ReMixVersionDisplay: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.5";
-    property string ReMixVersion: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.5";
+    property string ReMixVersionDisplay: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.6";
+    property string ReMixVersion: Environment.getEnv("APPVEYOR_REPO_TAG_NAME") || "2.4.6";
 
     Depends { name: "cpp" }
     Depends { name: "Qt";
@@ -49,7 +49,6 @@ CppApplication
             "src/views/usersortproxymodel.hpp",
             "src/views/plrsortproxymodel.hpp",
             "src/widgets/settingswidget.hpp",
-            "src/widgets/chatviewwidget.hpp",
             "src/widgets/remixtabwidget.hpp",
             "src/widgets/plrlistwidget.hpp",
             "src/views/tbleventfilter.hpp",
@@ -96,7 +95,6 @@ CppApplication
             "src/views/usersortproxymodel.cpp",
             "src/views/plrsortproxymodel.cpp",
             "src/widgets/settingswidget.cpp",
-            "src/widgets/chatviewwidget.cpp",
             "src/widgets/remixtabwidget.cpp",
             "src/widgets/plrlistwidget.cpp",
             "src/views/tbleventfilter.cpp",

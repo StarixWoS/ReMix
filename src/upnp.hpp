@@ -16,6 +16,7 @@ class UPNP : public QObject
 
     public:
         static QString schemas[ UPNP_SCHEMA_COUNT ];
+        static QHostAddress externalAddress;
         static QVector<qint32> ports;
         static bool tunneled;
         static UPNP* upnp;
@@ -26,7 +27,6 @@ class UPNP : public QObject
         QTimer* refreshTunnel;
 
         QNetworkAddressEntry localAddress;
-        QHostAddress externalAddress;
         QHostAddress gateway;
         QHostAddress localIP;
         QUrl gatewayCtrlUrl;
@@ -50,6 +50,7 @@ class UPNP : public QObject
 
         static bool getTunneled();
         static void setTunneled(bool value);
+        static QHostAddress getExternalIPAddr();
 
     private:
         void getExternalIP();

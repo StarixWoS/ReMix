@@ -20,16 +20,20 @@ class User : public QDialog
     static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];
+    static const qint64 punishmentDurations[ PUNISHMENT_DURATION_COUNT ];
 
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
-                       kREASON, kBANNED, kPINGS, kCALLS = 11 };
+                       kREASON, kBANNED, kBANDURATION, kPINGS, kCALLS = 12 };
 
         explicit User(QWidget* parent = nullptr);
         ~User();
 
         static User* getInstance();
         static void setInstance(User* value);
+
+        static QString requestBanishReason(QWidget* parent = nullptr);
+        static qint64 requestPunishmentDuration(QWidget* parent = nullptr);
 
         static QSettings* getUserData();
         static void setUserData(const QSettings* value);

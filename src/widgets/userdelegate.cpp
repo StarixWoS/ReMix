@@ -107,8 +107,8 @@ void UserDelegate::setEditorData(QWidget* editor,
 }
 
 QWidget* UserDelegate::createEditor(QWidget* parent,
-                                   const QStyleOptionViewItem&,
-                                   const QModelIndex& index) const
+                                    const QStyleOptionViewItem&,
+                                    const QModelIndex& index) const
 {
     QComboBox* editor = new QComboBox( parent );
                editor->setFocusPolicy( Qt::StrongFocus );

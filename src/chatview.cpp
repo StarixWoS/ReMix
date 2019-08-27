@@ -7,6 +7,7 @@
 #include "packetforge.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
+#include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
 #include "rules.hpp"
@@ -280,18 +281,22 @@ void ChatView::parseChatEffect(const QString& packet)
             message = message.mid( 1 );
             this->insertChat( plrName % " gossips: " % message,
                               Colors::Gossip, true );
+            message = plrName % " gossips: " % message;
         }
         else if ( type == '!' )
         {
             message = message.mid( 1 );
             this->insertChat( plrName % " shouts: " % message,
                               Colors::Shout, true );
+
+            message = plrName % " shouts: " % message;
         }
         else if ( type == '/' )
         {
             message = message.mid( 2 );
             this->insertChat( plrName % message,
                               Colors::Emote, true );
+            message = plrName % message;
         }
         else
         {
@@ -299,6 +304,14 @@ void ChatView::parseChatEffect(const QString& packet)
                               Colors::Name, true );
             this->insertChat( message,
                               Colors::Chat, false );
+
+            message = plrName % ": " % message;
+        }
+
+        if ( !message.isEmpty() )
+        {
+            Logger::getInstance()->insertLog( server->getName(), message,
+                                              LogTypes::Chat, true, true );
         }
     }
 }
@@ -378,6 +391,12 @@ void ChatView::on_chatInput_returnPressed()
     }
     else
         message.prepend( "Owner: " );
+
+    if ( !message.isEmpty() )
+    {
+        Logger::getInstance()->insertLog( server->getName(), message,
+                                          LogTypes::Chat, true, true );
+    }
 
     emit this->sendChat( message );
     ui->chatInput->clear();

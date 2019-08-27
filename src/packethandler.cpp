@@ -289,7 +289,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                         QString msg{ "Got Response from Master [ %1:%2 ]; "
                                      "it thinks we are [ %3:%4 ]. "
                                      "( Ping: %5 ms, Avg: %6 ms, "
-                                     "Trend: %7 ms )" };
+                                     "Trend: %7 ms, Dropped: %8 )" };
 
                                 msg = msg.arg( ipAddr.toString() )
                                          .arg( port );
@@ -320,12 +320,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
 
                             msg = msg.arg( server->getPublicIP() )
                                      .arg( server->getPublicPort() )
-                                     .arg( QString::number(
-                                               server->getMasterPing() ) )
-                                     .arg( QString::number(
-                                               server->getMasterPingAvg() ) )
-                                     .arg( QString::number(
-                                               server->getMasterPingTrend() ) );
+                                     .arg( server->getMasterPing() )
+                                     .arg( server->getMasterPingAvg() )
+                                     .arg( server->getMasterPingTrend() )
+                                     .arg( server->getMasterPingFailCount() );
 
                             Logger::getInstance()->
                                     insertLog( server->getName(), msg,
@@ -398,9 +396,9 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
     }
     else
     {
-        logTxt = logTxt.arg( "IP Address",
-                             ipAddr.toString(),
-                             data );
+        logTxt = logTxt.arg( "IP Address" )
+                       .arg( ipAddr.toString() )
+                       .arg( data );
         logMsg = true;
     }
 
@@ -435,9 +433,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
       || User::getIsBanned( plr->getWVar(), BanTypes::WV, plrSerNum )
       || User::getIsBanned( plr->getDVar(), BanTypes::DV, plrSerNum ) )
     {
-        reason = reason.arg( "Banned Info",
-                             plr->getPublicIP(),
-                             plr->getBioData() );
+        reason = reason.arg( "Banned Info" )
+                       .arg( plr->getPublicIP() )
+                       .arg( plr->getBioData() );
 
         Logger::getInstance()->insertLog( server->getName(), reason,
                                           LogTypes::DC, true, true );
@@ -466,9 +464,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                            QString& plrMessage )
                     {
                         QString reason{ logMsg };
-                        reason = reason.arg( "Duplicate IP",
-                                             plr->getPublicIP(),
-                                             plr->getBioData() );
+                        reason = reason.arg( "Duplicate IP" )
+                                       .arg( plr->getPublicIP() )
+                                       .arg( plr->getBioData() );
 
                         Logger::getInstance()->insertLog( server->getName(),
                                                           reason, LogTypes::DC,
@@ -478,8 +476,8 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         {
                             reason = "Auto-Banish; Duplicate IP "
                                      "Address: [ %1 ], %2";
-                            reason = reason.arg( plr->getPublicIP(),
-                                                 plr->getBioData() );
+                            reason = reason.arg( plr->getPublicIP() )
+                                           .arg( plr->getBioData() );
 
                             User::addBan( nullptr, plr, reason );
 
@@ -528,9 +526,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                      && !plr->getIsDisconnected() )
                 {
                     reason = logMsg;
-                    reason = reason.arg( "Duplicate SerNum",
-                                         plr->getPublicIP(),
-                                         plr->getBioData() );
+                    reason = reason.arg( "Duplicate SerNum" )
+                                   .arg( plr->getPublicIP() )
+                                   .arg( plr->getBioData() );
 
                     Logger::getInstance()->insertLog( server->getName(),
                                                       reason, LogTypes::DC,
@@ -566,12 +564,10 @@ void PacketHandler::detectFlooding(Player* plr)
                 QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1 ] "
                                 "sent %2 packets in %3 MS, they are "
                                 "disconnected: [ %4 ]" };
-                        logMsg = logMsg.arg( plr->getPublicIP(),
-                                             QString::number(
-                                                 floodCount ),
-                                             QString::number(
-                                                 time ),
-                                             plr->getBioData() );
+                        logMsg = logMsg.arg( plr->getPublicIP()  )
+                                       .arg( floodCount )
+                                       .arg( time )
+                                       .arg( plr->getBioData() );
 
                 Logger::getInstance()->insertLog( server->getName(), logMsg,
                                                   LogTypes::DC, true, true );
@@ -661,21 +657,22 @@ void PacketHandler::readMIX8(const QString& packet, Player* plr)
 
         QString sernum = pkt.mid( 2 ).left( 8 );
         QStringList vars = pkt.split( ',' );
-        QString val{ "" };
+        QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
 
         if ( Settings::getAllowSSV() )
         {
             QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                            QSettings::IniFormat );
-            val = QString( ":SR@V%1%2,%3,%4,%5\r\n" )
-                      .arg( sernum,
-                            vars.value( 0 ),
-                            vars.value( 1 ),
-                            vars.value( 2 ),
-                            ssv.value( vars.value( 1 ) % "/" %
-                                       vars.value( 2 ), "" )
-                               .toString() );
+            val = val.arg( sernum )
+                     .arg( vars.value( 0 ) )
+                     .arg( vars.value( 1 ) )
+                     .arg( vars.value( 2 ) )
+                     .arg( ssv.value( vars.value( 1 )
+                                    % "/"
+                                    % vars.value( 2 ), "" ).toString() );
         }
+        else
+            val = "";
 
         QTcpSocket* soc{ plr->getSocket() };
         if ( !val.isEmpty()

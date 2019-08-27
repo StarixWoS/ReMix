@@ -125,7 +125,7 @@
         enum Globals
         {
             //Anything above PACKET_FLOOD_LIMIT (1024 packets)
-            //will disconnect/ban the User.
+            //will disconnect the User.
             PACKET_FLOOD_TIME = 1000,
 
             //Users are able to send 1024 packets within PACKET_FLOOD_TIME.
@@ -151,9 +151,9 @@
             //before re-announcing to the Master Server.
             MAX_MASTER_CHECKIN_TIME = 300000,
 
-            //Minimum amount of time in MS (2 Seconds)
+            //Minimum amount of time in MS (30 Seconds)
             //before re-announcing to the Master Server.
-            MIN_MASTER_CHECK_IN_TIME = 2000,
+            MIN_MASTER_CHECK_IN_TIME = 30000,
 
             //Amount of times an un-authenticated (admin) can use commands.
             MAX_CMD_ATTEMPTS = 3,
@@ -169,7 +169,7 @@
             MAX_GAME_NAME_LENGTH = 256,
 
             //Count of possible logging types that ReMix uses.
-            LOG_TYPE_COUNT = 10,
+            LOG_TYPE_COUNT = 11,
 
             //Count of Settings Keys Accessed via the
             //Settings/SettingsWidget class.
@@ -188,7 +188,7 @@
             GM_SUBCOMMAND_COUNT = 4,
 
             //Count of Keys accessed via the User class.
-            USER_KEY_COUNT = 12,
+            USER_KEY_COUNT = 13,
 
             //Time interval for updating the server's Usage array.
             SERVER_USAGE_UPDATE = 600000,
@@ -215,6 +215,10 @@
             //1 Hour in seconds.
             UPNP_TIME_OUT_S = 3600,
 
+            //Maximum live-time for a UPNP PortForward to live.
+            //Permanent Lease.
+            UPNP_TIME_OUT_PERMA = 0,
+
             //Maximum idle-time for a UPNP PortForward exist without refreshing.
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
@@ -235,11 +239,14 @@
 
             //Valid count of colors the Theme class can use for certain
             //UI and Chat roles.
-            UI_THEME_COLORS = 10,
+            UI_THEME_COLORS = 11,
 
             //Maximum time a User may remain connected after having a
             //"disconnect" initiated on their socket. (250MS|
             MAX_DISCONNECT_TTL = 250,
+
+            //Count of Ban durations available to use when banning a player.
+            PUNISHMENT_DURATION_COUNT = 6,
         };
 
         //Valid Password types.
@@ -278,8 +285,8 @@
 
         //Valid Theme Colors
         enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
-                                OwnerChat, Chat, Gossip, Shout, Emote = 9,
-                                Default = -1 };
+                                OwnerChat, Chat, Gossip, Shout, Emote,
+                                GoldenSoul = 10, Default = -1 };
 
         //Valid columns within the PlrListWidget.
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
@@ -287,8 +294,8 @@
 
         //Valid columns within the User Dialog.
         enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
-                                  Rank, Banned, BanDate, BanReason = 8,
-                                  ColCount = 9 };
+                                  Rank, Banned, BanDate, BanDuration,
+                                  BanReason = 9, ColCount = 10 };
 
         //Valid columns within the Logger Dialog.
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3,
@@ -296,11 +303,20 @@
 
         //Valid Log types available to the Logger Class.
         enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
-                                  MUTE, IGNORE, MISC, PktForge = 9 };
+                                  MUTE, IGNORE, MISC, PktForge, Chat = 10 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,
                                HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
+
+        //Valid Ban Durations in seconds.
+        //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent
+        enum class PunishmentDurations: int{ One_Day = 86400,
+                                             SEVEN_DAYS = 604800,
+                                             THIRTY_DAYS = 2952000,
+                                             SIX_MONTHS = 15552000,
+                                             ONE_YEAR = 31104000,
+                                             PERMANENT = 2000000000 };
 
     #endif  // REMIX_GLOBALS
 
