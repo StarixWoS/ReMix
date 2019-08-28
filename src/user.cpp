@@ -40,14 +40,15 @@ const QString User::keys[ USER_KEY_COUNT ] =
     "calls"
 };
 
-const qint64 User::punishmentDurations[ PUNISHMENT_DURATION_COUNT ] =
+const PunishDurations User::punishDurations[ PUNISH_DURATION_COUNT ] =
 {
-    static_cast<qint64>( PunishmentDurations::One_Day ),
-    static_cast<qint64>( PunishmentDurations::SEVEN_DAYS ),
-    static_cast<qint64>( PunishmentDurations::THIRTY_DAYS ),
-    static_cast<qint64>( PunishmentDurations::SIX_MONTHS ),
-    static_cast<qint64>( PunishmentDurations::ONE_YEAR ),
-    static_cast<qint64>( PunishmentDurations::PERMANENT ),
+    PunishDurations::Invalid,
+    PunishDurations::One_Day,
+    PunishDurations::SEVEN_DAYS,
+    PunishDurations::THIRTY_DAYS,
+    PunishDurations::SIX_MONTHS,
+    PunishDurations::ONE_YEAR,
+    PunishDurations::PERMANENT,
 };
 
 QSortFilterProxyModel* User::tblProxy{ nullptr };
@@ -162,12 +163,11 @@ QString User::requestBanishReason(QWidget* parent)
     return dialog->textValue();
 }
 
-qint64 User::requestPunishmentDuration(QWidget* parent)
+PunishDurations User::requestPunishDuration(QWidget* parent)
 {
     QStringList items;
-                items << "24 Hours" << "7 Days"
-                      << "30 Days" << "6 Months"
-                      << "1 Year" << "Permanent";
+                items << "No Duration" << "24 Hours" << "7 Days" << "30 Days"
+                      << "6 Months" << "1 Year" << "Permanent";
 
     bool ok;
     QString item = QInputDialog::getItem( parent, "ReMix",
@@ -175,9 +175,9 @@ qint64 User::requestPunishmentDuration(QWidget* parent)
                                           items, 0, false, &ok);
     if ( ok && !item.isEmpty() )
     {
-        return punishmentDurations[ items.indexOf( item ) ];
+        return punishDurations[ items.indexOf( item ) ];
     }
-    return 0;
+    return PunishDurations::Invalid;
 }
 
 QSettings* User::getUserData()
@@ -337,7 +337,8 @@ void User::removeBan(const QString& value, const qint32& type)
 }
 
 bool User::addBan(const Player* admin, const Player* target,
-                  const QString& reason, const bool remote)
+                  const QString& reason, const bool remote,
+                  const PunishDurations duration)
 {
     User* user = User::getInstance();
     if ( target == nullptr )
@@ -363,11 +364,14 @@ bool User::addBan(const Player* admin, const Player* target,
     }
 
     quint64 date{ QDateTime::currentDateTime().toTime_t() };
-    setData( target->getSernumHex_s(), keys[ UserKeys::kBANNED ], date );
-    setData( target->getSernumHex_s(), keys[ UserKeys::kREASON ], msg );
+    quint64 banDuration{ date + static_cast<int>( duration ) };
+    QString serNum{ target->getSernumHex_s() };
 
-    QModelIndex index = user->findModelIndex( target->getSernumHex_s(),
-                                              UserCols::SerNum );
+    setData( serNum, keys[ UserKeys::kBANNED ], date );
+    setData( serNum, keys[ UserKeys::kREASON ], msg );
+    setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
+
+    QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
     {
         user->updateRowData( index.row(),
@@ -386,8 +390,7 @@ bool User::addBan(const Player* admin, const Player* target,
         //server host.
         user->updateRowData( index.row(),
                              static_cast<int>( UserCols::BanDuration ),
-                             ( date + static_cast<int>(
-                                   PunishmentDurations::THIRTY_DAYS ) ) );
+                             banDuration );
     }
     return true;
 }
@@ -661,6 +664,8 @@ void User::loadUserInfo()
             this->updateRowData( row,
                                  static_cast<int>( UserCols::BanDuration ),
                                  banDuration_i );
+            ui->userTable->resizeColumnToContents(
+                        static_cast<int>( UserCols::BanReason ) );
 
             if ( banned )
             {
@@ -718,16 +723,13 @@ void User::updateRowData(const qint32& row, const qint32& col,
 
             tblModel->setData( index, msg, Qt::DisplayRole );
             if ( col == static_cast<int>( UserCols::BanDate ) )
-            {
-                ui->userTable->resizeColumnToContents(
-                            static_cast<int>( UserCols::BanDate ) );
-            }
+                ui->userTable->resizeColumnToContents( col );
 
             if ( col == static_cast<int>( UserCols::BanDuration ) )
-            {
-                ui->userTable->resizeColumnToContents(
-                            static_cast<int>( UserCols::BanDuration ) );
-            }
+                ui->userTable->resizeColumnToContents( col );
+
+            if ( col == static_cast<int>( UserCols::BanReason ) )
+                ui->userTable->resizeColumnToContents( col );
         }
         else
         {
@@ -819,7 +821,10 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                         reason = "Manual Banish; "
                                  % requestBanishReason( this );
 
-                        value = value.toUInt() + requestPunishmentDuration( this );
+                        value = value.toUInt() +
+                                static_cast<int>(
+                                    requestPunishDuration( this ) );
+
                         setData( sernum, keys[ UserKeys::kBANDURATION ], value );
                         this->updateRowData( index.row(),
                                              static_cast<int>(

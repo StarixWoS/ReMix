@@ -130,8 +130,7 @@ Player::Player()
         }
 
         //Authenticate Remote Admins as required.
-        if ( Settings::getReqAdminAuth()
-          && this->getIsAdmin() )
+        if ( this->getIsAdmin() )
         {
             if ( this->getSernum_i() != 0
               && !this->getAdminPwdRequested() )
@@ -155,8 +154,7 @@ Player::Player()
                                      "or be denied access to the server. "
                                      "Thank you!" };
 
-                        if ( Settings::getReqAdminAuth()
-                          && this->getIsAdmin() )
+                        if ( this->getIsAdmin() )
                         {
                             this->setAdminPwdRequested( true );
                             this->sendMessage( msg );

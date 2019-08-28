@@ -26,7 +26,8 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
 
 CmdHandler::~CmdHandler(){}
 
-bool CmdHandler::canUseAdminCommands(Player* plr) const
+bool CmdHandler::canUseAdminCommands(Player* plr, const GMCmds cmd,
+                                     const GMRanks rank, const QString& cmdStr)
 {
     bool retn{ false };
     QString unauth{ "While your SerNum is registered as a Remote Admin, "
@@ -35,23 +36,40 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
                     "(/login *PASS) and the server will "
                     "authenticate you." };
 
-    QString invalid{ "Your SerNum is not registered as a Remote Admin. "
-                     "Please refrain from attempting to use Remote Admin "
-                     "commands as you will be banned after [ %1 ] "
-                     "more tries." };
+//    QString invalid{ "Your SerNum is not registered as a Remote Admin. "
+//                     "Please refrain from attempting to use Remote Admin "
+//                     "commands as you will be banned after [ %1 ] "
+//                     "attempts." };
 
+    QString invalid{ "Error: You do not have access to the command [ %1 ]. "
+                     "Please refrain from attempting to use Remote Admin "
+                     "commands as you will automatically be "
+                     "banned after [ %2 ] attempts" };
+
+    GMRanks plrRank{ this->getAdminRank( plr ) };
     if ( plr->getIsAdmin() )
     {
         retn = false;
         if ( plr->getAdminPwdReceived() )
+        {
             retn = true;
+        }
         else
-            plr->sendMessage( unauth );
+        {
+            if ( rank <= GMRanks::User )
+                retn = true;
+            else
+                plr->sendMessage( unauth );
+        }
     }
     else
     {
+        if ( plrRank >= rank )
+            return true;
+
         plr->setCmdAttempts( plr->getCmdAttempts() + 1 );
-        invalid = invalid.arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
+        invalid = invalid.arg( cmdStr )
+                         .arg( MAX_CMD_ATTEMPTS - plr->getCmdAttempts() );
 
         if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
         {
@@ -69,7 +87,8 @@ bool CmdHandler::canUseAdminCommands(Player* plr) const
                                    .arg( plr->getBioData() );
             reason.append( append );
 
-            User::addBan( nullptr, plr, reason );
+            User::addBan( nullptr, plr, reason, false,
+                          PunishDurations::THIRTY_DAYS );
 
             Logger::getInstance()->insertLog( server->getName(), reason,
                                               LogTypes::BAN, true, true );
@@ -193,14 +212,8 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         return false;
 
     GMRanks cmdRank{ cmdTable->getCmdRank( argIndex ) };
-    if ( this->getAdminRank( plr ) < cmdRank )
-    {
-        plr->sendMessage( "Error: You do not have access to the command [ "
-                        % cmd
-                        % " ]. Please contact the Server Host if this is "
-                          "incorrect.", false );
+    if ( !this->canUseAdminCommands( plr, argIndex, cmdRank, cmd ) )
         return false;
-    }
 
     QString message{ "" };
     if ( cmdTable->isSubCommand( argIndex, subCmd ) )
@@ -271,7 +284,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::MotD:
             {
-                if ( this->validateAdmin( plr, cmdRank ) )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd ) )
                     this->motdHandler( plr, subCmd, arg1, message );
             }
         break;
@@ -285,7 +298,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case GMCmds::Ban:
             {
-                if ( this->validateAdmin( plr, cmdRank )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd )
                   && ( !arg1.isEmpty()
                     && !subCmd.isEmpty() ) )
                 {
@@ -296,7 +309,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::UnBan:
             {
-                if ( this->validateAdmin( plr, cmdRank )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd )
                   && ( !arg1.isEmpty()
                     && !subCmd.isEmpty() ) )
                 {
@@ -307,7 +320,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::Kick:
             {
-                if ( this->validateAdmin( plr, cmdRank )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd )
                   && !arg1.isEmpty() )
                 {
                     this->kickHandler( plr, arg1, argIndex, message, all );
@@ -318,7 +331,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::Mute:
         case GMCmds::UnMute:
             {
-                if ( this->validateAdmin( plr, cmdRank )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd )
                   && !arg1.isEmpty() )
                 {
                     this->muteHandler( plr, arg1, argIndex, message, all );
@@ -337,7 +350,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                                    .arg( all ? "Everyone" : arg1 );
                 }
 
-                if ( this->validateAdmin( plr, cmdRank )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd )
                   && !arg1.isEmpty() )
                 {
                     this->msgHandler( arg1, tmpMsg, all );
@@ -349,8 +362,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 if ( !subCmd.isEmpty() )
                 {
-                    if ( ( ( plr->getAdminPwdRequested()
-                      || !plr->getAdminPwdReceived() )
+                    if ( ( plr->getAdminPwdRequested()
                       || ( plr->getSvrPwdRequested()
                         && !plr->getSvrPwdReceived() ) ) )
                     {
@@ -383,7 +395,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 else if ( arg1.isEmpty() || arg2.isEmpty() )
                     message = "No reason provided.";
 
-                if ( this->validateAdmin( plr, cmdRank ) )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd ) )
                 {
                     this->shutDownHandler( plr, index, subCmd, arg1,
                                            message, false );
@@ -402,7 +414,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 else if ( arg1.isEmpty() || arg2.isEmpty() )
                     message = "No reason provided.";
 
-                if ( this->validateAdmin( plr, cmdRank ) )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd ) )
                 {
                     this->shutDownHandler( plr, index, subCmd, arg1,
                                            message, true );
@@ -438,7 +450,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case GMCmds::Vanish:
             {
-                if ( this->validateAdmin( plr, cmdRank ) )
+                if ( this->validateAdmin( plr, argIndex, cmdRank, cmd ) )
                     this->vanishHandler( plr, subCmd );
             }
         break;
@@ -544,10 +556,11 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1,
     admin->sendMessage( message, false );
 }
 
-bool CmdHandler::validateAdmin(Player* plr, const GMRanks& rank)
+bool CmdHandler::validateAdmin(Player* plr, GMCmds cmd, GMRanks& rank,
+                               const QString& cmdStr)
 {
     return  ( ( this->getAdminRank( plr ) >= rank )
-             && this->canUseAdminCommands( plr ) );
+             && this->canUseAdminCommands( plr, cmd, rank, cmdStr ) );
 }
 
 GMRanks CmdHandler::getAdminRank(Player* plr)
@@ -639,7 +652,8 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
                     tmpPlr->sendMessage( reason );
 
                 msg = msg.prepend( "Remote-Banish; " );
-                User::addBan( plr, tmpPlr, msg, true );
+                User::addBan( plr, tmpPlr, msg, true,
+                              PunishDurations::THIRTY_DAYS );
 
                 msg = msg.append( ": [ %1 ], [ %2 ]" );
                 msg = msg.arg( plr->getSernum_s() )

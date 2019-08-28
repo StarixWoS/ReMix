@@ -479,7 +479,8 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                             reason = reason.arg( plr->getPublicIP() )
                                            .arg( plr->getBioData() );
 
-                            User::addBan( nullptr, plr, reason );
+                            User::addBan( nullptr, plr, reason, false,
+                                          PunishDurations::THIRTY_DAYS );
 
                             Logger::getInstance()->insertLog(
                                         server->getName(), reason,

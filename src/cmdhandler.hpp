@@ -20,7 +20,8 @@ class CmdHandler : public QObject
                             ServerInfo* svr = nullptr);
         ~CmdHandler();
 
-        bool canUseAdminCommands(Player* plr) const;
+        bool canUseAdminCommands(Player* plr, const GMCmds cmd,
+                                 const GMRanks rank, const QString& cmdStr);
         void parseMix5Command(Player* plr, const QString& packet);
         void parseMix6Command(Player* plr, const QString& packet);
         bool parseCommandImpl(Player* plr, QString& packet);
@@ -31,7 +32,8 @@ class CmdHandler : public QObject
                                const GMCmds& argIndex);
 
     private:
-        bool validateAdmin(Player* plr, const GMRanks& rank);
+        bool validateAdmin(Player* plr, GMCmds cmd, GMRanks& rank,
+                           const QString& cmdStr);
         GMRanks getAdminRank(Player* plr);
 
         void motdHandler(Player* plr, const QString& subCmd,

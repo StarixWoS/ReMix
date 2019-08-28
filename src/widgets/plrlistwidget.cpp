@@ -155,9 +155,11 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString revoke{ "Your Remote Administrator privileges have been REVOKED "
-                    "by either the Server Host. Please contact the Server Host "
+    QString revoke{ "Your Remote Administrator privileges have been revoked "
+                    "by the Server Host. Please contact the Server Host "
                     "if you believe this was in error." };
+    QString reinstated{ "Your Remote Administrator privelages have been "
+                        "partially reinstated by the Server Host." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
     QString prompt{ "" };
@@ -173,7 +175,10 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             User::setAdminRank( sernum, GMRanks::GMaster );
-            menuTarget->setNewAdminPwdRequested( true );
+            if ( User::getHasPassword( sernum ) )
+                menuTarget->sendMessage( reinstated );
+            else
+                menuTarget->setNewAdminPwdRequested( true );
         }
     }
     else
@@ -185,12 +190,11 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             User::setAdminRank( sernum, GMRanks::User );
-            send = true;
+            menuTarget->setAdminPwdReceived( false );
+            menuTarget->setAdminPwdRequested( false );
+            menuTarget->sendMessage( revoke );
         }
     }
-
-    if ( send )
-        menuTarget->sendMessage( revoke );
 
     menuTarget = nullptr;
 }
@@ -284,7 +288,8 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             reason = reason.arg( User::requestBanishReason( this ) );
             inform = inform.arg( reason );
 
-            User::addBan( nullptr, menuTarget, reason );
+            PunishDurations banDuration{ User::requestPunishDuration() };
+            User::addBan( nullptr, menuTarget, reason, false, banDuration );
 
             QString logMsg{ "%1: [ %2 ], [ %3 ]" };
             logMsg = logMsg.arg( reason )

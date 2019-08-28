@@ -86,7 +86,7 @@
        <string>1</string>
       </property>
       <property name="toolTip">
-       <string>Remote Administrators will be required to enter their password when connecting.</string>
+       <string>Users will be unable to connect to your servers with more than one client.</string>
       </property>
      </row>
      <row>
@@ -94,7 +94,7 @@
        <string>2</string>
       </property>
       <property name="toolTip">
-       <string>Users will be unable to connect to your servers with more than one client.</string>
+       <string>Users attempting to connect with more than one client will be banned.</string>
       </property>
      </row>
      <row>
@@ -102,25 +102,17 @@
        <string>3</string>
       </property>
       <property name="toolTip">
-       <string>Users attempting to connect with more than one client will be banned.</string>
+       <string>Users will be required to have a SerNum to see or connect to the server.</string>
       </property>
      </row>
      <row>
       <property name="text">
        <string>4</string>
       </property>
-      <property name="toolTip">
-       <string>Users will be required to have a SerNum to see or connect to the server.</string>
-      </property>
      </row>
      <row>
       <property name="text">
        <string>5</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>6</string>
       </property>
       <property name="toolTip">
        <string>Users that have not sent a packet in a set amount of time will be disconnected.</string>
@@ -128,7 +120,7 @@
      </row>
      <row>
       <property name="text">
-       <string>7</string>
+       <string>6</string>
       </property>
       <property name="toolTip">
        <string>Users will be able to freely read and edit server variables.</string>
@@ -136,7 +128,7 @@
      </row>
      <row>
       <property name="text">
-       <string>8</string>
+       <string>7</string>
       </property>
       <property name="toolTip">
        <string>Comments sent to the server by Users will be logged to file.</string>
@@ -144,7 +136,7 @@
      </row>
      <row>
       <property name="text">
-       <string>9</string>
+       <string>8</string>
       </property>
       <property name="toolTip">
        <string>Comments sent to the Server will be forwarded to online Remote Administrators.</string>
@@ -152,7 +144,7 @@
      </row>
      <row>
       <property name="text">
-       <string>10</string>
+       <string>9</string>
       </property>
       <property name="toolTip">
        <string>Comments to the server will be forwarded back to the User.</string>
@@ -160,7 +152,7 @@
      </row>
      <row>
       <property name="text">
-       <string>11</string>
+       <string>10</string>
       </property>
       <property name="toolTip">
        <string>Remote Administrators currently connected will be informed when a Remote Administrator logs in.</string>
@@ -168,7 +160,7 @@
      </row>
      <row>
       <property name="text">
-       <string>12</string>
+       <string>11</string>
       </property>
       <property name="toolTip">
        <string>The complete server dialog will be minimized to the notification bar if possible.</string>
@@ -176,7 +168,7 @@
      </row>
      <row>
       <property name="text">
-       <string>13</string>
+       <string>12</string>
       </property>
       <property name="toolTip">
        <string>All dialog positions and sizes will be stored to file.</string>
@@ -184,7 +176,7 @@
      </row>
      <row>
       <property name="text">
-       <string>14</string>
+       <string>13</string>
       </property>
       <property name="toolTip">
        <string>All Ban, Mute, Disconnect, Usage, and UPNP logs will be logged to file.</string>
@@ -192,7 +184,7 @@
      </row>
      <row>
       <property name="text">
-       <string>15</string>
+       <string>14</string>
       </property>
      </row>
      <column>
@@ -213,17 +205,6 @@
      </item>
      <item row="1" column="0">
       <property name="text">
-       <string>Require Remote-Admin Auth</string>
-      </property>
-      <property name="toolTip">
-       <string>Remote Administrators will be required to enter their password when connecting.</string>
-      </property>
-      <property name="checkState">
-       <enum>Checked</enum>
-      </property>
-     </item>
-     <item row="2" column="0">
-      <property name="text">
        <string>Allow Duplicate IP's</string>
       </property>
       <property name="toolTip">
@@ -233,7 +214,7 @@
        <enum>Checked</enum>
       </property>
      </item>
-     <item row="3" column="0">
+     <item row="2" column="0">
       <property name="text">
        <string>Ban Duplicate IP's</string>
       </property>
@@ -244,7 +225,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
       <property name="text">
        <string>Require Sernums</string>
       </property>
@@ -255,7 +236,7 @@
        <enum>Checked</enum>
       </property>
      </item>
-     <item row="5" column="0">
+     <item row="4" column="0">
       <property name="text">
        <string>Disconnect BlueCoded SerNums</string>
       </property>
@@ -266,7 +247,7 @@
        <enum>Checked</enum>
       </property>
      </item>
-     <item row="6" column="0">
+     <item row="5" column="0">
       <property name="text">
        <string>Disconnect Idle Users</string>
       </property>
@@ -277,7 +258,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="7" column="0">
+     <item row="6" column="0">
       <property name="text">
        <string>Allow Server Variables</string>
       </property>
@@ -288,7 +269,7 @@
        <enum>Checked</enum>
       </property>
      </item>
-     <item row="8" column="0">
+     <item row="7" column="0">
       <property name="text">
        <string>Log Comments to File</string>
       </property>
@@ -299,7 +280,7 @@
        <enum>Checked</enum>
       </property>
      </item>
-     <item row="9" column="0">
+     <item row="8" column="0">
       <property name="text">
        <string>Echo Comment to Admins</string>
       </property>
@@ -310,7 +291,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="10" column="0">
+     <item row="9" column="0">
       <property name="text">
        <string>Echo Comment to Users (Sender)</string>
       </property>
@@ -321,7 +302,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="11" column="0">
+     <item row="10" column="0">
       <property name="text">
        <string>Inform Admins of Login Events</string>
       </property>
@@ -332,7 +313,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="12" column="0">
+     <item row="11" column="0">
       <property name="text">
        <string>Minimize to System Tray</string>
       </property>
@@ -343,7 +324,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="13" column="0">
+     <item row="12" column="0">
       <property name="text">
        <string>Save Window Positions</string>
       </property>
@@ -354,7 +335,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="14" column="0">
+     <item row="13" column="0">
       <property name="text">
        <string>Enable Logging Files</string>
       </property>
@@ -365,7 +346,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="15" column="0">
+     <item row="14" column="0">
       <property name="text">
        <string>World Directory</string>
       </property>

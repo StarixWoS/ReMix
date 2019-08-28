@@ -246,7 +246,7 @@
             MAX_DISCONNECT_TTL = 250,
 
             //Count of Ban durations available to use when banning a player.
-            PUNISHMENT_DURATION_COUNT = 6,
+            PUNISH_DURATION_COUNT = 7,
         };
 
         //Valid Password types.
@@ -311,12 +311,13 @@
 
         //Valid Ban Durations in seconds.
         //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent
-        enum class PunishmentDurations: int{ One_Day = 86400,
-                                             SEVEN_DAYS = 604800,
-                                             THIRTY_DAYS = 2952000,
-                                             SIX_MONTHS = 15552000,
-                                             ONE_YEAR = 31104000,
-                                             PERMANENT = 2000000000 };
+        enum class PunishDurations: int{ Invalid = 0,
+                                         One_Day = 86400,
+                                         SEVEN_DAYS = 604800,
+                                         THIRTY_DAYS = 2952000,
+                                         SIX_MONTHS = 15552000,
+                                         ONE_YEAR = 31104000,
+                                         PERMANENT = 2147483647 };
 
     #endif  // REMIX_GLOBALS
 

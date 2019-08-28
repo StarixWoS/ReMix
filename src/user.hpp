@@ -20,7 +20,7 @@ class User : public QDialog
     static User* instance;
 
     static const QString keys[ USER_KEY_COUNT ];
-    static const qint64 punishmentDurations[ PUNISHMENT_DURATION_COUNT ];
+    static const PunishDurations punishDurations[ PUNISH_DURATION_COUNT ];
 
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
@@ -33,7 +33,7 @@ class User : public QDialog
         static void setInstance(User* value);
 
         static QString requestBanishReason(QWidget* parent = nullptr);
-        static qint64 requestPunishmentDuration(QWidget* parent = nullptr);
+        static PunishDurations requestPunishDuration(QWidget* parent = nullptr);
 
         static QSettings* getUserData();
         static void setUserData(const QSettings* value);
@@ -53,7 +53,8 @@ class User : public QDialog
 
         static void removeBan(const QString& value, const qint32& type);
         static bool addBan(const Player* admin, const Player* target,
-                           const QString& reason, const bool remote = false);
+                           const QString& reason, const bool remote,
+                           const PunishDurations duration);
 
         static bool getIsBanned(const QString& value, const BanTypes& type,
                                 const QString& plrSernum = "");
