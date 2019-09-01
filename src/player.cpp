@@ -682,7 +682,7 @@ void Player::setNewAdminPwdRequested(const bool& value)
                      "Admins will not have access to this information." };
 
         if ( this->getIsAdmin() )
-            this->sendMessage( msg );
+            this->sendMessage( msg, false );
     }
 }
 

@@ -185,7 +185,7 @@
             GM_COMMAND_COUNT = 22,
 
             //Count of possible Sub-Commands each GM Command may posess.
-            GM_SUBCOMMAND_COUNT = 4,
+            GM_SUBCOMMAND_COUNT = 10,
 
             //Count of Keys accessed via the User class.
             USER_KEY_COUNT = 13,
@@ -262,6 +262,9 @@
                                 Register, ShutDown, ReStart, MKAdmin, RMAdmin,
                                 CHAdmin, CHRules, CHSettings, Vanish, Version,
                                 Invalid = -1 };
+        //Valid Remote Administrator sub-commands.
+        enum class GMSubCmds: int{ One = 0, Two, Three, Four, Five,
+                                   Six, Seven = 6, Invalid = -1 };
 
         //Valid Command Structure Format.
         enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,
@@ -314,7 +317,7 @@
         enum class PunishDurations: int{ Invalid = 0,
                                          One_Day = 86400,
                                          SEVEN_DAYS = 604800,
-                                         THIRTY_DAYS = 2952000,
+                                         THIRTY_DAYS = 2592000,
                                          SIX_MONTHS = 15552000,
                                          ONE_YEAR = 31104000,
                                          PERMANENT = 2147483647 };

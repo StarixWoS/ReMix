@@ -473,9 +473,22 @@ bool User::getIsBanned(const QString& value, const BanTypes& type,
             continue;
     }
 
-    if ( isValue )
-        banned = getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() > 0;
+    quint32 banDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
+    if ( banDate > 0 )
+    {
+        banned = true;
+        quint64 date{ QDateTime::currentDateTime().toTime_t() };
+        quint64 banDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] )
+                                .toUInt() };
 
+        if ( ( banDuration <= banDate )
+          || ( banDuration == 0 )
+          || ( banDuration <= date ) )
+        {
+            banned = false;
+            removeBan( plrSernum, static_cast<int>( BanTypes::SerNum ) );
+        }
+    }
     return banned;
 }
 
@@ -669,8 +682,10 @@ void User::loadUserInfo()
 
             if ( banned )
             {
+                quint64 date{ QDateTime::currentDateTime().toTime_t() };
                 if ( ( banDuration_i <= banDate_i )
-                  || ( banDuration_i == 0 ) )
+                  || ( banDuration_i == 0 )
+                  || ( banDuration_i <= date ) )
                 {
                     this->removeBan( sernum,
                                      static_cast<int>( BanTypes::SerNum ) );

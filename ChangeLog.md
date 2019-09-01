@@ -2,6 +2,19 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.7:
+    Change:
+      * Added the ability for ReMote Administrators to set a punishment duration when banning a User.
+        * Example usage: /ban soul 4000 hours 24 *Reason
+
+
+    Bugfixes:
+      * Bans will now properly be removed when a banned User pings the server.
+        * ReMote Administrators may now enact punishments on other Remote Administrators of a lesser rank.
+
+
+
+
 Version 2.4.6:
     Change:
       * Player Chat is now logged to file.
@@ -13,6 +26,8 @@ Version 2.4.6:
         * Mutes are currently unaffected and are therefore permanent until reconnecting to the server.
       * Bans originating from ReMix versions prior to 2.4.6 will automatically be removed.
         * The Ban information is logged to file so that the Server Host may manually re-ban the User if so desired.
+      * Remote Administrators must now authenticate with the server regardless of any previously set setting.
+        * The Setting is no longer available, and is thus ignored.
 
 
     Bugfixes:
@@ -21,6 +36,13 @@ Version 2.4.6:
       * ReMix Server Instances will now correctly check-in with the "Warpath[W97]" MasterMix every 5 minutes.
       * ReMix will now correctly shift to a valid Server Instance when closing another.
         * Previously the Server Instance would retain UI elements pertaining to the closed Server Instance.
+      * Users attempting to use commands outside of their rank status will now properly be warned and once again be given a command attempt countdown.
+      * Unauthenticated Remote Administrators can now properly use all commands available to the rank "GmRanks::User".
+        * Previously a Remote Administrator would be unable to use the command "/login".
+      * Revoking and Reinstating a Remote Administrator from the Player List is now correctly handled.
+        * Previously a Remote Administrator that had been demoted would be requested to re-register a password.
+        * Previously a demoted Remote Administrator could attempt to login with their previous password. (This would not succeeed.)
+      * Banning a User from the Player List will now properly request a Punishment Duration.
 
 
 

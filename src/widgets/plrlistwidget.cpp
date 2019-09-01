@@ -151,7 +151,6 @@ void PlrListWidget::on_actionSendMessage_triggered()
 
 void PlrListWidget::on_actionMakeAdmin_triggered()
 {
-    bool send{ false };
     if ( menuTarget == nullptr )
         return;
 
@@ -176,7 +175,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         {
             User::setAdminRank( sernum, GMRanks::GMaster );
             if ( User::getHasPassword( sernum ) )
-                menuTarget->sendMessage( reinstated );
+                menuTarget->sendMessage( reinstated, false );
             else
                 menuTarget->setNewAdminPwdRequested( true );
         }
@@ -192,7 +191,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
             User::setAdminRank( sernum, GMRanks::User );
             menuTarget->setAdminPwdReceived( false );
             menuTarget->setAdminPwdRequested( false );
-            menuTarget->sendMessage( revoke );
+            menuTarget->sendMessage( revoke, false );
         }
     }
 
@@ -252,7 +251,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
             reason = reason.arg( Helper::getDisconnectReason( this ) );
             inform = inform.arg( reason );
 
-            menuTarget->sendMessage( inform );
+            menuTarget->sendMessage( inform, false );
             if ( sock->waitForBytesWritten() )
                 menuTarget->setDisconnected( true, DCTypes::IPDC );
 
@@ -299,7 +298,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             Logger::getInstance()->insertLog( server->getName(), logMsg,
                                               LogTypes::BAN, true, true );
 
-            menuTarget->sendMessage( inform );
+            menuTarget->sendMessage( inform, false );
             if ( sock->waitForBytesWritten() )
                 menuTarget->setDisconnected( true, DCTypes::IPDC );
         }

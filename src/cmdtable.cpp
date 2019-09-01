@@ -12,8 +12,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
 {
     {   //Command Implemented.
         "help",
-        { "format", "", "", "" },
+        { "format" },
         1,
+        { },
+        0,
         "Help Description: Shows command information and syntax. "
         "e.g. (/help help) and (/help help format)",
         "Help Usage: /help *Command *format. "
@@ -24,7 +26,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "list",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "List Description: Prints all commands the User has access to.",
         "List Usage: /list", //List does not have a Syntax.
@@ -33,8 +37,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "motd",
-        { "change", "remove","", "" },
+        { "change", "remove", },
         2,
+        { },
+        0,
         "MotD Description: Sets the Server's Message of the Day.",
         "MotD Usage: /motd change|remove *Message. "
         "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
@@ -44,7 +50,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Unimplemented.
         //Server UpTime, Connected Users, Connected Admins.
         "info",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "Info Description: Shows the Server Information.",
         "",
@@ -54,7 +62,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Unimplemented.
         //Server Network information. IP, Ping, Bandwidth Used.
         "netstatus",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "NetStatus Description: Shows the Server's network status.",
         "",
@@ -64,8 +74,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Implemented.
         //TODO: Allow the Admin to select a duration for the ban.
         "ban",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all"  },
         3,
+        { "seconds", "minutes", "hours", "days", "months", "years", "permanent" },
+        7,
         "Ban Description: Bans the selected user and prevents their future connection to the server.",
         "Ban Usage: /ban Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/ban soul 4000 Bad behavior) or (/ban ip 10.0.0.1 Bad behavior.)",
@@ -74,8 +86,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "unban",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all" },
         3,
+        { },
+        0,
         "UnBan Description: Removes a ban from the selected user and reallows them to connect.",
         "Unban Usage: /unban Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
@@ -84,8 +98,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "kick",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all" },
         3,
+        { },
+        0,
         "Kick Description: Disconnects the selected user from the server.",
         "Kick Usage: /kick Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
@@ -95,8 +111,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Implemented.
         //TODO: Allow the Admin to select a duration for the Mute.
         "mute",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all" },
         3,
+        { },
+        0,
         "Mute Description: Adds a network mute to the selected User.",
         "Mute Usage: /mute Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/mute soul 4000 Bad behavior) or (/mute ip 10.0.0.1 Bad behavior.)",
@@ -105,8 +123,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "unmute",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all" },
         3,
+        { },
+        0,
         "UnMute Description: Removes a network mute imposed on the selected User.",
         "Unmute Usage: /unmute Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
@@ -116,8 +136,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Implemented.
         //TODO: Add alternate initializer word "message".
         "msg",
-        { "soul", "ip", "all", "" },
+        { "soul", "ip", "all" },
         3,
+        { },
+        0,
         "Msg Description: Sends a message to the selected User.",
         "Message Usage: /msg Soul|IP|All(Permission Required) *Message. "
         "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
@@ -126,7 +148,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "login",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "Login Description: Input command from the User to authenticate with the server.",
         "Login Usage: /login *Password",
@@ -135,7 +159,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "register",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "Register Description: Input command from the User to register with the server as a Remote Administrator.",
         "Register Usage: /register *Password",
@@ -144,8 +170,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "shutdown",
-        { "stop", "seconds", "minutes", "hours" },
-        4,
+        { "stop" },
+        1,
+        { "seconds", "minutes", "hours", },
+        3,
         "Shutdown Description: Initiates server shutdown in Seconds|Minutes|Hours <x> (30 Seconds by default).",
         "Shutdown Usage: /shutdown Stop|Seconds|Minutes|Hours <n>. e.g. (/shutdown), (/shutdown Seconds 30) "
         "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
@@ -154,8 +182,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "restart",
-        { "stop", "seconds", "minutes", "hours" },
-        4,
+        { "stop" },
+        1,
+        { "seconds", "minutes", "hours", },
+        3,
         "Restart Description: Initiates server restart in Stop|Seconds|Minutes|Hours <x> (30 Seconds by default).",
         "Restart Usage: /restart Stop|Seconds|Minutes|Hours <n>. e.g. (/restart), (/restart Seconds 30) "
         "will cause the server to shutdown in 30 seconds, (/restart stop) will cease an inprogress restart.",
@@ -164,7 +194,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "mkadmin",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "MKAdmin Description: Allows the selected User to authenticate with the server as a Remote Administrator.",
         "",
@@ -173,7 +205,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "rmadmin",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "RMAdmin Description: Disallows the selected User to authenticate with the server as a Remote Administrator.",
         "",
@@ -182,7 +216,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "chadmin",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "CHAdmin Description: Changes the Remote Administrator rank of the selected User.",
         "",
@@ -191,7 +227,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "chrules",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "CHRules Description: Modifies the Server's rule set",
         "",
@@ -200,7 +238,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "chsettings",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "CHSettings Description: Modifies the Server's settings.",
         "",
@@ -209,8 +249,10 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "vanish",
-        { "hide", "show", "status", "" },
+        { "hide", "show", "status" },
         3,
+        { },
+        0,
         "Vanish Description: Makes the Admin invisible to others. Poof!",
         "Vanish Usage: /vanish hide|show|status. When no sub-command is "
         "entered the command acts as an on|off toggle.",
@@ -219,7 +261,9 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "version",
-        { "", "", "", "" },
+        { },
+        0,
+        { },
         0,
         "Version Description: Shows the Servers Version Information.",
         "Version Usage: /version *Message (Optional comment to the Server Host.)",
@@ -238,19 +282,33 @@ CmdTable* CmdTable::getInstance()
 
 bool CmdTable::cmdIsActive(const GMCmds& index)
 {
-    return cmdTable[ static_cast<int>( index ) ].commandIsActive;
+    return cmdTable[ static_cast<int>( index ) ].cmdIsActive;
 }
 
-bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd)
+bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd,
+                            const bool& time)
 {
     qint32 idx{ static_cast<int>( index ) };
-    if ( cmdTable[ idx ].subCommandCount > 0 )
+    if ( cmdTable[ idx ].subCmdCount > 0 )
     {
-        for ( int i = 0; i < cmdTable[ idx ].subCommandCount; ++i )
+        if ( !time )
         {
-            if ( Helper::cmpStrings( cmdTable[ idx ].subCommands[ i ], cmd ) )
+            for ( int i = 0; i < cmdTable[ idx ].subCmdCount; ++i )
             {
-                return true;
+                if ( Helper::cmpStrings( cmdTable[ idx ].subCmd[ i ], cmd ) )
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            for ( int i = 0; i < cmdTable[ idx ].timeSubCmdCount; ++i )
+            {
+                if ( Helper::cmpStrings( cmdTable[ idx ].timeSubCmd[ i ], cmd ) )
+                {
+                    return true;
+                }
             }
         }
     }
@@ -259,12 +317,12 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd)
 
 bool CmdTable::getCmdHasSubCmd(const GMCmds& index)
 {
-    return cmdTable[ static_cast<qint32>( index ) ].subCommandCount >= 1;
+    return cmdTable[ static_cast<qint32>( index ) ].subCmdCount >= 1;
 }
 
 QString CmdTable::getCmdName(const GMCmds& index)
 {
-    return cmdTable[ static_cast<qint32>( index ) ].command;
+    return cmdTable[ static_cast<qint32>( index ) ].cmd;
 }
 
 GMCmds CmdTable::getCmdIndex(const QString& cmd)
@@ -273,11 +331,45 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
     for ( int i = 0; i < GM_COMMAND_COUNT; ++i )
     {
         //Check the current Object if it contains our command information,
-        if ( Helper::cmpStrings( cmdTable[ i ].command, cmd ) )
+        if ( Helper::cmpStrings( cmdTable[ i ].cmd, cmd ) )
         {
             //Make Certain that the command is Activated.
-            if ( cmdTable[ i ].commandIsActive == true )
+            if ( cmdTable[ i ].cmdIsActive == true )
                 index = static_cast<GMCmds>( i );
+        }
+    }
+    return index;
+}
+
+qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex,
+                                const QString& subCmd,
+                                const bool& time)
+{
+
+    qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };
+    qint32 cmdIdx{ static_cast<qint32>( cmdIndex ) };
+    if ( !time )
+    {
+        for ( qint32 idx = 0; idx < cmdTable[ cmdIdx ].subCmdCount; ++idx )
+        {
+            //Check the current Object if it contains our command information,
+            if ( Helper::strContainsStr( cmdTable[ cmdIdx ].subCmd[ idx ],
+                                         subCmd ) )
+            {
+                index = idx;
+            }
+        }
+    }
+    else
+    {
+        for ( qint32 idx = 0; idx < cmdTable[ cmdIdx ].timeSubCmdCount; ++idx )
+        {
+            //Check the current Object if it contains our command information,
+            if ( Helper::strContainsStr( cmdTable[ cmdIdx ].timeSubCmd[ idx ],
+                                         subCmd ) )
+            {
+                index = idx;
+            }
         }
     }
     return index;
@@ -287,7 +379,7 @@ GMRanks CmdTable::getCmdRank(const GMCmds& index)
 {
     if ( this->cmdIsActive( index ) )
     {
-        return cmdTable[ static_cast<int>( index ) ].commandRank;
+        return cmdTable[ static_cast<int>( index ) ].cmdRank;
     }
 
     //The command is inactive. Return Rank Invalid.
@@ -300,11 +392,11 @@ QString CmdTable::collateCmdList(const GMRanks& rank)
     for ( int i = 0; i < GM_COMMAND_COUNT; ++i )
     {
         //Check the current Object if it contains our command information,
-        if ( cmdTable[ i ].commandRank <= rank )
+        if ( cmdTable[ i ].cmdRank <= rank )
         {
             //Make Certain that the command is Activated.
-            if ( cmdTable[ i ].commandIsActive == true )
-                list.append( cmdTable[ i ].command % ", " );
+            if ( cmdTable[ i ].cmdIsActive == true )
+                list.append( cmdTable[ i ].cmd % ", " );
         }
     }
     return list;
@@ -315,7 +407,7 @@ QString CmdTable::getCommandInfo(const GMCmds& index, const bool& syntax)
     qint32 idx{ static_cast<int>( index ) };
     if ( syntax )
     {
-        return cmdTable[ idx ].commandSyntax;
+        return cmdTable[ idx ].cmdSyntax;
     }
-    return cmdTable[ idx ].commandInfo;
+    return cmdTable[ idx ].cmdInfo;
 }

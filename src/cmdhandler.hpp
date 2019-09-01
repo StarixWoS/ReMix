@@ -20,8 +20,8 @@ class CmdHandler : public QObject
                             ServerInfo* svr = nullptr);
         ~CmdHandler();
 
-        bool canUseAdminCommands(Player* plr, const GMCmds cmd,
-                                 const GMRanks rank, const QString& cmdStr);
+        bool canUseAdminCommands(Player* plr, const GMRanks rank,
+                                 const QString& cmdStr);
         void parseMix5Command(Player* plr, const QString& packet);
         void parseMix6Command(Player* plr, const QString& packet);
         bool parseCommandImpl(Player* plr, QString& packet);
@@ -32,8 +32,7 @@ class CmdHandler : public QObject
                                const GMCmds& argIndex);
 
     private:
-        bool validateAdmin(Player* plr, GMCmds cmd, GMRanks& rank,
-                           const QString& cmdStr);
+        bool validateAdmin(Player* plr, GMRanks& rank, const QString& cmdStr);
         GMRanks getAdminRank(Player* plr);
 
         void motdHandler(Player* plr, const QString& subCmd,
@@ -41,6 +40,7 @@ class CmdHandler : public QObject
                          const QString& msg);
 
         void banhandler(Player* plr, const QString& arg1,
+                        const QString& arg2, const QString& arg3,
                         const GMCmds& argIndex, const QString& message,
                         const bool& all);
 
@@ -70,6 +70,11 @@ class CmdHandler : public QObject
 //        void getCommentsHandler(Player* plr, QString& arg);
 //        void chSettingsHandler(Player* plr, QString& setting, QString& value);
         void vanishHandler(Player* plr, const QString& subCmd);
+
+        qint32 getTimeFromCommand(const QString& timeArg,
+                                  const qint32& subCmdIdx,
+                                  QString& timeText, QString& reason,
+                                  qint32& timeMul, bool& stop);
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias,

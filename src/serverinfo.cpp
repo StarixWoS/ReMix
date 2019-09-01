@@ -477,7 +477,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     }
 
     if ( !greeting.isEmpty() )
-        plr->sendMessage( greeting );
+        plr->sendMessage( greeting, false );
 
     if ( !Rules::getRuleSet( serverName ).isEmpty() )
         this->sendServerRules( plr );
