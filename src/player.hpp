@@ -18,6 +18,7 @@ class Player : public QObject
     ServerInfo* serverInfo{ nullptr };
     SendMsg* messageDialog{ nullptr };
     QTcpSocket* socket{ nullptr };
+    QByteArray outBuff;
 
     QString publicIP{ "" };
     quint32 publicPort{ 0 };
@@ -28,11 +29,13 @@ class Player : public QObject
     QString dVar{ "" };
     QString wVar{ "" };
 
-    QString bioData;
-    QByteArray outBuff;
+    QString campPacket{ "" };
+    bool sentCampPacket{ false };
+
+    QString bioData{ "" };
+    bool hasBioData{ false };
 
     bool hasSernum{ false };
-
     quint32 sernum_i{ 0 };
     QString sernum_s{ "" };
     QString sernumHex_s{ "" };
@@ -131,6 +134,9 @@ class Player : public QObject
         QString getBioData() const;
         void setBioData(const QByteArray& value);
 
+        bool getHasBioData() const;
+        void setHasBioData(bool value);
+
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
@@ -223,6 +229,9 @@ class Player : public QObject
 
         bool getHasSernum() const;
         void setHasSernum(bool value);
+
+        QString getCampPacket() const;
+        void setCampPacket(const QString& value);
 
     private:
         void setModelData(QStandardItem* model, const qint32& row,

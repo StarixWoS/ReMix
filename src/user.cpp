@@ -565,6 +565,11 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
     }
 }
 
+QByteArray User::getBIOData(const QString& sernum)
+{
+    return getData( sernum, keys[ UserKeys::kBIO ] ).toByteArray();
+}
+
 //Private Functions.
 QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
 {

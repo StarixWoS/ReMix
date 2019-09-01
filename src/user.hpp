@@ -64,6 +64,8 @@ class User : public QDialog
                            const QString& dv, const QString& wv,
                            const QString& bio);
 
+        static QByteArray getBIOData(const QString& sernum);
+
     private:
         QModelIndex findModelIndex(const QString& value,
                                    const UserCols& col);

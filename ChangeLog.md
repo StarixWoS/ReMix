@@ -2,6 +2,19 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.4.8:
+    Change:
+      * ReMix will now store and re-send packets with the OpCode( "F", Camp Initiated ).
+        * This only affects the Well of Souls[WoS].
+
+
+    Bugfixes:
+      * ReMix will now attempt to correct a User's BIO data when they have pinged with a SerNum that does not match their current SerNum.
+        * This is an attempt to correct an oversight left by a BugFix in version [2.4.7].
+
+
+
+
 Version 2.4.7:
     Change:
       * Added the ability for ReMote Administrators to set a punishment duration when banning a User.

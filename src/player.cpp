@@ -20,7 +20,7 @@ Player::Player()
 {
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
-
+    
     //All connections start as ascive and not AFK.
     this->setIsAFK( false );
 
@@ -335,6 +335,7 @@ void Player::setSernum_i(quint32 value)
 {
     if ( value != this->getSernum_i() )
     {
+        sernum_i = value;
         QString sernum_s{ Helper::serNumToIntStr(
                                Helper::intToStr(
                                     value, 16, 8 ) ) };
@@ -351,6 +352,38 @@ void Player::setSernum_i(quint32 value)
                     model->setData( model->index( row->row(), 1 ),
                                     sernum_s,
                                     Qt::DisplayRole );
+
+                    //Correct the User's BIO Data based on their serNum.
+                    //This will only succeed if the User is on file.
+                    bool newBioData{ false };
+                    QByteArray data{ "" };
+
+                    if ( this->getHasBioData()
+                      && !Helper::strContainsStr( sernum_s,
+                                                  this->getBioData() ) )
+                    {
+                        data = User::getBIOData( sernumHex_s );
+                        if ( !sernum_s.isEmpty() )
+                        {
+                            if ( Helper::strContainsStr( QString( data ),
+                                                         sernum_s ) )
+                            {
+                                newBioData = true;
+                                this->setHasBioData( true );
+                                this->setBioData( data );
+                            }
+                            else
+                                this->setHasBioData( false );
+                        }
+                    }
+
+                    if ( newBioData
+                      && !data.isEmpty() )
+                    {
+                        model->setData( model->index( row->row(), 7 ),
+                                        data,
+                                        Qt::DisplayRole );
+                    }
                 }
             }
         }
@@ -359,7 +392,6 @@ void Player::setSernum_i(quint32 value)
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
 
-        sernum_i = value;
     }
 }
 
@@ -453,6 +485,16 @@ void Player::setAlias(const QString& value)
     alias = value;
 }
 
+QString Player::getCampPacket() const
+{
+    return campPacket;
+}
+
+void Player::setCampPacket(const QString& value)
+{
+    campPacket = value;
+}
+
 QString Player::getBioData() const
 {
     return bioData;
@@ -461,6 +503,16 @@ QString Player::getBioData() const
 void Player::setBioData(const QByteArray& value)
 {
     bioData = value;
+}
+
+bool Player::getHasBioData() const
+{
+    return hasBioData;
+}
+
+void Player::setHasBioData(bool value)
+{
+    hasBioData = value;
 }
 
 QByteArray Player::getOutBuff() const

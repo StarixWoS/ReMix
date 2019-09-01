@@ -16,6 +16,7 @@ class ServerInfo : public QObject
     Q_OBJECT
 
     QUdpSocket* masterSocket{ nullptr };
+    PacketHandler* pktHandle{ nullptr };
     Server* tcpServer{ nullptr };
     UPNP* upnp{ nullptr };
 
@@ -256,6 +257,9 @@ class ServerInfo : public QObject
 
         Server* getTcpServer() const;
         void setTcpServer(Server* value);
+
+        PacketHandler* getPktHandle() const;
+        void setPktHandle(PacketHandler* value);
 
     signals:
         void serverIsSetup();

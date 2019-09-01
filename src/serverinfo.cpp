@@ -1062,6 +1062,16 @@ qint32 ServerInfo::getUsageMins() const
     return usageMins;
 }
 
+PacketHandler* ServerInfo::getPktHandle() const
+{
+    return pktHandle;
+}
+
+void ServerInfo::setPktHandle(PacketHandler* value)
+{
+    pktHandle = value;
+}
+
 Server* ServerInfo::getTcpServer() const
 {
     return tcpServer;
