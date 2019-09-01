@@ -170,10 +170,10 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
                            Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
-        QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        plr->validateSerNum( plr->getServerInfo(),
-                             Helper::serNumToHexStr( sernum )
-                                        .toUInt( nullptr, 16 ) );
+        //QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
+        //plr->validateSerNum( plr->getServerInfo(),
+        //                     Helper::serNumToHexStr( sernum )
+        //                                .toUInt( nullptr, 16 ) );
 
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
@@ -199,9 +199,9 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
             plr->setWVar( wVar );
         }
 
-        plrViewModel->setData( plrViewModel->index( row, 1 ),
-                               sernum,
-                               Qt::DisplayRole );
+        //plrViewModel->setData( plrViewModel->index( row, 1 ),
+        //                       sernum,
+        //                       Qt::DisplayRole );
 
         plrViewModel->setData( plrViewModel->index( row, 2 ),
                                age,

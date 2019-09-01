@@ -11,6 +11,7 @@ Version 2.4.7:
     Bugfixes:
       * Bans will now properly be removed when a banned User pings the server.
         * ReMote Administrators may now enact punishments on other Remote Administrators of a lesser rank.
+      * Remove a SerNum check regarding UDP information due to ping/SerNum change collisions within the same household.
 
 
 
