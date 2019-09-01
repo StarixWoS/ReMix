@@ -170,7 +170,7 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
                            Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
-        //QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
+        QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
         //plr->validateSerNum( plr->getServerInfo(),
         //                     Helper::serNumToHexStr( sernum )
         //                                .toUInt( nullptr, 16 ) );
