@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.12)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
+
 set(BUILD_VERSION 2.4.9 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
