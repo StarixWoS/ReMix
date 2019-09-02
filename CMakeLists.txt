@@ -112,6 +112,12 @@ set(RC resources/icons.qrc
     resources/ReMix.rc)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI} ${RC})
+set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES
+        SUFFIX _${BUILD_VERSION}.exe
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC src)
 
 target_link_libraries(ReMix Qt5::Widgets)
