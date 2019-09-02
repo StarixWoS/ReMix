@@ -359,8 +359,8 @@ void Player::setSernum_i(quint32 value)
                     QByteArray data{ "" };
 
                     if ( this->getHasBioData()
-                      && !Helper::strContainsStr( sernum_s,
-                                                  this->getBioData() ) )
+                      && !Helper::strContainsStr( this->getBioData(),
+                                                  sernum_s ) )
                     {
                         data = User::getBIOData( sernumHex_s );
                         if ( !sernum_s.isEmpty() )
@@ -391,7 +391,6 @@ void Player::setSernum_i(quint32 value)
         this->setHasSernum( true );
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
-
     }
 }
 
