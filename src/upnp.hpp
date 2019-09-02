@@ -1,7 +1,7 @@
 #ifndef UPNP_HPP
 #define UPNP_HPP
 
-#include <prototypes.hpp>
+#include "prototypes.hpp"
 
 //Required Qt Includes.
 #include <QNetworkAddressEntry>

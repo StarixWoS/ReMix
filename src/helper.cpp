@@ -471,7 +471,7 @@ QHostAddress Helper::getPrivateIP()
           && !strStartsWithStr( tmp, "169" ) )
         {
             //Use first non-local IP address.
-            ipAddress = ipList.at(i).toString();
+            ipAddress = QHostAddress( ipList.at(i) );
             break;
         }
     }

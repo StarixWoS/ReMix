@@ -14,8 +14,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "help",
         { "format" },
         1,
-        { },
-        0,
         "Help Description: Shows command information and syntax. "
         "e.g. (/help help) and (/help help format)",
         "Help Usage: /help *Command *format. "
@@ -28,8 +26,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "list",
         { },
         0,
-        { },
-        0,
         "List Description: Prints all commands the User has access to.",
         "List Usage: /list", //List does not have a Syntax.
         GMRanks::User,
@@ -39,8 +35,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "motd",
         { "change", "remove", },
         2,
-        { },
-        0,
         "MotD Description: Sets the Server's Message of the Day.",
         "MotD Usage: /motd change|remove *Message. "
         "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
@@ -50,8 +44,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     {   //Command Unimplemented.
         //Server UpTime, Connected Users, Connected Admins.
         "info",
-        { },
-        0,
         { },
         0,
         "Info Description: Shows the Server Information.",
@@ -64,8 +56,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "netstatus",
         { },
         0,
-        { },
-        0,
         "NetStatus Description: Shows the Server's network status.",
         "",
         GMRanks::Admin,
@@ -76,10 +66,8 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "ban",
         { "soul", "ip", "all"  },
         3,
-        { "seconds", "minutes", "hours", "days", "months", "years", "permanent" },
-        7,
         "Ban Description: Bans the selected user and prevents their future connection to the server.",
-        "Ban Usage: /ban Soul|IP|All(Permission Required) *Reason (Optional). "
+        "Ban Usage: /ban Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default to seconds if not provided). "
         "e.g. (/ban soul 4000 Bad behavior) or (/ban ip 10.0.0.1 Bad behavior.)",
         GMRanks::CoAdmin,
         true,
@@ -88,8 +76,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "unban",
         { "soul", "ip", "all" },
         3,
-        { },
-        0,
         "UnBan Description: Removes a ban from the selected user and reallows them to connect.",
         "Unban Usage: /unban Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
@@ -100,8 +86,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "kick",
         { "soul", "ip", "all" },
         3,
-        { },
-        0,
         "Kick Description: Disconnects the selected user from the server.",
         "Kick Usage: /kick Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
@@ -113,8 +97,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "mute",
         { "soul", "ip", "all" },
         3,
-        { },
-        0,
         "Mute Description: Adds a network mute to the selected User.",
         "Mute Usage: /mute Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/mute soul 4000 Bad behavior) or (/mute ip 10.0.0.1 Bad behavior.)",
@@ -125,8 +107,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "unmute",
         { "soul", "ip", "all" },
         3,
-        { },
-        0,
         "UnMute Description: Removes a network mute imposed on the selected User.",
         "Unmute Usage: /unmute Soul|IP|All(Permission Required) *Reason (Optional). "
         "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
@@ -138,8 +118,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "msg",
         { "soul", "ip", "all" },
         3,
-        { },
-        0,
         "Msg Description: Sends a message to the selected User.",
         "Message Usage: /msg Soul|IP|All(Permission Required) *Message. "
         "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
@@ -148,8 +126,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "login",
-        { },
-        0,
         { },
         0,
         "Login Description: Input command from the User to authenticate with the server.",
@@ -161,8 +137,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "register",
         { },
         0,
-        { },
-        0,
         "Register Description: Input command from the User to register with the server as a Remote Administrator.",
         "Register Usage: /register *Password",
         GMRanks::User,
@@ -172,10 +146,8 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "shutdown",
         { "stop" },
         1,
-        { "seconds", "minutes", "hours", },
-        3,
-        "Shutdown Description: Initiates server shutdown in Seconds|Minutes|Hours <x> (30 Seconds by default).",
-        "Shutdown Usage: /shutdown Stop|Seconds|Minutes|Hours <n>. e.g. (/shutdown), (/shutdown Seconds 30) "
+        "Shutdown Description: Initiates server shutdown in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
+        "Shutdown Usage: /shutdown <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/shutdown), (/shutdown Seconds 30) "
         "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
         GMRanks::Admin,
         true,
@@ -184,18 +156,14 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "restart",
         { "stop" },
         1,
-        { "seconds", "minutes", "hours", },
-        3,
-        "Restart Description: Initiates server restart in Stop|Seconds|Minutes|Hours <x> (30 Seconds by default).",
-        "Restart Usage: /restart Stop|Seconds|Minutes|Hours <n>. e.g. (/restart), (/restart Seconds 30) "
+        "Restart Description: Initiates server restart in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
+        "Restart Usage: /restart <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/restart), (/restart 30s) "
         "will cause the server to shutdown in 30 seconds, (/restart stop) will cease an inprogress restart.",
         GMRanks::Admin,
         true,
     },
     {   //Command Unimplemented.
         "mkadmin",
-        { },
-        0,
         { },
         0,
         "MKAdmin Description: Allows the selected User to authenticate with the server as a Remote Administrator.",
@@ -207,8 +175,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "rmadmin",
         { },
         0,
-        { },
-        0,
         "RMAdmin Description: Disallows the selected User to authenticate with the server as a Remote Administrator.",
         "",
         GMRanks::Owner,
@@ -216,8 +182,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "chadmin",
-        { },
-        0,
         { },
         0,
         "CHAdmin Description: Changes the Remote Administrator rank of the selected User.",
@@ -229,8 +193,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "chrules",
         { },
         0,
-        { },
-        0,
         "CHRules Description: Modifies the Server's rule set",
         "",
         GMRanks::Admin,
@@ -238,8 +200,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Unimplemented.
         "chsettings",
-        { },
-        0,
         { },
         0,
         "CHSettings Description: Modifies the Server's settings.",
@@ -251,8 +211,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
         "vanish",
         { "hide", "show", "status" },
         3,
-        { },
-        0,
         "Vanish Description: Makes the Admin invisible to others. Poof!",
         "Vanish Usage: /vanish hide|show|status. When no sub-command is "
         "entered the command acts as an on|off toggle.",
@@ -261,8 +219,6 @@ const CmdTable::CmdStruct CmdTable::cmdTable[ GM_COMMAND_COUNT ] =
     },
     {   //Command Implemented.
         "version",
-        { },
-        0,
         { },
         0,
         "Version Description: Shows the Servers Version Information.",
@@ -296,16 +252,6 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd,
             for ( int i = 0; i < cmdTable[ idx ].subCmdCount; ++i )
             {
                 if ( Helper::cmpStrings( cmdTable[ idx ].subCmd[ i ], cmd ) )
-                {
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            for ( int i = 0; i < cmdTable[ idx ].timeSubCmdCount; ++i )
-            {
-                if ( Helper::cmpStrings( cmdTable[ idx ].timeSubCmd[ i ], cmd ) )
                 {
                     return true;
                 }
@@ -354,18 +300,6 @@ qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex,
         {
             //Check the current Object if it contains our command information,
             if ( Helper::strContainsStr( cmdTable[ cmdIdx ].subCmd[ idx ],
-                                         subCmd ) )
-            {
-                index = idx;
-            }
-        }
-    }
-    else
-    {
-        for ( qint32 idx = 0; idx < cmdTable[ cmdIdx ].timeSubCmdCount; ++idx )
-        {
-            //Check the current Object if it contains our command information,
-            if ( Helper::strContainsStr( cmdTable[ cmdIdx ].timeSubCmd[ idx ],
                                          subCmd ) )
             {
                 index = idx;

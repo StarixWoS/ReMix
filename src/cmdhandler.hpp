@@ -40,9 +40,8 @@ class CmdHandler : public QObject
                          const QString& msg);
 
         void banhandler(Player* plr, const QString& arg1,
-                        const QString& arg2, const QString& arg3,
-                        const GMCmds& argIndex, const QString& message,
-                        const bool& all);
+                        const QString& duration,
+                        const QString& reason, const bool& all);
 
         void unBanhandler(const QString& subCmd, const QString& arg1);
         void kickHandler(Player* plr, const QString& arg1,
@@ -57,9 +56,9 @@ class CmdHandler : public QObject
         void loginHandler(Player* plr, const QString& subCmd);
         void registerHandler(Player* plr, const QString& subCmd);
 
-        void shutDownHandler(Player* plr, const GMCmds& index,
-                             const QString& subCmd, const QString& arg1,
-                             const QString& msg, const bool& restart = false);
+        void shutDownHandler(Player* plr, const QString& duration,
+                             const QString& reason, bool& stop,
+                             bool& restart);
 
 //        void mkAdminHandler(Player* plr, QString& sernum, QString& arg);
 //        void rmAdminHandler(Player* plr, QString& sernum);
@@ -71,10 +70,9 @@ class CmdHandler : public QObject
 //        void chSettingsHandler(Player* plr, QString& setting, QString& value);
         void vanishHandler(Player* plr, const QString& subCmd);
 
-        qint32 getTimeFromCommand(const QString& timeArg,
-                                  const qint32& subCmdIdx,
-                                  QString& timeText, QString& reason,
-                                  qint32& timeMul, bool& stop);
+        void parseTimeArgs(const QString& str, QString& timeArg,
+                           QString& reason);
+        qint32 getTimePeriodFromString(const QString& str, QString& timeTxt);
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias,

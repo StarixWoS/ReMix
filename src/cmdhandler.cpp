@@ -3,8 +3,8 @@
 #include "cmdhandler.hpp"
 
 //ReMix includes.
-#include "remixtabwidget.hpp"
-#include "motdwidget.hpp"
+#include "widgets/remixtabwidget.hpp"
+#include "widgets/motdwidget.hpp"
 #include "serverinfo.hpp"
 #include "cmdtable.hpp"
 #include "settings.hpp"
@@ -197,11 +197,15 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     bool all{ false };
 
     QTextStream stream( &packet );
+
     QString cmd;
     QString subCmd;
     QString arg1;
     QString arg2;
     QString arg3;
+
+    QString duration;
+    QString reason;
 
     stream >> cmd >> subCmd >> arg1 >> arg2 >> arg3;
 
@@ -216,10 +220,8 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         return false;
 
     QString message{ "" };
-    bool subCommand{ false };
     if ( cmdTable->isSubCommand( argIndex, subCmd ) )
     {
-        subCommand = true;
         if ( Helper::cmpStrings( subCmd, "all" ) )
         {
             //Correctly handle "all" command reason/message.
@@ -300,12 +302,12 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 //        break;
         case GMCmds::Ban:
             {
+                this->parseTimeArgs( message, duration, reason );
                 if ( this->validateAdmin( plr, cmdRank, cmd )
                   && ( !arg1.isEmpty()
                     && !subCmd.isEmpty() ) )
                 {
-                    this->banhandler( plr, arg1, arg2, arg3,
-                                      argIndex, message, all );
+                    this->banhandler( plr, arg1, duration, reason, all );
                 }
                 retn = true;
             }
@@ -391,30 +393,19 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::ReStart:
             {
                 bool restart{ false };
+                bool stop{ false };
                 if ( argIndex == GMCmds::ReStart )
                     restart = true;
 
-                if ( Helper::strContainsStr( subCmd, "stop" ) )
-                {
-                    message = packet.mid( Helper::getStrIndex( packet,
-                                                               subCmd )
-                                        + subCmd.length() ).simplified();
-                }
-                else if ( !subCommand )
-                {
-                    if ( message.isEmpty() )
-                        message = "No reason provided.";
-                }
+                if ( !Helper::strContainsStr( subCmd, "stop" ) )
+                    this->parseTimeArgs( message, duration, reason );
                 else
-                {
-                    message = packet.mid( Helper::getStrIndex( packet, subCmd )
-                                        + subCmd.length() ).simplified();
-                }
+                    stop = true;
 
                 if ( this->validateAdmin( plr, cmdRank, cmd ) )
                 {
-                    this->shutDownHandler( plr, index, subCmd, arg1,
-                                           message, restart );
+                    this->shutDownHandler( plr, duration, reason,
+                                           stop, restart );
                     retn = true;
                 }
             }
@@ -620,22 +611,15 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd,
 }
 
 void CmdHandler::banhandler(Player* plr, const QString& arg1,
-                            const QString& arg2, const QString& arg3,
-                            const GMCmds& argIndex, const QString& message,
-                            const bool& all)
+                            const QString& duration,
+                            const QString& reason, const bool& all)
 {
-    QString reason{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. "
-                    "Reason: [ %3 ]." };
-    QString msg{ message };
-    QString str{ "" };
-
-    qint32 timeMul{ 0 };
-    qint32 time{ 0 };
-
-    bool ban{ false };
-    bool ok{ false };
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. "
+                       "Reason: [ %3 ]." };
+    QString msg{ reason };
 
     Player* tmpPlr{ nullptr };
+    bool ban{ false };
 
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
@@ -643,10 +627,8 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            if ( this->canIssueAction( plr, tmpPlr, arg1, argIndex, all ) )
-            {
+            if ( this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all ) )
                 ban = true;
-            }
             else
                 ban = false;
 
@@ -657,20 +639,15 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
                 qint32 banDuration{ static_cast<qint32>(
                                          PunishDurations::THIRTY_DAYS ) };
 
-                if ( !arg2.isEmpty() && !arg3.isEmpty() )
+                if ( !duration.isEmpty() )
                 {
-                    qint32 subCmdIdx{ cmdTable->getSubCmdIndex( argIndex,
-                                                                arg2, true ) };
-                    if ( subCmdIdx != static_cast<qint32>(
-                                            GMSubCmds::Invalid ) )
+                    QString timeText{ "seconds" };
+                    banDuration = this->getTimePeriodFromString( duration,
+                                                                 timeText );
+                    if ( banDuration == 0 )
                     {
-
-                        time = this->getTimeFromCommand( arg3, subCmdIdx,
-                                                         str, msg, timeMul, ok );
-
-                        time *= timeMul;
-                        banDuration = time;
-
+                        banDuration = static_cast<qint32>(
+                                          PunishDurations::THIRTY_DAYS );
                     }
                 }
 
@@ -680,12 +657,12 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
                 if ( msg.isEmpty() )
                     msg = "No Reason!";
 
-                reason = reason.arg( plr->getSernum_s() )
+                reasonMsg = reasonMsg.arg( plr->getSernum_s() )
                                .arg( dateString )
                                .arg( msg );
 
-                if ( !reason.isEmpty() )
-                    tmpPlr->sendMessage( reason, false );
+                if ( !reasonMsg.isEmpty() )
+                    tmpPlr->sendMessage( reasonMsg, false );
 
                 msg = msg.prepend( "Remote-Banish; " );
                 User::addBan( plr, tmpPlr, msg, true,
@@ -974,52 +951,25 @@ void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
         plr->sendMessage( response, false );
 }
 
-void CmdHandler::shutDownHandler(Player* plr, const GMCmds& index,
-                                 const QString& subCmd, const QString& arg1,
-                                 const QString& msg, const bool& restart)
+void CmdHandler::shutDownHandler(Player* plr, const QString& duration,
+                                 const QString& reason, bool& stop,
+                                 bool& restart)
 {
-    QString message{ "Admin [ %1 ]: The Server will %2 in %3 %4..." };
-    QString reason{ msg };
+    bool sendMsg{ true };
+    qint32 time{ 0 };
 
-    //Default to seconds.
-    bool stop{ false };
-    qint32 timeMul{ 30 };
-    qint32 time{ 1 };
+    QString message{ "Admin [ %1 ]: The Server will %2 in [ %3 ] < %4 >..." };
+    QString timeText{ "seconds" };
 
     QString type{ "shut down" };
     if ( restart )
         type = "restart";
 
-    QString timeText{ "seconds" };
-    qint32 subCmdIdx{ static_cast<qint32>( GMSubCmds::Invalid ) };
-    if ( cmdTable->isSubCommand( index, subCmd, true ) )
+    if ( !duration.isEmpty() )
     {
-        subCmdIdx = cmdTable->getSubCmdIndex( index, subCmd, true );
-        timeMul = this->getTimeFromCommand( arg1, subCmdIdx, timeText,
-                                            reason, time, stop );
-    }
-    else
-    {
-        if ( cmdTable->isSubCommand( index, subCmd, false ) )
-        {
-            subCmdIdx = cmdTable->getSubCmdIndex( index, subCmd, false );
-            if ( subCmdIdx == static_cast<qint32>( GMSubCmds::One ) )
-                stop = true;
-        }
-        else
-        {
-            //The subcommand for timing information is invalid.
-            //Send the Command Syntax to the Admin.
-            if ( !subCmd.isEmpty() && !arg1.isEmpty() )
-            {
-                if ( !Helper::strContainsStr( reason, subCmd ) )
-                {
-                    plr->sendMessage( cmdTable->getCommandInfo( index, true ),
-                                      false );
-                    return;
-                }
-            }
-        }
+        time = getTimePeriodFromString( duration, timeText );
+        if ( time == 0 )
+            stop = true;
     }
 
     if ( !stop )
@@ -1044,26 +994,32 @@ void CmdHandler::shutDownHandler(Player* plr, const GMCmds& index,
 
         message = message.arg( plr->getSernum_s() )
                          .arg( type )
-                         .arg( timeMul )
+                         .arg( duration )
                          .arg( timeText );
 
-        shutdownTimer->start( time * timeMul * 1000 );
+        shutdownTimer->start( time * 1000 );
     }
     else
     {
-        shutdownTimer->stop();
-        shutdownTimer->disconnect();
+        if ( shutdownTimer->isActive() )
+        {
+            shutdownTimer->stop();
+            shutdownTimer->disconnect();
 
-        message = "Admin [ %1 ]: Has canceled the Server %2...";
-        message = message.arg( plr->getSernum_s() )
-                         .arg( type );
+            message = "Admin [ %1 ]: Has canceled the Server %2...";
+            message = message.arg( plr->getSernum_s() )
+                             .arg( type );
+        }
+        else
+            sendMsg = false;
     }
 
-    if ( !message.isEmpty() )
+    if ( !message.isEmpty() && sendMsg )
     {
         if ( !reason.isEmpty() )
         {
-            message.append( " Reason: < " % reason % " >" );
+            message.append( " Reason: < %1 >" );
+            message = message.arg( reason );
         }
         server->sendMasterMessage( message, nullptr, true );
     }
@@ -1231,91 +1187,95 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
 
 //}
 
-qint32 CmdHandler::getTimeFromCommand(const QString& timeArg,
-                                      const qint32& subCmdIdx,
-                                      QString& timeText, QString& reason,
-                                      qint32& time, bool& stop)
+void CmdHandler::parseTimeArgs( const QString& str, QString& timeArg,
+                                QString& reason )
 {
-    bool permanent{ false };
-    qint32 timeMul{ 30 };
-    GMSubCmds index{ static_cast<GMSubCmds>( subCmdIdx ) };
-
-    switch ( index )
+    //This is the Action duration.
+    QString duration{ Helper::getStrStr( str, "", "", " " ) };
+    if ( !duration.isEmpty() )
     {
-        case GMSubCmds::One:
-            {
-                timeText = "seconds";
-                time = 1;
-            }
-        break;
-        case GMSubCmds::Two:
-            {
-                timeText = "minutes";
-                time = 60;
-            }
-        break;
-        case GMSubCmds::Three:
-            {
-                timeText = "hours";
-                time = 60*60;
-            }
-        break;
-        case GMSubCmds::Four:
-            {
-                timeText = "days";
-                time = 60*60*24;
-            }
-        break;
-        case GMSubCmds::Five:
-            {
-                timeText = "months";
-                time = 60*60*24*30;
-            }
-        break;
-        case GMSubCmds::Six:
-            {
-                timeText = "years";
-                time = 60*60*24*30*12;
-            }
-        break;
-        case GMSubCmds::Seven:
-            {
-                reason = reason.mid( Helper::getStrIndex( reason, timeArg ) )
-                               .simplified();
-
-                permanent = true;
-                timeMul = 1;
-                time = std::numeric_limits<qint32>::max();
-                timeText = "permanent";
-            }
-        break;
-        case GMSubCmds::Invalid:
-            time = 0;
-            timeMul = 0;
-        break;
-    }
-
-    if ( !permanent )
-    {
-        if (  !stop && !timeArg.isEmpty() )
+        if ( duration.at( 0 ).isDigit() )
         {
-            //Ensure that arg1 is a number,
-            QString digit{ "" };
-            for ( QChar chr : timeArg )
-            {
-                if ( chr.isDigit() )
-                    digit += chr;
-            }
-
-            if ( !digit.isEmpty() )
-            {
-                reason = reason.mid( Helper::getStrIndex( reason, timeArg )
-                                   + timeArg.length() ).simplified();
-                timeMul = Helper::strToInt( digit, 10 );
-            }
-            else
-                timeMul = 1;
+            reason = Helper::getStrStr( str, duration, " ", "" );
+        }
+        else
+        {   //This is the action Reason.
+            //No Action Duration was given so it will default to Minutes.
+            reason = str;
         }
     }
-    return timeMul;
+    timeArg = duration;
+}
+
+qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
+{
+    quint32 duration{ 0 };
+    quint32 time{ 0 };
+    QString pStr;
+            pStr.reserve( 10 );
+
+    QString::const_iterator itr = str.constBegin();
+
+    while ( itr != 0 )
+    {
+        // always starts with a number.
+        if( !itr->isDigit() )
+            break;
+
+        pStr.clear();
+        while( itr->isDigit() && *itr != 0)
+        {
+            pStr += *itr;
+            ++itr;
+        }
+        // try to find a letter
+        if( *itr != 0 )
+        {
+            // check the type
+            switch( itr->toLower().toLatin1() )
+            {
+                case 'y': //Year
+                    {
+                        timeTxt = "years";
+                        time = 365*24*60*60;
+                    }
+                break;
+                case 'd': //Days
+                    {
+                        timeTxt = "days";
+                        time = 24*60*60;
+                    }
+                break;
+                case 'h': //Hours
+                    {
+                        timeTxt = "hours";
+                        time = 60*60;
+                    }
+                break;
+                case 'm': //Minutes
+                    {
+                        timeTxt = "minutes";
+                        time = 60;
+                    }
+                break;
+                case 's': //Seconds
+                    {
+                        timeTxt = "seconds";
+                        time = 1;
+                    }
+                break;
+                default: //Default, no duration.
+                    time = 0;
+                break;
+            }
+            ++itr;
+        }
+        else //Minutes if no letter is given.
+        {
+            timeTxt = "seconds";
+            time = 1;
+        }
+        duration = time * Helper::strToInt( pStr, 10 );
+    }
+    return duration;
 }

@@ -17,8 +17,6 @@ class CmdTable
             QString cmd;
             QStringList subCmd;
             qint32 subCmdCount;
-            QStringList timeSubCmd;
-            qint32 timeSubCmdCount;
             QString cmdInfo;
             QString cmdSyntax;
             GMRanks cmdRank;
