@@ -119,7 +119,7 @@ set(UI ui/widgets/commentviewwidget.ui
 set(RC resources/icons.qrc
     resources/ReMix.rc)
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI} ${RC})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI} ${RC})
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES
