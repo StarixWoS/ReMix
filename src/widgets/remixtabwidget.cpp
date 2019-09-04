@@ -68,22 +68,31 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
                 //The Response was not empty, change the Server's Name.
                 if ( !response.isEmpty() )
                 {
-                    //Check if the new name is the same as the old.
-                    if ( !Helper::cmpStrings( tabA->getServerName(),
-                                              response ) )
+                    if ( Helper::strContainsStr( response, "world=" ) )
                     {
-                        this->setTabText( index, response );
-                        tabA->renameServer( response );
-
-                        emit this->currentChanged( index );
-                    }
-                    else //The new Server name is the same as the Old.
-                    {
-                        message = "The new server name can not be the same "
-                                  "as the old name!";
+                        message = "Servers cannot be initialized with the "
+                                  "World selection within the name. "
+                                  "Please try again.";
                         warnUser = true;
                     }
+                    else
+                    {
+                        //Check if the new name is the same as the old.
+                        if ( !Helper::cmpStrings( tabA->getServerName(),
+                                                  response ) )
+                        {
+                            this->setTabText( index, response );
+                            tabA->renameServer( response );
 
+                            emit this->currentChanged( index );
+                        }
+                        else //The new Server name is the same as the Old.
+                        {
+                            message = "The new server name can not be the same "
+                                      "as the old name!";
+                            warnUser = true;
+                        }
+                    }
                 }
                 else //The Response was empty or otherwise invalid.
                 {    //Inform the User.

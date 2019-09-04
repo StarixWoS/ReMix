@@ -228,7 +228,19 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
         qint32 index{ 0 };
         if ( !data.isEmpty() )
         {
-            switch ( data.at( 0 ).toLatin1() )
+            QChar opCode{ data.at( 0 ).toLatin1() };
+            bool isMaster{ false };
+            if ( opCode == 'M' )
+            {
+                //Prevent Spoofing a MasterMix response.
+                if ( Helper::cmpStrings( server->getMasterIP(),
+                                         ipAddr.toString() ) )
+                {
+                    isMaster = true;
+                }
+            }
+
+            switch ( opCode.toLatin1() )
             {
                 case 'G':   //Set the Server's gameInfoString.
                     {
@@ -286,6 +298,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                 break;
                 case 'M':   //Parse the Master Server's response.
                     {
+                        //Prevent Spoofing a MasterMix response.
+                        if ( !isMaster )
+                            break;
+
                         QString msg{ "Got Response from Master [ %1:%2 ]; "
                                      "it thinks we are [ %3:%4 ]. "
                                      "( Ping: %5 ms, Avg: %6 ms, "

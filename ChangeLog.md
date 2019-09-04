@@ -2,6 +2,21 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.0:
+    Bugfixes:
+      * Prevent Clients from forging a MasterMix response packet.
+      * Prevent setting the GameInfo string within a ServerInstance's name. e.g. "ReMix Server [world=Evergreen]" is no longer possible.
+
+
+
+
+Version 2.4.9:
+    Buildsystem:
+      * Convert the ReMix project from Qbs to CMake.
+
+
+
+
 Version 2.4.8:
     Change:
       * ReMix will now store and re-send packets with the OpCode( "F", Camp Initiated ).

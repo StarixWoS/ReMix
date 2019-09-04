@@ -108,27 +108,37 @@ void CreateInstance::updateServerList(const bool& firstRun)
 void CreateInstance::on_initializeServer_clicked()
 {
     QString svrName{ ui->servers->currentText() };
+    QString title{ "Error:" };
+    QString message{ "Servers cannot be initialized without a name!" };
     if ( !svrName.isEmpty() )
     {
-        ServerInfo* server = new ServerInfo();
-        if ( server == nullptr )    //Failed to create the ServerInfo instance.
-            return;
+        if ( Helper::strContainsStr( svrName, "world=" ) )
+        {
+            message = "Servers cannot be initialized with the "
+                      "World selection within the name. "
+                      "Please try again.";
+            Helper::warningMessage( this, title, message );
+        }
+        else
+        {
+            ServerInfo* server = new ServerInfo();
+            if ( server == nullptr ) //Failed to create the ServerInfo instance.
+                return;
 
-        server->setName( svrName );
-        server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
-        Helper::getSynRealData( server );
-        server->setPrivatePort( ui->portNumber->text( ).toUShort() );
-        server->setServerID( Settings::getServerID( svrName ) );
-        server->setUseUPNP( ui->useUPNP->isChecked() );
-        server->setIsPublic( ui->isPublic->isChecked() );
+            server->setName( svrName );
+            server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
+            Helper::getSynRealData( server );
+            server->setPrivatePort( ui->portNumber->text( ).toUShort() );
+            server->setServerID( Settings::getServerID( svrName ) );
+            server->setUseUPNP( ui->useUPNP->isChecked() );
+            server->setIsPublic( ui->isPublic->isChecked() );
 
-        emit this->createServerAcceptedSignal( server );
-        emit this->accept();
+            emit this->createServerAcceptedSignal( server );
+            emit this->accept();
+        }
     }
     else
     {
-        QString title{ "Error:" };
-        QString message{ "Servers cannot be initialized without a name!" };
         Helper::warningMessage( this, title, message );
     }
 }
