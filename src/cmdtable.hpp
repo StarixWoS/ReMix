@@ -12,7 +12,7 @@ class CmdTable
     static CmdTable* instance;
 
     public:
-        typedef struct CmdStructure
+        struct CmdStructure
         {
             QString cmd;
             QStringList subCmd;
@@ -21,12 +21,14 @@ class CmdTable
             QString cmdSyntax;
             GMRanks cmdRank;
             bool cmdIsActive;
-        }CmdStruct;
+        };
+        using CmdStruct = CmdStructure;
 
-        static const CmdStruct cmdTable[ GM_COMMAND_COUNT ];
+        //static const CmdStruct cmdTable[ GM_COMMAND_COUNT ];
+        static const QVector<CmdStruct> cmdTable;
 
-        explicit CmdTable(){ }
-        ~CmdTable(){ }
+        explicit CmdTable() = default;
+        ~CmdTable() = default;
 
         static CmdTable* getInstance();
         bool cmdIsActive(const GMCmds& index);

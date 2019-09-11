@@ -15,7 +15,7 @@ class UPNP : public QObject
     Q_OBJECT
 
     public:
-        static QString schemas[ UPNP_SCHEMA_COUNT ];
+        static QStringList schemas;
         static QHostAddress externalAddress;
         static QVector<qint32> ports;
         static bool tunneled;
@@ -36,7 +36,7 @@ class UPNP : public QObject
 
     public:
         explicit UPNP(QObject* parent = nullptr);
-        ~UPNP();
+        ~UPNP() override;
 
     public:
         void makeTunnel();

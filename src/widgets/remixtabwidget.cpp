@@ -62,7 +62,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
                                                        &accepted, 0 ) };
 
             //The User clicked OK. Do nothing if the User clicked Cancel.
-            if ( accepted == true )
+            if ( accepted )
             {
                 bool warnUser{ false };
                 //The Response was not empty, change the Server's Name.
@@ -452,12 +452,9 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
                         this->removeServer( i );
                         break;
                     }
-                    else
-                    {
-                        instance->sendServerMessage( "The admin changed his"
-                                                     " or her mind! (yay!)"
-                                                     "..." );
-                    }
+                    instance->sendServerMessage( "The admin changed his"
+                                                 " or her mind! (yay!)"
+                                                 "..." );
                 }
             }
         }
@@ -490,6 +487,7 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 
     qint32 serverID{ 0 };
     ReMixWidget* instance{ nullptr };
+
     for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
     {
         serverID = MAX_SERVER_COUNT + 1;
@@ -499,13 +497,11 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
             serverID = i;
             break;
         }
-        else
+
+        if ( Helper::cmpStrings( instance->getServerName(), serverName ) )
         {
-            if ( Helper::cmpStrings( instance->getServerName(), serverName ) )
-            {
-                Helper::warningMessage( this, title, prompt );
-                break;
-            }
+            Helper::warningMessage( this, title, prompt );
+            break;
         }
     }
 

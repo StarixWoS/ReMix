@@ -25,7 +25,7 @@ class SettingsWidget : public QWidget
 
     public:
         explicit SettingsWidget(QWidget* parent = nullptr);
-        ~SettingsWidget();
+        ~SettingsWidget() override;
 
         void setCheckedState(const Toggles& option, const bool& val);
 

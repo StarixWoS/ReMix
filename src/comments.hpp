@@ -19,7 +19,7 @@ class Comments : public QDialog
     public:
         explicit Comments(QWidget* parent = nullptr,
                           ServerInfo* serverInfo = nullptr);
-        ~Comments();
+        ~Comments() override;
 
         void setTitle(const QString& name);
 

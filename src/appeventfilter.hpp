@@ -12,12 +12,12 @@ class AppEventFilter : public QObject
 
     public:
         explicit AppEventFilter(QObject* parent = nullptr);
-        ~AppEventFilter(){}
+        ~AppEventFilter() override = default;
 
     signals:
 
     public slots:
-        bool eventFilter(QObject* obj, QEvent* event);
+        bool eventFilter(QObject* obj, QEvent* event) override;
 };
 
 #endif // APPEVENTFILTER_HPP

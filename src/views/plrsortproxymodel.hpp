@@ -17,10 +17,10 @@ class PlrSortProxyModel : public QSortFilterProxyModel
 
     public:
         PlrSortProxyModel();
-        ~PlrSortProxyModel();
+        ~PlrSortProxyModel() override;
 
     protected:
-        bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
+        bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 };
 
 #endif // PLRSORTMODEL_HPP

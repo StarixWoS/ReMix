@@ -34,7 +34,7 @@ class ReMix : public QMainWindow
 
     public:
         explicit ReMix(QWidget* parent = nullptr);
-        ~ReMix();
+        ~ReMix() override;
 
         static ReMix* getInstance();
         static void setInstance(ReMix* value);
@@ -45,10 +45,10 @@ class ReMix : public QMainWindow
     private slots:
         //Handle Minimize events.
         #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
-            void changeEvent(QEvent* event);
+            void changeEvent(QEvent* event) override;
         #endif
 
-        void closeEvent(QCloseEvent* event);
+        void closeEvent(QCloseEvent* event) override;
         bool rejectCloseEvent();
 
     private:

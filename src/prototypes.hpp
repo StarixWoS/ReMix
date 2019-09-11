@@ -269,7 +269,7 @@
         //Valid Command Structure Format.
         enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,
                                     CmdInfo, CmdSyntax, CmdRank,
-                                    CmdIsActive = 4 };
+                                    CmdIsActive = 6 };
 
         //Valid SerNum response codes.
         enum UserListResponse{ Q_Response = 0, R_Response = 1 };

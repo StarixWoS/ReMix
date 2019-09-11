@@ -11,15 +11,8 @@
 #include <QDateTime>
 #include <QVariant>
 
-UserSortProxyModel::UserSortProxyModel()
-{
-
-}
-
-UserSortProxyModel::~UserSortProxyModel()
-{
-
-}
+UserSortProxyModel::UserSortProxyModel()= default;
+UserSortProxyModel::~UserSortProxyModel() = default;
 
 bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {

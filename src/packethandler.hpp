@@ -21,7 +21,7 @@ class PacketHandler : public QObject
 
     public:
         PacketHandler(ServerInfo* svr, ChatView* chat);
-        ~PacketHandler();
+        ~PacketHandler() override;
 
         void startMasterCheckIn();
         void stopMasterCheckIn();
@@ -35,6 +35,9 @@ class PacketHandler : public QObject
                             QHash<QHostAddress, QByteArray>* bioHash);
 
         bool checkBannedInfo(Player* plr) const;
+        bool getIsBanned(const QString& serNum, const QString& wVar,
+                         const QString& dVar, const QString& ipAddr,
+                         const QString& plrSerNum) const;
 
     private:
         void detectFlooding(Player* plr);

@@ -86,7 +86,7 @@ class Player : public QObject
 
     public:
         explicit Player();
-        ~Player();
+        ~Player() override;
 
         void sendMessage(const QString& msg = "", const bool& toAll = false);
 

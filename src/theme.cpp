@@ -1,4 +1,5 @@
 
+//Class includes.
 #include "theme.hpp"
 
 //Required Qt Includes.
@@ -10,7 +11,7 @@
 #include <QFont>
 
 //Declare Class Static Objects.
-QString Theme::themeColors[ UI_THEME_COUNT ][ UI_THEME_COLORS ]
+QVector<QStringList> Theme::themeColors =
 {
     {   //Light.
         "darkgreen",      //Valid.

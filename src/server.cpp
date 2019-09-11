@@ -54,7 +54,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
                       this, &Server::readyReadUDPSlot );
 
-    ReMixWidget* widget = dynamic_cast<ReMixWidget*>( mother );
+    auto* widget = dynamic_cast<ReMixWidget*>( mother );
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
     [=]()
     {

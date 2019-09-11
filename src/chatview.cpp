@@ -18,12 +18,12 @@
 #include <QScrollBar>
 #include <QtCore>
 
-QString ChatView::bleepList[ 439 ]
+QStringList ChatView::bleepList
 {
     "4r5e", "5h1t", "5hit", "a55", "anal", "anus", "ar5e", "arrse", "arse",
     "ass", "ass-fucker", "asses", "assfucker", "assfukka", "asshole",
     "assholes", "asswhole", "a_s_s", "b!tch", "b00bs", "b17ch", "b1tch",
-    "ballbag" "ballsack", "bastard", "beastial", "beastiality", "bestial",
+    "ballbag", "ballsack", "bastard", "beastial", "beastiality", "bestial",
     "bestiality", "bi+ch", "biatch", "bitch", "bitcher", "bitchers", "bitches",
     "bitchin", "bitching", "blow job", "blowjob", "blowjobs", "boiolas",
     "bollock", "bollok", "boner", "boob", "boobs", "booobs", "boooobs",
@@ -358,10 +358,9 @@ void ChatView::parseChatEffect(const QString& packet)
 
 void ChatView::bleepChat(QString& message)
 {
-    for ( int i = 0; i <= 439; ++i )
+    for ( const auto& el : bleepList )
     {
-        message = message.replace( bleepList[ i ], "bleep",
-                                   Qt::CaseInsensitive );
+        message = message.replace( el, "bleep", Qt::CaseInsensitive );
     }
 }
 

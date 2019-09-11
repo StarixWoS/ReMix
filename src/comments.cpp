@@ -56,7 +56,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
     if ( obj == nullptr )
         return;
 
-    uint date = QDateTime::currentDateTime()
+    uint date = QDateTime::currentDateTimeUtc()
                      .toTime_t();
     QString comment = QString( "\r\n --- \r\n"
                                "%1 \r\n"

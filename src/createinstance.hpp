@@ -15,12 +15,12 @@ class CreateInstance : public QDialog
 {
         Q_OBJECT
 
-        static const QString gameNames[ GAME_NAME_COUNT ];
+        static const QStringList gameNames;
         QCollator collator;
 
     public:
         explicit CreateInstance(QWidget* parent = nullptr);
-        ~CreateInstance();
+        ~CreateInstance() override;
 
         void updateServerList(const bool& firstRun);
         bool testPort(const quint16& port);
@@ -34,9 +34,9 @@ class CreateInstance : public QDialog
         void on_servers_currentTextChanged(const QString& arg1);
         void on_portNumber_textChanged(const QString& arg1);
         void on_servers_currentIndexChanged(int);
-        void closeEvent(QCloseEvent* event);
+        void closeEvent(QCloseEvent* event) override;
         void on_initializeServer_clicked();
-        void showEvent(QShowEvent* event);
+        void showEvent(QShowEvent* event) override;
         void on_close_clicked();
 
         void on_randomizePort_clicked();

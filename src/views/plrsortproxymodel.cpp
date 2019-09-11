@@ -9,15 +9,8 @@
 #include <QModelIndex>
 #include <QVariant>
 
-PlrSortProxyModel::PlrSortProxyModel()
-{
-
-}
-
-PlrSortProxyModel::~PlrSortProxyModel()
-{
-
-}
+PlrSortProxyModel::PlrSortProxyModel() = default;
+PlrSortProxyModel::~PlrSortProxyModel() = default;
 
 bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {

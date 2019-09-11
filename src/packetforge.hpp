@@ -13,10 +13,11 @@ class PacketForge
     QLibrary pktDecrypt;
 
     //Typedefs for imported functions from our PacketDecrypt Library.
-    typedef QString (*Decrypt)(QByteArray);
+    //typedef QString (*Decrypt)(QByteArray);
+    using Decrypt = QString(*)(QByteArray);
 
     //Function Pointers for imported functions from the PacketDecrypt Library.
-    Decrypt decryptPkt;
+    Decrypt decryptPkt{};
 
     public:
         PacketForge();
@@ -26,6 +27,7 @@ class PacketForge
 
         //Wrappers for our imported functions.
         QString decryptPacket(const QByteArray& packet);
+
         bool validateSerNum(Player* plr, const QByteArray& packet);
 };
 

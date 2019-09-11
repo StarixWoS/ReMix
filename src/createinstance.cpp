@@ -18,7 +18,7 @@
 #include <QSettings>
 
 //Initialize our accepted Command List.
-const QString CreateInstance::gameNames[ GAME_NAME_COUNT ] =
+const QStringList CreateInstance::gameNames =
 {
     "WOS",
     "TOY",
@@ -60,12 +60,10 @@ void CreateInstance::updateServerList(const bool& firstRun)
     for ( int i = 0; i < servers.count(); ++i )
     {
         name = servers.at( i );
-        for ( int i = 0; i < SETTINGS_KEY_COUNT; ++i )
+        for ( const auto& key : Settings::keys )
         {
-            if ( Helper::cmpStrings( name, Settings::keys[ i ] ) )
-            {
+            if ( Helper::cmpStrings( name, key ) )
                 skip = true;
-            }
         }
 
         if ( !skip )
@@ -121,7 +119,7 @@ void CreateInstance::on_initializeServer_clicked()
         }
         else
         {
-            ServerInfo* server = new ServerInfo();
+            auto* server = new ServerInfo();
             if ( server == nullptr ) //Failed to create the ServerInfo instance.
                 return;
 
@@ -179,7 +177,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
 {
     if ( !name.isEmpty() )
     {
-        ServerInfo* server = new ServerInfo();
+        auto* server = new ServerInfo();
 
         //Failed to create the ServerInfo instance.
         if ( server == nullptr )
@@ -266,11 +264,11 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         if ( !gameName.isEmpty() )
         {
             bool notFound{ true };
-            for ( int i = 0; i < GAME_NAME_COUNT; ++i )
+            for ( const auto& el : gameNames )
             {
-                if ( Helper::cmpStrings( gameNames[ i ], gameName ) )
+                if ( Helper::cmpStrings( el, gameName ) )
                 {
-                    ui->gameName->setCurrentIndex( i );
+                    ui->gameName->setCurrentIndex( gameNames.indexOf( el ) );
                     notFound = false;
                 }
             }

@@ -24,7 +24,7 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     server = svr;
 }
 
-CmdHandler::~CmdHandler(){}
+CmdHandler::~CmdHandler() = default;
 
 bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
                                      const QString& cmdStr)
@@ -105,8 +105,12 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
 
 void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
 {
-    if ( packet.isEmpty()
-      || plr == nullptr )
+    if ( plr == nullptr )
+        return;
+
+    //Do not accept comments from Users without a SerNum.
+    if ( plr->getSernum_s().isEmpty()
+      || packet.isEmpty() )
     {
         return;
     }
@@ -256,8 +260,6 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     }
 
     bool canUseCommands{ false };
-    bool sendCommandInfo{ false };
-    bool getCommandSyntax{ false };
     GMCmds index{ argIndex };
 
     switch ( argIndex )
@@ -265,18 +267,16 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::Help:
             {
                 if ( !subCmd.isEmpty() )
-                {
                     index = cmdTable->getCmdIndex( subCmd );
-                    if ( index != GMCmds::Invalid )
-                    {
-                        if ( !arg1.isEmpty() )
-                        {
-                            getCommandSyntax = cmdTable->isSubCommand( argIndex,
-                                                                       arg1 );
-                        }
-                    }
+
+                //Send command description and usage.
+                if ( index != GMCmds::Invalid )
+                {
+                    plr->sendMessage( cmdTable->getCommandInfo( index, false ),
+                                      false );
+                    plr->sendMessage( cmdTable->getCommandInfo( index, true ),
+                                      false );
                 }
-                sendCommandInfo = true;
             }
         break;
         case GMCmds::List:
@@ -292,10 +292,34 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                     this->motdHandler( plr, subCmd, arg1, message );
             }
         break;
-//        case GMCmds::Info:
-//            {
-//            }
-//        break;
+        case GMCmds::Info:
+            {
+                //Server UpTime, Connected Users, Connected Admins.
+                qint32 adminCount{ 0 };
+                QString tmpMsg{ "Server Info: Up Time[ %1 ], Connected Users[ %2 ],"
+                                " Connected Admins[ %3 ]." };
+
+                Player* tmpPlr{ nullptr };
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr )
+                    {
+                        if ( tmpPlr->getIsAdmin()
+                          && tmpPlr->getIsVisible() )
+                        {
+                            ++adminCount;
+                        }
+                    }
+                }
+
+                tmpMsg = tmpMsg.arg( Helper::getTimeFormat(
+                                                server->getUpTime() ) )
+                               .arg( server->getPlayerCount() )
+                               .arg( adminCount );
+                plr->sendMessage( tmpMsg, false );
+            }
+        break;
 //        case GMCmds::NetStatus:
 //            {
 //            }
@@ -459,13 +483,6 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
     }
 
-    if ( sendCommandInfo )
-    {
-        //Command lacked proper arguments. Send the command description.
-        plr->sendMessage( cmdTable->getCommandInfo( index, getCommandSyntax ),
-                          false );
-    }
-
     QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
                  "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message "
                  "[ %6 ]." };
@@ -627,15 +644,11 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            if ( this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all ) )
-                ban = true;
-            else
-                ban = false;
-
+            ban = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
             if ( ban )
             {
                 QString dateString{ "" };
-                quint64 date{ QDateTime::currentDateTime().toTime_t() };
+                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
                 qint32 banDuration{ static_cast<qint32>(
                                          PunishDurations::THIRTY_DAYS ) };
 
@@ -651,7 +664,7 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
                     }
                 }
 
-                date += banDuration;
+                date += static_cast<quint64>( banDuration );
                 dateString = Helper::getTimeAsString( date );
 
                 if ( msg.isEmpty() )
@@ -792,12 +805,12 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
     QString invalid{ "Incorrect" };
     QString valid{ "Correct" };
 
-    QString pwdTypes[ 2 ]{ "Server", "Admin" };
+    QStringList pwdTypes{ "Server", "Admin" };
 
     bool disconnect{ false };
     PwdTypes pwdType{ PwdTypes::Invalid };
 
-    QString pwd{ subCmd };
+    const QString& pwd{ subCmd };
     if ( plr->getSvrPwdRequested()
       && !plr->getSvrPwdReceived() )
     {
@@ -814,7 +827,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
             response = response.arg( invalid ).append( " Goodbye." );
             disconnect = true;
         }
-        response = response.arg( pwdTypes[ static_cast<int>( pwdType ) ] );
+        response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
     }
     else if ( !plr->getAdminPwdReceived()
            || plr->getAdminPwdRequested() )
@@ -859,7 +872,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
             response = response.arg( invalid ).append( " Goodbye." );
             disconnect = true;
         }
-        response = response.arg( pwdTypes[ static_cast<int>( pwdType ) ] );
+        response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
     }
 
     if ( !response.isEmpty() )
@@ -871,7 +884,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
         {
             QString reason{ "Auto-Disconnect; Invalid %1 password: "
                             "[ %2 ], [ %3 ]" };
-            reason = reason.arg( pwdTypes[ static_cast<int>( pwdType ) ],
+            reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ),
                                  plr->getSernum_s(),
                                  plr->getBioData() );
 
@@ -1046,13 +1059,13 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
         if ( cmdTable->isSubCommand( GMCmds::Vanish, subCmd ) )
         {
             if ( Helper::cmpStrings( subCmd, "hide" )
-              && isVisible == true )
+              && isVisible )
             {
                 state = "invisible";
                 plr->setIsVisible( false );
             }
             else if ( Helper::cmpStrings( subCmd, "show" )
-                   && isVisible == false )
+                   && !isVisible )
             {
                 state = "visible";
                 plr->setIsVisible( true );
@@ -1209,27 +1222,27 @@ void CmdHandler::parseTimeArgs( const QString& str, QString& timeArg,
 
 qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
 {
-    quint32 duration{ 0 };
-    quint32 time{ 0 };
+    qint32 duration{ 0 };
+    qint32 time{ 0 };
     QString pStr;
             pStr.reserve( 10 );
 
     QString::const_iterator itr = str.constBegin();
 
-    while ( itr != 0 )
+    while ( itr != nullptr )
     {
         // always starts with a number.
         if( !itr->isDigit() )
             break;
 
         pStr.clear();
-        while( itr->isDigit() && *itr != 0)
+        while( itr->isDigit() && *itr != nullptr )
         {
             pStr += *itr;
             ++itr;
         }
         // try to find a letter
-        if( *itr != 0 )
+        if( *itr != nullptr )
         {
             // check the type
             switch( itr->toLower().toLatin1() )

@@ -31,7 +31,7 @@ class RulesWidget : public QWidget
 
     public:
         explicit RulesWidget();
-        ~RulesWidget();
+        ~RulesWidget() override;
 
         static RulesWidget* getWidget(ServerInfo* server);
         static void deleteWidget(ServerInfo* server);

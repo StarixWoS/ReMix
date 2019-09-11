@@ -14,25 +14,25 @@ class UserDelegate : public QItemDelegate
 
     public:
         UserDelegate(QObject* parent = nullptr);
-        ~UserDelegate();
+        ~UserDelegate() override;
 
         void paint(QPainter* painter,
                    const QStyleOptionViewItem& option,
-                   const QModelIndex& index) const;
+                   const QModelIndex& index) const override;
 
-        void setEditorData(QWidget* editor, const QModelIndex& index) const;
+        void setEditorData(QWidget* editor, const QModelIndex& index) const override;
 
         QWidget* createEditor(QWidget* parent,
                               const QStyleOptionViewItem&,
-                              const QModelIndex& index) const;
+                              const QModelIndex& index) const override;
     public slots:
         void setModelData(QWidget* editor,
                           QAbstractItemModel* model,
-                          const QModelIndex& index) const;
+                          const QModelIndex& index) const override;
 
         void updateEditorGeometry(QWidget* editor,
                                   const QStyleOptionViewItem& option,
-                                  const QModelIndex&) const;
+                                  const QModelIndex&) const override;
 
 };
 

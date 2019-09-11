@@ -1,6 +1,6 @@
 
 //Class includes.
-#include "views/Loggersortproxymodel.hpp"
+#include "views/loggersortproxymodel.hpp"
 
 //ReMix includes.
 #include "helper.hpp"
@@ -11,15 +11,8 @@
 #include <QDateTime>
 #include <QVariant>
 
-LoggerSortProxyModel::LoggerSortProxyModel()
-{
-
-}
-
-LoggerSortProxyModel::~LoggerSortProxyModel()
-{
-
-}
+LoggerSortProxyModel::LoggerSortProxyModel()= default;
+LoggerSortProxyModel::~LoggerSortProxyModel() = default;
 
 bool LoggerSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {

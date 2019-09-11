@@ -648,8 +648,8 @@ quint64 Player::getAvgBaud(const bool& out) const
 {
     if ( out )
         return avgBaudOut;
-    else
-        return avgBaudIn;
+
+    return avgBaudIn;
 }
 
 void Player::setAvgBaud(const quint64& bytes, const bool& out)
@@ -764,7 +764,6 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
             switch ( dcType )
             {
                 case DCTypes::IPDC:
-                default:
                     {
                         server->setIpDc( server->getIpDc() + 1 );
                     }
@@ -872,9 +871,8 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             }
         }
 
-        if ( disconnect == true
-          || ( isBlueCoded == true
-            && Settings::getDCBlueCodedSerNums() ) )
+        if ( disconnect
+          || ( isBlueCoded && Settings::getDCBlueCodedSerNums() ) )
         {
             message = "";
             reason = "";

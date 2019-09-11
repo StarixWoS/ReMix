@@ -11,36 +11,8 @@
 #include <QDebug>
 
 PacketForge* PacketForge::instance{ nullptr };
-PacketForge::PacketForge()
-{
-    QString message{ "Initializing PacketForge module." };
-    Logger::getInstance()->insertLog( "PacketForge", message,
-                                      LogTypes::PktForge, true, true );
-
-    pktDecrypt.setFileName( "PacketForge.dll" );
-    if ( pktDecrypt.load() )
-    {
-        decryptPkt = reinterpret_cast<Decrypt>(
-                            pktDecrypt.resolve( "decryptPacket" ) );
-
-        initialized = true;
-        message =  "Initialized PacketForge module with method "
-                   "[ decryptPacket ].";
-        Logger::getInstance()->insertLog( "PacketForge", message,
-                                          LogTypes::PktForge, true, true );
-    }
-    else
-    {
-        message = "Unable to initialize PacketForge; Error[ %1 ].";
-        message = message.arg( pktDecrypt.errorString() );
-        Logger::getInstance()->insertLog( "PacketForge", message,
-                                          LogTypes::PktForge, true, true );
-    }
-}
-
-PacketForge::~PacketForge()
-{
-}
+PacketForge::PacketForge() = default;
+PacketForge::~PacketForge() = default;
 
 PacketForge* PacketForge::getInstance()
 {
@@ -52,13 +24,25 @@ PacketForge* PacketForge::getInstance()
 
 QString PacketForge::decryptPacket(const QByteArray& packet)
 {
+    QByteArray pkt{ packet };
+
     //Player positioning packets, return an empty string.
     if ( !Helper::strStartsWithStr( packet, ":SR?" )
       && !Helper::strStartsWithStr( packet, ":SR!" ) )
     {
-        if ( initialized )
+        if ( pkt.startsWith( ":SR" ) )
         {
-            return decryptPkt( packet );
+            pkt = pkt.left( pkt.length() - 2 ).mid( 6 );
+
+            int chrKey{ 0x82381AC + 0x11 * pkt.length( ) };
+            for ( auto&& chr : pkt )
+            {
+                chr = chr ^ ( chrKey & 0x1F );
+                chrKey = 0xD * chrKey ^ 0x43B;
+            }
+
+            pkt = pkt.left( pkt.length() - 4 );
+            return QString( pkt );
         }
     }
     return QString( "" );

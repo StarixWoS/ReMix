@@ -553,5 +553,5 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
     }
 
     if ( removeKey )
-        rules.remove( Rules::subKeys[ key ] );
+        rules.remove( Rules::subKeys.at( key ) );
 }

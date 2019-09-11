@@ -24,10 +24,8 @@ ServerInfo::ServerInfo()
 {
     masterSocket = new QUdpSocket();
 
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        players[ i ] = nullptr;
-    }
+    players.resize( static_cast<int>( MAX_PLAYERS ) );
+    players.fill( nullptr );
 
     baudTime.start();
     upTimer.start( UI_UPDATE_TIME );
@@ -69,6 +67,7 @@ ServerInfo::ServerInfo()
     QObject::connect( &usageUpdate, &QTimer::timeout, &usageUpdate,
     [=]()
     {
+
         usageArray[ usageCounter ] = this->getPlayerCount();
 
         usageDays = 0;
@@ -215,7 +214,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                              sGameInfo,
                              Rules::getRuleSet( serverName ),
                              this->getServerID(),
-                             Helper::intToStr( QDateTime::currentDateTime()
+                             Helper::intToStr( QDateTime::currentDateTimeUtc()
                                                     .toTime_t(), 16, 8 ),
                              this->getUsageString(),
                              QString( REMIX_VERSION ) );
@@ -356,7 +355,10 @@ Player* ServerInfo::createPlayer(const int& slot)
 
 Player* ServerInfo::getPlayer(const int& slot)
 {
-    return players[ slot ];
+    if ( slot >= 0 )
+        return players.at( slot );
+
+    return nullptr;
 }
 
 void ServerInfo::deletePlayer(const int& slot)
@@ -400,10 +402,10 @@ void ServerInfo::deletePlayer(const int& slot)
 int ServerInfo::getEmptySlot()
 {
     int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( auto* plr : players )
     {
-        slot = i;
-        if ( players[ i ] == nullptr )
+        ++slot;
+        if ( plr == nullptr )
             break;
     }
     return slot;
@@ -412,12 +414,12 @@ int ServerInfo::getEmptySlot()
 int ServerInfo::getSocketSlot(QTcpSocket* soc)
 {
     int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( auto* plr : players )
     {
-        if ( players[ i ] != nullptr
-          && players[ i ]->getSocket() == soc )
+        if ( plr != nullptr
+            && plr->getSocket() == soc )
         {
-            slot = i;
+            slot = plr->getSlotPos();
             break;
         }
     }
@@ -427,12 +429,12 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
 int ServerInfo::getQItemSlot(QStandardItem* index)
 {
     int slot{ -1 };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( auto* plr : players )
     {
-        if ( players[ i ] != nullptr
-          && players[ i ]->getTableRow() == index )
+        if ( plr != nullptr
+          && plr->getTableRow() == index )
         {
-            slot = i;
+            slot = plr->getSlotPos();
             break;
         }
     }
@@ -881,7 +883,7 @@ void ServerInfo::setBytesOut(const quint64& value)
 
 void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
 {
-    quint64 time = static_cast<quint64>( baudTime.elapsed() );
+    auto time = static_cast<quint64>( baudTime.elapsed() );
     if ( bytes > 0 && time > 0 )
         baud = 10000 * bytes / time;
 }

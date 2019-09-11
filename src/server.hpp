@@ -27,7 +27,7 @@ class Server : public QTcpServer
     public:
         Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
                QStandardItemModel* plrView = nullptr);
-        ~Server();
+        ~Server() override;
 
         void setupServerInfo();
         void updatePlayerTable(Player* plr, const QHostAddress& peerAddr,

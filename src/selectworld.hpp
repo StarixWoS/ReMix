@@ -21,7 +21,7 @@ class SelectWorld : public QDialog
 
     public:
         explicit SelectWorld(QWidget* parent = nullptr);
-        ~SelectWorld();
+        ~SelectWorld() override;
 
         QString& getSelectedWorld();
         void setRequireWorld(const bool& value);

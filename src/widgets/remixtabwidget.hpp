@@ -28,7 +28,7 @@ class ReMixTabWidget : public QTabWidget
 
     public:
         explicit ReMixTabWidget(QWidget* parent = nullptr);
-        ~ReMixTabWidget();
+        ~ReMixTabWidget() override;
 
         void sendMultiServerMessage(const QString& msg);
         quint32 getPlayerCount() const;

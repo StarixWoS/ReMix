@@ -23,7 +23,7 @@
 #include <QObject>
 #include <QtCore>
 
-const QString User::keys[ USER_KEY_COUNT ] =
+const QStringList User::keys =
 {
     "seen",
     "bio",
@@ -40,7 +40,7 @@ const QString User::keys[ USER_KEY_COUNT ] =
     "calls"
 };
 
-const PunishDurations User::punishDurations[ PUNISH_DURATION_COUNT ] =
+const QVector<PunishDurations> User::punishDurations =
 {
     PunishDurations::Invalid,
     PunishDurations::One_Day,
@@ -291,10 +291,9 @@ void User::removeBan(const QString& value, const qint32& type)
                                      type );
     User* user = User::getInstance();
     if ( list.count() >= 2 )
-    {
         return; //Too many listed Bans, do nothing. --Inform the User later?
-    }
-    else if ( list.count() )
+
+    if ( list.count() )
     {
         QModelIndex index = list.value( 0 )->index();
         if ( index.isValid() )
@@ -363,8 +362,8 @@ bool User::addBan(const Player* admin, const Player* target,
         }
     }
 
-    quint64 date{ QDateTime::currentDateTime().toTime_t() };
-    quint64 banDuration{ date + static_cast<int>( duration ) };
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 banDuration{ date + static_cast<quint64>( duration ) };
     QString serNum{ target->getSernumHex_s() };
 
     setData( serNum, keys[ UserKeys::kBANNED ], date );
@@ -458,26 +457,18 @@ bool User::getIsBanned(const QString& value, const BanTypes& type,
                     isValue = true;
             }
             break;
-            default:
-            {
-                isValue = false;
-                banned = false;
-            }
-            break;
         }
 
         skip = false;
         if ( isValue )
             break;
-        else
-            continue;
     }
 
     quint32 banDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
     if ( banDate > 0 )
     {
         banned = true;
-        quint64 date{ QDateTime::currentDateTime().toTime_t() };
+        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
         quint64 banDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] )
                                 .toUInt() };
 
@@ -529,7 +520,7 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
                       .toUInt() + 1 };
     setData( sernum, keys[ UserKeys::kPINGS ], pings );
 
-    quint64 date{ QDateTime::currentDateTime().toTime_t() };
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
     setData( sernum, keys[ UserKeys::kSEEN ], date );
 
     QModelIndex index = user->findModelIndex( sernum,
@@ -587,7 +578,7 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
         if ( index.isValid() )
             return index;
     }
-    return QModelIndex();
+    return QModelIndex{};
 }
 
 void User::loadUserInfo()
@@ -687,7 +678,7 @@ void User::loadUserInfo()
 
             if ( banned )
             {
-                quint64 date{ QDateTime::currentDateTime().toTime_t() };
+                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
                 if ( ( banDuration_i <= banDate_i )
                   || ( banDuration_i == 0 )
                   || ( banDuration_i <= date ) )
@@ -825,7 +816,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                 bool banned = tblModel->data( index ).toBool();
                 if ( banned )
                 {
-                    value = QDateTime::currentDateTime().toTime_t();
+                    value = QDateTime::currentDateTimeUtc().toTime_t();
                     setData( sernum, keys[ UserKeys::kBANNED ], value );
                     this->updateRowData( index.row(),
                                          static_cast<int>(
@@ -842,7 +833,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                                  % requestBanishReason( this );
 
                         value = value.toUInt() +
-                                static_cast<int>(
+                                static_cast<uint>(
                                     requestPunishDuration( this ) );
 
                         setData( sernum, keys[ UserKeys::kBANDURATION ], value );

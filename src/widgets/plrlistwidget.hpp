@@ -28,7 +28,7 @@ class PlrListWidget : public QWidget
     public:
         explicit PlrListWidget(QWidget* parent = nullptr,
                                ServerInfo* svr = nullptr);
-        ~PlrListWidget();
+        ~PlrListWidget() override;
 
         QStandardItemModel* getPlrModel() const;
         void resizeColumns();

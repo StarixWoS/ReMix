@@ -79,7 +79,8 @@ class ServerInfo : public QObject
     QString gameInfo{ "" };
     QString info{ "" };
 
-    Player* players[ MAX_PLAYERS ];
+    QVector<Player*> players;
+    //Player* players[ MAX_PLAYERS ];
 
     quint32 userCalls{ 0 };
     quint32 userPings{ 0 };
@@ -97,7 +98,7 @@ class ServerInfo : public QObject
 
     public:
         ServerInfo();
-        ~ServerInfo();
+        ~ServerInfo() override;
 
         void setupInfo();
         void setupUPNP(const bool& enable = false);

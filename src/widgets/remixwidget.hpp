@@ -32,7 +32,7 @@ class ReMixWidget : public QWidget
     public:
         explicit ReMixWidget(QWidget* parent = nullptr,
                              ServerInfo* svrInfo = nullptr);
-        ~ReMixWidget();
+        ~ReMixWidget() override;
 
         ServerInfo* getServerInfo() const;
         void renameServer(const QString& newName);

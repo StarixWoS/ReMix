@@ -22,7 +22,8 @@ LoggerSortProxyModel* Logger::tblProxy{ nullptr };
 QStandardItemModel* Logger::tblModel{ nullptr };
 Logger* Logger::logInstance;
 
-const QString Logger::logType[ LOG_TYPE_COUNT ] =
+const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
+const QStringList Logger::logType =
 {
     "AdminUsage",
     "Comments",
@@ -173,7 +174,7 @@ void Logger::insertLog(const QString& source, const QString& message,
 
         this->updateRowData( row,
                              static_cast<int>( LogCols::Type ),
-                             logType[ static_cast<int>( type ) ] );
+                             logType.at( static_cast<int>( type ) ) );
         ui->logView->resizeColumnToContents(
                     static_cast<int>( LogCols::Type ) );
 
@@ -224,9 +225,9 @@ void Logger::logToFile(const LogTypes& type, const QString& text,
         QString logTxt = text;
 
         QFile log( "logs/"
-                 % logType[ static_cast<int>( type ) ]
+                 % logType.at( static_cast<int>( type ) )
                  % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
-                 % logType[ static_cast<int>( type ) ]
+                 % logType.at( static_cast<int>( type ) )
                  % ".txt" );
 
         QFileInfo logInfo( log );
@@ -249,8 +250,6 @@ void Logger::logToFile(const LogTypes& type, const QString& text,
 
 void Logger::on_websiteLabel_linkActivated(const QString&)
 {
-    QString website{ "https://bitbucket.org/ahitb/remix" };
-
     QString title{ "Open Link?" };
     QString prompt{ "Do you wish to open the website [ %1 ] "
                     "in a browser window?" };

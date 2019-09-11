@@ -15,10 +15,10 @@ class LoggerSortProxyModel : public QSortFilterProxyModel
 
     public:
         LoggerSortProxyModel();
-        ~LoggerSortProxyModel();
+        ~LoggerSortProxyModel() override;
 
     protected:
-        bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
+        bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 };
 
 #endif // LOGGERSORTMODEL_HPP

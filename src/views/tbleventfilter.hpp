@@ -18,12 +18,12 @@ class TblEventFilter : public QObject
     public:
         explicit TblEventFilter(QTableView* tbl = nullptr,
                                 QSortFilterProxyModel* tblProxy = nullptr);
-        ~TblEventFilter();
+        ~TblEventFilter() override;
 
     signals:
 
     public slots:
-        bool eventFilter(QObject* obj, QEvent* event);
+        bool eventFilter(QObject* obj, QEvent* event) override;
 };
 
 #endif // TBLEVENTFILTER_HPP

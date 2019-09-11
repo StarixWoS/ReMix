@@ -21,13 +21,14 @@ class Settings : public QDialog
 
     public:
         explicit Settings(QWidget* parent = nullptr);
-        ~Settings();
+        ~Settings() override;
 
         static Settings* getInstance();
         static void setInstance(Settings* value);
 
         static void updateTabBar(ServerInfo* server);
-        static void copyServerSettings(ServerInfo* server, QString newName);
+        static void copyServerSettings(ServerInfo* server,
+                                       const QString& newName);
 
         enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
                       AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,
@@ -42,8 +43,8 @@ class Settings : public QDialog
 
         static QSettings* prefs;
 
-        static const QString keys[ SETTINGS_KEY_COUNT ];
-        static const QString subKeys[ SETTINGS_SUBKEY_COUNT ];
+        static const QStringList keys;
+        static const QStringList subKeys;
 
     public: //Static-Free functions. Ported from Helper and Admin.
         static void setSetting(const QString& key,

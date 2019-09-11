@@ -200,7 +200,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         break;
         //case Toggles::REQADMINPWD: //
         //    Settings::setReqAdminAuth( state );
-        break;
+        //break;
         case Toggles::ALLOWDUPEDIP: //1
             Settings::setAllowDupedIP( state );
         break;
@@ -295,9 +295,6 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                     Settings::setWorldDir( directory );
                 }
             }
-        break;
-        default:
-            qDebug() << "Unknown Option, doing nothing!";
         break;
     }
 }

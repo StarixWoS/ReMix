@@ -18,7 +18,7 @@ class CmdHandler : public QObject
     public:
         explicit CmdHandler(QObject* parent = nullptr,
                             ServerInfo* svr = nullptr);
-        ~CmdHandler();
+        ~CmdHandler() override;
 
         bool canUseAdminCommands(Player* plr, const GMRanks rank,
                                  const QString& cmdStr);

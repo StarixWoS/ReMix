@@ -15,7 +15,7 @@
 #include <QObject>
 #include <QtCore>
 
-QString UPNP::schemas[ UPNP_SCHEMA_COUNT ]
+QStringList UPNP::schemas =
 {
     "urn:schemas-upnp-org:device:InternetGatewayDevice:2",
     "urn:schemas-upnp-org:service:WANIPConnection:2",
@@ -225,7 +225,7 @@ void UPNP::getUdp()
                         {
                             rtrSchema = reader.readElementText();
                             bool validSchema{ false };
-                            for ( auto schema : schemas )
+                            for ( const auto& schema : schemas )
                             {
                                 logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
                                 logMsg = logMsg.arg( rtrSchema )
@@ -522,7 +522,7 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
 
     //Support for routers that only support lifetime leases.
     qint32 timeout{ UPNP_TIME_OUT_S };
-    if ( lifetime == true )
+    if ( lifetime )
         timeout = UPNP_TIME_OUT_PERMA;
 
     message = message.arg( rtrSchema )
@@ -535,7 +535,7 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
 
     this->postSOAP( "AddPortMapping", message, protocol, port );
 
-    if ( lifetime != true )
+    if ( !lifetime )
     {
         QString logMsg{ "Adding Port[ %1:%2 ]." };
         logMsg = logMsg.arg( protocol )

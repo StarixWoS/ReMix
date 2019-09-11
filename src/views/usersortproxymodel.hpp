@@ -15,10 +15,10 @@ class UserSortProxyModel : public QSortFilterProxyModel
 
     public:
         UserSortProxyModel();
-        ~UserSortProxyModel();
+        ~UserSortProxyModel() override;
 
     protected:
-        bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
+        bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 };
 
 #endif // USERSORTMODEL_HPP

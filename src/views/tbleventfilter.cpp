@@ -30,7 +30,7 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
         return false;
     }
 
-    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>( event );
+    auto* mouseEvent = dynamic_cast<QMouseEvent*>( event );
     if ( mouseEvent != nullptr )
     {
         if (( mouseEvent->type() == QEvent::MouseButtonPress

@@ -3,9 +3,18 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 Version 2.5.0:
+    Change:
+      * Implement the "/info" command.
+        * Sends basic information about the server's up time, users connected, and admins connected.
+      * Implement packet deobfuscation code from the PacketForge module within ReMix itself.
+
+
     Bugfixes:
       * Prevent Clients from forging a MasterMix response packet.
       * Prevent setting the GameInfo string within a ServerInstance's name. e.g. "ReMix Server [world=Evergreen]" is no longer possible.
+      * Prevent comments from Users that have not yet sent their SerNum.
+      * Mark certain functions and constructors as overrides or defaults.
+      * Properly cast certain UI events to their correct type.
 
 
 

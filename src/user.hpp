@@ -19,15 +19,15 @@ class User : public QDialog
     static QSettings* userData;
     static User* instance;
 
-    static const QString keys[ USER_KEY_COUNT ];
-    static const PunishDurations punishDurations[ PUNISH_DURATION_COUNT ];
+    static const QStringList keys;
+    static const QVector<PunishDurations> punishDurations;
 
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
                        kREASON, kBANNED, kBANDURATION, kPINGS, kCALLS = 12 };
 
         explicit User(QWidget* parent = nullptr);
-        ~User();
+        ~User() override;
 
         static User* getInstance();
         static void setInstance(User* value);

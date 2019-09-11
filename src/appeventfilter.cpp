@@ -17,7 +17,7 @@ bool AppEventFilter::eventFilter(QObject* obj, QEvent* event)
     {
         if ( obj->isWidgetType() )
         {
-            auto w = static_cast<QWidget*>( obj );
+            auto* w = dynamic_cast<QWidget*>( obj );
             QIcon icon = w->windowIcon();
 
             w->setWindowFlags( w->windowFlags()

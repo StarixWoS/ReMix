@@ -10,7 +10,7 @@
 #include <QSettings>
 #include <QtCore>
 
-const QString Rules::subKeys[ RULES_SUBKEY_COUNT ] =
+const QStringList Rules::subKeys =
 {
     "world",
     "url",

@@ -16,7 +16,8 @@ class Logger : public QDialog
 {
     Q_OBJECT
 
-    static const QString logType[ LOG_TYPE_COUNT ];
+    static const QStringList logType;
+    static const QString website;
     static LoggerSortProxyModel* tblProxy;
     static QStandardItemModel* tblModel;
     static Logger* logInstance;
@@ -26,7 +27,7 @@ class Logger : public QDialog
 
     public:
         explicit Logger(QWidget *parent = nullptr);
-        ~Logger();
+        ~Logger() override;
 
         static Logger* getInstance();
         static void setInstance(Logger* logger = nullptr);

@@ -10,7 +10,6 @@
 
 class Helper
 {
-    static const QString logType[ LOG_TYPE_COUNT ];
     static const QList<qint32> blueCodedList;
 
     public:
@@ -34,14 +33,14 @@ class Helper
         static QString intSToStr(QString& val, int base = 16, int fill = 0,
                                  QChar filler = '0');
 
-        static QString getStrStr(const QString& str, QString indStr,
-                                 QString mid, QString left);
+        static QString getStrStr(const QString& str, const QString& indStr,
+                                 const QString& mid, const QString& left);
 
         static void stripNewlines(QString& string);
         static void stripSerNumHeader(QString& sernum);
         static QString sanitizeSerNum(const QString& value);
         static QString serNumToHexStr(QString sernum, int fillAmt = 8);
-        static QString serNumToIntStr(QString sernum);
+        static QString serNumToIntStr(const QString& sernum);
         static qint32 serNumtoInt(QString& sernum);
 
         static bool isBlueCodedSerNum(const quint32& sernum);

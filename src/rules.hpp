@@ -14,7 +14,7 @@ class Rules
                       noEavesdrop = 9, noMigrate = 10, noMod = 11, noPets = 12,
                       noPK = 13, arenaPK = 14 };
 
-        static const QString subKeys[ RULES_SUBKEY_COUNT ];
+        static const QStringList subKeys;
 
         static void setRule(const QString& key, const QVariant& value,
                             const QString& svrID);

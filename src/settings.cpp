@@ -24,7 +24,7 @@
 #include <QtCore>
 
 //Initialize Settings keys/        subKeys lists
-const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
+const QStringList Settings::keys =
 {
     "Settings",
     "WrongIPs",
@@ -34,7 +34,7 @@ const QString Settings::keys[ SETTINGS_KEY_COUNT ] =
     "Logger"
 };
 
-const QString Settings::subKeys[ SETTINGS_SUBKEY_COUNT ] =
+const QStringList Settings::subKeys =
 {
     "serverID",
     "serverPwd",
@@ -151,7 +151,8 @@ void Settings::updateTabBar(ServerInfo* server)
     tabWidget->setCurrentIndex( index );
 }
 
-void Settings::copyServerSettings(ServerInfo* server, QString newName)
+void Settings::copyServerSettings(ServerInfo* server,
+                                  const QString& newName)
 {
     QString oldName{ server->getName() };
     if ( oldName != newName )

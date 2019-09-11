@@ -12,8 +12,7 @@
 UserDelegate::UserDelegate(QObject* parent) : QItemDelegate(parent)
 {}
 
-UserDelegate::~UserDelegate()
-{}
+UserDelegate::~UserDelegate() = default;
 
 void UserDelegate::paint(QPainter* painter,
                          const QStyleOptionViewItem& option,
@@ -82,7 +81,7 @@ void UserDelegate::paint(QPainter* painter,
 void UserDelegate::setEditorData(QWidget* editor,
                                  const QModelIndex& index) const
 {
-    QComboBox* combobox = static_cast<QComboBox*>( editor );
+    auto* combobox = dynamic_cast<QComboBox*>( editor );
     switch( index.data().toInt() )
     {
         case 0:
@@ -110,8 +109,8 @@ QWidget* UserDelegate::createEditor(QWidget* parent,
                                     const QStyleOptionViewItem&,
                                     const QModelIndex& index) const
 {
-    QComboBox* editor = new QComboBox( parent );
-               editor->setFocusPolicy( Qt::StrongFocus );
+    auto* editor = new QComboBox( parent );
+          editor->setFocusPolicy( Qt::StrongFocus );
 
     if ( index.column() == static_cast<int>( UserCols::Rank ) )
     {
@@ -136,7 +135,7 @@ void UserDelegate::setModelData(QWidget* editor,
                                 QAbstractItemModel* model,
                                 const QModelIndex& index) const
 {
-    QComboBox* combobox = static_cast<QComboBox*>( editor );
+    auto* combobox = dynamic_cast<QComboBox*>( editor );
 
     int value = combobox->currentIndex();
     switch( value )

@@ -17,18 +17,6 @@
 #include <QTcpSocket>
 #include <QtCore>
 
-const QString Helper::logType[ LOG_TYPE_COUNT ] =
-{
-    "AdminUsage",
-    "Comments",
-    "UsageLog",
-    "UPNPLog",
-    "BanLog",
-    "DCLog",
-    "MuteLog",
-    "Ignored",
-};
-
 const QList<qint32> Helper::blueCodedList =
 {
     1004, 1024, 1043, 1046, 1052, 1054, 1055, 1062, 1068, 1072, 1099,
@@ -95,8 +83,8 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
     return str.toUpper();
 }
 
-QString Helper::getStrStr(const QString& str, QString indStr,
-                          QString mid, QString left)
+QString Helper::getStrStr(const QString& str, const QString& indStr,
+                          const QString& mid, const QString& left)
 {
     /* Search an input string and return a sub-string based on the input strings.
      * indStr --- Sub-string to search for.
@@ -225,7 +213,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     return result;
 }
 
-QString Helper::serNumToIntStr(QString sernum)
+QString Helper::serNumToIntStr(const QString& sernum)
 {
     quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString retn{ "" };
@@ -260,39 +248,6 @@ bool Helper::isBlueCodedSerNum(const quint32& sernum)
 {
     return blueCodedList.contains( static_cast<int>( sernum ) );
 }
-
-//void Helper::logToFile(const LogTypes& type, const QString& text,
-//                       const bool& timeStamp,
-//                       const bool& newLine)
-//{
-//    if ( Settings::getLogFiles() )
-//    {
-//        QString logTxt = text;
-
-//        QFile log( "logs/"
-//                 % logType[ type ]
-//                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
-//                 % logType[ type ]
-//                 % ".txt" );
-
-//        QFileInfo logInfo( log );
-//        if ( !logInfo.dir().exists() )
-//            logInfo.dir().mkpath( "." );
-
-//        if ( log.open( QFile::WriteOnly | QFile::Append ) )
-//        {
-//            if ( timeStamp )
-//                logTxt.prepend( "[ " % getTimeAsString() % " ] " );
-
-//            if ( newLine )
-//                logTxt.prepend( "\r\n" );
-
-//            log.write( logTxt.toLatin1() );
-
-//            log.close();
-//        }
-//    }
-//}
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
@@ -403,9 +358,11 @@ bool Helper::naturalSort(QString& left, QString& right, bool& result)
         int posR = right.indexOf( QRegExp( "[0-9]" ) );
         if ( posL == -1 || posR == -1 )
             break;
-        else if ( posL != posR )
+
+        if ( posL != posR )
             break;
-        else  if ( left.left( posL ) != right.left( posR ) )
+
+        if ( left.left( posL ) != right.left( posR ) )
             break;
 
         QString temp;
@@ -458,20 +415,20 @@ QHostAddress Helper::getPrivateIP()
 
     //Default to our localhost address if nothing valid is found.
     QHostAddress ipAddress{ QHostAddress::Null };
-    for ( int i = 0; i < ipList.size(); ++i )
+    for ( const auto& ip : ipList )
     {
-        QString tmp = ipList.at( i ).toString();
+        QString tmp = ip.toString();
         //Remove localhost addresses.
-        if ( ipList.at( i ) != QHostAddress::LocalHost
+        if ( ip != QHostAddress::LocalHost
           //Remove any ipv6 addresses.
-          && ipList.at( i ).toIPv4Address()
+          && ip.toIPv4Address()
           //Remove any addresses the User manually marked invalid.
           && !Settings::getIsInvalidIPAddress( tmp )
           //Remove Windows generated APIPA addresses.
           && !strStartsWithStr( tmp, "169" ) )
         {
             //Use first non-local IP address.
-            ipAddress = QHostAddress( ipList.at(i) );
+            ipAddress = QHostAddress( ip );
             break;
         }
     }
@@ -512,7 +469,7 @@ void Helper::getSynRealData(ServerInfo* svr)
     //The file was older than 48 hours or did not exist. Request a fresh copy.
     if ( downloadFile )
     {
-        QTcpSocket* socket = new QTcpSocket;
+        auto* socket = new QTcpSocket;
         QUrl url( svr->getMasterInfoHost() );
 
         socket->connectToHost( url.host(), 80 );
@@ -545,7 +502,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                 svr->setMasterIP( str.left( index ) );
                 svr->setMasterPort(
                             static_cast<quint16>(
-                                str.mid( index + 1 ).toInt() ) );
+                                str.midRef( index + 1 ).toInt() ) );
 
                 QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
                         msg = msg.arg( svr->getMasterIP() )
@@ -572,7 +529,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                 svr->setMasterIP( str.left( index ) );
                 svr->setMasterPort(
                             static_cast<quint16>(
-                                str.mid( index + 1 ).toInt() ) );
+                                str.midRef( index + 1 ).toInt() ) );
 
                 message = "Got Master Server [ %1:%2 ] for Game [ %3 ].";
                 message = message.arg( svr->getMasterIP() )
@@ -613,7 +570,7 @@ QString Helper::getTimeAsString(const quint64& time)
 {
     quint64 date{ time };
     if ( date == 0 )
-        date = QDateTime::currentDateTime().toTime_t();
+        date = QDateTime::currentDateTimeUtc().toTime_t();
 
     return QDateTime::fromTime_t( static_cast<uint>( date ) )
             .toString( "ddd MMM dd HH:mm:ss yyyy" );
@@ -632,21 +589,22 @@ QString Helper::getTimeFormat(const quint64& time)
 
 quint64 Helper::getTimeIntFormat(const quint64& time, const TimeFormat& format)
 {
+    quint64 retn{ time };
     switch ( format )
     {
         case TimeFormat::Hours:
-            return ( time / static_cast<int>( TimeFormat::HoursDiv ) );
+            retn = ( time / static_cast<int>( TimeFormat::HoursDiv ) );
         break;
         case TimeFormat::Minutes:
-            return ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
+            retn = ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
                      % static_cast<int>( TimeFormat::SecDiv ) );
         break;
         case TimeFormat::Seconds:
-            return ( time % static_cast<int>( TimeFormat::SecDiv ) );
+            retn = ( time % static_cast<int>( TimeFormat::SecDiv ) );
         break;
-            case TimeFormat::Default:
-        default:
-            return time;
+        case TimeFormat::Default:
+            retn = time;
         break;
     }
+    return retn;
 }

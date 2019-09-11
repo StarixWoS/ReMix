@@ -18,14 +18,14 @@ class ChatView : public QDialog
     Q_OBJECT
 
     Games gameID{ Games::Invalid };
-    static QString bleepList[ 439 ];
+    static QStringList bleepList;
 
     PacketForge* pktForge{ nullptr };
     ServerInfo* server{ nullptr };
 
     public:
         explicit ChatView(QWidget* parent = nullptr, ServerInfo* svr = nullptr);
-        ~ChatView();
+        ~ChatView() override;
 
         void setTitle(const QString& name);
         void setGameID(const Games& gID);
