@@ -30,16 +30,15 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
                                      const QString& cmdStr)
 {
     bool retn{ false };
+    QString invalidAuth{ "Error: You do not have access to the command [ %1 ]. "
+                         "Please refrain from attempting to use "
+                         "commands that you lack access to!" };
+
     QString unauth{ "While your SerNum is registered as a Remote Admin, "
                     "you are not Authenticated and are unable to use these "
                     "commands. Please reply to this message with "
                     "(/login *PASS) and the server will "
                     "authenticate you." };
-
-//    QString invalid{ "Your SerNum is not registered as a Remote Admin. "
-//                     "Please refrain from attempting to use Remote Admin "
-//                     "commands as you will be banned after [ %1 ] "
-//                     "attempts." };
 
     QString invalid{ "Error: You do not have access to the command [ %1 ]. "
                      "Please refrain from attempting to use Remote Admin "
@@ -52,7 +51,14 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
         retn = false;
         if ( plr->getAdminPwdReceived() )
         {
-            retn = true;
+            if ( plrRank < rank )
+            {
+                invalidAuth = invalidAuth.arg( cmdStr );
+                plr->sendMessage( invalidAuth, false );
+                retn = false;
+            }
+            else
+                retn = true;
         }
         else
         {
@@ -331,7 +337,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                   && ( !arg1.isEmpty()
                     && !subCmd.isEmpty() ) )
                 {
-                    this->banhandler( plr, arg1, duration, reason, all );
+                    this->banHandler( plr, arg1, duration, reason, all );
                 }
                 retn = true;
             }
@@ -342,7 +348,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                   && ( !arg1.isEmpty()
                     && !subCmd.isEmpty() ) )
                 {
-                    this->unBanhandler( subCmd, arg1 );
+                    this->unBanHandler( subCmd, arg1 );
                 }
                 retn = true;
             }
@@ -544,7 +550,6 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target,
                 return false;
             }
         }
-
     }
 
     //Fallthrough, command cannot be issued.
@@ -621,15 +626,13 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd,
     else
     {
         //Invalid argument listing. Send the command syntax.
-        plr->sendMessage(
-                    cmdTable->getCommandInfo( GMCmds::MotD,
-                                              true ) );
+        plr->sendMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ) );
     }
 }
 
-void CmdHandler::banhandler(Player* plr, const QString& arg1,
-                            const QString& duration,
-                            const QString& reason, const bool& all)
+void CmdHandler::banHandler(Player* plr, const QString& arg1,
+                            const QString& duration, const QString& reason,
+                            const bool& all)
 {
     QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. "
                        "Reason: [ %3 ]." };
@@ -646,56 +649,59 @@ void CmdHandler::banhandler(Player* plr, const QString& arg1,
             //Check target validity.
             ban = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
             if ( ban )
-            {
-                QString dateString{ "" };
-                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-                qint32 banDuration{ static_cast<qint32>(
-                                         PunishDurations::THIRTY_DAYS ) };
-
-                if ( !duration.isEmpty() )
-                {
-                    QString timeText{ "seconds" };
-                    banDuration = this->getTimePeriodFromString( duration,
-                                                                 timeText );
-                    if ( banDuration == 0 )
-                    {
-                        banDuration = static_cast<qint32>(
-                                          PunishDurations::THIRTY_DAYS );
-                    }
-                }
-
-                date += static_cast<quint64>( banDuration );
-                dateString = Helper::getTimeAsString( date );
-
-                if ( msg.isEmpty() )
-                    msg = "No Reason!";
-
-                reasonMsg = reasonMsg.arg( plr->getSernum_s() )
-                               .arg( dateString )
-                               .arg( msg );
-
-                if ( !reasonMsg.isEmpty() )
-                    tmpPlr->sendMessage( reasonMsg, false );
-
-                msg = msg.prepend( "Remote-Banish; " );
-                User::addBan( plr, tmpPlr, msg, true,
-                              static_cast<PunishDurations>( banDuration ) );
-
-                msg = msg.append( ": [ %1 ], [ %2 ]" );
-                msg = msg.arg( plr->getSernum_s() )
-                         .arg( plr->getBioData() );
-
-                Logger::getInstance()->insertLog( server->getName(), msg,
-                                                  LogTypes::BAN, true, true );
-
-                tmpPlr->setDisconnected( true, DCTypes::IPDC );
-            }
+                break;
         }
         ban = false;
     }
+
+    if ( ban )
+    {
+        QString dateString{ "" };
+        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+        qint32 banDuration{ static_cast<qint32>(
+                                PunishDurations::THIRTY_DAYS ) };
+
+        if ( !duration.isEmpty() )
+        {
+            QString timeText{ "seconds" };
+            banDuration = this->getTimePeriodFromString( duration,
+                                                         timeText );
+            if ( banDuration == 0 )
+            {
+                banDuration = static_cast<qint32>(
+                                  PunishDurations::THIRTY_DAYS );
+            }
+        }
+
+        date += static_cast<quint64>( banDuration );
+        dateString = Helper::getTimeAsString( date );
+
+        if ( msg.isEmpty() )
+            msg = "No Reason!";
+
+        reasonMsg = reasonMsg.arg( plr->getSernum_s() )
+                             .arg( dateString )
+                             .arg( msg );
+
+        if ( !reasonMsg.isEmpty() )
+            tmpPlr->sendMessage( reasonMsg, false );
+
+        msg = msg.prepend( "Remote-Banish; " );
+        User::addBan( plr, tmpPlr, msg, true,
+                      static_cast<PunishDurations>( banDuration ) );
+
+        msg = msg.append( ": [ %1 ], [ %2 ]" )
+                 .arg( plr->getSernum_s() )
+                 .arg( plr->getBioData() );
+
+        Logger::getInstance()->insertLog( server->getName(), msg,
+                                          LogTypes::BAN, true, true );
+
+        tmpPlr->setDisconnected( true, DCTypes::IPDC );
+    }
 }
 
-void CmdHandler::unBanhandler(const QString& subCmd, const QString& arg1)
+void CmdHandler::unBanHandler(const QString& subCmd, const QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( Helper::cmpStrings( subCmd, "ip" ) )

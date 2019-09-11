@@ -39,11 +39,11 @@ class CmdHandler : public QObject
                          const QString& arg1,
                          const QString& msg);
 
-        void banhandler(Player* plr, const QString& arg1,
-                        const QString& duration,
-                        const QString& reason, const bool& all);
+        void banHandler(Player* plr, const QString& arg1,
+                        const QString& duration, const QString& reason,
+                        const bool& all);
 
-        void unBanhandler(const QString& subCmd, const QString& arg1);
+        void unBanHandler(const QString& subCmd, const QString& arg1);
         void kickHandler(Player* plr, const QString& arg1,
                          const GMCmds& argIndex, const QString& message,
                          const bool& all);

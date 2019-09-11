@@ -13,8 +13,10 @@ Version 2.5.0:
       * Prevent Clients from forging a MasterMix response packet.
       * Prevent setting the GameInfo string within a ServerInstance's name. e.g. "ReMix Server [world=Evergreen]" is no longer possible.
       * Prevent comments from Users that have not yet sent their SerNum.
+        * This is related to another bugfix from version [2.4.7].
       * Mark certain functions and constructors as overrides or defaults.
       * Properly cast certain UI events to their correct type.
+      * Correctly inform Remote Administrators when they attempt to use a command they lack access to.
 
 
 

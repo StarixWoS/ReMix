@@ -340,6 +340,9 @@ bool User::addBan(const Player* admin, const Player* target,
                   const PunishDurations duration)
 {
     User* user = User::getInstance();
+    if ( user == nullptr )
+        return false;
+
     if ( target == nullptr )
         return false;
 
