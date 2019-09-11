@@ -7,6 +7,9 @@ Version 2.5.0:
       * Implement the "/info" command.
         * Sends basic information about the server's up time, users connected, and admins connected.
       * Implement packet deobfuscation code from the PacketForge module within ReMix itself.
+      * Added the ability to utilize ReMote Administrator commands from within the regular chat box (bypassing /admin) on GameTypes supporting commands.
+        * Commands entered in this way must begin with "  `  " (tilde). e.g. `ban soul 4000 30m Testing the new command!
+        * All chat beginning with `(tilde) will be ommitted from further packet processing and/or re-sending.
 
 
     Bugfixes:

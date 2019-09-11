@@ -7,6 +7,7 @@
 #include "packethandler.hpp"
 #include "packetforge.hpp"
 #include "serverinfo.hpp"
+#include "cmdhandler.hpp"
 #include "settings.hpp"
 #include "server.hpp"
 #include "logger.hpp"
@@ -144,16 +145,17 @@ Games ChatView::getGameID() const
     return gameID;
 }
 
-void ChatView::parsePacket(const QByteArray& packet, Player* plr)
+bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
 {
     //We were unable to load our PacketForge library, return.
     if ( pktForge == nullptr )
-        return;
+        return false;
 
     //The Player object is invalid, return.
     if ( plr == nullptr )
-        return;
+        return false;
 
+    bool retn{ true };
     QString pkt{ packet };
     if ( this->getGameID() != Games::W97 )
     {
@@ -174,8 +176,8 @@ void ChatView::parsePacket(const QByteArray& packet, Player* plr)
 
             if ( pkt.at( 3 ) == 'C' )
             {
-                this->parseChatEffect( pkt );
                 plr->chatPacketFound();
+                retn = this->parseChatEffect( pkt );
             }
             else if ( pkt.at( 3 ) == '3'
                    || ( ( this->getGameID() == Games::ToY )
@@ -259,10 +261,13 @@ void ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 plr->setPlrName( plrName );
         }
     }
+    return retn;
 }
 
-void ChatView::parseChatEffect(const QString& packet)
+bool ChatView::parseChatEffect(const QString& packet)
 {
+    bool retn{ true };
+    bool log{ true };
     QString srcSerNum = packet.left( 12 ).mid( 4 );
             srcSerNum = Helper::serNumToIntStr( srcSerNum );
 
@@ -277,7 +282,7 @@ void ChatView::parseChatEffect(const QString& packet)
         //5 = Unknown
         //10 = Scene Message
         //11 = PK Attack
-        return;
+        return true;
     }
 
     if ( packet.at( 3 ) == 'C' )
@@ -292,6 +297,7 @@ void ChatView::parseChatEffect(const QString& packet)
                 if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
                 {
                     plrName = plr->getPlrName().append( " [ %1 ]" );
+                    break;
                 }
                 else
                     plr = nullptr;
@@ -301,8 +307,6 @@ void ChatView::parseChatEffect(const QString& packet)
         plrName = plrName.arg( srcSerNum );
 
         QString message{ packet.mid( 31 ) };
-
-        //TODO: Change into something more complex and better.
 
         //Quick and dirty word replacement.
         if ( server != nullptr )
@@ -315,45 +319,67 @@ void ChatView::parseChatEffect(const QString& packet)
         }
 
         QChar type{ packet.at( 31 ) };
-
-        if ( type == '\'' )
+        switch ( type.toLatin1() )
         {
-            message = message.mid( 1 );
-            this->insertChat( plrName % " gossips: " % message,
-                              Colors::Gossip, true );
-            message = plrName % " gossips: " % message;
-        }
-        else if ( type == '!' )
-        {
-            message = message.mid( 1 );
-            this->insertChat( plrName % " shouts: " % message,
-                              Colors::Shout, true );
+            case '\'': //Gossip Chat Effect.
+                {
+                    message = message.mid( 1 );
+                    this->insertChat( plrName % " gossips: " % message,
+                                      Colors::Gossip, true );
+                    message = plrName % " gossips: " % message;
+                }
+            break;
+            case '!': //Shout Chat Effect.
+                {
+                    message = message.mid( 1 );
+                    this->insertChat( plrName % " shouts: " % message,
+                                      Colors::Shout, true );
 
-            message = plrName % " shouts: " % message;
-        }
-        else if ( type == '/' )
-        {
-            message = message.mid( 2 );
-            this->insertChat( plrName % message,
-                              Colors::Emote, true );
-            message = plrName % message;
-        }
-        else
-        {
-            this->insertChat( plrName % ": ",
-                              Colors::Name, true );
-            this->insertChat( message,
-                              Colors::Chat, false );
+                    message = plrName % " shouts: " % message;
+                }
+            break;
+            case '/': //Emote Chat Effect.
+                {
+                    message = message.mid( 2 );
+                    this->insertChat( plrName % message,
+                                      Colors::Emote, true );
+                    message = plrName % message;
+                }
+            break;
+            case '`': //Custom command input.
+                {
+                    auto* cHandle{ this->getCmdHandle() };
+                    if ( cHandle != nullptr )
+                    {
+                        if ( plr != nullptr )
+                        {
+                            message = message.mid( 1 );
+                            cHandle->parseCommandImpl( plr, message );
+                        }
+                    }
+                    log = false;
+                    retn = false;
+                }
+            break;
+            default:
+                {
+                    this->insertChat( plrName % ": ",
+                                      Colors::Name, true );
+                    this->insertChat( message,
+                                      Colors::Chat, false );
 
-            message = plrName % ": " % message;
+                    message = plrName % ": " % message;
+                }
+            break;
         }
 
-        if ( !message.isEmpty() )
+        if ( !message.isEmpty() && log )
         {
             Logger::getInstance()->insertLog( server->getName(), message,
                                               LogTypes::Chat, true, true );
         }
     }
+    return retn;
 }
 
 void ChatView::bleepChat(QString& message)
@@ -404,6 +430,19 @@ void ChatView::insertChat(const QString& msg, const Colors& color,
                         obj->verticalScrollBar()->maximum() );
         }
     }
+}
+
+CmdHandler* ChatView::getCmdHandle() const
+{
+    if ( cmdHandle == nullptr )
+        return nullptr;
+
+    return cmdHandle;
+}
+
+void ChatView::setCmdHandle(CmdHandler* value)
+{
+    cmdHandle = value;
 }
 
 void ChatView::on_chatInput_returnPressed()

@@ -24,6 +24,7 @@ PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
     server = svr;
 
     cmdHandle = new CmdHandler( this, server );
+    chatView->setCmdHandle( cmdHandle );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal,
                       this, &PacketHandler::newUserCommentSignal );
 }
@@ -63,12 +64,13 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
                         return;
                 }
 
-                this->parseSRPacket( pkt, plr );
-
+                bool parsePkt{ true };
                 if ( chatView->getGameID() != Games::Invalid )
-                {
-                    chatView->parsePacket( packet, plr );
-                }
+                    parsePkt = chatView->parsePacket( packet, plr );
+
+                if ( parsePkt )
+                    this->parseSRPacket( pkt, plr );
+
             }
         }
     }
