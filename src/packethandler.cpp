@@ -66,7 +66,11 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 
                 bool parsePkt{ true };
                 if ( chatView->getGameID() != Games::Invalid )
+                {
+                    //Ingame Chat Commands will not be parsed and re-sent to
+                    //other Players.
                     parsePkt = chatView->parsePacket( packet, plr );
+                }
 
                 if ( parsePkt )
                     this->parseSRPacket( pkt, plr );

@@ -12,8 +12,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
 {
     {   //Command Implemented.
         "help",
-        { "format" },
-        1,
+        {},
+        0,
         "Help Description: Shows command information and syntax. "
         "e.g. (/help help) and (/help help format)",
         "Help Usage: /help *Command *format. "

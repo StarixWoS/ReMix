@@ -23,8 +23,6 @@ class CmdTable
             bool cmdIsActive;
         };
         using CmdStruct = CmdStructure;
-
-        //static const CmdStruct cmdTable[ GM_COMMAND_COUNT ];
         static const QVector<CmdStruct> cmdTable;
 
         explicit CmdTable() = default;

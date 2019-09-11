@@ -10,6 +10,7 @@ Version 2.5.0:
       * Added the ability to utilize ReMote Administrator commands from within the regular chat box (bypassing /admin) on GameTypes supporting commands.
         * Commands entered in this way must begin with "  `  " (tilde). e.g. `ban soul 4000 30m Testing the new command!
         * All chat beginning with `(tilde) will be ommitted from further packet processing and/or re-sending.
+      * The "/help" command now sends both command description and usage and no longer has a "format" sub command.
 
 
     Bugfixes:
