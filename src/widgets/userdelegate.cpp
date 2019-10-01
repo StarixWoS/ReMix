@@ -53,6 +53,24 @@ void UserDelegate::paint(QPainter* painter,
                                             option.rect, text );
             }
         break;
+        case UserCols::Muted:
+            {
+                {
+                    QItemDelegate::drawBackground( painter, opt, index );
+                    switch( index.data().toInt() )
+                    {
+                        case 0:
+                            text = "Not Muted";
+                        break;
+                        case 1:
+                            text = "Muted";
+                        break;
+                    }
+                    QItemDelegate::drawDisplay( painter, opt,
+                                                option.rect, text );
+                }
+            }
+        break;
         case UserCols::Banned:
             {
                 {
@@ -119,6 +137,11 @@ QWidget* UserDelegate::createEditor(QWidget* parent,
         editor->addItem( "Co-Admin" );
         editor->addItem( "Admin" );
         editor->addItem( "Owner" );
+    }
+    else if ( index.column() == static_cast<int>( UserCols::Muted ) )
+    {
+        editor->addItem( "Not Muted" );
+        editor->addItem( "Muted" );
     }
     else if ( index.column() == static_cast<int>( UserCols::Banned ) )
     {

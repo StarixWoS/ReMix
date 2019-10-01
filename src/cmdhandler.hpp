@@ -48,8 +48,10 @@ class CmdHandler : public QObject
                          const GMCmds& argIndex, const QString& message,
                          const bool& all);
         void muteHandler(Player* plr, const QString& arg1,
-                         const GMCmds& argIndex, const QString& message,
+                         const QString& duration, const QString& reason,
                          const bool& all);
+        void unMuteHandler(const QString& subCmd, const QString& arg1);
+
         void msgHandler(const QString& arg1, const QString& message,
                         const bool& all);
 

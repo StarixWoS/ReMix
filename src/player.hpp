@@ -29,7 +29,7 @@ class Player : public QObject
     QString dVar{ "" };
     QString wVar{ "" };
 
-    QString campPacket{ "" };
+    QByteArray campPacket{ "" };
     bool sentCampPacket{ false };
 
     QString bioData{ "" };
@@ -203,7 +203,7 @@ class Player : public QObject
                              const DCTypes& dcType = DCTypes::IPDC);
 
         bool getNetworkMuted() const;
-        void setNetworkMuted(const bool& value, const QString& msg);
+        void setNetworkMuted(const bool& value);
 
         void chatPacketFound();
 
@@ -230,8 +230,13 @@ class Player : public QObject
         bool getHasSernum() const;
         void setHasSernum(bool value);
 
-        QString getCampPacket() const;
-        void setCampPacket(const QString& value);
+        QByteArray getCampPacket() const;
+        void setCampPacket(const QByteArray& value);
+
+        bool getSentCampPacket() const;
+        void setSentCampPacket(bool value);
+
+        void forceSendCampPacket();
 
     private:
         void setModelData(QStandardItem* model, const qint32& row,

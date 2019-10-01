@@ -76,7 +76,10 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
                      .arg( srcSerNum )
                      .arg( plr->getSernumHex_s() );
 
-    plr->setNetworkMuted( true, msg );
+   Logger::getInstance()->insertLog( "PacketForge", msg,
+                                     LogTypes::MUTE, true, true );
+
+    plr->setNetworkMuted( true );
 
     return false;
 }

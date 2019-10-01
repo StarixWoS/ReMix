@@ -33,7 +33,9 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
 
         if ( column == static_cast<int>( UserCols::LastSeen )
           || column == static_cast<int>( UserCols::BanDate )
-          || column == static_cast<int>( UserCols::BanDuration ) )
+          || column == static_cast<int>( UserCols::BanDuration )
+          || column == static_cast<int>( UserCols::MuteDate )
+          || column == static_cast<int>( UserCols::MuteDuration ) )
         {
             vlStr = QString::number(
                         QDateTime::fromString( vlStr,

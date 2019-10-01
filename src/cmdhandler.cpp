@@ -364,12 +364,24 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             }
         break;
         case GMCmds::Mute:
+            {
+                this->parseTimeArgs( message, duration, reason );
+                if ( this->validateAdmin( plr, cmdRank, cmd )
+                  && ( !arg1.isEmpty()
+                    && !subCmd.isEmpty() ) )
+                {
+                    this->muteHandler( plr, arg1, duration, reason, all );
+                }
+                retn = true;
+            }
+        break;
         case GMCmds::UnMute:
             {
                 if ( this->validateAdmin( plr, cmdRank, cmd )
-                  && !arg1.isEmpty() )
+                  && ( !arg1.isEmpty()
+                    && !subCmd.isEmpty() ) )
                 {
-                    this->muteHandler( plr, arg1, argIndex, message, all );
+                    this->unMuteHandler( subCmd, arg1 );
                 }
                 retn = true;
             }
@@ -750,33 +762,83 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
 }
 
 void CmdHandler::muteHandler(Player* plr, const QString& arg1,
-                             const GMCmds& argIndex, const QString& message,
+                             const QString& duration, const QString& reason,
                              const bool& all)
 {
-    QString msg{ "Remote-Admin [ %1 ] %2 [ %3 ]'s Network. "
-                 "Reason: [ %4 ]." };
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Muted ] you until [ %2 ]. "
+                       "Reason: [ %3 ]." };
+    QString msg{ reason };
 
     Player* tmpPlr{ nullptr };
+    bool mute{ false };
+
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            if ( this->canIssueAction( plr, tmpPlr, arg1, argIndex, all ) )
-            {
-                msg = msg.arg( plr->getSernum_s() )
-                         .arg( argIndex == GMCmds::Mute ? "Muted" : "Un-Muted" )
-                         .arg( arg1 )
-                         .arg( message.isEmpty() ? "No Reason!" : message );
+            mute = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
+            if ( mute )
+                break;
+        }
+        mute = false;
+    }
 
-                if ( argIndex == GMCmds::Mute )
-                    tmpPlr->setNetworkMuted( true, msg );
-                else
-                    tmpPlr->setNetworkMuted( false, msg );
+    if ( mute )
+    {
+        QString dateString{ "" };
+        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+        qint32 muteDuration{ static_cast<qint32>(
+                                 PunishDurations::THIRTY_DAYS ) };
+
+        if ( !duration.isEmpty() )
+        {
+            QString timeText{ "seconds" };
+            muteDuration = this->getTimePeriodFromString( duration,
+                                                          timeText );
+            if ( muteDuration == 0 )
+            {
+                muteDuration = static_cast<qint32>(
+                                   PunishDurations::THIRTY_DAYS );
             }
         }
+
+        date += static_cast<quint64>( muteDuration );
+        dateString = Helper::getTimeAsString( date );
+
+        if ( msg.isEmpty() )
+            msg = "No Reason!";
+
+        reasonMsg = reasonMsg.arg( plr->getSernum_s() )
+                             .arg( dateString )
+                             .arg( msg );
+
+        if ( !reasonMsg.isEmpty() )
+            tmpPlr->sendMessage( reasonMsg, false );
+
+        msg = msg.prepend( "Remote-Mute; " );
+        User::addMute( plr, tmpPlr, msg, true,
+                       static_cast<PunishDurations>( muteDuration ) );
+
+        msg = msg.append( ": [ %1 ], [ %2 ]" )
+                 .arg( plr->getSernum_s() )
+                 .arg( plr->getBioData() );
+
+        Logger::getInstance()->insertLog( server->getName(), msg,
+                                          LogTypes::MUTE, true, true );
+
+        tmpPlr->setNetworkMuted( true );
     }
+}
+
+void CmdHandler::unMuteHandler(const QString& subCmd, const QString& arg1)
+{
+    QString sernum = Helper::serNumToHexStr( arg1 );
+    if ( Helper::cmpStrings( subCmd, "ip" ) )
+        User::removeMute( arg1, static_cast<int>( BanTypes::IP ) );
+    else
+        User::removeMute( sernum, static_cast<int>( BanTypes::SerNum ) );
 }
 
 void CmdHandler::msgHandler(const QString& arg1, const QString& message,

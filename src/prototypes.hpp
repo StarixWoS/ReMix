@@ -297,8 +297,9 @@
 
         //Valid columns within the User Dialog.
         enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
-                                  Rank, Banned, BanDate, BanDuration,
-                                  BanReason = 9, ColCount = 10 };
+                                  Rank, Muted, MuteDate, MuteDuration,
+                                  MuteReason, Banned, BanDate, BanDuration,
+                                  BanReason = 13, ColCount = 14 };
 
         //Valid columns within the Logger Dialog.
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3,

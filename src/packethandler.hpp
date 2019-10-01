@@ -27,7 +27,7 @@ class PacketHandler : public QObject
         void stopMasterCheckIn();
 
         void parsePacket(const QByteArray& packet, Player* plr = nullptr);
-        void parseSRPacket(const QString& packet, Player* plr = nullptr);
+        void parseSRPacket(const QByteArray& packet, Player* plr = nullptr);
         void parseMIXPacket(const QString& packet, Player* plr = nullptr);
 
         void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr,
@@ -38,6 +38,9 @@ class PacketHandler : public QObject
         bool getIsBanned(const QString& serNum, const QString& wVar,
                          const QString& dVar, const QString& ipAddr,
                          const QString& plrSerNum) const;
+        bool getIsMuted(const QString& serNum, const QString& wVar,
+                        const QString& dVar, const QString& ipAddr,
+                        const QString& plrSerNum) const;
 
     private:
         void detectFlooding(Player* plr);

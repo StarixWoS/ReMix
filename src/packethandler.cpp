@@ -36,7 +36,7 @@ PacketHandler::~PacketHandler()
 
 void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 {
-    QString pkt{ packet };
+    QByteArray pkt{ packet };
     if ( plr == nullptr )
         return;
 
@@ -52,6 +52,17 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
             //Prevent Users from changing the Server's rules.
             if ( Helper::strStartsWithStr( pkt, ":SR$" ) )
                 return;
+
+
+            //Ensure Muted Users remain Muted.
+            plr->setNetworkMuted( false );
+            if ( this->getIsMuted( plr->getSernumHex_s(), plr->getWVar(),
+                                   plr->getDVar(), plr->getPublicIP(),
+                                   plr->getSernumHex_s() ) )
+            {
+                plr->setNetworkMuted( true );
+            }
+            else
 
             if ( !plr->getNetworkMuted()
               && plr->getIsVisible() )
@@ -83,12 +94,12 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
         this->parseMIXPacket( packet, plr );
 }
 
-void PacketHandler::parseSRPacket(const QString& packet, Player* plr)
+void PacketHandler::parseSRPacket(const QByteArray& packet, Player* plr)
 {
+    QByteArray pkt{ packet };
     if ( plr == nullptr )
         return;
 
-    QString pkt = packet;
     if ( !pkt.isEmpty() )
         pkt.append( "\r\n" );
 
@@ -149,8 +160,7 @@ void PacketHandler::parseSRPacket(const QString& packet, Player* plr)
 
                     if ( send && isAuth )
                     {
-                        bOut = tmpSoc->write( pkt.toLatin1(),
-                                              pkt.length() );
+                        bOut = tmpSoc->write( pkt, pkt.length() );
 
                         tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
                         tmpPlr->setBytesOut( tmpPlr->getBytesOut()
@@ -210,7 +220,6 @@ void PacketHandler::parseMIXPacket(const QString& packet, Player* plr)
             this->readMIX9( data, plr );
         break;
         default:    //Do nothing. Unknown command.
-            return;
         break;
     }
 }
@@ -379,7 +388,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                           || !Settings::getReqSernums() )
                         {
                             if ( this->getIsBanned( sernum, wVar, dVar,
-                                                  ipAddr.toString(), sernum ) )
+                                                    ipAddr.toString(), sernum ) )
                             {
                                 logTxt = logTxt.arg( "Info",
                                                      ipAddr.toString(),
@@ -580,6 +589,24 @@ bool PacketHandler::getIsBanned(const QString& serNum, const QString& wVar,
         banned = User::getIsBanned( ipAddr, BanTypes::IP, plrSerNum );
 
     return banned;
+}
+
+bool PacketHandler::getIsMuted(const QString& serNum, const QString& wVar,
+                               const QString& dVar, const QString& ipAddr,
+                               const QString& plrSerNum) const
+{
+    bool muted{ false };
+    muted = User::getIsMuted( serNum, BanTypes::SerNum, plrSerNum );
+    if ( !muted )
+        muted = User::getIsMuted( wVar, BanTypes::WV, plrSerNum );
+
+    if ( !muted )
+        muted = User::getIsMuted( dVar, BanTypes::DV, plrSerNum );
+
+    if ( !muted )
+        muted = User::getIsMuted( ipAddr, BanTypes::IP, plrSerNum );
+
+    return muted;
 }
 
 void PacketHandler::detectFlooding(Player* plr)

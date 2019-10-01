@@ -183,6 +183,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                    || ( ( this->getGameID() == Games::ToY )
                      && ( pkt.at( 3 ) == 'N' ) ) )
             {
+
                 QStringList varList;
                 if ( this->getGameID() == Games::ToY )
                     varList = pkt.mid( 39 ).split( "," );
@@ -193,24 +194,25 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 if ( !plrName.isEmpty() )
                     plr->setPlrName( plrName );
 
-                //Send Camp packets to the newly connecting User.
-                if ( this->getGameID() == Games::WoS )
+                //Check that the User is actually incarnating.
+                int type{ pkt.at( 14 ).toLatin1() - 0x41 };
+                if ( type >= 1 && type != 4 )
                 {
-                    PacketHandler* pktHandle{ server->getPktHandle() };
-                    if ( pktHandle != nullptr )
+                    //Send Camp packets to the newly connecting User.
+                    if ( this->getGameID() == Games::WoS )
                     {
                         Player* tmpPlr{ nullptr };
                         for ( int i = 0; i < MAX_PLAYERS; ++i )
                         {
                             tmpPlr = server->getPlayer( i );
                             if ( tmpPlr != nullptr
-                              && !tmpPlr->getCampPacket().isEmpty() )
+                                 && plr != tmpPlr )
                             {
-                                if ( plr != tmpPlr )
+                                //Forcibly re-send the User's Camp Packet.
+                                if ( !plr->getSentCampPacket() )
                                 {
-                                    pktHandle->parseSRPacket(
-                                                tmpPlr->getCampPacket(),
-                                                tmpPlr );
+                                    tmpPlr->forceSendCampPacket();
+                                    plr->setSentCampPacket( true );
                                 }
                             }
                         }

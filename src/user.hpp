@@ -24,7 +24,8 @@ class User : public QDialog
 
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
-                       kREASON, kBANNED, kBANDURATION, kPINGS, kCALLS = 12 };
+                       kMUTED, kMUTEDURATION, kMUTEREASON,
+                       kBANNED, kBANDURATION, kBANREASON, kPINGS, kCALLS = 15 };
 
         explicit User(QWidget* parent = nullptr);
         ~User() override;
@@ -32,8 +33,8 @@ class User : public QDialog
         static User* getInstance();
         static void setInstance(User* value);
 
-        static QString requestBanishReason(QWidget* parent = nullptr);
-        static PunishDurations requestPunishDuration(QWidget* parent = nullptr);
+        static QString requestReason(QWidget* parent = nullptr);
+        static PunishDurations requestDuration(QWidget* parent = nullptr);
 
         static QSettings* getUserData();
         static void setUserData(const QSettings* value);
@@ -58,6 +59,13 @@ class User : public QDialog
 
         static bool getIsBanned(const QString& value, const BanTypes& type,
                                 const QString& plrSernum = "");
+
+        static void removeMute(const QString& value, const qint32& type);
+        static bool addMute(const Player* admin, const Player* target,
+                            const QString& reason, const bool remote,
+                            const PunishDurations duration);
+        static bool getIsMuted(const QString& value, const BanTypes& type,
+                               const QString& plrSernum = "");
 
         static void updateCallCount(const QString& serNum);
         static void logBIO(const QString& serNum, const QHostAddress& ip,

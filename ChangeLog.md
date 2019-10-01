@@ -2,6 +2,17 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.1:
+    Change:
+      * Implemented Mute durations.
+
+
+    Bugfixes:
+      * User Camp packets are no longer spammed when a new User connects to a server with Camped Users.
+
+
+
+
 Version 2.5.0:
     Change:
       * Implement the "/info" command.

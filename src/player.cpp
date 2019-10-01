@@ -3,6 +3,7 @@
 #include "player.hpp"
 
 //ReMix includes.
+#include "packethandler.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "sendmsg.hpp"
@@ -20,7 +21,7 @@ Player::Player()
 {
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
-    
+
     //All connections start as ascive and not AFK.
     this->setIsAFK( false );
 
@@ -484,14 +485,37 @@ void Player::setAlias(const QString& value)
     alias = value;
 }
 
-QString Player::getCampPacket() const
+QByteArray Player::getCampPacket() const
 {
     return campPacket;
 }
 
-void Player::setCampPacket(const QString& value)
+void Player::setCampPacket(const QByteArray& value)
 {
     campPacket = value;
+}
+
+bool Player::getSentCampPacket() const
+{
+    return sentCampPacket;
+}
+
+void Player::setSentCampPacket(bool value)
+{
+    sentCampPacket = value;
+}
+
+void Player::forceSendCampPacket()
+{
+    auto* svr{ this->getServerInfo() };
+    if ( svr != nullptr )
+    {
+        auto* pktHandle{ svr->getPktHandle() };
+        if ( pktHandle != nullptr )
+        {
+            pktHandle->parseSRPacket( this->getCampPacket(), this );
+        }
+    }
 }
 
 QString Player::getBioData() const
@@ -789,14 +813,8 @@ bool Player::getNetworkMuted() const
     return networkMuted;
 }
 
-void Player::setNetworkMuted(const bool& value, const QString& msg)
+void Player::setNetworkMuted(const bool& value)
 {
-    if ( !msg.isEmpty() )
-    {
-        Logger::getInstance()->insertLog( serverInfo->getName(), msg,
-                                          LogTypes::MUTE, true, true );
-    }
-
     networkMuted = value;
 }
 
@@ -927,7 +945,11 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             reason = reason.arg( this->getSernum_s() )
                            .arg( socketIP )
                            .arg( masterIP );
-            this->setNetworkMuted( true, reason );
+
+            this->setNetworkMuted( true );
+
+            Logger::getInstance()->insertLog( server->getName(), reason,
+                                              LogTypes::MUTE, true, true );
         }
     }
 }

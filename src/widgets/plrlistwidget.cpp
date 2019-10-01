@@ -200,33 +200,49 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
 void PlrListWidget::on_actionMuteNetwork_triggered()
 {
+    if ( menuTarget == nullptr )
+        return;
+
+    QString inform{ "The Server Host has MUTED you. Reason: %1" };
+    QString reason{ "Manual Mute; %1" };
     bool mute{ true };
-    if ( menuTarget != nullptr )
+
+    QString title{ "%1 User:" };
+    QString prompt{ "Are you certain you want to %1 [ %2 ]'s Network?" };
+    if ( menuTarget->getNetworkMuted() )
     {
-        QString title{ "%1 User:" };
-        QString prompt{ "Are you certain you want to %1 [ %2 ]'s Network?" };
-        if ( menuTarget->getNetworkMuted() )
-        {
-            title = title.arg( "Un-Mute" );
-            prompt = prompt.arg( "Un-Mute" );
+        title = title.arg( "Un-Mute" );
+        prompt = prompt.arg( "Un-Mute" );
 
-            mute = false;
-        }
-        else
-        {
-            title = title.arg( "Mute" );
-            prompt = prompt.arg( "Mute" );
-        }
-        prompt = prompt.arg( menuTarget->getSernum_s() );
-
-        if ( Helper::confirmAction( this, title, prompt ) )
-        {
-            QString msg{ "Manual Network %1 of [ %2 ] by Server Owner." };
-                    msg = msg.arg( mute ? "Mute" : "UnMute" )
-                             .arg( menuTarget->getSernum_s() );
-            menuTarget->setNetworkMuted( mute, msg );
-        }
+        mute = false;
     }
+    else
+    {
+        title = title.arg( "Mute" );
+        prompt = prompt.arg( "Mute" );
+    }
+    prompt = prompt.arg( menuTarget->getSernum_s() );
+
+    if ( Helper::confirmAction( this, title, prompt ) )
+    {
+        reason = reason.arg( User::requestReason( this ) );
+        inform = inform.arg( reason );
+
+        PunishDurations muteDuration{ User::requestDuration() };
+        User::addMute( nullptr, menuTarget, reason, false, muteDuration );
+
+        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+        logMsg = logMsg.arg( reason )
+                       .arg( menuTarget->getSernum_s() )
+                       .arg( menuTarget->getBioData() );
+
+        Logger::getInstance()->insertLog( server->getName(), logMsg,
+                                          LogTypes::MUTE, true, true );
+
+        menuTarget->sendMessage( inform, false );
+        menuTarget->setNetworkMuted( mute );
+    }
+
     menuTarget = nullptr;
 }
 
@@ -284,10 +300,10 @@ void PlrListWidget::on_actionBANISHUser_triggered()
     {
         if ( Helper::confirmAction( this, title, prompt ) )
         {
-            reason = reason.arg( User::requestBanishReason( this ) );
+            reason = reason.arg( User::requestReason( this ) );
             inform = inform.arg( reason );
 
-            PunishDurations banDuration{ User::requestPunishDuration() };
+            PunishDurations banDuration{ User::requestDuration() };
             User::addBan( nullptr, menuTarget, reason, false, banDuration );
 
             QString logMsg{ "%1: [ %2 ], [ %3 ]" };
