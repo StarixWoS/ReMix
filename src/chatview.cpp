@@ -208,11 +208,15 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             if ( tmpPlr != nullptr
                                  && plr != tmpPlr )
                             {
-                                //Forcibly re-send the User's Camp Packet.
-                                if ( !plr->getSentCampPacket() )
+                                if ( plr->getSceneHost() != tmpPlr->getSernum_i()
+                                  || plr->getSceneHost() <= 0 )
                                 {
-                                    tmpPlr->forceSendCampPacket();
-                                    plr->setSentCampPacket( true );
+                                    if ( tmpPlr->getTargetType() == Player::ALL )
+                                    {
+                                        tmpPlr->setTargetSerNum( plr->getSernum_i() );
+                                        tmpPlr->setTargetType( Player::PLAYER );
+                                        tmpPlr->forceSendCampPacket();
+                                    }
                                 }
                             }
                         }

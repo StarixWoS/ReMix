@@ -9,6 +9,7 @@ Version 2.5.1:
 
     Bugfixes:
       * User Camp packets are no longer spammed when a new User connects to a server with Camped Users.
+        * Camp packets are now only sent to the newly connecting User.
 
 
 

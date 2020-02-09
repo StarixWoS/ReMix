@@ -778,7 +778,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            mute = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
+            mute = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Mute, all );
             if ( mute )
                 break;
         }
