@@ -316,7 +316,12 @@
         //Valid Ban Durations in seconds.
         //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent
         enum class PunishDurations: int{ Invalid = 0,
-                                         One_Day = 86400,
+                                         THIRTY_SECONDS = 30,
+                                         ONE_MINUTE = 60,
+                                         TEN_MINUTES = 600,
+                                         THIRTY_MINUTES = 1800,
+                                         ONE_HOUR = 3600,
+                                         ONE_DAY = 86400,
                                          SEVEN_DAYS = 604800,
                                          THIRTY_DAYS = 2592000,
                                          SIX_MONTHS = 15552000,

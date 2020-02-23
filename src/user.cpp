@@ -46,7 +46,12 @@ const QStringList User::keys =
 const QVector<PunishDurations> User::punishDurations =
 {
     PunishDurations::Invalid,
-    PunishDurations::One_Day,
+    PunishDurations::THIRTY_SECONDS,
+    PunishDurations::ONE_MINUTE,
+    PunishDurations::TEN_MINUTES,
+    PunishDurations::THIRTY_MINUTES,
+    PunishDurations::ONE_HOUR,
+    PunishDurations::ONE_DAY,
     PunishDurations::SEVEN_DAYS,
     PunishDurations::THIRTY_DAYS,
     PunishDurations::SIX_MONTHS,
@@ -181,7 +186,9 @@ QString User::requestReason(QWidget* parent)
 PunishDurations User::requestDuration(QWidget* parent)
 {
     QStringList items;
-                items << "No Duration" << "24 Hours" << "7 Days" << "30 Days"
+                items << "No Duration" << "30 Seconds" << "1 Minute"
+                      << "10 Minutes" << "30 Minutes" << "1 Hour"
+                      << "24 Hours" << "7 Days" << "30 Days"
                       << "6 Months" << "1 Year" << "Permanent";
 
     bool ok;
@@ -723,7 +730,8 @@ void User::updateCallCount(const QString& serNum)
 }
 
 void User::logBIO(const QString& serNum, const QHostAddress& ip,
-                  const QString& dv, const QString& wv, const QString& bio)
+                  const quint16 port, const QString& dv,
+                  const QString& wv, const QString& bio)
 {
     User* user = User::getInstance();
     QString sernum{ serNum };
@@ -775,6 +783,12 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
                                  UserCols::LastSeen ),
                              date );
     }
+
+    QString msg{ "Recieved ping from User [ %1:%2 ] with "
+                 "SoulID [ %3 ] and BIO data; %4" };
+            msg = msg.arg( ip.toString() ).arg( port ).arg( serNum ).arg( bio );
+    Logger::getInstance()->insertLog( "UsageLog", msg,
+                                      LogTypes::USAGE, true, true );
 }
 
 QByteArray User::getBIOData(const QString& sernum)

@@ -154,7 +154,9 @@ void Logger::insertLog(const QString& source, const QString& message,
     QAbstractItemModel* tblModel = ui->logView->model();
     QString time = Helper::getTimeAsString();
 
-    if ( tblModel != nullptr )
+    if ( tblModel != nullptr
+      && ( type != LogTypes::Chat ) ) //Prevent Chat from appearing
+                                      //within the Logger UI.
     {
         qint32 row = tblModel->rowCount();
         tblModel->insertRow( row );

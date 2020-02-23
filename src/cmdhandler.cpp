@@ -533,36 +533,30 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target,
                                 const QString& arg1, const GMCmds& argIndex,
                                 const bool& all)
 {
+    if ( admin == nullptr || target == nullptr )
+        return false;
+
     //Remote commands cannot affect the issuer.
     if ( admin == target )
     {
         this->cannotIssueAction( admin, arg1, argIndex );
         return false;
     }
-
-    //Remote commands cannot affect other remote administrators.
-    if ( target != nullptr )
-    {
-        //The target matches the Remote-Administrators conditions.
-        QString sernum = Helper::serNumToHexStr( arg1 );
-        if ( target->getPublicIP() == arg1
-          || target->getSernumHex_s() == sernum
-          || all )
+    else if ( target->getIsAdmin() )
+    {   //Remote commands cannot affect other remote administrators.
+        //If the Admin has a higher rank then the command will succeed.
+        if ( admin->getAdminRank() <= target->getAdminRank() )
         {
-            return true;
-        }
-
-        if ( target->getIsAdmin() )
-        {
-            //If the Admin has a higher rank then the command will succeed.
-            if ( admin->getAdminRank() <= target->getAdminRank() )
-            {
-                //If the Admin's rank was less or equal the command will fail.
-                this->cannotIssueAction( admin, arg1, argIndex );
-                return false;
-            }
+            //If the Admin's rank was less or equal the command will fail.
+            this->cannotIssueAction( admin, arg1, argIndex );
+            return false;
         }
     }
+
+    //The target matches the Remote-Administrators conditions.
+    QString sernum = Helper::serNumToHexStr( arg1 );
+    if ( this->isTarget( target, arg1, all ) )
+        return true;
 
     //Fallthrough, command cannot be issued.
     return false;
@@ -581,7 +575,20 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1,
                              .arg( cmdTable->getCmdName( argIndex ) )
                              .arg( arg1 );
 
-    admin->sendMessage( message, false );
+            admin->sendMessage( message, false );
+}
+
+bool CmdHandler::isTarget(Player* target, const QString& arg1,
+                          const bool isAll)
+{
+    QString sernum = Helper::serNumToHexStr( arg1 );
+    if ( target->getPublicIP() == arg1
+      || target->getSernumHex_s() == sernum
+      || isAll )
+    {
+        return true;
+    }
+    return false;
 }
 
 bool CmdHandler::validateAdmin(Player* plr, GMRanks& rank,
@@ -659,9 +666,14 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            ban = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
-            if ( ban )
-                break;
+            if ( this->isTarget( tmpPlr, arg1, all ) )
+            {
+                ban = this->canIssueAction( plr, tmpPlr, arg1,
+                                            GMCmds::Ban, all );
+
+                if ( ban )
+                    break;
+            }
         }
         ban = false;
     }
@@ -743,19 +755,22 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            if ( this->canIssueAction( plr, tmpPlr, arg1, argIndex, all ) )
+            if ( this->isTarget( tmpPlr, arg1, all ) )
             {
-                tmpPlr->sendMessage( reason, false );
+                if ( this->canIssueAction( plr, tmpPlr, arg1, argIndex, all ) )
+                {
+                    tmpPlr->sendMessage( reason, false );
 
-                reason = "Remote-Kick; %1: [ %2 ], [ %3 ]";
-                reason = reason.arg( msg )
-                               .arg( tmpPlr->getSernum_s() )
-                               .arg( tmpPlr->getBioData() );
+                    reason = "Remote-Kick; %1: [ %2 ], [ %3 ]";
+                    reason = reason.arg( msg )
+                             .arg( tmpPlr->getSernum_s() )
+                             .arg( tmpPlr->getBioData() );
 
-                Logger::getInstance()->insertLog( server->getName(), reason,
-                                                  LogTypes::DC, true, true );
+                    Logger::getInstance()->insertLog( server->getName(), reason,
+                                                      LogTypes::DC, true, true );
 
-                tmpPlr->setDisconnected( true, DCTypes::IPDC );
+                    tmpPlr->setDisconnected( true, DCTypes::IPDC );
+                }
             }
         }
     }
@@ -778,9 +793,13 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
         if ( tmpPlr != nullptr && tmpPlr != plr )
         {
             //Check target validity.
-            mute = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Mute, all );
-            if ( mute )
-                break;
+            if ( this->isTarget( tmpPlr, arg1, all ) )
+            {
+                mute = this->canIssueAction( plr, tmpPlr, arg1,
+                                             GMCmds::Mute, all );
+                if ( mute )
+                    break;
+            }
         }
         mute = false;
     }
@@ -790,7 +809,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
         QString dateString{ "" };
         quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
         qint32 muteDuration{ static_cast<qint32>(
-                                 PunishDurations::THIRTY_DAYS ) };
+                                 PunishDurations::TEN_MINUTES ) };
 
         if ( !duration.isEmpty() )
         {
@@ -800,7 +819,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
             if ( muteDuration == 0 )
             {
                 muteDuration = static_cast<qint32>(
-                                   PunishDurations::THIRTY_DAYS );
+                                   PunishDurations::TEN_MINUTES );
             }
         }
 
@@ -1052,6 +1071,8 @@ void CmdHandler::shutDownHandler(Player* plr, const QString& duration,
         if ( time == 0 )
             stop = true;
     }
+    else //Default the shutdown action to 30 seconds.
+        time = static_cast<qint32>( PunishDurations::THIRTY_SECONDS );
 
     if ( !stop )
     {

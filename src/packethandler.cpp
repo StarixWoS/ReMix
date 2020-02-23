@@ -400,7 +400,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                 server->sendServerInfo( ipAddr, port );
                                 bioHash->insert( ipAddr, udp.mid( 1 ) );
                             }
-                            User::logBIO( sernum, ipAddr, dVar, wVar, data );
+                            User::logBIO( sernum, ipAddr, port, dVar, wVar, data );
                         }
                         server->setUserPings( server->getUserPings() + 1 );
                     }
@@ -504,8 +504,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                             reason = reason.arg( plr->getPublicIP() )
                                            .arg( plr->getBioData() );
 
+                            //Ban for only half an hour.
                             User::addBan( nullptr, plr, reason, false,
-                                          PunishDurations::THIRTY_DAYS );
+                                          PunishDurations::THIRTY_MINUTES );
 
                             Logger::getInstance()->insertLog(
                                         server->getName(), reason,
@@ -686,7 +687,12 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
 
 void PacketHandler::readMIX5(const QString& packet, Player* plr)
 {
-    cmdHandle->parseMix5Command( plr, packet );
+    if ( plr!= nullptr )
+    {
+        //Do not accept comments from User who have been muted.
+        if ( !plr->getNetworkMuted() )
+            cmdHandle->parseMix5Command( plr, packet );
+    }
 }
 
 void PacketHandler::readMIX6(const QString& packet, Player* plr)

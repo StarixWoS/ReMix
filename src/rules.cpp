@@ -96,7 +96,8 @@ QString Rules::getRuleSet(const QString& svrID)
         else
             rules = rules.append( value.toString() );
 
-        rules.append( ", " );
+        if ( i < ( ruleList.count() - 1 ) )
+            rules.append( ", " );
     }
     Settings::prefs->endGroup();
     return rules;

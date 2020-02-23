@@ -2,6 +2,22 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.2:
+    Change:
+      * Users who have been Muted will no longer have the ability to send comments via the Admin Window to the Server Host.
+
+
+    Bugfixes:
+      * Remote Administrator commands will no longer send a warning that the selected target is an Admin or Offline if neither state is true.
+      * Mutes, whether automatic or remote-initiated via Admin Commands will now default to 10 minutes.
+        * This duration was previously 30 Days.
+      * Chat from the Chat view will no longer appear within the Logger UI.
+      * When the "Ban Duplicate IP's" option is enabled, Users will now only be banned for a duration of 10 Minutes.
+        * This duration was previously 30 Days.
+
+
+
+
 Version 2.5.1:
     Change:
       * Implemented Mute durations.

@@ -31,6 +31,8 @@ class CmdHandler : public QObject
         void cannotIssueAction(Player* admin, const QString& arg1,
                                const GMCmds& argIndex);
 
+        bool isTarget(Player* target, const QString& arg1, const bool isAll = false);
+
     private:
         bool validateAdmin(Player* plr, GMRanks& rank, const QString& cmdStr);
         GMRanks getAdminRank(Player* plr);

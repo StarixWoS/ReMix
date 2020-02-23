@@ -14,11 +14,9 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "help",
         {},
         0,
-        "Help Description: Shows command information and syntax. "
-        "e.g. (/help help) and (/help help format)",
-        "Help Usage: /help *Command *format. "
-        "e.g. (/help help) will show the command description, "
-        "and (/help help format) will show the command format.",
+        "Help Description: Shows command information and syntax.",
+        "Help Usage: /help *Command"
+        "e.g. (/help help) will show the command description and format!",
         GMRanks::User,
         true,
     },
@@ -67,7 +65,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all"  },
         3,
         "Ban Description: Bans the selected user and prevents their future connection to the server.",
-        "Ban Usage: /ban Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default to seconds if not provided). "
+        "Ban Usage: /ban Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default to 30 Days if not provided). "
         "e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
         GMRanks::CoAdmin,
         true,
@@ -98,8 +96,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all" },
         3,
         "Mute Description: Adds a network mute to the selected User.",
-        "Mute Usage: /mute Soul|IP|All(Permission Required) *Reason (Optional). "
-        "e.g. (/mute soul 4000 Bad behavior) or (/mute ip 10.0.0.1 Bad behavior.)",
+        "Mute Usage: /mute Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default 10 Minutes if not provided). "
+        "e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
         GMRanks::GMaster,
         true,
     },
