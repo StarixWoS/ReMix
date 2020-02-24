@@ -2,6 +2,21 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.3:
+    Change:
+      * ReMix will now log, and show within the Logger UI when a Server Side Variable is being accessed with a read/write.
+        * The newly generated logs will appear within the log directory and sub directory with the name [QuestLog].
+
+
+    Bugfixes:
+      * Server Side Variables when being written will now forward the updated variable information to all connected Users.
+        * Previously no update information was being sent. It has been verified that the intended behaviour was to forward the update to connected Users.
+      * Corrected a state mismatch with the message being sent with the /vanish admin command.
+        * When no sub-command was issued, the state would always show as being "invisible" within the message being sent to the Remote Administrator.
+
+
+
+
 Version 2.5.2:
     Change:
       * Users who have been Muted will no longer have the ability to send comments via the Admin Window to the Server Host.

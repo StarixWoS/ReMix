@@ -307,7 +307,8 @@
 
         //Valid Log types available to the Logger Class.
         enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
-                                  MUTE, IGNORE, MISC, PktForge, Chat = 10 };
+                                  MUTE, IGNORE, MISC, PKTFORGE, CHAT,
+                                  QUEST = 11 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,

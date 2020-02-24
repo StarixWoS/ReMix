@@ -382,7 +382,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         if ( !message.isEmpty() && log )
         {
             Logger::getInstance()->insertLog( server->getName(), message,
-                                              LogTypes::Chat, true, true );
+                                              LogTypes::CHAT, true, true );
         }
     }
     return retn;
@@ -479,7 +479,7 @@ void ChatView::on_chatInput_returnPressed()
     if ( !message.isEmpty() )
     {
         Logger::getInstance()->insertLog( server->getName(), message,
-                                          LogTypes::Chat, true, true );
+                                          LogTypes::CHAT, true, true );
     }
 
     emit this->sendChat( message );

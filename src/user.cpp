@@ -730,8 +730,7 @@ void User::updateCallCount(const QString& serNum)
 }
 
 void User::logBIO(const QString& serNum, const QHostAddress& ip,
-                  const quint16 port, const QString& dv,
-                  const QString& wv, const QString& bio)
+                  const QString& dv, const QString& wv, const QString& bio)
 {
     User* user = User::getInstance();
     QString sernum{ serNum };
@@ -783,12 +782,6 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
                                  UserCols::LastSeen ),
                              date );
     }
-
-    QString msg{ "Recieved ping from User [ %1:%2 ] with "
-                 "SoulID [ %3 ] and BIO data; %4" };
-            msg = msg.arg( ip.toString() ).arg( port ).arg( serNum ).arg( bio );
-    Logger::getInstance()->insertLog( "UsageLog", msg,
-                                      LogTypes::USAGE, true, true );
 }
 
 QByteArray User::getBIOData(const QString& sernum)

@@ -36,6 +36,7 @@ const QStringList Logger::logType =
     "Misc",
     "PacketForge",
     "ChatLog",
+    "QuestLog",
 };
 
 Logger::Logger(QWidget *parent) :
@@ -155,7 +156,7 @@ void Logger::insertLog(const QString& source, const QString& message,
     QString time = Helper::getTimeAsString();
 
     if ( tblModel != nullptr
-      && ( type != LogTypes::Chat ) ) //Prevent Chat from appearing
+      && ( type != LogTypes::CHAT ) ) //Prevent Chat from appearing
                                       //within the Logger UI.
     {
         qint32 row = tblModel->rowCount();

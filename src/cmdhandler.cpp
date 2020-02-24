@@ -1134,7 +1134,7 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
 
     bool isVisible{ plr->getIsVisible() };
     if ( !isVisible )
-        state = "invisible";
+        state = "visible";
 
     if ( subCmd.isEmpty() )
     {

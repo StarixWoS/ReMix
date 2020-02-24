@@ -400,7 +400,16 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                 server->sendServerInfo( ipAddr, port );
                                 bioHash->insert( ipAddr, udp.mid( 1 ) );
                             }
-                            User::logBIO( sernum, ipAddr, port, dVar, wVar, data );
+                            User::logBIO( sernum, ipAddr, dVar, wVar, data );
+
+                            QString msg{ "Recieved ping from User [ %1:%2 ] "
+                                         "with SoulID [ %3 ] and BIO data; %4" };
+                                    msg = msg.arg( ipAddr.toString() )
+                                             .arg( port ).arg( sernum )
+                                             .arg( data );
+                            Logger::getInstance()->insertLog(
+                                        server->getName(), msg, LogTypes::USAGE,
+                                        true, true );
                         }
                         server->setUserPings( server->getUserPings() + 1 );
                     }
@@ -716,58 +725,107 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
 
 void PacketHandler::readMIX8(const QString& packet, Player* plr)
 {
-    QDir ssvDir( "mixVariableCache" );
-    if ( ssvDir.exists() )
-    {
-        QString pkt = packet;
-                pkt = pkt.mid( 10 );
-                pkt = pkt.left( pkt.length() - 2 );
-
-        QString sernum = pkt.mid( 2 ).left( 8 );
-        QStringList vars = pkt.split( ',' );
-        QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
-
-        if ( Settings::getAllowSSV() )
-        {
-            QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
-                           QSettings::IniFormat );
-            val = val.arg( sernum )
-                     .arg( vars.value( 0 ) )
-                     .arg( vars.value( 1 ) )
-                     .arg( vars.value( 2 ) )
-                     .arg( ssv.value( vars.value( 1 )
-                                    % "/"
-                                    % vars.value( 2 ), "" ).toString() );
-        }
-        else
-            val = "";
-
-        QTcpSocket* soc{ plr->getSocket() };
-        if ( !val.isEmpty()
-          && soc != nullptr )
-        {
-            soc->write( val.toLatin1(), val.length() );
-        }
-    }
+    this->handleSSVReadWrite( packet, plr, false );
 }
 
-void PacketHandler::readMIX9(const QString& packet, Player*)
+void PacketHandler::readMIX9(const QString& packet, Player* plr)
 {
-    QDir ssvDir( "mixVariableCache" );
-    if ( !ssvDir.exists() )
-        ssvDir.mkpath( "." );
+    this->handleSSVReadWrite( packet, plr, true );
+}
 
-    QString pkt = packet;
-            pkt = pkt.mid( 10 );
-            pkt = pkt.left( pkt.length() - 2 );
+void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr,
+                                       const bool write)
+{
+    if ( plr == nullptr || packet.isEmpty() )
+        return;
 
-    QStringList vars = pkt.split( ',' );
+    QTcpSocket* soc{ plr->getSocket() };
+    qint64 bOut{ 0 };
+
+    QString accessType{ "Read" };
     if ( Settings::getAllowSSV() )
     {
+        QString pkt = packet;
+        pkt = pkt.mid( 10 );
+        pkt = pkt.left( pkt.length() - 2 );
+        QStringList vars = pkt.split( ',' );
+
         QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini",
                        QSettings::IniFormat );
+        QString sernum = pkt.mid( 2 ).left( 8 );
 
-        ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ),
-                      vars.value( 3 ) );
+        QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
+        QDir ssvDir( "mixVariableCache" );
+        if ( write )
+        {
+            accessType = "Write";
+            if ( !ssvDir.exists() )
+                ssvDir.mkpath( "." );
+
+            ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ),
+                          vars.value( 3 ) );
+        }
+
+        if ( ssvDir.exists() )
+        {
+            val = val.arg( sernum )
+                     .arg( vars.value( 0 ) ) //file name
+                     .arg( vars.value( 1 ) ) //category
+                     .arg( vars.value( 2 ) ) //variable
+                     .arg( ssv.value( vars.value( 1 ) //value
+                                    % "/"
+                                    % vars.value( 2 ), "" ).toString() );
+
+            if ( write )
+            {
+                Player* tmpPlr{ nullptr };
+                QTcpSocket* tmpSoc{ nullptr };
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr
+                      && plr != tmpPlr )
+                    {
+                        tmpSoc = plr->getSocket();
+                        if ( tmpSoc != nullptr )
+                        {
+                            bOut = tmpSoc->write( val.toLatin1(), val.length() );
+
+                            tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
+                            tmpPlr->setBytesOut( tmpPlr->getBytesOut()
+                                                 + static_cast<quint64>( bOut ) );
+                            server->setBytesOut( server->getBytesOut()
+                                                 + static_cast<quint64>( bOut ) );
+                        }
+                    }
+                }
+            }
+            else if ( !val.isEmpty()
+                   && !write
+                   && soc != nullptr )
+            {
+                    bOut = soc->write( val.toLatin1(), val.length() );
+
+                    plr->setPacketsOut( plr->getPacketsOut() + 1 );
+                    plr->setBytesOut( plr->getBytesOut()
+                                      + static_cast<quint64>( bOut ) );
+                    server->setBytesOut( server->getBytesOut()
+                                         + static_cast<quint64>( bOut ) );
+            }
+        }
+
+        QString msg{ "Server Variable being Accessed[ %1 ]: SerNum[ %2 ], "
+                     "FileName[ %3 ], Category[ %4 ], Variable[ %5 ], "
+                     "Value[ %6 ]" };
+
+        msg = msg.arg( accessType )
+                 .arg( plr->getSernum_s() )
+                 .arg( vars.value( 0 ) % ".ini" ) //file name
+                 .arg( vars.value( 1 ) ) //category
+                 .arg( vars.value( 2 ) ) //variable
+                 .arg( vars.value( 3 ) ); //value
+
+        Logger::getInstance()->insertLog( server->getName(), msg,
+                                          LogTypes::QUEST, true, true );
     }
 }
