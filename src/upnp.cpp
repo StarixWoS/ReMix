@@ -26,6 +26,7 @@ QStringList UPNP::schemas =
 };
 
 QHostAddress UPNP::externalAddress;
+QMap<qint32, bool> UPNP::permFwd;
 QVector<qint32> UPNP::ports;
 bool UPNP::tunneled{ false };
 UPNP* UPNP::upnp{ nullptr };
@@ -36,7 +37,6 @@ UPNP* UPNP::getInstance()
         upnp = new UPNP();
 
     QString msg{ "Getting UPNP Object." };
-    //Helper::logToFile( Helper::UPNP, msg, true, true );
     Logger::getInstance()->insertLog( "UPNP", msg, LogTypes::UPNP, true, true);
 
     return upnp;
@@ -79,9 +79,9 @@ UPNP::UPNP(QObject* parent )
         QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
                           [=]()
         {
-            for (  qint32 port : ports )
+            for ( qint32 port : ports )
             {
-                if ( port != 0 )
+                if ( port != 0 && !permFwd.value( port, false ) )
                 {
                     this->addPortForward( "TCP", port );
                     this->addPortForward( "UDP", port );
@@ -90,9 +90,7 @@ UPNP::UPNP(QObject* parent )
         });
 
         QString logMsg{ "Creating UPNP Object." };
-        //Helper::logToFile( Helper::UPNP, msg, true, true );
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                          true, true);
+        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
     else    //Delete our object at the next oppertunity.
     {
@@ -131,9 +129,8 @@ void UPNP::makeTunnel()
 
     QString logMsg{ "Sent UDP Query Response [ %1 ]." };
     logMsg = logMsg.arg( discover.trimmed() );
-    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
+
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
 void UPNP::getUdp()
@@ -149,10 +146,8 @@ void UPNP::getUdp()
         QString logMsg{ "" };
 
         datagram.resize( static_cast<int>( udpSocket->pendingDatagramSize() ) );
-        udpSocket->readDatagram( datagram.data(),
-                                 datagram.size(),
-                                 &sender,
-                                 &senderPort );
+        udpSocket->readDatagram( datagram.data(), datagram.size(),
+                                 &sender, &senderPort );
 
         QHostAddress st_addr( sender.toIPv4Address() );
         if ( st_addr != localAddress.ip() )
@@ -164,9 +159,8 @@ void UPNP::getUdp()
             {
                 logMsg = "Got UDP Query Response [ %1 ].";
                 logMsg = logMsg.arg( vs.trimmed() );
-                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-                Logger::getInstance()->insertLog( "UPNP", logMsg,
-                                                  LogTypes::UPNP, true, true);
+
+                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
             }
 
             int index = Helper::getStrIndex( vs, "Location" );
@@ -230,10 +224,8 @@ void UPNP::getUdp()
                                 logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
                                 logMsg = logMsg.arg( rtrSchema )
                                                .arg( schema );
-                                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-                                Logger::getInstance()->insertLog(
-                                            "UPNP", logMsg, LogTypes::UPNP,
-                                            true, true);
+
+                                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                                 validSchema = false;
                                 if ( Helper::cmpStrings( rtrSchema, schema ) )
@@ -246,14 +238,12 @@ void UPNP::getUdp()
                             if ( validSchema )
                             {
                                 while ( ( !reader.atEnd() )
-                                     && ( !Helper::cmpStrings( reader.name().toString(),
-                                                           "controlUrl" ) ) )
+                                     && ( !Helper::cmpStrings( reader.name().toString(), "controlUrl" ) ) )
                                 {
                                     reader.readNext();
                                 }
 
-                                if ( Helper::cmpStrings( reader.name().toString(),
-                                                     "controlUrl" ) )
+                                if ( Helper::cmpStrings( reader.name().toString(), "controlUrl" ) )
                                 {
                                     gatewayCtrlUrl = QString( "http://%1:%2%3" )
                                                          .arg( gateway.toString() )
@@ -262,10 +252,8 @@ void UPNP::getUdp()
 
                                     logMsg = "Got ControlURL[ %1 ].";
                                     logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
-                                    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-                                    Logger::getInstance()->insertLog(
-                                                "UPNP", logMsg, LogTypes::UPNP,
-                                                true, true);
+
+                                    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                                     this->setTunneled( true );
                                     emit this->success();
@@ -285,9 +273,8 @@ void UPNP::getUdp()
 
                 logMsg = "Requesting Service Information from [ %1 ].";
                 logMsg = logMsg.arg( vs );
-                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-                Logger::getInstance()->insertLog( "UPNP", logMsg,
-                                                  LogTypes::UPNP, true, true);
+
+                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                 httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
                 udpSocket->close();
@@ -309,9 +296,8 @@ void UPNP::getExternalIP()
     this->postSOAP( "GetExternalIPAddress", message, "" );
 
     QString logMsg{ "Getting ExternalIP." };
-    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
+
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
 void UPNP::postSOAP(const QString& action, const QString& message,
@@ -378,9 +364,8 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 logMsg = logMsg.arg( action )
                                .arg( protocol )
                                .arg( port );
-                //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-                Logger::getInstance()->insertLog( "UPNP", logMsg,
-                                                  LogTypes::UPNP, true, true);
+
+                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
             }
         }
         else
@@ -432,13 +417,11 @@ void UPNP::extractError(const QString& message, const qint32& port,
 
         if ( Helper::cmpStrings( elementText, "OnlyPermanentLeasesSupported" ) )
         {
-            logMsg = "Re-attempting port forward for Port[ %1:%2 ] "
-                     "as a permanent lease.";
+            logMsg = "Re-attempting port forward for Port[ %1:%2 ] as a permanent lease.";
             logMsg = logMsg.arg( protocol )
                            .arg( port );
 
-            Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                              true, true);
+            Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
             this->addPortForward( protocol, port, true );
         }
 
@@ -455,7 +438,8 @@ void UPNP::extractError(const QString& message, const qint32& port,
 void UPNP::extractExternalIP(const QString& action, const QString& message )
 {
     QXmlStreamReader reader( message );
-    reader.readNext();
+                     reader.readNext();
+
     while ( !Helper::cmpStrings( reader.name().toString(), "NewExternalIPAddress" ) )
     {
         reader.readNext();
@@ -468,16 +452,16 @@ void UPNP::extractExternalIP(const QString& action, const QString& message )
         QString logMsg{ "Got Reply from Action[ %1 ] for [ %2 ]" };
                 logMsg = logMsg.arg( action )
                                .arg( externalAddress.toString() );
-        //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                          true, true);
+
+        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
 }
 
 void UPNP::checkPortForward(const QString& protocol, const qint32& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
-                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+                     "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
                      "<SOAP-ENV:Body><m:GetSpecificPortMappingEntry xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
                      "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
@@ -494,9 +478,7 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
     logMsg = logMsg.arg( protocol )
                    .arg( port );
 
-    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
 void UPNP::addPortForward(const QString& protocol, const qint32& port,
@@ -508,7 +490,8 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
     }
 
     QString message{ "<?xml version=\"1.0\"?>"
-                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+                     "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
                      "<SOAP-ENV:Body><m:AddPortMapping xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
                      "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
@@ -523,7 +506,10 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
     //Support for routers that only support lifetime leases.
     qint32 timeout{ UPNP_TIME_OUT_S };
     if ( lifetime )
+    {
         timeout = UPNP_TIME_OUT_PERMA;
+        permFwd.insert( port, true );
+    }
 
     message = message.arg( rtrSchema )
                      .arg( port )
@@ -540,16 +526,16 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
         QString logMsg{ "Adding Port[ %1:%2 ]." };
         logMsg = logMsg.arg( protocol )
                        .arg( port );
-        //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                          true, true);
+
+        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
 }
 
 void UPNP::removePortForward(const QString& protocol, const qint32& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
-                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+                     "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
                      "<SOAP-ENV:Body><m:DeletePortMapping xmlns:m=\"%1\">"
                      "<NewRemoteHost xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"string\"></NewRemoteHost>"
                      "<NewExternalPort xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui2\">%2</NewExternalPort>"
@@ -568,8 +554,6 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     QString logMsg{ "Removing Port[ %1:%2 ]." };
     logMsg = logMsg.arg( protocol )
                    .arg( port );
-    //Helper::logToFile( Helper::UPNP, logMsg, true, true );
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
 
+    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }

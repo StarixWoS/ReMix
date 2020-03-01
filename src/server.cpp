@@ -45,14 +45,9 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     server->setPktHandle( pktHandle );
 
     //Connect Objects.
-    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal,
-                      serverComments, &Comments::newUserCommentSlot );
-
-    QObject::connect( this, &QTcpServer::newConnection,
-                      this, &Server::newConnectionSlot );
-
-    QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead,
-                      this, &Server::readyReadUDPSlot );
+    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
+    QObject::connect( this, &QTcpServer::newConnection, this, &Server::newConnectionSlot );
+    QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead, this, &Server::readyReadUDPSlot );
 
     auto* widget = dynamic_cast<ReMixWidget*>( mother );
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
@@ -67,6 +62,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     QObject::connect( chatView, &ChatView::sendChat, chatView,
     [=](QString msg)
     {
+        qint64 bOut{ 0 };
         if ( !msg.isEmpty() )
         {
             if ( !Helper::strStartsWithStr( msg, "Owner" ) )
@@ -79,13 +75,8 @@ Server::Server(QWidget* parent, ServerInfo* svr,
                         QTcpSocket* tmpSoc{ plr->getSocket() };
                         if ( tmpSoc != nullptr  )
                         {
-                            qint64 bOut = tmpSoc->write( msg.toLatin1(),
-                                                         msg.length() );
-
-                            plr->setBytesOut( plr->getBytesOut()
-                                            + static_cast<quint64>( bOut ) );
-                            server->setBytesOut( server->getBytesOut()
-                                               + static_cast<quint64>( bOut ) );
+                            bOut = tmpSoc->write( msg.toLatin1(), msg.length() );
+                            server->updateBytesOut( plr, bOut );
                         }
                     }
                 }
@@ -125,8 +116,7 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     QByteArray data = bioHash.value( peerAddr );
     if ( data.isEmpty() )
     {
-        bioHash.insert( peerAddr, QByteArray( "No BIO Data Detected. "
-                                              "Be wary of this User!" ) );
+        bioHash.insert( peerAddr, QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
         data = bioHash.value( peerAddr );
         plr->setHasBioData( false );
     }
@@ -136,13 +126,11 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     plr->setBioData( data );
     if ( plrTableItems.contains( ip ) )
     {
-        plr->setTableRow( this->updatePlayerTableImpl( ip, data,
-                                                       plr, false ) );
+        plr->setTableRow( this->updatePlayerTableImpl( ip, data, plr, false ) );
     }
     else
     {
-        plrTableItems[ ip ] = this->updatePlayerTableImpl( ip, data,
-                                                           plr, true );
+        plrTableItems[ ip ] = this->updatePlayerTableImpl( ip, data, plr, true );
 
         plr->setTableRow( plrTableItems.value( ip ) );
         server->sendMasterInfo();
@@ -150,8 +138,7 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     pktHandle->checkBannedInfo( plr );
 }
 
-QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP,
-                                             const QByteArray& data,
+QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data,
                                              Player* plr, const bool& insert)
 {
     QString bio = QString( data );
@@ -237,8 +224,7 @@ void Server::setupServerInfo()
     if ( this->isListening() )
         this->close();
 
-    this->listen( QHostAddress( server->getPrivateIP() ),
-                                server->getPrivatePort() );
+    this->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
 }
 
 void Server::newConnectionSlot()
@@ -295,8 +281,7 @@ void Server::userReadyRead(QTcpSocket* socket)
     qint64 bIn = data.length();
 
     data.append( socket->readAll() );
-    server->setBytesIn( server->getBytesIn()
-                      + static_cast<quint64>(data.length() - bIn) );
+    server->setBytesIn( server->getBytesIn() + static_cast<quint64>(data.length() - bIn ) );
 
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
@@ -317,8 +302,7 @@ void Server::userReadyRead(QTcpSocket* socket)
             plr->setOutBuff( data );
 
             plr->setPacketsIn( plr->getPacketsIn(), 1 );
-            plr->setBytesIn( plr->getBytesIn()
-                           + static_cast<quint64>( packet.length() ) );
+            plr->setBytesIn( plr->getBytesIn() + static_cast<quint64>( packet.length() ) );
 
             pktHandle->parsePacket( packet, plr );
             if ( socket->bytesAvailable() > 0
@@ -373,8 +357,7 @@ void Server::readyReadUDPSlot()
         quint16 senderPort{ 0 };
 
         data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
-        socket->readDatagram( data.data(), data.size(),
-                              &senderAddr, &senderPort );
+        socket->readDatagram( data.data(), data.size(), &senderAddr, &senderPort );
 
         pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
         if ( socket->hasPendingDatagrams() )

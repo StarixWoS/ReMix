@@ -119,11 +119,12 @@ class ServerInfo : public QObject
         int getSocketSlot(QTcpSocket* soc);
         int getQItemSlot(QStandardItem* index);
 
+        void sendPlayerSocketInfo();
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(const QString& packet, Player* plr = nullptr,
                                const bool toAll = false);
-        qint64 sendToAllConnected(const QString& packet);
+        void sendToAllConnected(const QString& packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -261,6 +262,8 @@ class ServerInfo : public QObject
 
         PacketHandler* getPktHandle() const;
         void setPktHandle(PacketHandler* value);
+
+        void updateBytesOut(Player* plr, const qint64 bOut);
 
     signals:
         void serverIsSetup();

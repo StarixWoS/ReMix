@@ -251,18 +251,14 @@ bool Helper::isBlueCodedSerNum(const quint32& sernum)
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
-    qint32 value = QMessageBox::question( parent, title, prompt,
-                                          QMessageBox::Yes | QMessageBox::No,
-                                          QMessageBox::No );
+    qint32 value = QMessageBox::question( parent, title, prompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
     return value == QMessageBox::Yes;
 }
 
 qint32 Helper::warningMessage(QWidget* parent, const QString& title,
                               const QString& prompt)
 {
-    return QMessageBox::warning( parent, title, prompt,
-                                 QMessageBox::NoButton,
-                                 QMessageBox::Ok );
+    return QMessageBox::warning( parent, title, prompt, QMessageBox::NoButton, QMessageBox::Ok );
 }
 
 QString Helper::getTextResponse(QWidget* parent, const QString& title,
@@ -273,14 +269,11 @@ QString Helper::getTextResponse(QWidget* parent, const QString& title,
     QString response{ "" };
     if ( type == 0 )    //Single-line message.
     {
-        response = QInputDialog::getText( parent, title, prompt,
-                                          QLineEdit::Normal,
-                                          defaultInput, ok );
+        response = QInputDialog::getText( parent, title, prompt, QLineEdit::Normal, defaultInput, ok );
     }
     else if ( type == 1 )   //Multi-line message.
     {
-        response = QInputDialog::getMultiLineText( parent, title, prompt,
-                                                   defaultInput, ok );
+        response = QInputDialog::getMultiLineText( parent, title, prompt, defaultInput, ok );
     }
     return response;
 }
@@ -288,10 +281,7 @@ QString Helper::getTextResponse(QWidget* parent, const QString& title,
 QString Helper::getDisconnectReason(QWidget* parent)
 {
     QString label{ "Disconnect Reason ( Sent to User ):" };
-    QInputDialog* dialog{
-        createInputDialog( parent, label,
-                           QInputDialog::TextInput,
-                           355, 170 ) };
+    QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
 
     dialog->exec();
     dialog->deleteLater();
@@ -314,10 +304,8 @@ QString Helper::genPwdSalt(const qint32& length)
     QString salt{ "" };
     QString charList
     {
-        "0123456789"
-        "`~!@#$%^&*-_=+{([])}|;:'\"\\,./?<>"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789 `~!@#$%^&*-_=+{([])}|;:'\"\\,./?<>"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
     };
 
     qint32 chrPos{ -1 };
@@ -341,8 +329,7 @@ bool Helper::validateSalt(QString& salt)
 
     for ( int i = 0; i < groups.count(); ++i )
     {
-        j =  userData->value( groups.at( i ) % "/salt" )
-                         .toString();
+        j = userData->value( groups.at( i ) % "/salt" ).toString();
 
         if ( j == salt )
             return false;
@@ -447,20 +434,17 @@ void Helper::getSynRealData(ServerInfo* svr)
 
     QString message{ "Fetching Master Info from [ %1 ]." };
             message = message.arg( svr->getMasterInfoHost() );
-    Logger::getInstance()->insertLog( svr->getName(), message,
-                                      LogTypes::USAGE, true, true );
+    Logger::getInstance()->insertLog( svr->getName(), message, LogTypes::USAGE, true, true );
 
     QFileInfo synRealFile( "synReal.ini" );
 
     bool downloadFile = true;
     if ( synRealFile.exists() )
     {
-        qint64 curTime = static_cast<qint64>(
-                             QDateTime::currentDateTime()
-                                  .toMSecsSinceEpoch() / 1000 );
-        qint64 modTime = static_cast<qint64>(
-                             synRealFile.lastModified()
-                                  .toMSecsSinceEpoch() / 1000 );
+        qint64 curTime = static_cast<qint64>(  QDateTime::currentDateTime()
+                                                                 .toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>( synRealFile.lastModified()
+                                                              .toMSecsSinceEpoch() / 1000 );
 
         //Check if the file is 48 hours old and set our bool.
         downloadFile = ( curTime - modTime >= 172800 );
@@ -477,8 +461,7 @@ void Helper::getSynRealData(ServerInfo* svr)
         [=]()
         {
             socket->write( QString( "GET %1\r\n" )
-                               .arg( svr->getMasterInfoHost() )
-                                             .toLatin1() );
+                               .arg( svr->getMasterInfoHost() ).toLatin1() );
         });
 
         QObject::connect( socket, &QTcpSocket::readyRead, socket,
@@ -494,8 +477,7 @@ void Helper::getSynRealData(ServerInfo* svr)
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( svr->getGameName()
-                                        % "/master" ).toString();
+            QString str = settings.value( svr->getGameName() % "/master" ).toString();
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {

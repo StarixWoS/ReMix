@@ -204,8 +204,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
 
     QString serverName{ this->getName() };
     QString sGameInfo{ this->getGameInfo() };
-    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 "
-                      "//ReMix[ %7 ]" };
+    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 //ReMix[ %7 ]" };
 
     if ( !sGameInfo.isEmpty() )
         sGameInfo = " [world=" % sGameInfo % "]";
@@ -282,8 +281,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        Logger::getInstance()->insertLog( this->getName(), msg,
-                                          LogTypes::USAGE, true, true );
+        Logger::getInstance()->insertLog( this->getName(), msg, LogTypes::USAGE, true, true );
     }
 }
 
@@ -297,8 +295,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     {
         if ( this->getIsSetUp() )
         {
-            response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,"
-                       "port=%7,info=%8,name=%9";
+            response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6, port=%7,info=%8,name=%9";
             response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
                                .arg( static_cast<int>( this->getGameId() ) )
@@ -366,21 +363,17 @@ void ServerInfo::deletePlayer(const int& slot)
     Player* plr = this->getPlayer( slot );
     if ( plr != nullptr )
     {
-        QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 "
-                        "bytes in %4 packets, averaging %5 baud [ %6 ]" };
+        QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
         if ( plr != nullptr )
         {
             logMsg = logMsg.arg( plr->getPublicIP() )
-                           .arg( Helper::getTimeIntFormat(
-                                     plr->getConnTime(),
-                                     TimeFormat::Minutes ) )
+                           .arg( Helper::getTimeIntFormat( plr->getConnTime(), TimeFormat::Minutes ) )
                            .arg( plr->getBytesIn() )
                            .arg( plr->getPacketsIn() )
                            .arg( plr->getAvgBaud( false ) )
                            .arg( plr->getBioData() );
 
-            Logger::getInstance()->insertLog( this->getName(), logMsg,
-                                              LogTypes::USAGE, true, true );
+            Logger::getInstance()->insertLog( this->getName(), logMsg, LogTypes::USAGE, true, true );
         }
 
         QTcpSocket* soc = plr->getSocket();
@@ -441,6 +434,45 @@ int ServerInfo::getQItemSlot(QStandardItem* index)
     return slot;
 }
 
+void ServerInfo::sendPlayerSocketInfo()
+{
+    QString response{ ":SR@I" };
+    QString filler{ "%1=%2," };
+
+    Player* tmpPlr{ nullptr };
+    QHostAddress ipAddr;
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        tmpPlr = this->getPlayer( i );
+        if ( tmpPlr != nullptr && tmpPlr->getHasSernum() )
+        {
+            ipAddr = QHostAddress( tmpPlr->getPublicIP() );
+            response = response.append(
+                           filler.arg( Helper::intToStr( tmpPlr->getSernum_i(), 16 ) )
+                                 .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, 16 ) ) );
+        }
+    }
+    response = response.append( "\r\n" );
+
+    QTcpSocket* soc{ nullptr };
+    tmpPlr = nullptr;
+    qint64 bOut{ 0 };
+
+    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    {
+        tmpPlr = this->getPlayer( i );
+        if ( tmpPlr!= nullptr )
+        {
+            soc = tmpPlr->getSocket();
+            if ( soc != nullptr )
+            {
+                bOut = soc->write( response.toLatin1(), response.length() );
+                this->updateBytesOut( tmpPlr, bOut );
+            }
+        }
+    }
+}
+
 void ServerInfo::sendServerRules(Player* plr)
 {
     QTcpSocket* soc{ nullptr };
@@ -458,13 +490,7 @@ void ServerInfo::sendServerRules(Player* plr)
             rules = rules.arg( Rules::getRuleSet( serverName ) );
 
     bOut = soc->write( rules.toLatin1(), rules.length() );
-    if ( bOut >= 1 )
-    {
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + static_cast<quint64>( bOut ) );
-
-        this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
-    }
+    this->updateBytesOut( plr, bOut );
 }
 
 void ServerInfo::sendServerGreeting(Player* plr)
@@ -473,8 +499,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     QString greeting = Settings::getMOTDMessage( serverName );
     if ( Settings::getRequirePassword() )
     {
-        greeting.append( " Password required: Please reply with (/login *PASS)"
-                         " or be disconnected." );
+        greeting.append( " Password required: Please reply with (/login *PASS) or be disconnected." );
         plr->setSvrPwdRequested( true );
     }
 
@@ -497,31 +522,25 @@ void ServerInfo::sendMasterMessage(const QString& packet, Player* plr,
     qint64 bOut{ 0 };
     if ( toAll )
     {
-        bOut = this->sendToAllConnected( msg );
+        this->sendToAllConnected( msg );
     }
     else if ( plr == nullptr
            && toAll )
     {
-        bOut = this->sendToAllConnected( msg );
+        this->sendToAllConnected( msg );
     }
     else if (( plr != nullptr
             && soc != nullptr )
            && !toAll )
     {
-        bOut = soc->write( msg.toLatin1(),
-                           msg.length() );
-        plr->setPacketsOut( plr->getPacketsOut() + 1 );
-        plr->setBytesOut( plr->getBytesOut() + static_cast<quint64>( bOut ) );
+        bOut = soc->write( msg.toLatin1(), msg.length() );
+        this->updateBytesOut( plr, bOut );
     }
-
-    if ( bOut >= 1 )
-        this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
 }
 
-qint64 ServerInfo::sendToAllConnected(const QString& packet)
+void ServerInfo::sendToAllConnected(const QString& packet)
 {
     Player* tmpPlr{ nullptr };
-    qint64 tmpBOut{ 0 };
     qint64 bOut{ 0 };
 
     QTcpSocket* tmpSoc{ nullptr };
@@ -533,17 +552,12 @@ qint64 ServerInfo::sendToAllConnected(const QString& packet)
             tmpSoc = tmpPlr->getSocket();
             if ( tmpSoc != nullptr )
             {
-                tmpBOut = tmpSoc->write( packet.toLatin1(),
-                                         packet.length() );
-                tmpPlr->setBytesOut( tmpPlr->getBytesOut()
-                                     + static_cast<quint64>( tmpBOut ) );
-                tmpPlr->setPacketsOut( tmpPlr->getPacketsOut() + 1 );
-
-                bOut += tmpBOut;
+                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
+                this->updateBytesOut( tmpPlr, bOut );
             }
         }
     }
-    return bOut;
+    return;
 }
 
 quint64 ServerInfo::getUpTime() const
@@ -1034,8 +1048,7 @@ double ServerInfo::getMasterPing() const
 
 void ServerInfo::setMasterPing()
 {
-    masterPing = this->getMasterPingRespTime()
-                 - this->getMasterPingSendTime();
+    masterPing = this->getMasterPingRespTime() - this->getMasterPingSendTime();
 
     this->setMasterPingAvg( masterPing );
     this->setMasterPingTrend( masterPing );
@@ -1072,6 +1085,21 @@ PacketHandler* ServerInfo::getPktHandle() const
 void ServerInfo::setPktHandle(PacketHandler* value)
 {
     pktHandle = value;
+}
+
+void ServerInfo::updateBytesOut(Player* plr, const qint64 bOut)
+{
+    if ( plr == nullptr )
+        return;
+
+    if ( bOut <= 0 )
+        return;
+
+    plr->setBytesOut( plr->getBytesOut() + static_cast<quint64>( bOut ) );
+    plr->setPacketsOut( plr->getPacketsOut() + 1 );
+    this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
+
+    return;
 }
 
 Server* ServerInfo::getTcpServer() const

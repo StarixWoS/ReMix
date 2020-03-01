@@ -132,6 +132,5 @@ QBrush Theme::getThemeColor(const Colors& color)
     if ( color == Colors::Default)
         return qApp->palette().windowText();
 
-    return QBrush( QColor( themeColors[ static_cast<int>( getThemeType() ) ]
-                                      [ static_cast<int>( color ) ] ) );
+    return QBrush( QColor( themeColors[ static_cast<int>( getThemeType() ) ][ static_cast<int>( color ) ] ) );
 }

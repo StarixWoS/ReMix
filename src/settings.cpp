@@ -95,23 +95,16 @@ Settings::Settings(QWidget* parent) :
 
     if ( this->getSaveWindowPositions() )
     {
-        QByteArray geometry{ Settings::getWindowPositions(
-                             this->metaObject()->className() ) };
+        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
-        {
-            this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
-        }
+            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
     }
 }
 
 Settings::~Settings()
 {
     if ( this->getSaveWindowPositions() )
-    {
-        this->setWindowPositions( this->saveGeometry(),
-                                  this->metaObject()->className() );
-    }
+        this->setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     tabWidget->deleteLater();
     settings->deleteLater();
@@ -151,16 +144,13 @@ void Settings::updateTabBar(ServerInfo* server)
     tabWidget->setCurrentIndex( index );
 }
 
-void Settings::copyServerSettings(ServerInfo* server,
-                                  const QString& newName)
+void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 {
     QString oldName{ server->getName() };
     if ( oldName != newName )
     {
         //Copy Rules.
-        Rules::setNoEavesdropping( Rules::getNoEavesdropping( oldName ),
-                                   newName );
-
+        Rules::setNoEavesdropping( Rules::getNoEavesdropping( oldName ), newName );
         Rules::setReportLadder( Rules::getReportLadder( oldName ), newName );
         Rules::setNoMigrating( Rules::getNoMigrating( oldName ), newName );
         Rules::setURLAddress( Rules::getURLAddress( oldName ), newName );
@@ -190,8 +180,7 @@ void Settings::copyServerSettings(ServerInfo* server,
 }
 
 //Static-Free Functions.
-void Settings::setSetting(const QString& key, const QString& subKey,
-                          const QVariant& value)
+void Settings::setSetting(const QString& key, const QString& subKey, const QVariant& value)
 {
     prefs->setValue( key % "/" % subKey, value );
     prefs->sync();
@@ -217,14 +206,12 @@ QVariant Settings::getServerSetting(const QString& key, const QString& subKey,
 
 void Settings::setReqAdminAuth(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqAdminAuth ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqAdminAuth ], value );
 }
 
 bool Settings::getReqAdminAuth()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqAdminAuth ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqAdminAuth ] )
               .toBool();
 }
 
@@ -236,28 +223,24 @@ void Settings::setPassword(const QString& value)
     if ( !value.isEmpty() )
     {
         hash = Helper::hashPassword( hash );
-        setSetting( keys[ Keys::Setting ],
-                    subKeys[ SubKeys::Password ], hash );
+        setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Password ], hash );
     }
 }
 
 QString Settings::getPassword()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::Password ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Password ] )
               .toString();
 }
 
 void Settings::setRequirePassword(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqPassword ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqPassword ], value );
 }
 
 bool Settings::getRequirePassword()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqPassword ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqPassword ] )
               .toBool();
 }
 
@@ -272,211 +255,179 @@ bool Settings::cmpServerPassword(const QString& value)
 
 void Settings::setAllowDupedIP(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowDupe ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowDupe ], value );
 }
 
 bool Settings::getAllowDupedIP()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowDupe ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowDupe ] )
               .toBool();
 }
 
 void Settings::setBanDupedIP(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::BanDupes ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::BanDupes ], value );
 }
 
 bool Settings::getBanDupedIP()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::BanDupes ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::BanDupes ] )
               .toBool();
 }
 
 void Settings::setBanHackers(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AutoBan ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AutoBan ], value );
 }
 
 bool Settings::getBanDeviants()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AutoBan ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AutoBan ] )
               .toBool();
 }
 
 void Settings::setReqSernums(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::ReqSerNum ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqSerNum ], value );
 }
 
 bool Settings::getReqSernums()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::ReqSerNum ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::ReqSerNum ] )
               .toBool();
 }
 
 void Settings::setDisconnectIdles(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowIdle ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowIdle ], value );
 }
 
 bool Settings::getDisconnectIdles()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowIdle ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowIdle ] )
               .toBool();
 }
 
 void Settings::setAllowSSV(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::AllowSSV ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowSSV ], value );
 }
 
 bool Settings::getAllowSSV()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::AllowSSV ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::AllowSSV ] )
               .toBool();
 }
 
 void Settings::setLogComments(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::LogComments ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::LogComments ], value );
 }
 
 bool Settings::getLogComments()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::LogComments ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::LogComments ] )
               .toBool();
 }
 
 void Settings::setLogFiles(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::LogFiles ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::LogFiles ], value );
 }
 
 bool Settings::getLogFiles()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::LogFiles ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::LogFiles ] )
             .toBool();
 }
 
 void Settings::setDarkMode(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::DarkMode ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::DarkMode ], value );
 }
 
 bool Settings::getDarkMode()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::DarkMode ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::DarkMode ] )
             .toBool();
 }
 
 void Settings::setFwdComments(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::FwdComments ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::FwdComments ], value );
 }
 
 bool Settings::getFwdComments()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::FwdComments ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::FwdComments ] )
               .toBool();
 }
 
 void Settings::setInformAdminLogin(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::InformAdminLogin ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::InformAdminLogin ], value );
 }
 
 bool Settings::getInformAdminLogin()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::InformAdminLogin ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::InformAdminLogin ] )
               .toBool();
 }
 
 void Settings::setEchoComments(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::EchoComments ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::EchoComments ], value );
 }
 
 bool Settings::getEchoComments()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::EchoComments ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::EchoComments ] )
               .toBool();
 }
 
 void Settings::setMinimizeToTray(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::MinimizeToTray ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::MinimizeToTray ], value );
 }
 
 bool Settings::getMinimizeToTray()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::MinimizeToTray ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::MinimizeToTray ] )
             .toBool();
 }
 
 void Settings::setSaveWindowPositions(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::SaveWindowPositions ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::SaveWindowPositions ], value );
 }
 
 bool Settings::getSaveWindowPositions()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::SaveWindowPositions ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::SaveWindowPositions ] )
               .toBool();
 }
 
 void Settings::setCheckForUpdates(const bool& value)
 {
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::CheckForUpdates ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::CheckForUpdates ], value );
 }
 
 bool Settings::getCheckForUpdates()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::CheckForUpdates ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::CheckForUpdates ] )
               .toBool();
 }
 
 void Settings::setDCBlueCodedSerNums(const bool& value)
 {
 
-    setSetting( keys[ Keys::Setting ],
-                subKeys[ SubKeys::DCBlueCodedSerNums ], value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::DCBlueCodedSerNums ], value );
 }
 
 bool Settings::getDCBlueCodedSerNums()
 {
 
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::DCBlueCodedSerNums ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::DCBlueCodedSerNums ] )
               .toBool();
 }
 
@@ -505,27 +456,23 @@ bool Settings::getIsInvalidIPAddress(const QString& value)
 
 void Settings::setMOTDMessage(const QString& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ], value, svrID );
 }
 
 QString Settings::getMOTDMessage(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Messages ],
-                             subKeys[ SubKeys::MOTD ], svrID  )
+    return getServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ], svrID  )
                     .toString();
 }
 
 void Settings::setServerID(const qint32& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Extension ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Extension ], value, svrID );
 }
 
 QString Settings::getServerID(const QString& svrID)
 {
-    qint32 id = getServerSetting( keys[ Keys::Setting ],
-                                  subKeys[ SubKeys::Extension ], svrID )
+    qint32 id = getServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::Extension ], svrID )
                          .toInt();
     if ( id <= 0 )
     {
@@ -554,78 +501,66 @@ bool Settings::getServerRunning(const QString& svrID)
 
 void Settings::setWorldDir(const QString& value)
 {
-    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::WorldDir ],
-                      value );
+    setSetting( keys[ Keys::Setting ], subKeys[ SubKeys::WorldDir ], value );
 }
 
 QString Settings::getWorldDir()
 {
-    return getSetting( keys[ Keys::Setting ],
-                       subKeys[ SubKeys::WorldDir ] )
+    return getSetting( keys[ Keys::Setting ], subKeys[ SubKeys::WorldDir ] )
               .toString();
 }
 
 void Settings::setPortNumber(const quint16& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::PortNumber ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::PortNumber ], value, svrID );
 }
 
 QString Settings::getPortNumber(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Setting ],
-                             subKeys[ SubKeys::PortNumber ], svrID )
+    return getServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::PortNumber ], svrID )
                     .toString();
 }
 
 void Settings::setIsPublic(const bool& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::IsPublic ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::IsPublic ], value, svrID );
 }
 
 bool Settings::getIsPublic(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Setting ],
-                             subKeys[ SubKeys::IsPublic ], svrID )
+    return getServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::IsPublic ], svrID )
             .toBool();
 }
 
 void Settings::setUseUPNP(const bool& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::UseUPNP ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::UseUPNP ], value, svrID );
 }
 
 bool Settings::getUseUPNP(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Setting ],
-                             subKeys[ SubKeys::UseUPNP ], svrID )
+    return getServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::UseUPNP ], svrID )
                     .toBool();
 }
 
 void Settings::setGameName(const QString& value, const QString& svrID)
 {
-    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::GameName ],
-                      value, svrID );
+    setServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::GameName ], value, svrID );
 }
 
 QString Settings::getGameName(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Setting ],
-                             subKeys[ SubKeys::GameName ], svrID )
+    return getServerSetting( keys[ Keys::Setting ], subKeys[ SubKeys::GameName ], svrID )
             .toString();
 }
 
 void Settings::setLoggerAutoScroll(const bool& value)
 {
-    setSetting( keys[ Keys::Logger ],
-                subKeys[ SubKeys::LoggerAutoScroll ], value );
+    setSetting( keys[ Keys::Logger ], subKeys[ SubKeys::LoggerAutoScroll ], value );
 }
 
 bool Settings::getLoggerAutoScroll()
 {
-    return getSetting( keys[ Keys::Logger ],
-                       subKeys[ SubKeys::LoggerAutoScroll ] )
+    return getSetting( keys[ Keys::Logger ], subKeys[ SubKeys::LoggerAutoScroll ] )
               .toBool();
 }

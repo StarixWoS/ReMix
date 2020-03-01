@@ -112,9 +112,7 @@ void CreateInstance::on_initializeServer_clicked()
     {
         if ( Helper::strContainsStr( svrName, "world=" ) )
         {
-            message = "Servers cannot be initialized with the "
-                      "World selection within the name. "
-                      "Please try again.";
+            message = "Servers cannot be initialized with the World selection within the name. Please try again.";
             Helper::warningMessage( this, title, message );
         }
         else
@@ -223,9 +221,7 @@ void CreateInstance::closeEvent(QCloseEvent* event)
     if ( event->type() == QEvent::Close )
     {
         QString title = QString( "Close ReMix:" );
-        QString prompt = QString( "You are about to shut down your ReMix "
-                                  "game server!\r\n\r\nAre you "
-                                  "certain?" );
+        QString prompt = QString( "You are about to shut down your ReMix game server!\r\n\r\nAre you certain?" );
 
         if ( ReMixTabWidget::getInstanceCount() == 0 )
         {

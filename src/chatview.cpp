@@ -103,23 +103,17 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className() ) };
+        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
-        {
-            this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
-        }
+            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
     }
 }
 
 ChatView::~ChatView()
 {
     if ( Settings::getSaveWindowPositions() )
-    {
-        Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
-    }
+        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+
     delete ui;
 }
 
@@ -180,10 +174,8 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 retn = this->parseChatEffect( pkt );
             }
             else if ( pkt.at( 3 ) == '3'
-                   || ( ( this->getGameID() == Games::ToY )
-                     && ( pkt.at( 3 ) == 'N' ) ) )
+                   || ( ( this->getGameID() == Games::ToY ) && ( pkt.at( 3 ) == 'N' ) ) )
             {
-
                 QStringList varList;
                 if ( this->getGameID() == Games::ToY )
                     varList = pkt.mid( 39 ).split( "," );
@@ -252,10 +244,8 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
 
-            this->insertChat( plr->getPlrName() % ": ",
-                              Colors::Name, true );
-            this->insertChat( pkt,
-                              Colors::Chat, false );
+            this->insertChat( plr->getPlrName() % ": ", Colors::Name, true );
+            this->insertChat( pkt, Colors::Chat, false );
 
             plr->chatPacketFound();
         }
@@ -330,16 +320,14 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '\'': //Gossip Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " gossips: " % message,
-                                      Colors::Gossip, true );
+                    this->insertChat( plrName % " gossips: " % message, Colors::Gossip, true );
                     message = plrName % " gossips: " % message;
                 }
             break;
             case '!': //Shout Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " shouts: " % message,
-                                      Colors::Shout, true );
+                    this->insertChat( plrName % " shouts: " % message, Colors::Shout, true );
 
                     message = plrName % " shouts: " % message;
                 }
@@ -347,8 +335,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '/': //Emote Chat Effect.
                 {
                     message = message.mid( 2 );
-                    this->insertChat( plrName % message,
-                                      Colors::Emote, true );
+                    this->insertChat( plrName % message, Colors::Emote, true );
                     message = plrName % message;
                 }
             break;
@@ -369,10 +356,8 @@ bool ChatView::parseChatEffect(const QString& packet)
             break;
             default:
                 {
-                    this->insertChat( plrName % ": ",
-                                      Colors::Name, true );
-                    this->insertChat( message,
-                                      Colors::Chat, false );
+                    this->insertChat( plrName % ": ", Colors::Name, true );
+                    this->insertChat( message, Colors::Chat, false );
 
                     message = plrName % ": " % message;
                 }
@@ -380,10 +365,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         }
 
         if ( !message.isEmpty() && log )
-        {
-            Logger::getInstance()->insertLog( server->getName(), message,
-                                              LogTypes::CHAT, true, true );
-        }
+            Logger::getInstance()->insertLog( server->getName(), message, LogTypes::CHAT, true, true );
     }
     return retn;
 }
@@ -477,10 +459,7 @@ void ChatView::on_chatInput_returnPressed()
         message.prepend( "Owner: " );
 
     if ( !message.isEmpty() )
-    {
-        Logger::getInstance()->insertLog( server->getName(), message,
-                                          LogTypes::CHAT, true, true );
-    }
+        Logger::getInstance()->insertLog( server->getName(), message, LogTypes::CHAT, true, true );
 
     emit this->sendChat( message );
     ui->chatInput->clear();

@@ -29,8 +29,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
         for (int i = 1; i < model->columnCount(); ++i)
             ui->worldViewer->hideColumn( i );
 
-        ui->worldViewer->setRootIndex( model->index(
-                                           Settings::getWorldDir() ) );
+        ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
     });
 }
 
@@ -73,16 +72,14 @@ void SelectWorld::on_cancelButton_clicked()
 void SelectWorld::on_okButton_clicked()
 {
     QString title{ "Select World:" };
-    QString  prompt{ "Are you certain that you want to select the "
-                     "world [ %1 ]?" };
+    QString  prompt{ "Are you certain that you want to select the world [ %1 ]?" };
 
     QString world = this->getSelectedWorld();
     bool accept{ true };
 
     if ( world.isEmpty() )
     {
-        prompt = "Are you certain that you want to unselect the "
-                 "current world?";
+        prompt = "Are you certain that you want to unselect the current world?";
 
         if ( !requireWorld )
             accept = false;

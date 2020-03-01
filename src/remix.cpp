@@ -31,13 +31,9 @@ ReMix::ReMix(QWidget* parent) :
     this->setInstance( this );
     if ( Settings::getSaveWindowPositions() )
     {
-        QByteArray geometry{ Settings::getWindowPositions(
-                                    this->metaObject()->className() ) };
+        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
-        {
-            this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
-        }
+            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
     }
 
     //Setup Objects.
@@ -62,10 +58,7 @@ ReMix::ReMix(QWidget* parent) :
 ReMix::~ReMix()
 {
     if ( Settings::getSaveWindowPositions() )
-    {
-        Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
-    }
+        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     if ( trayObject != nullptr )
         trayObject->deleteLater();
@@ -174,8 +167,7 @@ void ReMix::initSysTray()
                 if ( this->isHidden() )
                 {
                     this->show();
-                    this->setWindowState( this->windowState()
-                                        & ~Qt::WindowMinimized );
+                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
                     this->activateWindow();
                 }
                 else
@@ -244,19 +236,16 @@ bool ReMix::rejectCloseEvent()
     QString title = QString( "Close [ %1 ] Server Instances:" )
                         .arg( serverUI->getServerCount() );
 
-    QString prompt = QString( "You are about to shut down your ReMix game "
-                              "server!\r\nThis will affect [ %1 ] User(s) "
+    QString prompt = QString( "You are about to shut down your ReMix game server!\r\nThis will affect [ %1 ] User(s) "
                               "connected to it.\r\n\r\nAre you certain?" )
                          .arg( serverUI->getPlayerCount() );
 
-    serverUI->sendMultiServerMessage( "The admin is taking this server "
-                                       "down..." );
+    serverUI->sendMultiServerMessage( "The admin is taking this server down..." );
 
     if ( !Helper::confirmAction( this, title, prompt ) )
     {
         exiting = false;
-        serverUI->sendMultiServerMessage( "The admin changed his or her "
-                                           "mind! (yay!)..." );
+        serverUI->sendMultiServerMessage( "The admin changed his or her mind! (yay!)..." );
         return true;
     }
     return false;

@@ -47,6 +47,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Info Description: Shows the Server Information.",
         "Info Usage: /info",
         GMRanks::User,
+        GMRanks::GMaster,
         true,
     },
     {   //Command Unimplemented.

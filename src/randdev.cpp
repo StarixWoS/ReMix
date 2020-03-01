@@ -13,8 +13,7 @@ std::mt19937_64 RandDev::randDevice;
 
 RandDev::RandDev()
 {
-    randDevice.seed( static_cast<std::random_device::result_type>(
-                                                     this->getSeed() ) );
+    randDevice.seed( static_cast<std::random_device::result_type>( this->getSeed() ) );
 }
 
 RandDev::~RandDev() = default;

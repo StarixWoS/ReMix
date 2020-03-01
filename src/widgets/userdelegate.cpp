@@ -49,8 +49,7 @@ void UserDelegate::paint(QPainter* painter,
                         text = "User";
                     break;
                 }
-                QItemDelegate::drawDisplay( painter, opt,
-                                            option.rect, text );
+                QItemDelegate::drawDisplay( painter, opt, option.rect, text );
             }
         break;
         case UserCols::Muted:
@@ -66,8 +65,7 @@ void UserDelegate::paint(QPainter* painter,
                             text = "Muted";
                         break;
                     }
-                    QItemDelegate::drawDisplay( painter, opt,
-                                                option.rect, text );
+                    QItemDelegate::drawDisplay( painter, opt, option.rect, text );
                 }
             }
         break;
@@ -84,8 +82,7 @@ void UserDelegate::paint(QPainter* painter,
                             text = "Banned";
                         break;
                     }
-                    QItemDelegate::drawDisplay( painter, opt,
-                                                option.rect, text );
+                    QItemDelegate::drawDisplay( painter, opt, option.rect, text );
                 }
             }
         break;

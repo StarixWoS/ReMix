@@ -46,14 +46,10 @@ Logger::Logger(QWidget *parent) :
     ui->setupUi(this);
 
     tblModel = new QStandardItemModel( 0, 4, nullptr );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Date ),
-                             Qt::Horizontal, "Date" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Source ),
-                             Qt::Horizontal, "Source" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Type ),
-                             Qt::Horizontal, "Type" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Message ),
-                             Qt::Horizontal, "Message" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Date ), Qt::Horizontal, "Date" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Source ), Qt::Horizontal, "Source" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Message ), Qt::Horizontal, "Message" );
 
     ui->logView->setModel( tblModel );
 
@@ -73,9 +69,7 @@ Logger::Logger(QWidget *parent) :
 
     //Load the application Icon into the top left of the dialog.
     iconViewerScene = new QGraphicsScene();
-    iconViewerItem = new QGraphicsPixmapItem(
-                         QPixmap::fromImage(
-                             QImage( ":/icon/ReMix.png" ) ) );
+    iconViewerItem = new QGraphicsPixmapItem( QPixmap::fromImage( QImage( ":/icon/ReMix.png" ) ) );
     iconViewerScene->addItem( iconViewerItem );
 
     ui->iconViewer->setScene( iconViewerScene );
@@ -91,23 +85,16 @@ Logger::Logger(QWidget *parent) :
 
     if ( Settings::getSaveWindowPositions() )
     {
-        QByteArray geometry{ Settings::getWindowPositions(
-                             this->metaObject()->className() ) };
+        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
-        {
-            this->restoreGeometry( Settings::getWindowPositions(
-                                       this->metaObject()->className() ) );
-        }
+            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
     }
 }
 
 Logger::~Logger()
 {
     if ( Settings::getSaveWindowPositions() )
-    {
-        Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
-    }
+        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();
@@ -140,11 +127,8 @@ void Logger::scrollToBottom()
 
         //Detect when the user is scrolling upwards.
         //And prevent scrolling.
-        if ( obj->verticalScrollBar()->sliderPosition()
-          == obj->verticalScrollBar()->maximum() )
-        {
+        if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum() )
             obj->scrollToBottom();
-        }
     }
 }
 
@@ -163,27 +147,16 @@ void Logger::insertLog(const QString& source, const QString& message,
         tblModel->insertRow( row );
         ui->logView->setRowHeight( row, 20 );
 
-        this->updateRowData( row,
-                             static_cast<int>( LogCols::Date ),
-                             time );
-        ui->logView->resizeColumnToContents(
-                    static_cast<int>( LogCols::Date ) );
+        this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
+        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Date ) );
 
-        this->updateRowData( row,
-                             static_cast<int>( LogCols::Source ),
-                             source );
-        ui->logView->resizeColumnToContents(
-                    static_cast<int>( LogCols::Source ) );
+        this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
+        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Source ) );
 
-        this->updateRowData( row,
-                             static_cast<int>( LogCols::Type ),
-                             logType.at( static_cast<int>( type ) ) );
-        ui->logView->resizeColumnToContents(
-                    static_cast<int>( LogCols::Type ) );
+        this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
+        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Type ) );
 
-        this->updateRowData( row,
-                             static_cast<int>( LogCols::Message ),
-                             message.simplified() );
+        this->updateRowData( row, static_cast<int>( LogCols::Message ), message.simplified() );
 
         //ui->logView->resizeRowsToContents();
 
@@ -209,8 +182,7 @@ void Logger::updateRowData(const qint32& row, const qint32& col,
 
             tblModel->setData( index, msg, Qt::DisplayRole );
             if ( col == static_cast<int>( LogCols::Date ) )
-                ui->logView->resizeColumnToContents( static_cast<int>(
-                                                         LogCols::Date ) );
+                ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Date ) );
         }
         else
         {
@@ -227,11 +199,8 @@ void Logger::logToFile(const LogTypes& type, const QString& text,
     {
         QString logTxt = text;
 
-        QFile log( "logs/"
-                 % logType.at( static_cast<int>( type ) )
-                 % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
-                 % logType.at( static_cast<int>( type ) )
-                 % ".txt" );
+        QFile log( "logs/" % logType.at( static_cast<int>( type ) ) % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
+                 % logType.at( static_cast<int>( type ) ) % ".txt" );
 
         QFileInfo logInfo( log );
         if ( !logInfo.dir().exists() )
@@ -254,8 +223,7 @@ void Logger::logToFile(const LogTypes& type, const QString& text,
 void Logger::on_websiteLabel_linkActivated(const QString&)
 {
     QString title{ "Open Link?" };
-    QString prompt{ "Do you wish to open the website [ %1 ] "
-                    "in a browser window?" };
+    QString prompt{ "Do you wish to open the website [ %1 ] in a browser window?" };
     prompt = prompt.arg( website );
 
     if ( Helper::confirmAction( this, title, prompt ) )
@@ -263,8 +231,7 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
         QUrl websiteLink( website );
         QDesktopServices::openUrl( websiteLink );
 
-        QString message{ "Opening a local Web Browser to the website [ %1 ] "
-                         "per user request." };
+        QString message{ "Opening a local Web Browser to the website [ %1 ] per user request." };
         message = message.arg( website );
 
         this->insertLog( "Logger", message, LogTypes::MISC, false, false );

@@ -102,15 +102,13 @@ void PlrListWidget::initContextMenu()
 
 void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
 {
-    QModelIndex menuIndex = plrProxy->mapToSource(
-                                ui->playerView->indexAt( pos ) );
+    QModelIndex menuIndex{ plrProxy->mapToSource( ui->playerView->indexAt( pos ) ) };
 
     this->initContextMenu();
     if ( menuIndex.row() >= 0 )
     {
         Player* plr = server->getPlayer(
-                          server->getQItemSlot(
-                              plrModel->item( menuIndex.row(), 0 ) ) );
+                          server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
         if ( plr != nullptr )
             menuTarget = plr;
 
@@ -154,21 +152,17 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString revoke{ "Your Remote Administrator privileges have been revoked "
-                    "by the Server Host. Please contact the Server Host "
-                    "if you believe this was in error." };
-    QString reinstated{ "Your Remote Administrator privelages have been "
-                        "partially reinstated by the Server Host." };
+    QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
+                   "if you believe this was in error." };
+    QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
     QString prompt{ "" };
     if ( !User::getIsAdmin( sernum ) )
     {
         QString title{ "Create Admin:" };
-        prompt =  "Are you certain you want to MAKE [ %1 ] a Remote Admin?"
-                  "\r\n\r\nPlease make sure you trust [ %1 ] as this will "
-                  "allow the them to utilize Admin commands that can remove "
-                  "the ability for other users to connect to the Server.";
+        prompt =  "Are you certain you want to MAKE [ %1 ] a Remote Admin? \r\n\r\nPlease make sure you trust [ %1 ] as this will "
+                  "allow the them to utilize Admin commands that can remove the ability for other users to connect to the Server.";
         prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
@@ -258,8 +252,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
         QString prompt{ "Are you certain you want to DISCONNECT [ " %
                         menuTarget->getSernum_s() % " ]?" };
 
-        QString inform{ "The Server Host has disconnected you from the Server. "
-                        "Reason: %1" };
+        QString inform{ "The Server Host has disconnected you from the Server. Reason: %1" };
         QString reason{ "Manual Disconnect; %1" };
 
         if ( Helper::confirmAction( this, title, prompt ) )
@@ -276,8 +269,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), logMsg,
-                                              LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::DC, true, true );
         }
     }
     menuTarget = nullptr;
@@ -289,8 +281,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         return;
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "Are you certain you want to BANISH User [ "
-                  % menuTarget->getSernum_s() % " ]?" };
+    QString prompt{ "Are you certain you want to BANISH User [ " % menuTarget->getSernum_s() % " ]?" };
 
     QString inform{ "The Server Host has BANISHED you. Reason: %1" };
     QString reason{ "Manual Banish; %1" };
@@ -311,8 +302,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), logMsg,
-                                              LogTypes::BAN, true, true );
+            Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::BAN, true, true );
 
             menuTarget->sendMessage( inform, false );
             if ( sock->waitForBytesWritten() )

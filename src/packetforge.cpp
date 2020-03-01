@@ -67,17 +67,14 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
     if ( Helper::cmpStrings( srcSerNum, plr->getSernumHex_s() ) )
         return true;
 
-    QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to a "
-                 "SerNum Missmatch; Tried sending [ %3 ] as "
-                 "[ %4 ] while connected as [ %5 ]." };
+    QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to a SerNum Missmatch; Tried sending [ %3 ] as [ %4 ] while connected as [ %5 ]." };
             msg = msg.arg( plr->getSernum_s() )
                      .arg( plr->getPublicIP() )
                      .arg( QString( packet ) )  //Encrypted packet into the log file.
                      .arg( srcSerNum )
                      .arg( plr->getSernumHex_s() );
 
-   Logger::getInstance()->insertLog( "PacketForge", msg,
-                                     LogTypes::MUTE, true, true );
+   Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::MUTE, true, true );
 
     plr->setNetworkMuted( true );
 

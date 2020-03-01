@@ -119,8 +119,8 @@ void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex& index)
 
     Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
     ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked
-                                                     ? Qt::Unchecked
-                                                     : Qt::Checked );
+                                                         ? Qt::Unchecked
+                                                         : Qt::Checked );
 
     val = ui->settingsView->item( row, 0 )->checkState();
     this->toggleSettings( row, val );
@@ -162,8 +162,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         {
                             title = "Server Password:";
                             prompt = "Password:";
-                            pwd = Helper::getTextResponse( this, title, prompt,
-                                                           "", &ok, 0 );
+                            pwd = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
                         }
 
                         if (( !pwd.isEmpty()
@@ -260,20 +259,17 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 if ( directory.isEmpty() || reUse )
                 {
                     QString title{ "Select WoS Directory" };
-                    directory = QFileDialog::getExistingDirectory(
-                                    this, title, "/worlds",
+                    directory = QFileDialog::getExistingDirectory( this, title, "/worlds",
                                     QFileDialog::ShowDirsOnly |
                                     QFileDialog::DontResolveSymlinks );
 
                     state = false;
                     if ( Helper::strContainsStr( directory, "worlds" ) )
                     {
-                        if ( directory.endsWith( "/worlds",
-                                                 Qt::CaseInsensitive ) )
+                        if ( directory.endsWith( "/worlds", Qt::CaseInsensitive ) )
                         {
                             state = true;
-                            ui->settingsView->item( Toggles::WORLDDIR, 0 )->
-                                                setCheckState( Qt::Checked );
+                            ui->settingsView->item( Toggles::WORLDDIR, 0 )->setCheckState( Qt::Checked );
                         }
                     }
 
@@ -284,14 +280,12 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         prompt = "You have selected an invalid world directory."
                                  " Please try again.";
 
-                        ui->settingsView->item( Toggles::WORLDDIR, 0 )->
-                                            setCheckState( Qt::Unchecked );
+                        ui->settingsView->item( Toggles::WORLDDIR, 0 )->setCheckState( Qt::Unchecked );
 
                         Helper::warningMessage( this, title, prompt );
                     }
                     rowText = rowText.arg( directory );
-                    ui->settingsView->item( Toggles::WORLDDIR, 0 )->
-                                        setText( rowText );
+                    ui->settingsView->item( Toggles::WORLDDIR, 0 )->setText( rowText );
                     Settings::setWorldDir( directory );
                 }
             }

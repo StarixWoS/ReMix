@@ -30,20 +30,13 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
                                      const QString& cmdStr)
 {
     bool retn{ false };
-    QString invalidAuth{ "Error: You do not have access to the command [ %1 ]. "
-                         "Please refrain from attempting to use "
-                         "commands that you lack access to!" };
+    QString invalidAuth{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use commands that you lack access to!" };
 
-    QString unauth{ "While your SerNum is registered as a Remote Admin, "
-                    "you are not Authenticated and are unable to use these "
-                    "commands. Please reply to this message with "
-                    "(/login *PASS) and the server will "
-                    "authenticate you." };
+    QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and are unable to use these "
+                    "commands. Please reply to this message with (/login *PASS) and the server will authenticate you." };
 
-    QString invalid{ "Error: You do not have access to the command [ %1 ]. "
-                     "Please refrain from attempting to use Remote Admin "
-                     "commands as you will automatically be "
-                     "banned after [ %2 ] attempts" };
+    QString invalid{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use Remote Admin "
+                     "commands as you will automatically be banned after [ %2 ] attempts" };
 
     GMRanks plrRank{ this->getAdminRank( plr ) };
     if ( plr->getIsAdmin() )
@@ -79,8 +72,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
 
         if ( plr->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
         {
-            QString reason = "Auto-Banish; <Unregistered Remote Admin[ %1 ]: "
-                             "[ %2 ] command attempts>";
+            QString reason = "Auto-Banish; <Unregistered Remote Admin[ %1 ]: [ %2 ] command attempts>";
 
             reason = reason.arg (plr->getSernum_s() )
                            .arg( plr->getCmdAttempts() );
@@ -93,11 +85,8 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
                                    .arg( plr->getBioData() );
             reason.append( append );
 
-            User::addBan( nullptr, plr, reason, false,
-                          PunishDurations::THIRTY_DAYS );
-
-            Logger::getInstance()->insertLog( server->getName(), reason,
-                                              LogTypes::BAN, true, true );
+            User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_DAYS );
+            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::BAN, true, true );
 
             plr->setDisconnected( true, DCTypes::IPDC );
         }
@@ -133,9 +122,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
         if ( Helper::strStartsWithStr( msg, "/" ) )
         {
             if ( Helper::strStartsWithStr( msg, "/cmd " ) )
-            {
                 msg = msg.mid( Helper::getStrIndex( msg, "/cmd " ) + 4 );
-            }
             else
                 msg = msg.mid( Helper::getStrIndex( msg, "/" ) + 1 );
 
@@ -278,18 +265,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 //Send command description and usage.
                 if ( index != GMCmds::Invalid )
                 {
-                    plr->sendMessage( cmdTable->getCommandInfo( index, false ),
-                                      false );
-                    plr->sendMessage( cmdTable->getCommandInfo( index, true ),
-                                      false );
+                    plr->sendMessage( cmdTable->getCommandInfo( index, false ), false );
+                    plr->sendMessage( cmdTable->getCommandInfo( index, true ), false );
                 }
             }
         break;
         case GMCmds::List:
             {
-                plr->sendMessage(
-                            cmdTable->collateCmdList(
-                                this->getAdminRank( plr ) ), false );
+                plr->sendMessage( cmdTable->collateCmdList( this->getAdminRank( plr ) ), false );
             }
         break;
         case GMCmds::MotD:
@@ -300,30 +283,29 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::Info:
             {
-                //Server UpTime, Connected Users, Connected Admins.
-                qint32 adminCount{ 0 };
-                QString tmpMsg{ "Server Info: Up Time[ %1 ], Connected Users[ %2 ],"
-                                " Connected Admins[ %3 ]." };
-
-                Player* tmpPlr{ nullptr };
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                if ( this->validateAdmin( plr, cmdRank, cmd ) )
                 {
-                    tmpPlr = server->getPlayer( i );
-                    if ( tmpPlr != nullptr )
+                    //Server UpTime, Connected Users, Connected Admins.
+                    qint32 adminCount{ 0 };
+                    QString tmpMsg{ "Server Info: Up Time[ %1 ], Connected Users[ %2 ], Connected Admins[ %3 ]." };
+
+                    Player* tmpPlr{ nullptr };
+                    for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
-                        if ( tmpPlr->getIsAdmin()
-                          && tmpPlr->getIsVisible() )
+                        tmpPlr = server->getPlayer( i );
+                        if ( tmpPlr != nullptr )
                         {
-                            ++adminCount;
+                            if ( tmpPlr->getIsAdmin() && tmpPlr->getIsVisible() )
+                                ++adminCount;
                         }
                     }
-                }
 
-                tmpMsg = tmpMsg.arg( Helper::getTimeFormat(
-                                                server->getUpTime() ) )
-                               .arg( server->getPlayerCount() )
-                               .arg( adminCount );
-                plr->sendMessage( tmpMsg, false );
+                    tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
+                                   .arg( server->getPlayerCount() )
+                                   .arg( adminCount );
+                    plr->sendMessage( tmpMsg, false );
+                }
+                retn = true;
             }
         break;
 //        case GMCmds::NetStatus:
@@ -334,8 +316,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 this->parseTimeArgs( message, duration, reason );
                 if ( this->validateAdmin( plr, cmdRank, cmd )
-                  && ( !arg1.isEmpty()
-                    && !subCmd.isEmpty() ) )
+                  && ( !arg1.isEmpty() && !subCmd.isEmpty() ) )
                 {
                     this->banHandler( plr, arg1, duration, reason, all );
                 }
@@ -345,8 +326,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::UnBan:
             {
                 if ( this->validateAdmin( plr, cmdRank, cmd )
-                  && ( !arg1.isEmpty()
-                    && !subCmd.isEmpty() ) )
+                  && ( !arg1.isEmpty() && !subCmd.isEmpty() ) )
                 {
                     this->unBanHandler( subCmd, arg1 );
                 }
@@ -367,8 +347,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 this->parseTimeArgs( message, duration, reason );
                 if ( this->validateAdmin( plr, cmdRank, cmd )
-                  && ( !arg1.isEmpty()
-                    && !subCmd.isEmpty() ) )
+                  && ( !arg1.isEmpty() && !subCmd.isEmpty() ) )
                 {
                     this->muteHandler( plr, arg1, duration, reason, all );
                 }
@@ -378,8 +357,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::UnMute:
             {
                 if ( this->validateAdmin( plr, cmdRank, cmd )
-                  && ( !arg1.isEmpty()
-                    && !subCmd.isEmpty() ) )
+                  && ( !arg1.isEmpty() && !subCmd.isEmpty() ) )
                 {
                     this->unMuteHandler( subCmd, arg1 );
                 }
@@ -410,8 +388,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 if ( !subCmd.isEmpty() )
                 {
                     if ( ( plr->getAdminPwdRequested()
-                      || ( plr->getSvrPwdRequested()
-                        && !plr->getSvrPwdReceived() ) ) )
+                      || ( plr->getSvrPwdRequested() && !plr->getSvrPwdReceived() ) ) )
                     {
                         this->loginHandler( plr, subCmd );
                     }
@@ -446,8 +423,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
 
                 if ( this->validateAdmin( plr, cmdRank, cmd ) )
                 {
-                    this->shutDownHandler( plr, duration, reason,
-                                           stop, restart );
+                    this->shutDownHandler( plr, duration, reason, stop, restart );
                     retn = true;
                 }
             }
@@ -501,9 +477,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
     }
 
-    QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with "
-                 "ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message "
-                 "[ %6 ]." };
+    QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message [ %6 ]." };
 
     msg = msg.arg( plr->getSernum_s() )
              .arg( cmd )
@@ -521,10 +495,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     }
 
     if ( logMsg )
-    {
-        Logger::getInstance()->insertLog( server->getName(), msg,
-                                          LogTypes::ADMIN, true, true );
-    }
+        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::ADMIN, true, true );
 
     return retn;
 }
@@ -568,9 +539,7 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1,
     if ( admin == nullptr )
         return;
 
-    QString message{ "Admin [ %1 ]: Unable to issue the command [ %2 ] on the "
-                     "User [ %3 ]. The User may be offline or "
-                     "another Remote Administrator." };
+    QString message{ "Admin [ %1 ]: Unable to issue the command [ %2 ] on the User [ %3 ]. The User may be offline or another Remote Administrator." };
             message = message.arg( admin->getSernum_s() )
                              .arg( cmdTable->getCmdName( argIndex ) )
                              .arg( arg1 );
@@ -582,8 +551,8 @@ bool CmdHandler::isTarget(Player* target, const QString& arg1,
                           const bool isAll)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
-    if ( target->getPublicIP() == arg1
-      || target->getSernumHex_s() == sernum
+    if ( ( target->getPublicIP() == arg1 )
+      || ( target->getSernumHex_s() == sernum )
       || isAll )
     {
         return true;
@@ -594,8 +563,8 @@ bool CmdHandler::isTarget(Player* target, const QString& arg1,
 bool CmdHandler::validateAdmin(Player* plr, GMRanks& rank,
                                const QString& cmdStr)
 {
-    return  ( ( this->getAdminRank( plr ) >= rank )
-             && this->canUseAdminCommands( plr, rank, cmdStr ) );
+    return ( ( this->getAdminRank( plr ) >= rank )
+            && this->canUseAdminCommands( plr, rank, cmdStr ) );
 }
 
 GMRanks CmdHandler::getAdminRank(Player* plr)
@@ -613,8 +582,7 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd,
         MOTDWidget* motdWidget = MOTDWidget::getWidget( server );
         if ( motdWidget != nullptr )
         {
-            QString message{ "Admin [ %1 ] has changed the Message of the Day "
-                             "to: [ %2 ]" };
+            QString message{ "Admin [ %1 ] has changed the Message of the Day to: [ %2 ]" };
             bool erase{ false };
             if ( Helper::cmpStrings( subCmd, "change" ) )
             {
@@ -626,8 +594,7 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd,
                 message.clear();
                 if ( Helper::cmpStrings( arg1, "remove" ) )
                 {
-                    message = "Admin [ %1 ] has removed the "
-                              "Message of the Day!";
+                    message = "Admin [ %1 ] has removed the Message of the Day!";
                     message = message.arg( plr->getSernum_s() );
 
                     erase = true;
@@ -653,8 +620,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
                             const QString& duration, const QString& reason,
                             const bool& all)
 {
-    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. "
-                       "Reason: [ %3 ]." };
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
 
     Player* tmpPlr{ nullptr };
@@ -682,19 +648,14 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
     {
         QString dateString{ "" };
         quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-        qint32 banDuration{ static_cast<qint32>(
-                                PunishDurations::THIRTY_DAYS ) };
+        qint32 banDuration{ static_cast<qint32>( PunishDurations::SEVEN_DAYS ) };
 
         if ( !duration.isEmpty() )
         {
             QString timeText{ "seconds" };
-            banDuration = this->getTimePeriodFromString( duration,
-                                                         timeText );
+            banDuration = this->getTimePeriodFromString( duration, timeText );
             if ( banDuration == 0 )
-            {
-                banDuration = static_cast<qint32>(
-                                  PunishDurations::THIRTY_DAYS );
-            }
+                banDuration = static_cast<qint32>( PunishDurations::SEVEN_DAYS );
         }
 
         date += static_cast<quint64>( banDuration );
@@ -718,8 +679,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
                  .arg( plr->getSernum_s() )
                  .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), msg,
-                                          LogTypes::BAN, true, true );
+        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::BAN, true, true );
 
         tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -738,8 +698,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
                              const GMCmds& argIndex, const QString& message,
                              const bool& all)
 {
-    QString reason{ "Remote-Admin [ %1 ] has [ Kicked ] you. "
-                    "Reason: [ %2 ]." };
+    QString reason{ "Remote-Admin [ %1 ] has [ Kicked ] you. Reason: [ %2 ]." };
 
     QString msg = message;
     if ( msg.isEmpty() )
@@ -763,11 +722,10 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
 
                     reason = "Remote-Kick; %1: [ %2 ], [ %3 ]";
                     reason = reason.arg( msg )
-                             .arg( tmpPlr->getSernum_s() )
-                             .arg( tmpPlr->getBioData() );
+                                   .arg( tmpPlr->getSernum_s() )
+                                   .arg( tmpPlr->getBioData() );
 
-                    Logger::getInstance()->insertLog( server->getName(), reason,
-                                                      LogTypes::DC, true, true );
+                    Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
 
                     tmpPlr->setDisconnected( true, DCTypes::IPDC );
                 }
@@ -780,8 +738,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
                              const QString& duration, const QString& reason,
                              const bool& all)
 {
-    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Muted ] you until [ %2 ]. "
-                       "Reason: [ %3 ]." };
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Muted ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
 
     Player* tmpPlr{ nullptr };
@@ -795,8 +752,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
             //Check target validity.
             if ( this->isTarget( tmpPlr, arg1, all ) )
             {
-                mute = this->canIssueAction( plr, tmpPlr, arg1,
-                                             GMCmds::Mute, all );
+                mute = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Mute, all );
                 if ( mute )
                     break;
             }
@@ -808,19 +764,14 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
     {
         QString dateString{ "" };
         quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-        qint32 muteDuration{ static_cast<qint32>(
-                                 PunishDurations::TEN_MINUTES ) };
+        qint32 muteDuration{ static_cast<qint32>( PunishDurations::TEN_MINUTES ) };
 
         if ( !duration.isEmpty() )
         {
             QString timeText{ "seconds" };
-            muteDuration = this->getTimePeriodFromString( duration,
-                                                          timeText );
+            muteDuration = this->getTimePeriodFromString( duration, timeText );
             if ( muteDuration == 0 )
-            {
-                muteDuration = static_cast<qint32>(
-                                   PunishDurations::TEN_MINUTES );
-            }
+                muteDuration = static_cast<qint32>( PunishDurations::TEN_MINUTES );
         }
 
         date += static_cast<quint64>( muteDuration );
@@ -844,8 +795,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
                  .arg( plr->getSernum_s() )
                  .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), msg,
-                                          LogTypes::MUTE, true, true );
+        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::MUTE, true, true );
 
         tmpPlr->setNetworkMuted( true );
     }
@@ -917,7 +867,9 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
         response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
     }
     else if ( !plr->getAdminPwdReceived()
-           || plr->getAdminPwdRequested() )
+           || plr->getAdminPwdRequested()
+           || plr->getIsAdmin() ) //Allow a Remote Admin to authenticate before
+                                  //a password is requested.
     {
         pwdType = PwdTypes::Admin;
 
@@ -933,8 +885,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
             //Inform Other Users of this Remote-Admin's login if enabled.
             if ( Settings::getInformAdminLogin() )
             {
-                QString message{ "Remote Admin [ %1 ] has Authenticated with "
-                                 "the server." };
+                QString message{ "Remote Admin [ %1 ] has Authenticated with the server." };
                         message = message.arg( plr->getSernum_s() ) ;
 
                 Player* tmpPlr{ nullptr };
@@ -969,14 +920,12 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
     {
         if ( pwdType != PwdTypes::Invalid )
         {
-            QString reason{ "Auto-Disconnect; Invalid %1 password: "
-                            "[ %2 ], [ %3 ]" };
-            reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ),
-                                 plr->getSernum_s(),
-                                 plr->getBioData() );
+            QString reason{ "Auto-Disconnect; Invalid %1 password: [ %2 ], [ %3 ]" };
+            reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ) )
+                           .arg( plr->getSernum_s() )
+                           .arg( plr->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), reason,
-                                              LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
         }
         plr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -984,12 +933,9 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
 
 void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
 {
-    QString success{ "You are now registered as an Admin with the "
-                     "Server. Congrats!" };
+    QString success{ "You are now registered as an Admin with the Server. Congrats!" };
 
-    QString fail{ "You were not registered as an Admin with the "
-                  "Server. It seems something has gone wrong or "
-                  "you were already registered as an Admin." };
+    QString fail{ "You were not registered as an Admin with the Server. It seems something has gone wrong or you were already registered as an Admin." };
     QString response{ "" };
 
     QString sernum{ plr->getSernumHex_s() };
@@ -1026,8 +972,7 @@ void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
     if ( registered
       && Settings::getInformAdminLogin() )
     {
-        QString message{ "User [ %1 ] has Registered as a Remote "
-                         "Administrator with the server." };
+        QString message{ "User [ %1 ] has Registered as a Remote Administrator with the server." };
                 message = message.arg( plr->getSernum_s() );
 
         Player* tmpPlr{ nullptr };
@@ -1161,8 +1106,7 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
             }
             else if ( Helper::cmpStrings( subCmd, "status" ) )
             {
-                message = "Admin [ %1 ]: You are currently %2 to "
-                          "other Players...";
+                message = "Admin [ %1 ]: You are currently %2 to other Players...";
             }
         }
     }

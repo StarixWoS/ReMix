@@ -6,6 +6,10 @@ Version 2.5.3:
     Change:
       * ReMix will now log, and show within the Logger UI when a Server Side Variable is being accessed with a read/write.
         * The newly generated logs will appear within the log directory and sub directory with the name [QuestLog].
+      * Bans issued via Remote Administrator commands issued with no duration will now default to a 7 day ban.
+        * Previously this was 30 days.
+      * ReMix will now send socket information to newly connecting Users.
+        * This information is used within WoS' skin transfer routines.
 
 
     Bugfixes:
@@ -13,6 +17,11 @@ Version 2.5.3:
         * Previously no update information was being sent. It has been verified that the intended behaviour was to forward the update to connected Users.
       * Corrected a state mismatch with the message being sent with the /vanish admin command.
         * When no sub-command was issued, the state would always show as being "invisible" within the message being sent to the Remote Administrator.
+      * ReMix will no longer attempt to re-forward a port via UPNP that it has decided should be a permanent forward.
+
+    Source:
+      * Begin converting the source from a 80 column text limit to 180 columns.
+
 
 
 
