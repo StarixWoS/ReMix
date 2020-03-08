@@ -564,7 +564,6 @@ void PacketHandler::detectFlooding(Player* plr)
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding" };
                 plr->sendMessage( plrMessage, false );
-                plr->setDisconnected( true, DCTypes::PktDC );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )
