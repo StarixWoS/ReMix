@@ -46,7 +46,6 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         0,
         "Info Description: Shows the Server Information.",
         "Info Usage: /info",
-        GMRanks::User,
         GMRanks::GMaster,
         true,
     },

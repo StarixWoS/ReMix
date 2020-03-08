@@ -12,6 +12,7 @@
 #include "helper.hpp"
 #include "logger.hpp"
 #include "rules.hpp"
+#include "user.hpp"
 #include "upnp.hpp"
 
 //Qt Includes.
@@ -345,6 +346,7 @@ Player* ServerInfo::createPlayer(const int& slot)
         players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
+
         return players[ slot ];
     }
     return nullptr;

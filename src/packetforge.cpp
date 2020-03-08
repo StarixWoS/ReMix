@@ -6,6 +6,7 @@
 #include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "user.hpp"
 
 //Qt Includes.
 #include <QDebug>
@@ -68,15 +69,14 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
         return true;
 
     QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to a SerNum Missmatch; Tried sending [ %3 ] as [ %4 ] while connected as [ %5 ]." };
-            msg = msg.arg( plr->getSernum_s() )
-                     .arg( plr->getPublicIP() )
-                     .arg( QString( packet ) )  //Encrypted packet into the log file.
-                     .arg( srcSerNum )
-                     .arg( plr->getSernumHex_s() );
+    msg = msg.arg( plr->getSernum_s() )
+             .arg( plr->getPublicIP() )
+             .arg( QString( packet ) )  //Encrypted packet into the log file.
+             .arg( srcSerNum )
+             .arg( plr->getSernumHex_s() );
 
-   Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::MUTE, true, true );
-
-    plr->setNetworkMuted( true );
+    User::addMute( nullptr, plr, msg, false, true, PunishDurations::THIRTY_MINUTES );
+    Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::MUTE, true, true );
 
     return false;
 }

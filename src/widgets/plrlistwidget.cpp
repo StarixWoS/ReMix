@@ -119,7 +119,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
             else
                 ui->actionMakeAdmin->setText( "Make Admin" );
 
-            if ( menuTarget->getNetworkMuted() )
+            if ( menuTarget->getIsMuted() )
                 ui->actionMuteNetwork->setText( "Un-Mute Network" );
             else
                 ui->actionMuteNetwork->setText( "Mute Network" );
@@ -197,16 +197,18 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString inform{ "The Server Host has MUTED you. Reason: %1" };
+    QString inform{ "The Server Host has %1 you. Reason: %2" };
     QString reason{ "Manual Mute; %1" };
+    QString type{ "" };
     bool mute{ true };
 
     QString title{ "%1 User:" };
     QString prompt{ "Are you certain you want to %1 [ %2 ]'s Network?" };
-    if ( menuTarget->getNetworkMuted() )
+    if ( menuTarget->getIsMuted() )
     {
         title = title.arg( "Un-Mute" );
         prompt = prompt.arg( "Un-Mute" );
+        type = "Un-Muted";
 
         mute = false;
     }
@@ -214,27 +216,33 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
     {
         title = title.arg( "Mute" );
         prompt = prompt.arg( "Mute" );
+        type = "Muted";
     }
     prompt = prompt.arg( menuTarget->getSernum_s() );
 
     if ( Helper::confirmAction( this, title, prompt ) )
     {
         reason = reason.arg( User::requestReason( this ) );
-        inform = inform.arg( reason );
+        inform = inform.arg( type )
+                       .arg( reason );
 
-        PunishDurations muteDuration{ User::requestDuration() };
-        User::addMute( nullptr, menuTarget, reason, false, muteDuration );
+        PunishDurations muteDuration{ PunishDurations::Invalid };
+        if ( mute )
+        {
+            muteDuration = User::requestDuration();
+            User::addMute( nullptr, menuTarget, reason, false, false, muteDuration );
+        }
+        else
+            User::removeMute( menuTarget->getSernumHex_s(), static_cast<int>( BanTypes::SerNum ) );
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
         logMsg = logMsg.arg( reason )
                        .arg( menuTarget->getSernum_s() )
                        .arg( menuTarget->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), logMsg,
-                                          LogTypes::MUTE, true, true );
+        Logger::getInstance()->insertLog( server->getName(), logMsg,LogTypes::MUTE, true, true );
 
         menuTarget->sendMessage( inform, false );
-        menuTarget->setNetworkMuted( mute );
     }
 
     menuTarget = nullptr;

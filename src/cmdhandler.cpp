@@ -720,8 +720,9 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
                 {
                     tmpPlr->sendMessage( reason, false );
 
-                    reason = "Remote-Kick; %1: [ %2 ], [ %3 ]";
-                    reason = reason.arg( msg )
+                    reason = "Remote-Kick by admin [ %1 ]; %2: [ %3 ], [ %4 ]";
+                    reason = reason.arg( plr->getSernum_s() )
+                                   .arg( msg )
                                    .arg( tmpPlr->getSernum_s() )
                                    .arg( tmpPlr->getBioData() );
 
@@ -787,17 +788,15 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
         if ( !reasonMsg.isEmpty() )
             tmpPlr->sendMessage( reasonMsg, false );
 
-        msg = msg.prepend( "Remote-Mute; " );
-        User::addMute( plr, tmpPlr, msg, true,
-                       static_cast<PunishDurations>( muteDuration ) );
+        msg = msg.prepend( "Remote-Mute by admin [ %1 ]; " )
+                 .arg( plr->getSernum_s() );
+        User::addMute( plr, tmpPlr, msg, true, false, static_cast<PunishDurations>( muteDuration ) );
 
-        msg = msg.append( ": [ %1 ], [ %2 ]" )
-                 .arg( plr->getSernum_s() )
-                 .arg( plr->getBioData() );
+        msg = msg.append( ": [ %1 ], with BIO [ %2 ]" )
+                 .arg( tmpPlr->getSernum_s() )
+                 .arg( tmpPlr->getBioData() );
 
         Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::MUTE, true, true );
-
-        tmpPlr->setNetworkMuted( true );
     }
 }
 

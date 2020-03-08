@@ -16,6 +16,7 @@
 #include <QStandardItemModel>
 #include <QApplication>
 #include <QTcpSocket>
+#include <QDateTime>
 
 Player::Player()
 {
@@ -86,7 +87,7 @@ Player::Player()
             //Color the User's IP address Red if the User's is muted.
             //Otherwise, color as Green.
             color = Colors::Default;
-            if ( !this->getNetworkMuted() )
+            if ( !this->getIsMuted() )
             {
                 if ( !this->getIsVisible() )
                     color = Colors::Invisible;
@@ -145,6 +146,17 @@ Player::Player()
                     }
                 }
             }
+        }
+    });
+
+    //Connect the Player Object to a User UI signal.
+    QObject::connect( User::getInstance(), &User::mutedSerNumDuration, this,
+    [=](const QString& sernum, const quint64& duration)
+    {
+        if ( !sernum.isEmpty() || duration > 0 )
+        {
+            if ( Helper::cmpStrings( sernum, this->getSernumHex_s() ) )
+                this->setIsMuted( duration );
         }
     });
 
@@ -363,6 +375,17 @@ void Player::setSernum_i(quint32 value)
         this->setHasSernum( true );
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
+
+        quint64 muteDuration{ 0 };
+        muteDuration = User::getIsMuted( sernumHex_s, BanTypes::SerNum, sernumHex_s );
+        if ( muteDuration <= 0 )
+            muteDuration = User::getIsMuted( this->getWVar(), BanTypes::WV, sernumHex_s );
+
+        if ( muteDuration <= 0 )
+            muteDuration = User::getIsMuted( this->getWVar(), BanTypes::IP, sernumHex_s );
+
+        if ( muteDuration > 0 )
+            this->setIsMuted( muteDuration );
 
         serverInfo->sendPlayerSocketInfo();
     }
@@ -779,14 +802,31 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     }
 }
 
-bool Player::getNetworkMuted() const
+quint64 Player::getMuteDuration()
 {
-    return networkMuted;
+    return muteDuration;
 }
 
-void Player::setNetworkMuted(const bool& value)
+void Player::setMuteDuration(const quint64& value)
 {
-    networkMuted = value;
+    muteDuration = value;
+}
+
+bool Player::getIsMuted()
+{
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    if ( muteDuration <= date )
+    {
+        User::removeMute( this->getSernumHex_s(), static_cast<int>( BanTypes::SerNum ) );
+        this->setIsMuted( 0 );
+    }
+    return muteDuration >= date;
+}
+
+void Player::setIsMuted(const quint64& duration)
+{
+    isMuted = duration >=1;
+    this->setMuteDuration( duration );
 }
 
 void Player::chatPacketFound()
@@ -893,8 +933,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
             this->sendMessage( message, false );
 
-            Logger::getInstance()->insertLog( serverInfo->getName(), reason,
-                                              LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( serverInfo->getName(), reason, LogTypes::DC, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -913,7 +952,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
                            .arg( socketIP )
                            .arg( masterIP );
 
-            this->setNetworkMuted( true );
+            User::addMute( nullptr, this, reason, false, true, PunishDurations::THIRTY_MINUTES );
 
             Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::MUTE, true, true );
         }

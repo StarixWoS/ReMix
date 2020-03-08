@@ -492,55 +492,45 @@ bool User::getIsBanned(const QString& value, const BanTypes& type,
 
 void User::removeMute(const QString& value, const qint32& type)
 {
-    QList<QStandardItem*> list = tblModel->findItems(
-                                     Helper::serNumToIntStr( value ),
-                                     Qt::MatchExactly,
-                                     type );
+    QList<QStandardItem*> list = tblModel->findItems( Helper::serNumToIntStr( value ),
+                                                      Qt::MatchExactly,
+                                                      type );
     User* user = User::getInstance();
-    if ( list.count() >= 2 )
-        return; //Too many listed Mutes, do nothing. --Inform the User later?
-
     if ( list.count() )
     {
-        QModelIndex index = list.value( 0 )->index();
-        if ( index.isValid() )
+        QModelIndex index;
+        for ( int i = 0; i < list.count(); ++i )
         {
-            QStringList sernums = userData->childGroups();
-            QString sernum{ "" };
-
-            for ( int i = 0; i < sernums.count(); ++i )
+            index = list.value( i )->index();
+            if ( index.isValid() )
             {
-                sernum = sernums.at( i );
-                if ( Helper::cmpStrings( sernum, value ) )
+                QStringList sernums = userData->childGroups();
+                QString sernum{ "" };
+
+                for ( int i = 0; i < sernums.count(); ++i )
                 {
-                    userData->remove( sernum % "/" % keys[ UserKeys::kMUTED ] );
-                    userData->remove( sernum % "/" % keys[ UserKeys::kMUTEREASON ] );
-                    userData->remove( sernum % "/" % keys[ UserKeys::kMUTEDURATION ] );
+                    sernum = sernums.at( i );
+                    if ( Helper::cmpStrings( sernum, value ) )
+                    {
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTED ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEREASON ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEDURATION ] );
 
-                    break;
+                        break;
+                    }
                 }
+
+                user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), false );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), 0 );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), 0 );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), "" );
             }
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::Muted ),
-                                 false );
-
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::MuteDate ),
-                                 0 );
-
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::MuteDuration ),
-                                 0 );
-
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::MuteReason ),
-                                 "" );
         }
     }
 }
 
-bool User::addMute(const Player* admin, const Player* target,
-                   const QString& reason, const bool remote,
+bool User::addMute(const Player* admin, Player* target, const QString& reason,
+                   const bool& remote, const bool& autoMute,
                    const PunishDurations duration)
 {
     User* user = User::getInstance();
@@ -567,6 +557,12 @@ bool User::addMute(const Player* admin, const Player* target,
             msg = "Manual-Mute; Unknown reason: [ %1 ]";
             msg = msg.arg( target->getSernum_s() );
         }
+
+        if ( autoMute == true )
+        {
+            msg = "Automatic-Mute; Unknown reason: [ %1 ]";
+            msg = msg.arg( target->getSernum_s() );
+        }
     }
 
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
@@ -576,33 +572,21 @@ bool User::addMute(const Player* admin, const Player* target,
     setData( serNum, keys[ UserKeys::kMUTED ], date );
     setData( serNum, keys[ UserKeys::kMUTEREASON ], msg );
     setData( serNum, keys[ UserKeys::kMUTEDURATION ], muteDuration );
+    target->setIsMuted( muteDuration );
 
     QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::Muted ),
-                             ( date > 0 ) );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::MuteReason ),
-                             msg );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::MuteDate ),
-                             date );
-
-        //All Bans are default to 30 days unless manually changed by the
-        //server host.
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::MuteDuration ),
-                             muteDuration );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), ( date > 0 ) );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), msg );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), muteDuration );
     }
     return true;
 }
 
-bool User::getIsMuted(const QString& value, const BanTypes& type,
-                      const QString& plrSernum)
+quint64 User::getIsMuted(const QString& value, const BanTypes& type,
+                         const QString& plrSernum)
 {
     if ( value.isEmpty() )
         return false;
@@ -611,12 +595,10 @@ bool User::getIsMuted(const QString& value, const BanTypes& type,
     QString var{ "" };
 
     bool isValue{ false };
-    bool banned{ false };
 
     QStringList sernums = userData->childGroups();
 
     bool skip{ false };
-
     for ( int i = 0; i < sernums.count(); ++i )
     {
         sernum = sernums.at( i );
@@ -671,23 +653,24 @@ bool User::getIsMuted(const QString& value, const BanTypes& type,
             break;
     }
 
-    quint32 banDate{ getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt() };
-    if ( banDate > 0 )
-    {
-        banned = true;
-        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-        quint64 muteDuration{ getData( sernum, keys[ UserKeys::kMUTEDURATION ] )
-                                 .toUInt() };
+    quint64 muteDate{ getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt() };
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 muteDuration{ 0 };
 
-        if ( ( muteDuration <= banDate )
+    if ( muteDate > 0 )
+    {
+        muteDuration = getData( sernum, keys[ UserKeys::kMUTEDURATION ] )
+                          .toUInt();
+
+        if ( ( muteDuration <= muteDate )
           || ( muteDuration == 0 )
           || ( muteDuration <= date ) )
         {
-            banned = false;
+            muteDuration = 0;
             removeMute( plrSernum, static_cast<int>( BanTypes::SerNum ) );
         }
     }
-    return banned;
+    return muteDuration;
 }
 
 void User::updateCallCount(const QString& serNum)
@@ -699,11 +682,7 @@ void User::updateCallCount(const QString& serNum)
 
     QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
-    {
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::Calls ),
-                             callCount );
-    }
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Calls ), callCount );
 }
 
 void User::logBIO(const QString& serNum, const QHostAddress& ip,
@@ -721,15 +700,13 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
     setData( sernum, keys[ UserKeys::kDV ], dv );
     setData( sernum, keys[ UserKeys::kWV ], wv );
 
-    quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] )
-                      .toUInt() + 1 };
+    quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
     setData( sernum, keys[ UserKeys::kPINGS ], pings );
 
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
     setData( sernum, keys[ UserKeys::kSEEN ], date );
 
-    QModelIndex index = user->findModelIndex( sernum,
-                                              UserCols::SerNum );
+    QModelIndex index = user->findModelIndex( sernum, UserCols::SerNum );
     if ( !index.isValid() )
     {
         qint32 row = tblModel->rowCount();
@@ -739,21 +716,10 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip,
 
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::SerNum ),
-                             Helper::serNumToIntStr( sernum ) );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::IPAddr ),
-                             ip_s );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::Pings ),
-                             pings );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::LastSeen ),
-                             date );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum ) );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::IPAddr ), ip_s );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::LastSeen ), date );
     }
 }
 
@@ -769,9 +735,7 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
     if ( col == UserCols::SerNum )
         serNum = Helper::serNumToIntStr( value );
 
-    QList<QStandardItem*> list = tblModel->findItems( serNum,
-                                                      Qt::MatchExactly,
-                                                      static_cast<int>( col ) );
+    QList<QStandardItem*> list = tblModel->findItems( serNum, Qt::MatchExactly, static_cast<int>( col ) );
     QModelIndex index;
     if ( list.count() )
     {
@@ -837,60 +801,22 @@ void User::loadUserInfo()
             tblModel->insertRow( row );
 
             tblProxy->rowCount();
-            tblModel->setData( tblModel->index( row, 0 ),
-                               Helper::serNumToIntStr( sernum ),
-                               Qt::DisplayRole );
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::Pings ),
-                                 pings_i );
+            tblModel->setData( tblModel->index( row, 0 ), Helper::serNumToIntStr( sernum ), Qt::DisplayRole );
 
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::Calls ),
-                                 calls_i );
+            this->updateRowData( row, static_cast<int>( UserCols::Pings ), pings_i );
+            this->updateRowData( row, static_cast<int>( UserCols::Calls ), calls_i );
+            this->updateRowData( row, static_cast<int>( UserCols::LastSeen ), seen_i );
+            this->updateRowData( row, static_cast<int>( UserCols::IPAddr ), ip );
+            this->updateRowData( row, static_cast<int>( UserCols::Rank ), rank );
+            this->updateRowData( row, static_cast<int>( UserCols::Muted ), banned );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteReason ), banReason );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteDate ), banDate_i );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteDuration ), banDuration_i );
+            this->updateRowData( row, static_cast<int>( UserCols::Banned ), banned );
+            this->updateRowData( row, static_cast<int>( UserCols::BanReason ), banReason );
+            this->updateRowData( row, static_cast<int>( UserCols::BanDate ), banDate_i );
+            this->updateRowData( row, static_cast<int>( UserCols::BanDuration ), banDuration_i );
 
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::LastSeen ),
-                                 seen_i );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::IPAddr ),
-                                 ip );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::Rank ),
-                                 rank );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::Muted ),
-                                 banned );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::MuteReason ),
-                                 banReason );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::MuteDate ),
-                                 banDate_i );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::MuteDuration ),
-                                 banDuration_i );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::Banned ),
-                                 banned );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::BanReason ),
-                                 banReason );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::BanDate ),
-                                 banDate_i );
-
-            this->updateRowData( row,
-                                 static_cast<int>( UserCols::BanDuration ),
-                                 banDuration_i );
             ui->userTable->resizeColumnToContents( static_cast<int>( UserCols::BanReason ) );
 
             if ( banned )
@@ -900,16 +826,13 @@ void User::loadUserInfo()
                   || ( banDuration_i == 0 )
                   || ( banDuration_i <= date ) )
                 {
-                    this->removeBan( sernum,
-                                     static_cast<int>( BanTypes::SerNum ) );
+                    this->removeBan( sernum, static_cast<int>( BanTypes::SerNum ) );
                     QString message{ "Automatically removing the Banned User [ %1 ]. Banned on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
                     message = message.arg( Helper::serNumToIntStr( sernum ) )
                                      .arg( Helper::getTimeAsString( banDate_i ) )
                                      .arg( Helper::getTimeAsString( banDuration_i ) )
                                      .arg( banReason );
-                    Logger::getInstance()->insertLog( "BanLog", message,
-                                                      LogTypes::BAN, true,
-                                                      true );
+                    Logger::getInstance()->insertLog( "BanLog", message, LogTypes::BAN, true, true );
                 }
             }
 
@@ -920,16 +843,13 @@ void User::loadUserInfo()
                   || ( banDuration_i == 0 )
                   || ( banDuration_i <= date ) )
                 {
-                    this->removeMute( sernum,
-                                     static_cast<int>( BanTypes::SerNum ) );
+                    this->removeMute( sernum, static_cast<int>( BanTypes::SerNum ) );
                     QString message{ "Automatically removing the Muted User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
                     message = message.arg( Helper::serNumToIntStr( sernum ) )
                                      .arg( Helper::getTimeAsString( muteDate_i ) )
                                      .arg( Helper::getTimeAsString( muteDuration_i ) )
                                      .arg( muteReason );
-                    Logger::getInstance()->insertLog( "MuteLog", message,
-                                                      LogTypes::MUTE, true,
-                                                      true );
+                    Logger::getInstance()->insertLog( "MuteLog", message, LogTypes::MUTE, true, true );
                 }
             }
         }
@@ -978,7 +898,6 @@ void User::updateRowData(const qint32& row, const qint32& col,
 
             if ( col == static_cast<int>( UserCols::MuteDuration ) )
                 ui->userTable->resizeColumnToContents( col );
-
         }
         else
         {
@@ -1000,10 +919,8 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
     QString sernum{ "" };
     QVariant value;
 
-    sernum = tblModel->data(
-                 tblModel->index(
-                     index.row(), static_cast<int>(
-                                      UserCols::SerNum ) ) ).toString();
+    sernum = tblModel->data( tblModel->index( index.row(), static_cast<int>( UserCols::SerNum ) ) )
+                       .toString();
     sernum = Helper::sanitizeSerNum( sernum );
 
     switch ( static_cast<UserCols>( index.column() ) )
@@ -1054,10 +971,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                 {
                     value = QDateTime::currentDateTimeUtc().toTime_t();
                     setData( sernum, keys[ UserKeys::kBANNED ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>(
-                                             UserCols::BanDate ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), value );
 
 
                     reason = getData( sernum, keys[ UserKeys::kBANREASON ] )
@@ -1067,14 +981,10 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                         setReason = true;
                         reason = "Manual Banish; " % requestReason( this );
 
-                        value = value.toUInt() +
-                                static_cast<uint>( requestDuration( this ) );
+                        value = value.toUInt() + static_cast<uint>( requestDuration( this ) );
 
                         setData( sernum, keys[ UserKeys::kBANDURATION ], value );
-                        this->updateRowData( index.row(),
-                                             static_cast<int>( UserCols::BanDuration ),
-                                             value );
-
+                        this->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), value );
                     }
                 }
                 else
@@ -1111,28 +1021,25 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                 QString reason{ "" };
 
                 bool muted = tblModel->data( index ).toBool();
+
                 if ( muted )
                 {
-                    value = QDateTime::currentDateTimeUtc().toTime_t();
-                    setData( sernum, keys[ UserKeys::kMUTED ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::MuteDate ),
-                                         value );
-
-
                     reason = getData( sernum, keys[ UserKeys::kMUTEREASON ] ).toString();
                     if ( reason.isEmpty() )
                     {
                         setReason = true;
                         reason = "Manual Mute; " % requestReason( this );
 
-                        value = value.toUInt() + static_cast<uint>( requestDuration( this ) );
+                        QVariant date = QDateTime::currentDateTimeUtc().toTime_t();
+                        value = date.toUInt() + static_cast<uint>( requestDuration( this ) );
+
+                        emit this->mutedSerNumDuration( sernum, value.toUInt() );
+
+                        setData( sernum, keys[ UserKeys::kMUTED ], value );
+                        this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );
 
                         setData( sernum, keys[ UserKeys::kMUTEDURATION ], value );
-                        this->updateRowData( index.row(),
-                                             static_cast<int>( UserCols::MuteDuration ),
-                                             value );
-
+                        this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), value );
                     }
                 }
                 else
@@ -1142,14 +1049,10 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     value = 0;
 
                     setData( sernum, keys[ UserKeys::kMUTED ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::MuteDate ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), value );
 
                     setData( sernum, keys[ UserKeys::kMUTEDURATION ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::MuteDuration ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), value );
                 }
 
                 if ( setReason )
@@ -1157,9 +1060,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     value = reason;
                     setData( sernum, keys[ UserKeys::kMUTEREASON ], value );
 
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::MuteReason ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), value );
                 }
             }
         break;

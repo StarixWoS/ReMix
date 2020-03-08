@@ -61,11 +61,11 @@ class User : public QDialog
                                 const QString& plrSernum = "");
 
         static void removeMute(const QString& value, const qint32& type);
-        static bool addMute(const Player* admin, const Player* target,
-                            const QString& reason, const bool remote,
+        static bool addMute(const Player* admin, Player* target,
+                            const QString& reason, const bool& remote, const bool& autoMute,
                             const PunishDurations duration);
-        static bool getIsMuted(const QString& value, const BanTypes& type,
-                               const QString& plrSernum = "");
+        static quint64 getIsMuted(const QString& value, const BanTypes& type,
+                                  const QString& plrSernum = "");
 
         static void updateCallCount(const QString& serNum);
         static void logBIO(const QString& serNum, const QHostAddress& ip,
@@ -80,6 +80,9 @@ class User : public QDialog
         void loadUserInfo();
         void updateRowData(const qint32& row, const qint32& col,
                            const QVariant& data);
+
+    signals:
+        void mutedSerNumDuration(const QString& sernum, const quint64& duration);
 
     private slots:
         void updateDataValue(const QModelIndex& index,

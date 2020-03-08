@@ -16,6 +16,7 @@ class Player : public QObject
 
     QStandardItem* tableRow{ nullptr };
     ServerInfo* serverInfo{ nullptr };
+    User* userUIObject{ nullptr };
     SendMsg* messageDialog{ nullptr };
     QTcpSocket* socket{ nullptr };
     QByteArray outBuff;
@@ -75,10 +76,12 @@ class Player : public QObject
     QElapsedTimer idleTime;
 
     QTimer killTimer;
-    bool isDisconnected{ false };
 
+    bool isDisconnected{ false };
     bool isVisible{ true };
-    bool networkMuted{ false };
+    bool isMuted{ false };
+
+    quint64 muteDuration{ 0 };
 
     QTimer afkTimer;
     QIcon afkIcon;
@@ -202,8 +205,10 @@ class Player : public QObject
         void setDisconnected(const bool& value,
                              const DCTypes& dcType = DCTypes::IPDC);
 
-        bool getNetworkMuted() const;
-        void setNetworkMuted(const bool& value);
+        quint64 getMuteDuration();
+        void setMuteDuration(const quint64& value);
+        bool getIsMuted();
+        void setIsMuted(const quint64& duration);
 
         void chatPacketFound();
 

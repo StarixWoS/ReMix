@@ -214,8 +214,7 @@ void UPNP::getUdp()
                                      reader.readNext();
                     while ( !reader.atEnd() )
                     {
-                        if ( Helper::cmpStrings( reader.name().toString(),
-                                             "serviceType" ) )
+                        if ( Helper::cmpStrings( reader.name().toString(), "serviceType" ) )
                         {
                             rtrSchema = reader.readElementText();
                             bool validSchema{ false };
@@ -283,7 +282,6 @@ void UPNP::getUdp()
     }
 }
 
-
 void UPNP::getExternalIP()
 {
     QString message{ "<?xml version=\"1.0\"?>"
@@ -335,7 +333,6 @@ void UPNP::postSOAP(const QString& action, const QString& message,
                 //IP Extraction handles it's own log output.
                 log = false;
             }
-
 
             if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {

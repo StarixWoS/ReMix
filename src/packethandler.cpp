@@ -15,6 +15,7 @@
 
 //Qt Includes.
 #include <QTcpSocket>
+#include <QTime>
 #include <QtCore>
 
 PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
@@ -52,12 +53,7 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
             if ( Helper::strStartsWithStr( pkt, ":SR$" ) )
                 return;
 
-            //Ensure Muted Users remain Muted.
-            plr->setNetworkMuted( false );
-            if ( this->getIsMuted( plr->getSernumHex_s(), plr->getWVar(), plr->getDVar(), plr->getPublicIP(), plr->getSernumHex_s() ) )
-                plr->setNetworkMuted( true );
-
-            if ( !plr->getNetworkMuted()
+            if ( !plr->getIsMuted()
               && plr->getIsVisible() )
             {
                 //Warpath doesn't send packets using SerNums.
@@ -357,8 +353,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                             }
                             User::logBIO( sernum, ipAddr, dVar, wVar, data );
 
-                            QString msg{ "Recieved ping from User [ %1:%2 ] "
-                                         "with SoulID [ %3 ] and BIO data; %4" };
+                            QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
                                     msg = msg.arg( ipAddr.toString() )
                                              .arg( port )
                                              .arg( Helper::serNumToIntStr( sernum ) )
@@ -455,8 +450,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
                         if ( Settings::getBanDupedIP() )
                         {
-                            reason = "Auto-Banish; Duplicate IP "
-                                     "Address: [ %1 ], %2";
+                            reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
                             reason = reason.arg( plr->getPublicIP() )
                                            .arg( plr->getBioData() );
 
@@ -543,24 +537,6 @@ bool PacketHandler::getIsBanned(const QString& serNum, const QString& wVar,
     return banned;
 }
 
-bool PacketHandler::getIsMuted(const QString& serNum, const QString& wVar,
-                               const QString& dVar, const QString& ipAddr,
-                               const QString& plrSerNum) const
-{
-    bool muted{ false };
-    muted = User::getIsMuted( serNum, BanTypes::SerNum, plrSerNum );
-    if ( !muted )
-        muted = User::getIsMuted( wVar, BanTypes::WV, plrSerNum );
-
-    if ( !muted )
-        muted = User::getIsMuted( dVar, BanTypes::DV, plrSerNum );
-
-    if ( !muted )
-        muted = User::getIsMuted( ipAddr, BanTypes::IP, plrSerNum );
-
-    return muted;
-}
-
 void PacketHandler::detectFlooding(Player* plr)
 {
     if ( plr == nullptr )
@@ -575,7 +551,7 @@ void PacketHandler::detectFlooding(Player* plr)
             if ( floodCount >= PACKET_FLOOD_LIMIT
               && !plr->getIsDisconnected() )
             {
-                QString logMsg{ "Auto-Disconnect; Packet Flooding: [ %1 ] "
+                QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] "
                                 "sent %2 packets in %3 MS, they are "
                                 "disconnected: [ %4 ]" };
                         logMsg = logMsg.arg( plr->getPublicIP()  )
@@ -583,9 +559,10 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( time )
                                        .arg( plr->getBioData() );
 
+                User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
                 Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::DC, true, true );
 
-                QString plrMessage{ "Auto-Disconnect; Packet Flooding" };
+                QString plrMessage{ "Auto-Mute; Packet Flooding" };
                 plr->sendMessage( plrMessage, false );
                 plr->setDisconnected( true, DCTypes::PktDC );
             }
@@ -640,7 +617,7 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
     if ( plr!= nullptr )
     {
         //Do not accept comments from User who have been muted.
-        if ( !plr->getNetworkMuted() )
+        if ( !plr->getIsMuted() )
             cmdHandle->parseMix5Command( plr, packet );
     }
 }

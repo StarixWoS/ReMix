@@ -14,9 +14,9 @@
 
 int main(int argc, char* [])
 {
-//    RunGuard guard( "ReMix_Game_Server" );
-//    if ( !guard.tryToRun() )
-//        return 0;
+    RunGuard guard( "ReMix_Game_Server" );
+    if ( !guard.tryToRun() )
+        return 0;
 
     QApplication a(argc, nullptr);
                  a.setApplicationName( "ReMix" );

@@ -18,6 +18,7 @@ Version 2.5.3:
       * Corrected a state mismatch with the message being sent with the /vanish admin command.
         * When no sub-command was issued, the state would always show as being "invisible" within the message being sent to the Remote Administrator.
       * ReMix will no longer attempt to re-forward a port via UPNP that it has decided should be a permanent forward.
+      * Fix build error.
 
     Source:
       * Begin converting the source from a 80 column text limit to 180 columns.

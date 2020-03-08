@@ -38,9 +38,6 @@ class PacketHandler : public QObject
         bool getIsBanned(const QString& serNum, const QString& wVar,
                          const QString& dVar, const QString& ipAddr,
                          const QString& plrSerNum) const;
-        bool getIsMuted(const QString& serNum, const QString& wVar,
-                        const QString& dVar, const QString& ipAddr,
-                        const QString& plrSerNum) const;
 
     private:
         void detectFlooding(Player* plr);
