@@ -214,7 +214,8 @@ void UPNP::getUdp()
                                      reader.readNext();
                     while ( !reader.atEnd() )
                     {
-                        if ( Helper::cmpStrings( reader.name().toString(), "serviceType" ) )
+                        if ( Helper::cmpStrings( reader.name().toString(), "serviceType" )
+                          || Helper::cmpStrings( reader.name().toString(), "ST" ) )
                         {
                             rtrSchema = reader.readElementText();
                             bool validSchema{ false };

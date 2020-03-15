@@ -194,8 +194,7 @@ void ServerInfo::sendUDPData(const QHostAddress& addr, const quint16& port,
                              const QString& data)
 {
     if ( masterSocket != nullptr )
-        masterSocket->writeDatagram( data.toLatin1(), data.size() + 1,
-                                     addr, port );
+        masterSocket->writeDatagram( data.toLatin1(), data.size() + 1, addr, port );
 }
 
 void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
@@ -214,8 +213,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                              sGameInfo,
                              Rules::getRuleSet( serverName ),
                              this->getServerID(),
-                             Helper::intToStr( QDateTime::currentDateTimeUtc()
-                                                    .toTime_t(), 16, 8 ),
+                             Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), 16, 8 ),
                              this->getUsageString(),
                              QString( REMIX_VERSION ) );
 
@@ -226,8 +224,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        Logger::getInstance()->insertLog( this->getName(), msg,
-                                          LogTypes::USAGE, true, true );
+        Logger::getInstance()->insertLog( this->getName(), msg, LogTypes::USAGE, true, true );
     }
 }
 
@@ -261,15 +258,12 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
             {
                 if ( type == Q_Response ) //Standard 'Q' Response.
                 {
-                    response += filler_Q.arg( Helper::intToStr(
-                                                  plr->getSernum_i(), 16 ) );
+                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), 16 ) );
                 }
                 else if ( type == R_Response ) //Non-Standard 'R' Response
                 {
-                    response += filler_R.arg( Helper::intToStr(
-                                                  plr->getSernum_i(), 16 ) )
-                                        .arg( Helper::intToStr(
-                                                  plr->getSlotPos(), 16, 8 ) );
+                    response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), 16 ) )
+                                        .arg( Helper::intToStr( plr->getSlotPos(), 16, 8 ) );
                 }
             }
         }
@@ -310,7 +304,8 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     }
 
     if ( !response.isEmpty()
-      && this->getIsSetUp() )
+      && this->getIsSetUp()
+      && !addr.isNull() )
     {
         QString msg{ "Sending Master Check-In to [ %1:%2 ]; %3" };
                 msg = msg.arg( addr.toString() )
@@ -320,8 +315,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
         {
             msg.append( " [ Disconnect ]." );
         }
-        Logger::getInstance()->insertLog( this->getName(), msg,
-                                          LogTypes::USAGE, true, true );
+        Logger::getInstance()->insertLog( this->getName(), msg, LogTypes::USAGE, true, true );
 
         //Store the Master Server Check-In time.
         this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
@@ -449,9 +443,8 @@ void ServerInfo::sendPlayerSocketInfo()
         if ( tmpPlr != nullptr && tmpPlr->getHasSernum() )
         {
             ipAddr = QHostAddress( tmpPlr->getPublicIP() );
-            response = response.append(
-                           filler.arg( Helper::intToStr( tmpPlr->getSernum_i(), 16 ) )
-                                 .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, 16 ) ) );
+            response = response.append( filler.arg( Helper::intToStr( tmpPlr->getSernum_i(), 16 ) )
+                                              .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, 16 ) ) );
         }
     }
     response = response.append( "\r\n" );

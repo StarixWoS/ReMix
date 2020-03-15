@@ -348,17 +348,17 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                             }
                             else
                             {
+                                QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
+                                msg = msg.arg( ipAddr.toString() )
+                                          .arg( port )
+                                          .arg( Helper::serNumToIntStr( sernum ) )
+                                          .arg( data );
+                                Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::USAGE, true, true );
+
                                 server->sendServerInfo( ipAddr, port );
                                 bioHash->insert( ipAddr, udp.mid( 1 ) );
                             }
                             User::logBIO( sernum, ipAddr, dVar, wVar, data );
-
-                            QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
-                                    msg = msg.arg( ipAddr.toString() )
-                                             .arg( port )
-                                             .arg( Helper::serNumToIntStr( sernum ) )
-                                             .arg( data );
-                            Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::USAGE, true, true );
                         }
                         server->setUserPings( server->getUserPings() + 1 );
                     }

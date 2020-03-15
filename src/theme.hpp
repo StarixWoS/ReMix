@@ -11,7 +11,6 @@
 class Theme
 {
     static Themes themeType;
-    //static QString themeColors[ UI_THEME_COUNT ][ UI_THEME_COLORS ];
     static QVector<QStringList> themeColors;
 
     public:

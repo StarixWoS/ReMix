@@ -2,6 +2,19 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.4:
+    Change:
+
+    Bugfixes:
+      * ReMix now detects when a User is within a Well Scene and no longer saves the Camp packet associated with that scene.
+        * Entering camp scenes created before connecting to the server will now correctly function.
+      * Mutes will now once again check if the IP address of the User has an outstanding Mute.
+      * Attempt to prevent checking in to the Master Mix until the Master Mix IP address has been found.
+
+
+
+
+
 Version 2.5.3:
     Change:
       * ReMix will now log, and show within the Logger UI when a Server Side Variable is being accessed with a read/write.

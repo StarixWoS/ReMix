@@ -53,16 +53,14 @@ Player::Player()
                            .arg( this->getBytesIn() )
                            .arg( this->getPacketsIn() );
 
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::BytesIn ),
-                                baudIn, Qt::DisplayRole );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesOut(), true );
 
             baudOut = baudOut.arg( this->getAvgBaud( true ) )
                              .arg( this->getBytesOut() )
                              .arg( this->getPacketsOut() );
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::BytesOut ),
-                                baudOut, Qt::DisplayRole );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
 
             //Color the User's IP address Green if the Admin is authed
             //Otherwise, color as Red.
@@ -216,9 +214,8 @@ void Player::sendMessage(const QString& msg, const bool& toAll)
         if ( messageDialog == nullptr )
         {
             messageDialog = new SendMsg( this->getSernum_s() );
-            QObject::connect( messageDialog, &SendMsg::forwardMessage,
-                              messageDialog,
-                              [=](QString message)
+            QObject::connect( messageDialog, &SendMsg::forwardMessage, messageDialog,
+            [=](QString message)
             {
                 if ( !message.isEmpty() )
                 {
@@ -297,8 +294,7 @@ void Player::setModelData(QStandardItem* model, const qint32& row,
         {
             if ( !isColor )
             {
-                sModel->setData( model->model()->index( row, column ),
-                                 data, role );
+                sModel->setData( model->model()->index( row, column ), data, role );
             }
             else
             {
@@ -330,8 +326,7 @@ void Player::setSernum_i(quint32 value)
     if ( value != this->getSernum_i() )
     {
         sernum_i = value;
-        QString sernum_s{ Helper::serNumToIntStr(
-                                Helper::intToStr( value, 16, 8 ) ) };
+        QString sernum_s{ Helper::serNumToIntStr( Helper::intToStr( value, 16, 8 ) ) };
         QString sernumHex_s{ Helper::serNumToHexStr( sernum_s ) };
 
         if ( !sernum_s.isEmpty() )
@@ -382,7 +377,7 @@ void Player::setSernum_i(quint32 value)
             muteDuration = User::getIsMuted( this->getWVar(), BanTypes::WV, sernumHex_s );
 
         if ( muteDuration <= 0 )
-            muteDuration = User::getIsMuted( this->getWVar(), BanTypes::IP, sernumHex_s );
+            muteDuration = User::getIsMuted( this->getPublicIP(), BanTypes::IP, sernumHex_s );
 
         if ( muteDuration > 0 )
             this->setIsMuted( muteDuration );

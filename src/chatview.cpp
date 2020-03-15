@@ -203,7 +203,8 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                                 if ( plr->getSceneHost() != tmpPlr->getSernum_i()
                                   || plr->getSceneHost() <= 0 )
                                 {
-                                    if ( tmpPlr->getTargetType() == Player::ALL )
+                                    if ( !tmpPlr->getCampPacket().isEmpty()
+                                      && tmpPlr->getTargetType() == Player::ALL )
                                     {
                                         tmpPlr->setTargetSerNum( plr->getSernum_i() );
                                         tmpPlr->setTargetType( Player::PLAYER );
@@ -221,7 +222,11 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 if ( pkt.at( 3 ) == 'F' )
                 {
                     if ( plr->getCampPacket().isEmpty() )
-                        plr->setCampPacket( packet );
+                    {
+                        qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
+                        if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
+                            plr->setCampPacket( packet );
+                    }
                 }  //User un-camp. Remove camp packet.
                 else if ( pkt.at( 3 ) == 'f' )
                 {

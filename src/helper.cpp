@@ -441,10 +441,8 @@ void Helper::getSynRealData(ServerInfo* svr)
     bool downloadFile = true;
     if ( synRealFile.exists() )
     {
-        qint64 curTime = static_cast<qint64>(  QDateTime::currentDateTime()
-                                                                 .toMSecsSinceEpoch() / 1000 );
-        qint64 modTime = static_cast<qint64>( synRealFile.lastModified()
-                                                              .toMSecsSinceEpoch() / 1000 );
+        qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
+        qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
 
         //Check if the file is 48 hours old and set our bool.
         downloadFile = ( curTime - modTime >= 172800 );
@@ -482,27 +480,22 @@ void Helper::getSynRealData(ServerInfo* svr)
             if ( index > 0 )
             {
                 svr->setMasterIP( str.left( index ) );
-                svr->setMasterPort(
-                            static_cast<quint16>(
-                                str.midRef( index + 1 ).toInt() ) );
+                svr->setMasterPort( static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
 
                 QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
                         msg = msg.arg( svr->getMasterIP() )
                                  .arg( svr->getMasterPort() )
                                  .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getName(), msg,
-                                                  LogTypes::USAGE, true, true );
+                Logger::getInstance()->insertLog( svr->getName(), msg, LogTypes::USAGE, true, true );
             }
         });
 
-        QObject::connect( socket, &QTcpSocket::disconnected,
-                          socket, &QTcpSocket::deleteLater );
+        QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater );
     }
     else
     {
         QSettings settings( "synReal.ini", QSettings::IniFormat );
-        QString str = settings.value( svr->getGameName()
-                                    % "/master" ).toString();
+        QString str = settings.value( svr->getGameName() % "/master" ).toString();
         if ( !str.isEmpty() )
         {
             int index = str.indexOf( ":" );
@@ -517,8 +510,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                 message = message.arg( svr->getMasterIP() )
                                  .arg( svr->getMasterPort() )
                                  .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getName(), message,
-                                                  LogTypes::USAGE, true, true );
+                Logger::getInstance()->insertLog( svr->getName(), message, LogTypes::USAGE, true, true );
             }
         }
     }
@@ -561,12 +553,9 @@ QString Helper::getTimeAsString(const quint64& time)
 QString Helper::getTimeFormat(const quint64& time)
 {
     return QString( "%1:%2:%3" )
-            .arg( getTimeIntFormat( time, TimeFormat::Hours ),
-                  2, 10, QChar( '0' ) )
-            .arg( getTimeIntFormat( time, TimeFormat::Minutes ),
-                  2, 10, QChar( '0' ) )
-            .arg( getTimeIntFormat( time, TimeFormat::Seconds ),
-                  2, 10, QChar( '0' ) );
+            .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, 10, QChar( '0' ) )
+            .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, 10, QChar( '0' ) );
 }
 
 quint64 Helper::getTimeIntFormat(const quint64& time, const TimeFormat& format)
@@ -585,6 +574,10 @@ quint64 Helper::getTimeIntFormat(const quint64& time, const TimeFormat& format)
             retn = ( time % static_cast<int>( TimeFormat::SecDiv ) );
         break;
         case TimeFormat::Default:
+            retn = time;
+        break;
+        case TimeFormat::SecDiv:
+        case TimeFormat::HoursDiv:
             retn = time;
         break;
     }
