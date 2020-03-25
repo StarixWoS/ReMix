@@ -486,7 +486,10 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason,
 
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
     quint64 muteDuration{ date + static_cast<quint64>( duration ) };
+
     QString serNum{ target->getSernumHex_s() };
+    if ( target->getSernum_i() == 0 )
+        serNum = "00000000"; //Special case.
 
     target->setIsMuted( muteDuration );
     setData( serNum, keys[ UserKeys::kMUTEREASON ], msg );
@@ -496,8 +499,8 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason,
     QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), ( date > 0 ) );
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), msg );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), ( date > 0 ) );
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), muteDuration );
     }

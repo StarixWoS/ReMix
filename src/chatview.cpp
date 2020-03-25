@@ -198,7 +198,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                         {
                             tmpPlr = server->getPlayer( i );
                             if ( tmpPlr != nullptr
-                                 && plr != tmpPlr )
+                              && plr != tmpPlr )
                             {
                                 if ( plr->getSceneHost() != tmpPlr->getSernum_i()
                                   || plr->getSceneHost() <= 0 )
