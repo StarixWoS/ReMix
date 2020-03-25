@@ -204,10 +204,10 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                                   || plr->getSceneHost() <= 0 )
                                 {
                                     if ( !tmpPlr->getCampPacket().isEmpty()
-                                      && tmpPlr->getTargetType() == Player::ALL )
+                                      && tmpPlr->getTargetType() == PktTarget::ALL )
                                     {
                                         tmpPlr->setTargetSerNum( plr->getSernum_i() );
-                                        tmpPlr->setTargetType( Player::PLAYER );
+                                        tmpPlr->setTargetType( PktTarget::PLAYER );
                                         tmpPlr->forceSendCampPacket();
                                     }
                                 }

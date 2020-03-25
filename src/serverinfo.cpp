@@ -6,6 +6,7 @@
 #include "widgets/userdelegate.hpp"
 
 //ReMix includes.
+#include "packethandler.hpp"
 #include "settings.hpp"
 #include "player.hpp"
 #include "server.hpp"
@@ -31,6 +32,8 @@ ServerInfo::ServerInfo()
     baudTime.start();
     upTimer.start( UI_UPDATE_TIME );
 
+    QObject::connect( this->getMasterSocket(), &QUdpSocket::readyRead, this, &ServerInfo::readyReadUDPSlot, Qt::QueuedConnection );
+
     QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
     [=]()
     {
@@ -45,7 +48,7 @@ ServerInfo::ServerInfo()
 
             baudTime.restart();
         }
-    });
+    }, Qt::QueuedConnection );
 
     masterTimeOut.setInterval( MAX_MASTER_RESPONSE_TIME );
     masterTimeOut.setSingleShot( true );
@@ -53,7 +56,7 @@ ServerInfo::ServerInfo()
     [=]()
     {
         this->setMasterTimedOut( true );
-    });
+    }, Qt::QueuedConnection );
 
     QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
     [=]()
@@ -61,7 +64,7 @@ ServerInfo::ServerInfo()
         this->sendMasterInfo();
         if ( !masterTimeOut.isActive() )
             masterTimeOut.start();
-    });
+    }, Qt::QueuedConnection );
 
     //Updates the Server's Server Usage array every 10 minutes.
     usageUpdate.start( SERVER_USAGE_UPDATE );
@@ -94,7 +97,7 @@ ServerInfo::ServerInfo()
         }
         ++usageCounter;
         usageCounter %= SERVER_USAGE_48_HOURS;
-    });
+    }, Qt::QueuedConnection );
 }
 
 ServerInfo::~ServerInfo()
@@ -138,7 +141,7 @@ void ServerInfo::setupUPNP(const bool& enable)
                 upnp->addPortForward( "TCP", this->getPrivatePort() );
                 upnp->addPortForward( "UDP", this->getPrivatePort() );
                 upnp->disconnect();
-            });
+            }, Qt::QueuedConnection );
             upnp->makeTunnel();
         }
         else
@@ -335,12 +338,13 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
 
 Player* ServerInfo::createPlayer(const int& slot)
 {
-    if ( slot >= 0 && slot < MAX_PLAYERS  )
+    if ( slot >= 0 && slot < MAX_PLAYERS )
     {
         players[ slot ] = new Player();
         players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
 
+        QObject::connect( pktHandle, &PacketHandler::signalSendPacketToPlayer, players[ slot ], &Player::slotSendPacketToPlayer );
         return players[ slot ];
     }
     return nullptr;
@@ -379,6 +383,7 @@ void ServerInfo::deletePlayer(const int& slot)
             soc->deleteLater();
         }
         plr->setSocket( nullptr );
+        plr->disconnect();
     }
     plr = nullptr;
 
@@ -406,7 +411,7 @@ int ServerInfo::getSocketSlot(QTcpSocket* soc)
     for ( auto* plr : players )
     {
         if ( plr != nullptr
-            && plr->getSocket() == soc )
+          && plr->getSocket() == soc )
         {
             slot = plr->getSlotPos();
             break;
@@ -700,11 +705,11 @@ void ServerInfo::setUseUPNP(const bool& value)
         if ( !this->getIsSetUp() )
         {
             //Catch a possible race condition with a signal connection.
-            QObject::connect( this, &ServerInfo::serverIsSetup,
+            QObject::connect( this, &ServerInfo::serverIsSetup, this,
             [=]()
             {
                 this->setupUPNP( value );
-            });
+            }, Qt::QueuedConnection );
         }
         else
             this->setupUPNP( value );
@@ -1095,6 +1100,26 @@ void ServerInfo::updateBytesOut(Player* plr, const qint64 bOut)
     this->setBytesOut( this->getBytesOut() + static_cast<quint64>( bOut ) );
 
     return;
+}
+
+void ServerInfo::readyReadUDPSlot()
+{
+    QUdpSocket* socket{ this->getMasterSocket() };
+    PacketHandler* pktHandle{ this->getPktHandle() };
+    if ( socket == nullptr )
+        return;
+
+    QByteArray data;
+    if ( socket != nullptr )
+    {
+        QHostAddress senderAddr{};
+        quint16 senderPort{ 0 };
+
+        data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
+        socket->readDatagram( data.data(), data.size(), &senderAddr, &senderPort );
+
+        pktHandle->parseUDPPacket( data, senderAddr, senderPort );
+    }
 }
 
 Server* ServerInfo::getTcpServer() const

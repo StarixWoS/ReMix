@@ -27,16 +27,10 @@ class PacketHandler : public QObject
         void stopMasterCheckIn();
 
         void parsePacket(const QByteArray& packet, Player* plr = nullptr);
-        void parseSRPacket(const QByteArray& packet, Player* plr = nullptr);
-        void parseMIXPacket(const QString& packet, Player* plr = nullptr);
-
-        void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr,
-                            const quint16& port,
-                            QHash<QHostAddress, QByteArray>* bioHash);
+        void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port);
 
         bool checkBannedInfo(Player* plr) const;
-        bool getIsBanned(const QString& serNum, const QString& wVar,
-                         const QString& dVar, const QString& ipAddr,
+        bool getIsBanned(const QString& serNum, const QString& ipAddr,
                          const QString& plrSerNum) const;
 
     private:
@@ -52,12 +46,12 @@ class PacketHandler : public QObject
         void readMIX7(const QString& packet, Player* plr);
         void readMIX8(const QString& packet, Player* plr);
         void readMIX9(const QString& packet, Player* plr);
-        void handleSSVReadWrite(const QString& packet, Player* plr,
-                                const bool write);
+        void handleSSVReadWrite(const QString& packet, Player* plr, const bool write);
 
     signals:
-        void newUserCommentSignal(const QString& sernum, const QString& alias,
-                                  const QString& message);
+        void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
+        void signalSendPacketToPlayer(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
+                                      quint32 trgScene, const QByteArray& packet);
 };
 
 #endif // PACKETHANDLER_HPP

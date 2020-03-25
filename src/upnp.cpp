@@ -22,6 +22,8 @@ QStringList UPNP::schemas =
     "urn:schemas-upnp-org:device:InternetGatewayDevice:1",
     "urn:schemas-upnp-org:service:WANIPConnection:1",
     "urn:schemas-upnp-org:service:WANPPPConnection:1",
+    "urn:schemas-wifialliance-org:service:WFAWLANConfig:1",
+    "urn:schemas-wifialliance-org:device:WFADevice:1",
     "upnp:rootdevice",
 };
 
@@ -77,7 +79,7 @@ UPNP::UPNP(QObject* parent )
         refreshTunnel = new QTimer( this );
         refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
         QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
-                          [=]()
+        [=]()
         {
             for ( qint32 port : ports )
             {
@@ -87,7 +89,7 @@ UPNP::UPNP(QObject* parent )
                     this->addPortForward( "UDP", port );
                 }
             }
-        });
+        }, Qt::QueuedConnection );
 
         QString logMsg{ "Creating UPNP Object." };
         Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
@@ -112,8 +114,7 @@ UPNP::~UPNP()
 
 void UPNP::makeTunnel()
 {
-    QObject::connect( udpSocket, &QUdpSocket::readyRead,
-                      this, &UPNP::getUdp );
+    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdp, Qt::QueuedConnection );
 
     QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
                                 "HOST:239.255.255.250:1900\r\n"
@@ -194,8 +195,7 @@ void UPNP::getUdp()
                 sport.remove( index, sport.size() - index );
 
                 ctrlPort = sport;
-                QObject::connect( httpSocket, &QNetworkAccessManager::finished,
-                                  httpSocket,
+                QObject::connect( httpSocket, &QNetworkAccessManager::finished, httpSocket,
                 [=](QNetworkReply* reply)
                 {
                     QString response = reply->readAll();
@@ -269,7 +269,7 @@ void UPNP::getUdp()
                     this->getExternalIP();
 
                     httpSocket->disconnect();
-                });
+                }, Qt::QueuedConnection );
 
                 logMsg = "Requesting Service Information from [ %1 ].";
                 logMsg = logMsg.arg( vs );
@@ -381,7 +381,7 @@ void UPNP::postSOAP(const QString& action, const QString& message,
         }
         httpReply->disconnect();
         httpReply->deleteLater();
-    });
+    }, Qt::QueuedConnection );
 }
 
 void UPNP::extractError(const QString& message, const qint32& port,

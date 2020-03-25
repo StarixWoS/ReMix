@@ -689,9 +689,9 @@ void CmdHandler::unBanHandler(const QString& subCmd, const QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( Helper::cmpStrings( subCmd, "ip" ) )
-        User::removeBan( arg1, static_cast<int>( BanTypes::IP ) );
+        User::removePunishment( arg1, PunishTypes::Ban, PunishTypes::IP );
     else
-        User::removeBan( sernum, static_cast<int>( BanTypes::SerNum ) );
+        User::removePunishment( sernum, PunishTypes::Ban, PunishTypes::SerNum );
 }
 
 void CmdHandler::kickHandler(Player* plr, const QString& arg1,
@@ -804,9 +804,9 @@ void CmdHandler::unMuteHandler(const QString& subCmd, const QString& arg1)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( Helper::cmpStrings( subCmd, "ip" ) )
-        User::removeMute( arg1, static_cast<int>( BanTypes::IP ) );
+        User::removePunishment( arg1, PunishTypes::Mute, PunishTypes::IP );
     else
-        User::removeMute( sernum, static_cast<int>( BanTypes::SerNum ) );
+        User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 }
 
 void CmdHandler::msgHandler(const QString& arg1, const QString& message,
@@ -1027,7 +1027,7 @@ void CmdHandler::shutDownHandler(Player* plr, const QString& duration,
         if ( plrServer != nullptr )
         {
             QObject::connect( shutdownTimer, &QTimer::timeout, shutdownTimer,
-                              [=]()
+            [=]()
             {
                 ReMixTabWidget::remoteCloseServer( plrServer, restart );
 
@@ -1035,7 +1035,7 @@ void CmdHandler::shutDownHandler(Player* plr, const QString& duration,
                 shutdownTimer->deleteLater();
 
                 shutdownTimer = nullptr;
-            });
+            }, Qt::QueuedConnection );
         }
 
         message = message.arg( plr->getSernum_s() )

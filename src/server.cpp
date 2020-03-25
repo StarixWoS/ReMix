@@ -23,6 +23,8 @@
 #include <QUdpSocket>
 #include <QtCore>
 
+QHash<QHostAddress, QByteArray> Server::bioHash;
+
 Server::Server(QWidget* parent, ServerInfo* svr,
                QStandardItemModel* plrView)
     : QTcpServer(parent)
@@ -45,9 +47,8 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     server->setPktHandle( pktHandle );
 
     //Connect Objects.
-    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
-    QObject::connect( this, &QTcpServer::newConnection, this, &Server::newConnectionSlot );
-    QObject::connect( server->getMasterSocket(), &QUdpSocket::readyRead, this, &Server::readyReadUDPSlot );
+    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot, Qt::QueuedConnection );
+    QObject::connect( this, &QTcpServer::newConnection, this, &Server::newConnectionSlot, Qt::QueuedConnection );
 
     auto* widget = dynamic_cast<ReMixWidget*>( mother );
     QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
@@ -57,7 +58,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
             server->setIsSetUp( false );
 
         server->setIsPublic( true );
-    });
+    }, Qt::QueuedConnection );
 
     QObject::connect( chatView, &ChatView::sendChat, chatView,
     [=](QString msg)
@@ -73,7 +74,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
                     if ( plr != nullptr )
                     {
                         QTcpSocket* tmpSoc{ plr->getSocket() };
-                        if ( tmpSoc != nullptr  )
+                        if ( tmpSoc != nullptr )
                         {
                             bOut = tmpSoc->write( msg.toLatin1(), msg.length() );
                             server->updateBytesOut( plr, bOut );
@@ -84,7 +85,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
             else
                 server->sendMasterMessage( msg, nullptr, true );
         }
-    });
+    }, Qt::QueuedConnection );
 
     //Ensure all possible User slots are fillable.
     this->setMaxPendingConnections( MAX_PLAYERS );
@@ -113,11 +114,11 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     plr->setPublicIP( peerAddr.toString() );
     plr->setPublicPort( port );
 
-    QByteArray data = bioHash.value( peerAddr );
+    QByteArray data{ this->getBioHashValue( peerAddr ) };
     if ( data.isEmpty() )
     {
-        bioHash.insert( peerAddr, QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
-        data = bioHash.value( peerAddr );
+        this->insertBioHash( peerAddr, QByteArray( "No BIO Data Detected. Be wary of this User!" ) );
+        data = this->getBioHashValue( peerAddr );
         plr->setHasBioData( false );
     }
     else
@@ -156,9 +157,7 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteA
         plrViewModel->insertRow( row );
     }
 
-    plrViewModel->setData( plrViewModel->index( row, 0 ),
-                           peerIP,
-                           Qt::DisplayRole );
+    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
@@ -190,21 +189,10 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteA
             plr->setWVar( wVar );
         }
 
-        //plrViewModel->setData( plrViewModel->index( row, 1 ),
-        //                       sernum,
-        //                       Qt::DisplayRole );
-
-        plrViewModel->setData( plrViewModel->index( row, 2 ),
-                               age,
-                               Qt::DisplayRole );
-
-        plrViewModel->setData( plrViewModel->index( row, 3 ),
-                               alias,
-                               Qt::DisplayRole );
-
-        plrViewModel->setData( plrViewModel->index( row, 7 ),
-                               bio,
-                               Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 2 ), age, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 3 ), alias, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
     }
     return plrViewModel->item( row, 0 );
 }
@@ -260,7 +248,7 @@ void Server::newConnectionSlot()
     [=]()
     {
         this->userReadyRead( peer );
-    });
+    }, Qt::QueuedConnection );
 
     server->sendServerGreeting( plr );
     this->updatePlayerTable( plr, peer->peerAddress(), peer->peerPort() );
@@ -344,23 +332,22 @@ void Server::userDisconnected(QTcpSocket* socket)
     server->sendMasterInfo();
 }
 
-void Server::readyReadUDPSlot()
+QHash<QHostAddress, QByteArray> Server::getBioHash()
 {
-    QUdpSocket* socket{ server->getMasterSocket() };
-    if ( socket == nullptr )
-        return;
+    return bioHash;
+}
 
-    QByteArray data;
-    if ( socket != nullptr )
-    {
-        QHostAddress senderAddr{};
-        quint16 senderPort{ 0 };
+void Server::insertBioHash(const QHostAddress& addr, const QByteArray& value)
+{
+    bioHash.insert( addr, value );
+}
 
-        data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
-        socket->readDatagram( data.data(), data.size(), &senderAddr, &senderPort );
+QByteArray Server::getBioHashValue(const QHostAddress& addr)
+{
+    return bioHash.value( addr );
+}
 
-        pktHandle->parseUDPPacket( data, senderAddr, senderPort, &bioHash );
-        if ( socket->hasPendingDatagrams() )
-            emit socket->readyRead();
-    }
+QHostAddress Server::getBioHashKey(const QByteArray& bio)
+{
+    return bioHash.key( bio );
 }

@@ -21,7 +21,7 @@ TblEventFilter::~TblEventFilter()
 
 bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
 {
-    if ( obj == nullptr || event == nullptr  )
+    if ( obj == nullptr || event == nullptr )
         return false;
 
     if ( tableView == nullptr

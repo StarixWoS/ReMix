@@ -122,24 +122,19 @@ void ReMix::initSysTray()
         trayObject->show();
 
         QAction* showAction = new QAction( "Show", this );
-        QObject::connect( showAction, &QAction::triggered,
-                          this, &QMainWindow::show );
+        QObject::connect( showAction, &QAction::triggered, this, &QMainWindow::show, Qt::QueuedConnection );
 
         QAction* hideAction = new QAction( "Hide", this );
-        QObject::connect( hideAction, &QAction::triggered,
-                          this, &QMainWindow::hide );
+        QObject::connect( hideAction, &QAction::triggered, this, &QMainWindow::hide, Qt::QueuedConnection );
 
         QAction* minimizeAction = new QAction( "Minimize", this );
-        QObject::connect( minimizeAction, &QAction::triggered,
-                          this, &QMainWindow::hide );
+        QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide, Qt::QueuedConnection );
 
         QAction* maximizeAction = new QAction( "Maximize", this );
-        QObject::connect( maximizeAction, &QAction::triggered,
-                          this, &QMainWindow::showMaximized );
+        QObject::connect( maximizeAction, &QAction::triggered, this, &QMainWindow::showMaximized, Qt::QueuedConnection );
 
         QAction* restoreAction = new QAction( "Restore", this );
-        QObject::connect( restoreAction, &QAction::triggered,
-                          this, &QMainWindow::showNormal );
+        QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal, Qt::QueuedConnection );
 
         QAction* quitAction = new QAction( "Quit", this );
         QObject::connect( quitAction, &QAction::triggered, quitAction,
@@ -148,7 +143,7 @@ void ReMix::initSysTray()
             //Allow Rejection of a Global CloseEvent.
             if ( !this->rejectCloseEvent() )
                 qApp->quit();
-        });
+        }, Qt::QueuedConnection );
 
         trayMenu = new QMenu( this );
         trayMenu->addAction( showAction );

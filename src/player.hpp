@@ -45,7 +45,7 @@ class Player : public QObject
 
     quint32 targetHost{ 0 };
     quint32 targetSerNum{ 0 };
-    int targetType{ 0 };
+    PktTarget targetType{ PktTarget::ALL };
 
     bool svrPwdRequested{ false };
     bool svrPwdReceived{ false };
@@ -93,8 +93,6 @@ class Player : public QObject
 
         void sendMessage(const QString& msg = "", const bool& toAll = false);
 
-        enum Target{ ALL = 0, PLAYER, SCENE = 2 };
-
         quint64 getConnTime() const;
         void startConnTimer();
 
@@ -122,8 +120,8 @@ class Player : public QObject
         quint32 getTargetSerNum() const;
         void setTargetSerNum(quint32 value);
 
-        int getTargetType() const;
-        void setTargetType(const int& value);
+        PktTarget getTargetType() const;
+        void setTargetType(const PktTarget& value);
 
         QString getPlayTime() const;
         void setPlayTime(const QString& value);
@@ -247,6 +245,10 @@ class Player : public QObject
         void setModelData(QStandardItem* model, const qint32& row,
                           const qint32& column, const QVariant& data,
                           const qint32& role, const bool& isColor = false);
+
+    public slots:
+        void slotSendPacketToPlayer(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
+                                    quint32 trgScene, const QByteArray& packet);
 };
 
 #endif // PLAYER_HPP

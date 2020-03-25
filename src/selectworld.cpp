@@ -30,7 +30,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
             ui->worldViewer->hideColumn( i );
 
         ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
-    });
+    }, Qt::QueuedConnection );
 }
 
 SelectWorld::~SelectWorld()

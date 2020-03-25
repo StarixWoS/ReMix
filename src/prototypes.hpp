@@ -277,8 +277,9 @@
         //Valid Game ID's that ReMix can call to.
         enum class Games: int{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
 
-        //Valid methods ov banning Users.
-        enum class BanTypes: int{ SerNum = 0, IP, DV, WV = 3 };
+        //Valid methods of banning Users.
+        //Valid punishment types.
+        enum class PunishTypes: int{ Mute = 0, Ban, SerNum, IP, DV, WV = 5 };
 
         //Valid forms of diconnecting Users.
         enum class DCTypes: int{ IPDC = 0, DupDC, PktDC = 2 };
@@ -328,6 +329,9 @@
                                          SIX_MONTHS = 15552000,
                                          ONE_YEAR = 31104000,
                                          PERMANENT = 2147483647 };
+
+        //Valid target specifiers for packets. Used by the MIX packet type.
+        enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
 
     #endif  // REMIX_GLOBALS
 

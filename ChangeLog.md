@@ -2,6 +2,32 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.5:
+    Change:
+      * Reduced latency when forwarding packets to players.
+        * Packets will be sent to all eligible players at the same time when it is received.
+        * Packets sent by a Player will now properly be ignored when ReMix forwards it to that Player Object.
+        * The Player class will now check if a packet is eligible to be sent to the selected Player.
+        * Parsing of the MIX packets is now handled within the same function as the SR packets.
+      * Consolidated the isBanned, isMuted, removeBan, and removeMute into semi-universal functions. e.g. isPunished, and removePunishment.
+        * Ban and Mutes will no longer check for certain sub-values. Namely; PunishmentTypes::WV, and PunishmentTypes::DV.
+        * These ban types are holdovers from the standard synMix and the checking required to remove the ban isn't worth the effort to retain them any longer.
+        * This means that only the User SerNum and IP addresses are checked for punishments.
+      * The Server class now handles the bioHash as a static object.
+        * Various static functions have been added to facilitate accessing this data from the other Class Objects.
+      * Add two new schemas to the UPNP class from the WiFiAlliance.
+        * "urn:schemas-wifialliance-org:service:WFAWLANConfig:1" and "urn:schemas-wifialliance-org:device:WFADevice:1"
+	  
+
+    Bugfixes:
+      * Properly inform Users when the server has automatically muted their connection.
+      * Properly format the message sent to the User when Muting and Un-Muting from the PlayerListWidget Object.
+        * ReMix also now properly applies the correct Mute duration to the Player Object.
+
+
+
+
+
 Version 2.5.4:
     Change:
 

@@ -205,7 +205,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     {
                         selectWorld = new SelectWorld( this );
                         selectWorld->setRequireWorld( !world.isEmpty() );
-                        QObject::connect( selectWorld, &SelectWorld::accepted,
+                        QObject::connect( selectWorld, &SelectWorld::accepted, selectWorld,
                         [&world, this]()
                         {
                             world = selectWorld->getSelectedWorld();
@@ -213,7 +213,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             selectWorld->close();
                             selectWorld->disconnect();
                             selectWorld->deleteLater();
-                        });
+                        }, Qt::QueuedConnection );
                         selectWorld->exec();
 
                         state = true;
@@ -283,7 +283,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             url = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
                         }
 
-                        if ( url.isEmpty() && !ok  )
+                        if ( url.isEmpty() && !ok )
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;
@@ -338,7 +338,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                                      .toUInt();
                         }
 
-                        if ( maxPlrs == 0 && !ok  )
+                        if ( maxPlrs == 0 && !ok )
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;
@@ -387,7 +387,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                                     .toUInt();
                         }
 
-                        if ( maxAFK == 0 && !ok  )
+                        if ( maxAFK == 0 && !ok )
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;
@@ -435,7 +435,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             version = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
                         }
 
-                        if ( version.isEmpty() && !ok  )
+                        if ( version.isEmpty() && !ok )
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;

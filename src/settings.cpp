@@ -461,7 +461,7 @@ void Settings::setMOTDMessage(const QString& value, const QString& svrID)
 
 QString Settings::getMOTDMessage(const QString& svrID)
 {
-    return getServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ], svrID  )
+    return getServerSetting( keys[ Keys::Messages ], subKeys[ SubKeys::MOTD ], svrID )
                     .toString();
 }
 

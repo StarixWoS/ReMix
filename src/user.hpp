@@ -52,20 +52,16 @@ class User : public QDialog
         static qint32 getAdminRank(const QString& sernum);
         static void setAdminRank(const QString& sernum, const GMRanks& rank);
 
-        static void removeBan(const QString& value, const qint32& type);
+        static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum = "" );
+        static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
+
         static bool addBan(const Player* admin, const Player* target,
                            const QString& reason, const bool remote,
                            const PunishDurations duration);
 
-        static bool getIsBanned(const QString& value, const BanTypes& type,
-                                const QString& plrSernum = "");
-
-        static void removeMute(const QString& value, const qint32& type);
         static bool addMute(const Player* admin, Player* target,
                             const QString& reason, const bool& remote, const bool& autoMute,
                             const PunishDurations duration);
-        static quint64 getIsMuted(const QString& value, const BanTypes& type,
-                                  const QString& plrSernum = "");
 
         static void updateCallCount(const QString& serNum);
         static void logBIO(const QString& serNum, const QHostAddress& ip,

@@ -67,7 +67,7 @@ void SendMsg::on_sendMsg_clicked()
 
 bool SendMsg::eventFilter(QObject* obj, QEvent* event)
 {
-    if ( obj == nullptr || event == nullptr  )
+    if ( obj == nullptr || event == nullptr )
         return false;
 
     auto* key = dynamic_cast<QKeyEvent*>( event );

@@ -29,8 +29,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
     user = User::getInstance();
     createDialog = this->getCreateDialog( this );
-    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal,
-                      this, &ReMixTabWidget::createServerAcceptedSlot );
+    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot, Qt::QueuedConnection );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -38,14 +37,12 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     //Initalize the First Server.
     this->createServer();
 
-    QObject::connect( this, &QTabWidget::tabCloseRequested,
-                      this, &ReMixTabWidget::tabCloseRequestedSlot );
+    QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot, Qt::QueuedConnection );
 
     //Hide Tab-specific UI dialog windows when the tabs change.
-    QObject::connect( this, &QTabWidget::currentChanged,
-                      this, &ReMixTabWidget::currentChangedSlot );
+    QObject::connect( this, &QTabWidget::currentChanged, this, &ReMixTabWidget::currentChangedSlot, Qt::QueuedConnection );
 
-    QObject::connect( this, &QTabWidget::tabBarDoubleClicked,
+    QObject::connect( this, &QTabWidget::tabBarDoubleClicked, this,
     [=](int index)
     {
         ReMixWidget* tabA{ serverMap.value( index ) };
@@ -97,10 +94,10 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
                     Helper::warningMessage( this, "Error:", message );
             }
         }
-    });
+    }, Qt::QueuedConnection );
 
     //Refresh the server instance's ServerID when the Tabs are moved.
-    QObject::connect( this->tabBar(), &QTabBar::tabMoved,
+    QObject::connect( this->tabBar(), &QTabBar::tabMoved, this->tabBar(),
     [=](int from, int to)
     {
         ReMixWidget* tabA{ serverMap.take( from ) };
@@ -111,7 +108,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
         if ( tabB != nullptr )
             serverMap.insert( from, tabB );
-    });
+    }, Qt::QueuedConnection );
 }
 
 ReMixTabWidget::~ReMixTabWidget()
@@ -346,8 +343,7 @@ void ReMixTabWidget::createTabButtons()
     newTabButton->setAutoRaise( true );
 
     this->setCornerWidget( newTabButton, Qt::TopLeftCorner );
-    QObject::connect( newTabButton, &QToolButton::clicked,
-                      this, &ReMixTabWidget::createServer );
+    QObject::connect( newTabButton, &QToolButton::clicked, this, &ReMixTabWidget::createServer, Qt::QueuedConnection );
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
@@ -361,7 +357,8 @@ void ReMixTabWidget::createTabButtons()
         nightModeButton->setText( "Night Mode" );
 
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
-    QObject::connect( nightModeButton, &QToolButton::clicked, [=]()
+    QObject::connect( nightModeButton, &QToolButton::clicked, nightModeButton,
+    [=]()
     {
         bool type{ false };
         if ( !nightMode )
@@ -379,7 +376,7 @@ void ReMixTabWidget::createTabButtons()
         Settings::setDarkMode( type );
 
         nightMode = !nightMode;
-    } );
+    }, Qt::QueuedConnection );
 }
 
 void ReMixTabWidget::createServer()

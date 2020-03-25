@@ -198,7 +198,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         return;
 
     QString inform{ "The Server Host has %1 you. Reason: %2" };
-    QString reason{ "Manual Mute; %1" };
+    QString reason{ "Manual %1; %2" };
     QString type{ "" };
     bool mute{ true };
 
@@ -209,6 +209,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         title = title.arg( "Un-Mute" );
         prompt = prompt.arg( "Un-Mute" );
         type = "Un-Muted";
+        reason = reason.arg( "Un-Mute" );
 
         mute = false;
     }
@@ -217,7 +218,9 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         title = title.arg( "Mute" );
         prompt = prompt.arg( "Mute" );
         type = "Muted";
+        reason = reason.arg( "Mute" );
     }
+
     prompt = prompt.arg( menuTarget->getSernum_s() );
 
     if ( Helper::confirmAction( this, title, prompt ) )
@@ -233,7 +236,9 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
             User::addMute( nullptr, menuTarget, reason, false, false, muteDuration );
         }
         else
-            User::removeMute( menuTarget->getSernumHex_s(), static_cast<int>( BanTypes::SerNum ) );
+            User::removePunishment( menuTarget->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
+
+        menuTarget->setIsMuted( static_cast<quint64>( muteDuration ) );
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
         logMsg = logMsg.arg( reason )

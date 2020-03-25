@@ -74,59 +74,27 @@ User::User(QWidget* parent) :
         this->setInstance( this );
 
     if ( Settings::getSaveWindowPositions() )
-    {
-        this->restoreGeometry( Settings::getWindowPositions(
-                                   this->metaObject()->className() ) );
-    }
+        this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
 
     //Setup our QSettings Object.
     userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
 
     //Setup the ServerInfo TableView.
-    tblModel = new QStandardItemModel( 0, static_cast<int>(
-                                           UserCols::ColCount ), nullptr );
-    tblModel->setHeaderData( static_cast<int>( UserCols::SerNum ),
-                             Qt::Horizontal,
-                             "SerNum" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Pings ),
-                             Qt::Horizontal,
-                             "Pings" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Calls ),
-                             Qt::Horizontal,
-                             "Calls" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::LastSeen ),
-                             Qt::Horizontal,
-                             "Last Seen" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::IPAddr ),
-                             Qt::Horizontal,
-                             "Last IP" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Rank ),
-                             Qt::Horizontal,
-                             "Rank" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Muted ),
-                             Qt::Horizontal,
-                             "Muted" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDate ),
-                             Qt::Horizontal,
-                             "Mute Date" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDuration ),
-                             Qt::Horizontal,
-                             "Muted Until" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteReason ),
-                             Qt::Horizontal,
-                             "Mute Reason" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Banned ),
-                             Qt::Horizontal,
-                             "Banned" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanDate ),
-                             Qt::Horizontal,
-                             "Ban Date" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanDuration ),
-                             Qt::Horizontal,
-                             "Banned Until" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanReason ),
-                             Qt::Horizontal,
-                             "Ban Reason" );
+    tblModel = new QStandardItemModel( 0, static_cast<int>( UserCols::ColCount ), nullptr );
+    tblModel->setHeaderData( static_cast<int>( UserCols::SerNum ), Qt::Horizontal, "SerNum" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Pings ), Qt::Horizontal, "Pings" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Calls ), Qt::Horizontal, "Calls" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::LastSeen ), Qt::Horizontal, "Last Seen" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::IPAddr ), Qt::Horizontal, "Last IP" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Rank ), Qt::Horizontal, "Rank" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Muted ), Qt::Horizontal, "Muted" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDate ), Qt::Horizontal, "Mute Date" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDuration ), Qt::Horizontal, "Muted Until" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteReason ), Qt::Horizontal, "Mute Reason" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Banned ), Qt::Horizontal, "Banned" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanDate ), Qt::Horizontal, "Ban Date" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanDuration ), Qt::Horizontal, "Banned Until" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanReason ), Qt::Horizontal, "Ban Reason" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -141,17 +109,13 @@ User::User(QWidget* parent) :
     //Load Information.
     this->loadUserInfo();
 
-    QObject::connect( tblModel, &QAbstractItemModel::dataChanged,
-                      this, &User::updateDataValue );
+    QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValue, Qt::QueuedConnection );
 }
 
 User::~User()
 {
     if ( Settings::getSaveWindowPositions() )
-    {
-        Settings::setWindowPositions( this->saveGeometry(),
-                                      this->metaObject()->className() );
-    }
+        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     userData->deleteLater();
     delete ui;
@@ -173,9 +137,7 @@ void User::setInstance(User* value)
 QString User::requestReason(QWidget* parent)
 {
     QString label{ "Punishment Reason ( Sent to User ):" };
-    QInputDialog* dialog{ Helper::createInputDialog( parent, label,
-                                                     QInputDialog::TextInput,
-                                                     355, 170 ) };
+    QInputDialog* dialog{ Helper::createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
     dialog->exec();
     dialog->deleteLater();
 
@@ -234,10 +196,7 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
                      static_cast<int>( GMRanks::GMaster ) );
             QModelIndex index = user->findModelIndex( Helper::serNumToIntStr( sernum ), UserCols::SerNum );
             if ( index.isValid() )
-            {
-                user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ),
-                                     static_cast<int>( GMRanks::GMaster ) );
-            }
+                user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( GMRanks::GMaster ) );
         }
 
         setData( sernum, keys[ UserKeys::kHASH ], hash );
@@ -281,25 +240,111 @@ void User::setAdminRank(const QString& sernum, const GMRanks& rank)
 
     setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( rank ) );
 
-    QModelIndex index = user->findModelIndex( sernum,
-                                              UserCols::SerNum );
+    QModelIndex index = user->findModelIndex( sernum, UserCols::SerNum );
     if ( index.isValid() )
-    {
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::Rank ),
-                             static_cast<int>( rank ) );
-    }
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( rank ) );
 }
 
-void User::removeBan(const QString& value, const qint32& type)
+quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum)
 {
-    QList<QStandardItem*> list = tblModel->findItems( Helper::serNumToIntStr( value ),
-                                                      Qt::MatchExactly,
-                                                      type );
-    User* user = User::getInstance();
-    if ( list.count() >= 2 )
-        return; //Too many listed Bans, do nothing. --Inform the User later?
+    if ( value.isEmpty() )
+        return false;
 
+    QStringList sernums = userData->childGroups();
+    QString sernum{ "" };
+    QString var{ "" };
+
+    bool isValue{ false };
+    bool skip{ false };
+
+    for ( int i = 0; i < sernums.count(); ++i )
+    {
+        sernum = sernums.at( i );
+        if ( !plrSernum.isEmpty() )
+        {
+            if ( Helper::cmpStrings( sernum, plrSernum ) )
+                skip = true;
+        }
+
+        switch ( type )
+        {
+            case PunishTypes::SerNum:
+            {
+                if ( Helper::cmpStrings( sernum, value ) )
+                    isValue = true;
+            }
+            break;
+            case PunishTypes::IP:
+            {
+                if ( skip )
+                    break;
+
+                var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
+                if ( Helper::cmpStrings( var, value ) )
+                    isValue = true;
+            }
+            break;
+            case PunishTypes::DV:
+                //            {
+                //                if ( skip )
+                //                    break;
+
+                //                var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
+                //                if ( Helper::cmpStrings( var, value ) )
+                //                    isValue = true;
+                //            }
+                //            break;
+            case PunishTypes::WV:
+                //            {
+                //                if ( skip )
+                //                    break;
+
+                //                var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
+                //                if ( Helper::cmpStrings( var, value ) )
+                //                    isValue = true;
+                //            }
+                //            break;
+            case PunishTypes::Mute:
+            case PunishTypes::Ban:
+                break;
+        }
+
+        skip = false;
+        if ( isValue )
+            break;
+    }
+
+    quint64 punishDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] ).toUInt() };
+    quint64 punishDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    if ( punishType == PunishTypes::Mute )
+    {
+        punishDuration = getData( sernum, keys[ UserKeys::kMUTEDURATION ] ).toUInt();
+        punishDate = getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt();
+    }
+
+    if ( punishDate > 0 )
+    {
+        if ( ( punishDuration <= punishDate )
+          || ( punishDuration == 0 )
+          || ( punishDuration <= date ) )
+        {
+            removePunishment( value, punishType, type );
+            punishDuration = 0;
+        }
+    }
+    return punishDuration;
+}
+
+void User::removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type)
+{
+    QList<QStandardItem*> list;
+    if ( type == PunishTypes::SerNum )
+        list = tblModel->findItems( Helper::serNumToIntStr( value ), Qt::MatchFixedString, static_cast<qint32>( UserCols::SerNum ) );
+    else
+        list = tblModel->findItems( value, Qt::MatchFixedString, static_cast<qint32>( UserCols::IPAddr ) );
+
+    User* user = User::getInstance();
     if ( list.count() )
     {
         QModelIndex index = list.value( 0 )->index();
@@ -307,34 +352,49 @@ void User::removeBan(const QString& value, const qint32& type)
         {
             QStringList sernums = userData->childGroups();
             QString sernum{ "" };
+            QString ip{ "" };
 
             for ( int i = 0; i < sernums.count(); ++i )
             {
                 sernum = sernums.at( i );
-                if ( Helper::cmpStrings( sernum, value ) )
+                sernum = sernum % "/";
+                if ( type == PunishTypes::IP )
+                    ip = userData->value( sernum % value ).toString();
+
+                if ( Helper::cmpStrings( sernum, value )
+                  || Helper::cmpStrings( ip, value ) )
                 {
-                    userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
-                    userData->remove( sernum % "/" % keys[ UserKeys::kBANREASON ] );
-                    userData->remove( sernum % "/" % keys[ UserKeys::kBANDURATION ] );
+                    if ( punishType == PunishTypes::Ban )
+                    {
+                        userData->remove( sernum % keys[ UserKeys::kBANNED ] );
+                        userData->remove( sernum % keys[ UserKeys::kBANREASON ] );
+                        userData->remove( sernum % keys[ UserKeys::kBANDURATION ] );
+                    }
+                    else if ( punishType == PunishTypes::Mute )
+                    {
+                        userData->remove( sernum % keys[ UserKeys::kMUTED ] );
+                        userData->remove( sernum % keys[ UserKeys::kMUTEREASON ] );
+                        userData->remove( sernum % keys[ UserKeys::kMUTEDURATION ] );
+                    }
 
                     break;
                 }
             }
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::Banned ),
-                                 false );
 
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::BanReason ),
-                                 "" );
-
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::BanDate ),
-                                 0 );
-
-            user->updateRowData( index.row(),
-                                 static_cast<int>( UserCols::BanDuration ),
-                                 0 );
+            if ( punishType == PunishTypes::Ban )
+            {
+                user->updateRowData( index.row(), static_cast<int>( UserCols::Banned ), false );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), "" );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), 0 );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), 0 );
+            }
+            else if ( punishType == PunishTypes::Mute )
+            {
+                user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), false );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), 0 );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), 0 );
+                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), "" );
+            }
         }
     }
 }
@@ -373,160 +433,19 @@ bool User::addBan(const Player* admin, const Player* target,
     quint64 banDuration{ date + static_cast<quint64>( duration ) };
     QString serNum{ target->getSernumHex_s() };
 
-    setData( serNum, keys[ UserKeys::kBANNED ], date );
     setData( serNum, keys[ UserKeys::kBANREASON ], msg );
     setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
+    setData( serNum, keys[ UserKeys::kBANNED ], date );
 
     QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::Banned ),
-                             ( date > 0 ) );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::BanReason ),
-                             msg );
-
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::BanDate ),
-                             date );
-
-        //All Bans are default to 30 days unless manually changed by the
-        //server host.
-        user->updateRowData( index.row(),
-                             static_cast<int>( UserCols::BanDuration ),
-                             banDuration );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), msg );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), date );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Banned ), ( date > 0 ) );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), banDuration );
     }
     return true;
-}
-
-bool User::getIsBanned(const QString& value, const BanTypes& type,
-                       const QString& plrSernum)
-{
-    if ( value.isEmpty() )
-        return false;
-
-    QString sernum{ "" };
-    QString var{ "" };
-
-    bool isValue{ false };
-    bool banned{ false };
-
-    QStringList sernums = userData->childGroups();
-
-    bool skip{ false };
-
-    for ( int i = 0; i < sernums.count(); ++i )
-    {
-        sernum = sernums.at( i );
-        if ( !plrSernum.isEmpty() )
-        {
-            if ( Helper::cmpStrings( sernum, plrSernum ) )
-                skip = true;
-        }
-
-        switch ( type )
-        {
-            case BanTypes::SerNum:
-            {
-                if ( Helper::cmpStrings( sernum, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::IP:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::DV:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::WV:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-        }
-
-        skip = false;
-        if ( isValue )
-            break;
-    }
-
-    quint32 banDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
-    if ( banDate > 0 )
-    {
-        banned = true;
-        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-        quint64 banDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] )
-                                .toUInt() };
-
-        if ( ( banDuration <= banDate )
-          || ( banDuration == 0 )
-          || ( banDuration <= date ) )
-        {
-            banned = false;
-            removeBan( plrSernum, static_cast<int>( BanTypes::SerNum ) );
-        }
-    }
-    return banned;
-}
-
-void User::removeMute(const QString& value, const qint32& type)
-{
-    QList<QStandardItem*> list = tblModel->findItems( Helper::serNumToIntStr( value ),
-                                                      Qt::MatchExactly,
-                                                      type );
-    User* user = User::getInstance();
-    if ( list.count() )
-    {
-        QModelIndex index;
-        for ( int i = 0; i < list.count(); ++i )
-        {
-            index = list.value( i )->index();
-            if ( index.isValid() )
-            {
-                QStringList sernums = userData->childGroups();
-                QString sernum{ "" };
-
-                for ( int i = 0; i < sernums.count(); ++i )
-                {
-                    sernum = sernums.at( i );
-                    if ( Helper::cmpStrings( sernum, value ) )
-                    {
-                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTED ] );
-                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEREASON ] );
-                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEDURATION ] );
-
-                        break;
-                    }
-                }
-
-                user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), false );
-                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), 0 );
-                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), 0 );
-                user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), "" );
-            }
-        }
-    }
 }
 
 bool User::addMute(const Player* admin, Player* target, const QString& reason,
@@ -569,10 +488,10 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason,
     quint64 muteDuration{ date + static_cast<quint64>( duration ) };
     QString serNum{ target->getSernumHex_s() };
 
-    setData( serNum, keys[ UserKeys::kMUTED ], date );
+    target->setIsMuted( muteDuration );
     setData( serNum, keys[ UserKeys::kMUTEREASON ], msg );
     setData( serNum, keys[ UserKeys::kMUTEDURATION ], muteDuration );
-    target->setIsMuted( muteDuration );
+    setData( serNum, keys[ UserKeys::kMUTED ], date );
 
     QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
     if ( index.isValid() )
@@ -583,94 +502,6 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason,
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), muteDuration );
     }
     return true;
-}
-
-quint64 User::getIsMuted(const QString& value, const BanTypes& type,
-                         const QString& plrSernum)
-{
-    if ( value.isEmpty() )
-        return false;
-
-    QString sernum{ "" };
-    QString var{ "" };
-
-    bool isValue{ false };
-
-    QStringList sernums = userData->childGroups();
-
-    bool skip{ false };
-    for ( int i = 0; i < sernums.count(); ++i )
-    {
-        sernum = sernums.at( i );
-        if ( !plrSernum.isEmpty() )
-        {
-            if ( Helper::cmpStrings( sernum, plrSernum ) )
-                skip = true;
-        }
-
-        switch ( type )
-        {
-            case BanTypes::SerNum:
-            {
-                if ( Helper::cmpStrings( sernum, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::IP:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kIP ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::DV:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kDV ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-            case BanTypes::WV:
-            {
-                if ( skip )
-                    break;
-
-                var = getData( sernum, keys[ UserKeys::kWV ] ).toString();
-                if ( Helper::cmpStrings( var, value ) )
-                    isValue = true;
-            }
-            break;
-        }
-
-        skip = false;
-        if ( isValue )
-            break;
-    }
-
-    quint64 muteDate{ getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt() };
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-    quint64 muteDuration{ 0 };
-
-    if ( muteDate > 0 )
-    {
-        muteDuration = getData( sernum, keys[ UserKeys::kMUTEDURATION ] )
-                          .toUInt();
-
-        if ( ( muteDuration <= muteDate )
-          || ( muteDuration == 0 )
-          || ( muteDuration <= date ) )
-        {
-            muteDuration = 0;
-            removeMute( plrSernum, static_cast<int>( BanTypes::SerNum ) );
-        }
-    }
-    return muteDuration;
 }
 
 void User::updateCallCount(const QString& serNum)
@@ -819,14 +650,14 @@ void User::loadUserInfo()
 
             ui->userTable->resizeColumnToContents( static_cast<int>( UserCols::BanReason ) );
 
+            quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
             if ( banned )
             {
-                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
                 if ( ( banDuration_i <= banDate_i )
                   || ( banDuration_i == 0 )
                   || ( banDuration_i <= date ) )
                 {
-                    this->removeBan( sernum, static_cast<int>( BanTypes::SerNum ) );
+                    this->removePunishment( sernum, PunishTypes::Ban, PunishTypes::SerNum );
                     QString message{ "Automatically removing the Banned User [ %1 ]. Banned on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
                     message = message.arg( Helper::serNumToIntStr( sernum ) )
                                      .arg( Helper::getTimeAsString( banDate_i ) )
@@ -838,12 +669,11 @@ void User::loadUserInfo()
 
             if ( muted )
             {
-                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-                if ( ( banDuration_i <= banDate_i )
-                  || ( banDuration_i == 0 )
-                  || ( banDuration_i <= date ) )
+                if ( ( muteDuration_i <= muteDate_i )
+                  || ( muteDuration_i == 0 )
+                  || ( muteDuration_i <= date ) )
                 {
-                    this->removeMute( sernum, static_cast<int>( BanTypes::SerNum ) );
+                    this->removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
                     QString message{ "Automatically removing the Muted User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
                     message = message.arg( Helper::serNumToIntStr( sernum ) )
                                      .arg( Helper::getTimeAsString( muteDate_i ) )
@@ -947,8 +777,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     if ( hasPassword )
                     {
                         message = "This user has a previous password stored. Do you wish to reset the password?";
-                        removePassword =  Helper::confirmAction(
-                                                    this, title, message );
+                        removePassword =  Helper::confirmAction( this, title, message );
                     }
                 }
 
@@ -957,7 +786,6 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     setData( sernum, keys[ UserKeys::kHASH ], "" );
                     setData( sernum, keys[ UserKeys::kSALT ], "" );
                 }
-
                 setData( sernum, keys[ UserKeys::kRANK ], value );
             }
         break;
@@ -969,15 +797,13 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                 bool banned = tblModel->data( index ).toBool();
                 if ( banned )
                 {
-                    value = QDateTime::currentDateTimeUtc().toTime_t();
-                    setData( sernum, keys[ UserKeys::kBANNED ], value );
-                    this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), value );
-
-
-                    reason = getData( sernum, keys[ UserKeys::kBANREASON ] )
-                                .toString();
+                    reason = getData( sernum, keys[ UserKeys::kBANREASON ] ).toString();
                     if ( reason.isEmpty() )
                     {
+                        value = QDateTime::currentDateTimeUtc().toTime_t();
+                        setData( sernum, keys[ UserKeys::kBANNED ], value );
+                        this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), value );
+
                         setReason = true;
                         reason = "Manual Banish; " % requestReason( this );
 
@@ -994,14 +820,10 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     value = 0;
 
                     setData( sernum, keys[ UserKeys::kBANNED ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::BanDate ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), value );
 
                     setData( sernum, keys[ UserKeys::kBANDURATION ], value );
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::BanDuration ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), value );
                 }
 
                 if ( setReason )
@@ -1009,9 +831,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                     value = reason;
                     setData( sernum, keys[ UserKeys::kBANREASON ], value );
 
-                    this->updateRowData( index.row(),
-                                         static_cast<int>( UserCols::BanReason ),
-                                         value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), value );
                 }
             }
         break;

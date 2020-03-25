@@ -27,10 +27,11 @@ Player::Player()
     this->setIsAFK( false );
 
     //Connect to the afkTimer.
-    QObject::connect( &afkTimer, &QTimer::timeout, [this]()
+    QObject::connect( &afkTimer, &QTimer::timeout, &afkTimer,
+    [this]()
     {
         this->setIsAFK( true );
-    });
+    }, Qt::QueuedConnection );
 
     //Start the AFK timer. - 300,000 milliseconds - 5 minutes.
     afkTimer.start( MAX_AFK_TIME );
@@ -145,7 +146,7 @@ Player::Player()
                 }
             }
         }
-    });
+    }, Qt::QueuedConnection );
 
     //Connect the Player Object to a User UI signal.
     QObject::connect( User::getInstance(), &User::mutedSerNumDuration, this,
@@ -156,9 +157,10 @@ Player::Player()
             if ( Helper::cmpStrings( sernum, this->getSernumHex_s() ) )
                 this->setIsMuted( duration );
         }
-    });
+    }, Qt::QueuedConnection );
 
-    QObject::connect( &killTimer, &QTimer::timeout, [this]()
+    QObject::connect( &killTimer, &QTimer::timeout, &killTimer,
+    [this]()
     {
         QTcpSocket* soc{ this->getSocket() };
         if ( soc != nullptr )
@@ -170,7 +172,7 @@ Player::Player()
                 soc->close();
             }
         }
-    });
+    }, Qt::QueuedConnection );
     floodTimer.start();
 }
 
@@ -228,7 +230,7 @@ void Player::sendMessage(const QString& msg, const bool& toAll)
                             server->sendMasterMessage( message, this, false );
                     }
                 }
-            } );
+            }, Qt::QueuedConnection );
         }
 
         if ( !messageDialog->isVisible() )
@@ -372,14 +374,12 @@ void Player::setSernum_i(quint32 value)
         this->setSernumHex_s( sernumHex_s );
 
         quint64 muteDuration{ 0 };
-        muteDuration = User::getIsMuted( sernumHex_s, BanTypes::SerNum, sernumHex_s );
-        if ( muteDuration <= 0 )
-            muteDuration = User::getIsMuted( this->getWVar(), BanTypes::WV, sernumHex_s );
+        muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
 
         if ( muteDuration <= 0 )
-            muteDuration = User::getIsMuted( this->getPublicIP(), BanTypes::IP, sernumHex_s );
+            muteDuration = User::getIsPunished( PunishTypes::Mute, this->getPublicIP(), PunishTypes::IP, sernumHex_s );
 
-        if ( muteDuration > 0 )
+        if ( muteDuration >= 1 )
             this->setIsMuted( muteDuration );
 
         serverInfo->sendPlayerSocketInfo();
@@ -436,12 +436,12 @@ void Player::setTargetSerNum(quint32 value)
     targetSerNum = value;
 }
 
-int Player::getTargetType() const
+PktTarget Player::getTargetType() const
 {
     return targetType;
 }
 
-void Player::setTargetType(const int& value)
+void Player::setTargetType(const PktTarget& value)
 {
     targetType = value;
 }
@@ -504,7 +504,7 @@ void Player::forceSendCampPacket()
         auto* pktHandle{ svr->getPktHandle() };
         if ( pktHandle != nullptr )
         {
-            pktHandle->parseSRPacket( this->getCampPacket(), this );
+            pktHandle->parsePacket( this->getCampPacket(), this );
         }
     }
 }
@@ -810,9 +810,10 @@ void Player::setMuteDuration(const quint64& value)
 bool Player::getIsMuted()
 {
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
-    if ( muteDuration <= date )
+    if ( muteDuration <= date
+      && muteDuration >= 1 )
     {
-        User::removeMute( this->getSernumHex_s(), static_cast<int>( BanTypes::SerNum ) );
+        User::removePunishment( this->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
         this->setIsMuted( 0 );
     }
     return muteDuration >= date;
@@ -941,6 +942,9 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
         if ( !Helper::cmpStrings( masterIP, socketIP ) )
         {
             //Ban IP?
+            message = "Auto-Mute; Attempting to use SerNum 1 with the incorrect IP address. Be warned that this may become a ban within future ReMix versions.";
+            this->sendMessage( message, false );
+
             reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the usage of <[ Soul 1 ][ %3 ]> while connecting from an "
                      "improper IP Address.";
             reason = reason.arg( this->getSernum_s() )
@@ -972,4 +976,58 @@ QString Player::getWVar() const
 void Player::setWVar(const QString& value)
 {
     wVar = value;
+}
+
+void Player::slotSendPacketToPlayer(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
+                                    quint32 trgScene, const QByteArray& packet)
+{
+    //Source Player is this Player Object. Return without further processing.
+    if ( plr == this )
+        return;
+
+    qint64 bOut{ 0 };
+    bool isAuth{ false };
+    bool send{ false };
+
+    QTcpSocket* soc{ this->getSocket() };
+    if ( soc != nullptr && srcSocket != soc )
+    {
+        if ( this->getSvrPwdReceived()
+          || !this->getSvrPwdRequested() )
+        {
+            isAuth = true;
+            send = false;
+
+            switch( static_cast<PktTarget>( targetType ) )
+            {
+                case PktTarget::ALL:
+                {
+                    send = true;
+                }
+                break;
+                case PktTarget::PLAYER:
+                {
+                    if ( trgSerNum == this->getSernum_i() )
+                        send = true;
+                }
+                break;
+                case PktTarget::SCENE:
+                {
+                    if (( trgScene == this->getSernum_i()
+                      || trgScene == this->getSceneHost() ))
+                    {
+                        send = true;
+                    }
+                }
+                break;
+            }
+        }
+
+        if ( send && isAuth )
+        {
+            bOut = soc->write( packet, packet.length() );
+            serverInfo->updateBytesOut( this, bOut );
+        }
+    }
+    return;
 }

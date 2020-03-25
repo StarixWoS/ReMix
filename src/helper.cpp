@@ -460,7 +460,7 @@ void Helper::getSynRealData(ServerInfo* svr)
         {
             socket->write( QString( "GET %1\r\n" )
                                .arg( svr->getMasterInfoHost() ).toLatin1() );
-        });
+        }, Qt::QueuedConnection );
 
         QObject::connect( socket, &QTcpSocket::readyRead, socket,
         [=]()
@@ -488,9 +488,9 @@ void Helper::getSynRealData(ServerInfo* svr)
                                  .arg( svr->getGameName() );
                 Logger::getInstance()->insertLog( svr->getName(), msg, LogTypes::USAGE, true, true );
             }
-        });
+        }, Qt::QueuedConnection );
 
-        QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater );
+        QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater, Qt::QueuedConnection );
     }
     else
     {

@@ -35,11 +35,11 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     motdWidget = MOTDWidget::getWidget( server );
 
     rules = RulesWidget::getWidget( server );
-    QObject::connect( rules, &RulesWidget::gameInfoChanged,
+    QObject::connect( rules, &RulesWidget::gameInfoChanged, rules,
     [=](const QString& gameInfo)
     {
         server->setGameInfo( gameInfo );
-    });
+    }, Qt::QueuedConnection );
     rules->setServerName( server->getName() );
 
     plrWidget = new PlrListWidget( this, server );
@@ -189,7 +189,7 @@ void ReMixWidget::initUIUpdate()
             plrWidget->resizeColumns();
         }
         ui->networkStatus->setText( msg );
-    });
+    }, Qt::QueuedConnection );
 }
 
 void ReMixWidget::on_openUserInfo_clicked()

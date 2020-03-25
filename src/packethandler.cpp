@@ -11,6 +11,7 @@
 #include "helper.hpp"
 #include "logger.hpp"
 #include "player.hpp"
+#include "server.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -26,7 +27,7 @@ PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 
     cmdHandle = new CmdHandler( this, server );
     chatView->setCmdHandle( cmdHandle );
-    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
+    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal, Qt::QueuedConnection );
 }
 
 PacketHandler::~PacketHandler()
@@ -37,180 +38,105 @@ PacketHandler::~PacketHandler()
 void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 {
     QByteArray pkt{ packet };
+    QChar opCode{ pkt.at( 4 ) };
+    QString data{ pkt };
     if ( plr == nullptr )
         return;
 
     this->detectFlooding( plr );
-    if ( Helper::strStartsWithStr( packet, ":SR" ) )
-    {
-        if ( !this->checkBannedInfo( plr ) )
-        {
-            //Prevent Users from Impersonating the Server Admin.
-            if ( Helper::strStartsWithStr( pkt, ":SR@" ) )
-                return;
-
-            //Prevent Users from changing the Server's rules.
-            if ( Helper::strStartsWithStr( pkt, ":SR$" ) )
-                return;
-
-            if ( !plr->getIsMuted()
-              && plr->getIsVisible() )
-            {
-                //Warpath doesn't send packets using SerNums.
-                //Check and skip the validation if this is Warpath.
-                if ( server->getGameId() != Games::W97 )
-                {
-                    if ( !pktForge->validateSerNum( plr, packet ) )
-                        return;
-                }
-
-                bool parsePkt{ true };
-                if ( chatView->getGameID() != Games::Invalid )
-                    parsePkt = chatView->parsePacket( packet, plr );
-
-                if ( parsePkt )
-                    this->parseSRPacket( pkt, plr );
-            }
-        }
-    }
 
     if ( Helper::strStartsWithStr( packet, ":MIX" ) )
-        this->parseMIXPacket( packet, plr );
-}
-
-void PacketHandler::parseSRPacket(const QByteArray& packet, Player* plr)
-{
-    QByteArray pkt{ packet };
-    if ( plr == nullptr )
-        return;
-
-    if ( !pkt.isEmpty() )
-        pkt.append( "\r\n" );
-
-    QTcpSocket* tmpSoc{ nullptr };
-    Player* tmpPlr{ nullptr };
-
-    qint64 bOut{ 0 };
-
-    //Only parse packets from Users that have entered the correct password.
-    if ( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
     {
-        bool isAuth{ false };
-        bool send{ false };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        data = Helper::getStrStr( data, "", ":MIX", "" ).mid( 1 );
+        switch ( opCode.toLatin1() )
         {
-            isAuth = false;
-            tmpPlr = nullptr;
-            tmpSoc = nullptr;
+            case '0':   //Send Next Packet to Scene.
+                this->readMIX0( data, plr );
+            break;
+            case '1':   //Register Player within SerNum's Scene.
+                this->readMIX1( data, plr );
+            break;
+            case '2':   //Unknown.
+                this->readMIX2( data, plr );
+            break;
+            case '3':   //Attune a Player to thier SerNum for private messaging.
+                this->readMIX3( data, plr );
+            break;
+            case '4':   //Send the next Packet from the User to SerNum's Socket.
+                this->readMIX4( data, plr );
+            break;
+            case '5':   //Handle Server password login and User Comments.
+                this->readMIX5( data, plr );
+            break;
+            case '6':   //Handle Remote Admin Commands.
+                this->readMIX6( data, plr );
+            break;
+            case '7':   //Set the User's HB ID.
+                this->readMIX7( data, plr );
+            break;
+            case '8':   //Set/Read SSV Variable.
+                this->readMIX8( data, plr );
+            break;
+            case '9':   //Set/Read SSV Variable.
+                this->readMIX9( data, plr );
+            break;
+        }
+    }
+    else if ( Helper::strStartsWithStr( packet, ":SR" )
+           && !this->checkBannedInfo( plr ) )
+    {
+        //Prevent Users from Impersonating the Server Admin.
+        //Prevent Users from changing the Server's rules.
+        if ( Helper::strStartsWithStr( pkt, ":SR@" )
+          || Helper::strStartsWithStr( pkt, ":SR$" ) )
+        {
+            return;
+        }
 
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr
-              && tmpPlr->getSocket() != nullptr )
+        if ( !plr->getIsMuted()
+          && plr->getIsVisible() )
+        {
+            bool parsePkt{ true };
+
+            //Warpath doesn't send packets using SerNums.
+            //Check and skip the validation if this is Warpath.
+            if ( server->getGameId() != Games::W97
+              && pktForge != nullptr )
             {
-                tmpSoc = tmpPlr->getSocket();
-                if ( plr->getSocket() != tmpSoc )
+                if ( !pktForge->validateSerNum( plr, packet ) )
+                    parsePkt = false;
+                else
+                    parsePkt = chatView->parsePacket( packet, plr );
+            }
+
+            if ( parsePkt )
+            {
+                if ( !pkt.isEmpty() )
+                    pkt.append( "\r\n" );
+
+                if ( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
                 {
-                    if ( tmpPlr->getSvrPwdReceived()
-                      || !tmpPlr->getSvrPwdRequested() )
-                    {
-                        isAuth = true;
-                        send = false;
-
-                        quint32 trgScene{ plr->getTargetScene() };
-                        if ( plr->getTargetType() == Player::ALL )
-                        {
-                            send = true;
-                        }
-                        else if ( plr->getTargetType() == Player::PLAYER )
-                        {
-                            if ( plr->getTargetSerNum() == tmpPlr->getSernum_i() )
-                                send = true;
-                        }
-                        else if ( plr->getTargetType() == Player::SCENE )
-                        {
-                            if ((( trgScene == tmpPlr->getSernum_i() )
-                              || ( trgScene == tmpPlr->getSceneHost() )))
-                            {
-                                if (( plr != tmpPlr ) )
-                                    send = true;
-                            }
-                        }
-                        else
-                            send = false;
-                    }
-
-                    if ( send && isAuth )
-                    {
-                        bOut = tmpSoc->write( pkt, pkt.length() );
-                        server->updateBytesOut( tmpPlr, bOut );
-                    }
+                    emit this->signalSendPacketToPlayer( plr, plr->getSocket(), static_cast<qint32>( plr->getTargetType() ),
+                                                         plr->getTargetSerNum(), plr->getTargetScene(), pkt );
+                    //Reset the User's target information.
+                    plr->setTargetType( PktTarget::ALL );
+                    plr->setTargetSerNum( 0 );
+                    plr->setTargetScene( 0 );
                 }
             }
         }
     }
-
-    //Reset the User's target information.
-    plr->setTargetType( Player::ALL );
-    plr->setTargetSerNum( 0 );
-    plr->setTargetScene( 0 );
+    return;
 }
 
-void PacketHandler::parseMIXPacket(const QString& packet, Player* plr)
-{
-    if ( plr == nullptr )
-        return;
-
-    QChar opCode = packet.at( 4 );
-    QString data = Helper::getStrStr( packet, "", ":MIX", "" ).mid( 1 );
-
-    switch ( opCode.toLatin1() )
-    {
-        case '0':   //Send Next Packet to Scene.
-            this->readMIX0( data, plr );
-        break;
-        case '1':   //Register Player within SerNum's Scene.
-            this->readMIX1( data, plr );
-        break;
-        case '2':   //Unknown.
-            this->readMIX2( data, plr );
-        break;
-        case '3':   //Attune a Player to thier SerNum for private messaging.
-            this->readMIX3( data, plr );
-        break;
-        case '4':   //Send the next Packet from the User to SerNum's Socket.
-            this->readMIX4( data, plr );
-        break;
-        case '5':   //Handle Server password login and User Comments.
-            this->readMIX5( data, plr );
-        break;
-        case '6':   //Handle Remote Admin Commands.
-            this->readMIX6( data, plr );
-        break;
-        case '7':   //Set the User's HB ID.
-            this->readMIX7( data, plr );
-        break;
-        case '8':   //Set/Read SSV Variable.
-            this->readMIX8( data, plr );
-        break;
-        case '9':   //Set/Read SSV Variable.
-            this->readMIX9( data, plr );
-        break;
-        default:    //Do nothing. Unknown command.
-        break;
-    }
-}
-
-void PacketHandler::parseUDPPacket(const QByteArray& udp, const
-                                   QHostAddress& ipAddr,
-                                   const quint16& port,
-                                   QHash<QHostAddress, QByteArray>* bioHash)
+void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port )
 {
     QString logTxt{ "Ignoring UDP from banned %1: "
                     "[ %2 ] sent command: [ %3 ]" };
     bool logMsg{ false };
 
     QString data{ udp };
-    if ( !User::getIsBanned( ipAddr.toString(), BanTypes::IP ) )
+    if ( !User::getIsPunished( PunishTypes::Ban, ipAddr.toString(), PunishTypes::IP ) )
     {
         QString sernum{ "" };
         QString dVar{ "" };
@@ -339,7 +265,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                         if ( ( Settings::getReqSernums() && Helper::serNumtoInt( sernum ) )
                           || !Settings::getReqSernums() )
                         {
-                            if ( this->getIsBanned( sernum, wVar, dVar, ipAddr.toString(), sernum ) )
+                            if ( this->getIsBanned( sernum, ipAddr.toString(), sernum ) )
                             {
                                 logTxt = logTxt.arg( "Info" )
                                                .arg( ipAddr.toString() )
@@ -356,7 +282,8 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const
                                 Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::USAGE, true, true );
 
                                 server->sendServerInfo( ipAddr, port );
-                                bioHash->insert( ipAddr, udp.mid( 1 ) );
+
+                                Server::insertBioHash( ipAddr, udp.mid( 1 ) );
                             }
                             User::logBIO( sernum, ipAddr, dVar, wVar, data );
                         }
@@ -410,7 +337,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getWVar(), plr->getDVar(), plr->getPublicIP(), plrSerNum ) )
+    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getPublicIP(), plrSerNum ) )
     {
         reason = reason.arg( "Banned Info" )
                        .arg( plr->getPublicIP() )
@@ -519,22 +446,15 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     return badInfo;
 }
 
-bool PacketHandler::getIsBanned(const QString& serNum, const QString& wVar,
-                                const QString& dVar, const QString& ipAddr,
+bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr,
                                 const QString& plrSerNum) const
 {
-    bool banned{ false };
-    banned = User::getIsBanned( serNum, BanTypes::SerNum, plrSerNum );
-    if ( !banned )
-        banned = User::getIsBanned( wVar, BanTypes::WV, plrSerNum );
+    quint64 banned{ 0 };
+    banned = User::getIsPunished( PunishTypes::Ban, serNum, PunishTypes::SerNum, plrSerNum );
+    if ( banned <= 0 )
+        banned = User::getIsPunished( PunishTypes::Ban, ipAddr, PunishTypes::IP, plrSerNum );
 
-    if ( !banned )
-        banned = User::getIsBanned( dVar, BanTypes::DV, plrSerNum );
-
-    if ( !banned )
-        banned = User::getIsBanned( ipAddr, BanTypes::IP, plrSerNum );
-
-    return banned;
+    return ( banned >= 1 );
 }
 
 void PacketHandler::detectFlooding(Player* plr)
@@ -554,7 +474,7 @@ void PacketHandler::detectFlooding(Player* plr)
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] "
                                 "sent %2 packets in %3 MS, they are "
                                 "disconnected: [ %4 ]" };
-                        logMsg = logMsg.arg( plr->getPublicIP()  )
+                        logMsg = logMsg.arg( plr->getPublicIP() )
                                        .arg( floodCount )
                                        .arg( time )
                                        .arg( plr->getBioData() );
@@ -580,7 +500,7 @@ void PacketHandler::readMIX0(const QString& packet, Player* plr)
 
     //Send the next Packet to the Scene's Host.
     plr->setTargetScene( sernum.toUInt( nullptr, 16 ) );
-    plr->setTargetType( Player::SCENE );
+    plr->setTargetType( PktTarget::SCENE );
 }
 
 void PacketHandler::readMIX1(const QString& packet, Player* plr)
@@ -592,7 +512,7 @@ void PacketHandler::readMIX1(const QString& packet, Player* plr)
 void PacketHandler::readMIX2(const QString&, Player* plr)
 {
     plr->setSceneHost( 0 );
-    plr->setTargetType( Player::ALL );
+    plr->setTargetType( PktTarget::ALL );
 }
 
 void PacketHandler::readMIX3(const QString& packet, Player* plr)
@@ -608,7 +528,7 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
     QString sernum = packet.mid( 2 ).left( 8 );
 
     plr->setTargetSerNum( sernum.toUInt( nullptr, 16 ) );
-    plr->setTargetType( Player::PLAYER );
+    plr->setTargetType( PktTarget::PLAYER );
 }
 
 void PacketHandler::readMIX5(const QString& packet, Player* plr)

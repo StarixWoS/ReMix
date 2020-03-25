@@ -267,6 +267,9 @@ class ServerInfo : public QObject
 
     signals:
         void serverIsSetup();
+
+    private slots:
+        void readyReadUDPSlot();
 };
 
 #endif // SERVERINFO_HPP
