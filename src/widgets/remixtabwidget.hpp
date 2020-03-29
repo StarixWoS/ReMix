@@ -40,14 +40,11 @@ class ReMixTabWidget : public QTabWidget
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
         static CreateInstance* getCreateDialog(QWidget* parent = nullptr);
-        static void remoteCloseServer(ServerInfo* server,
-                                      const bool restart = false);
+        static void remoteCloseServer(ServerInfo* server, const bool restart = false);
         static void setToolTipString(ReMixWidget* widget);
 
     private:
-        static void removeServer(const qint32& index,
-                                 const bool& remote = false,
-                                 const bool& restart = false);
+        static void removeServer(const qint32& index, const bool& remote = false, const bool& restart = false);
         void repositionServerIndices();
         void createTabButtons();
         void createServer();

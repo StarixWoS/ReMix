@@ -60,7 +60,7 @@ void RulesWidget::setServerName(const QString& name)
     rowText = "World Name: [ %1 ]";
     rowText = rowText.arg( Rules::getWorldName( name ) );
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
-    emit this->gameInfoChanged( Rules::getWorldName( name ) );
+    emit this->gameInfoChangedSignal( Rules::getWorldName( name ) );
 
     urlCheckState = !Rules::getURLAddress( name ).isEmpty();
     this->setCheckedState( Toggles::url, urlCheckState );
@@ -261,7 +261,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         }
                     }
                     this->setSelectedWorld( world, state );
-                    emit this->gameInfoChanged( world );
+                    emit this->gameInfoChangedSignal( world );
                 }
             }
         break;

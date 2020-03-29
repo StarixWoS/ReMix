@@ -43,8 +43,7 @@ class UPNP : public QObject
         void makeTunnel();
 
         void checkPortForward(const QString& protocol, const qint32& port);
-        void addPortForward(const QString& protocol, const qint32& port,
-                            const bool& lifetime = false);
+        void addPortForward(const QString& protocol, const qint32& port, const bool& lifetime = false);
         void removePortForward(const QString& protocol, const qint32& port);
 
         static UPNP* getInstance();
@@ -56,13 +55,11 @@ class UPNP : public QObject
     private:
         void getExternalIP();
         void extractExternalIP(const QString& action, const QString& message);
-        void postSOAP(const QString& action, const QString& message,
-                      const QString& protocol, const qint32& port = 0);
-        void extractError(const QString& message, const qint32& port,
-                          const QString& protocol);
+        void postSOAP(const QString& action, const QString& message, const QString& protocol, const qint32& port = 0);
+        void extractError(const QString& message, const qint32& port, const QString& protocol);
 
     private slots:
-        void getUdp();
+        void getUdpSlot();
 
     signals:
         void removedPortForward(const qint32 port, const QString& protocol);

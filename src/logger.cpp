@@ -29,12 +29,8 @@ const QStringList Logger::logType =
     "Comments",
     "UsageLog",
     "UPNPLog",
-    "BanLog",
-    "DCLog",
-    "MuteLog",
-    "Ignored",
+    "PunishmentLog",
     "Misc",
-    "PacketForge",
     "ChatLog",
     "QuestLog",
 };
@@ -51,6 +47,7 @@ Logger::Logger(QWidget *parent) :
     tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
     tblModel->setHeaderData( static_cast<int>( LogCols::Message ), Qt::Horizontal, "Message" );
 
+    QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot, Qt::QueuedConnection );
     ui->logView->setModel( tblModel );
 
     //Proxy model to support sorting without actually
@@ -61,9 +58,10 @@ Logger::Logger(QWidget *parent) :
     tblProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     ui->logView->setModel( tblProxy );
 
-    ui->logView->verticalHeader()->setSectionResizeMode( QHeaderView::Fixed );
-    ui->logView->verticalHeader()->setDefaultSectionSize( 15 );
+    //ui->logView->verticalHeader()->setSectionResizeMode( QHeaderView::Fixed );
+    //ui->logView->verticalHeader()->setDefaultSectionSize( 15 );
     ui->logView->verticalHeader()->setVisible( false );
+    ui->logView->horizontalHeader()->setVisible( true );
 
     ui->logView->horizontalHeader()->setStretchLastSection( true );
 
@@ -99,6 +97,8 @@ Logger::~Logger()
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();
 
+    this->closeAllLogFiles();
+
     tblProxy->deleteLater();
     tblModel->deleteLater();
 
@@ -132,9 +132,7 @@ void Logger::scrollToBottom()
     }
 }
 
-void Logger::insertLog(const QString& source, const QString& message,
-                       const LogTypes& type, const bool& logToFile,
-                       const bool& newLine)
+void Logger::insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine)
 {
     QAbstractItemModel* tblModel = ui->logView->model();
     QString time = Helper::getTimeAsString();
@@ -148,17 +146,16 @@ void Logger::insertLog(const QString& source, const QString& message,
         ui->logView->setRowHeight( row, 20 );
 
         this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
-        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Date ) );
+        emit this->resizeColumnsSlot( LogCols::Date );
 
         this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
-        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Source ) );
+        emit this->resizeColumnsSlot( LogCols::Source );
 
         this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
-        ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Type ) );
+        emit this->resizeColumnsSlot( LogCols::Type );
 
         this->updateRowData( row, static_cast<int>( LogCols::Message ), message.simplified() );
-
-        //ui->logView->resizeRowsToContents();
+        emit this->resizeColumnsSlot( LogCols::Message );
 
         this->scrollToBottom();
     }
@@ -182,41 +179,30 @@ void Logger::updateRowData(const qint32& row, const qint32& col,
 
             tblModel->setData( index, msg, Qt::DisplayRole );
             if ( col == static_cast<int>( LogCols::Date ) )
-                ui->logView->resizeColumnToContents( static_cast<int>( LogCols::Date ) );
+                emit this->resizeColumnsSlot( LogCols::Date );
         }
         else
-        {
             tblModel->setData( index, data, Qt::DisplayRole );
-        }
     }
 }
 
-void Logger::logToFile(const LogTypes& type, const QString& text,
-                       const QString& timeStamp,
-                       const bool& newLine)
+void Logger::logToFile(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine)
 {
+    QString logTxt{ text };
+
     if ( Settings::getLogFiles() )
     {
-        QString logTxt = text;
+        if ( !this->isLogOpen( type ) )
+            this->openLogFile( type );
 
-        QFile log( "logs/" % logType.at( static_cast<int>( type ) ) % QDate::currentDate().toString( "/[yyyy-MM-dd]/" )
-                 % logType.at( static_cast<int>( type ) ) % ".txt" );
-
-        QFileInfo logInfo( log );
-        if ( !logInfo.dir().exists() )
-            logInfo.dir().mkpath( "." );
-
-        if ( log.open( QFile::WriteOnly | QFile::Append ) )
-        {
+        if ( !timeStamp.isEmpty() )
             logTxt.prepend( "[ " % timeStamp % " ] " );
 
-            if ( newLine )
-                logTxt.prepend( "\r\n" );
+        if ( newLine )
+            logTxt.prepend( "\r\n" );
 
-            log.write( logTxt.toLatin1() );
-
-            log.close();
-        }
+        QTextStream stream( &this->getLogFile( type ) );
+                    stream << logTxt;
     }
 }
 
@@ -241,4 +227,138 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
 void Logger::on_autoScroll_clicked()
 {
     Settings::setLoggerAutoScroll( ui->autoScroll->isChecked() );
+}
+
+void Logger::resizeColumnsSlot(const LogCols& column)
+{
+    if ( ui == nullptr )
+        return;
+
+    ui->logView->resizeColumnToContents( static_cast<int>( column ) );
+}
+
+bool Logger::isLogOpen(const LogTypes& type)
+{
+    switch ( type )
+    {
+        case LogTypes::PUNISHMENT: return punishmentLog.isOpen();
+        case LogTypes::COMMENT: return commentLog.isOpen();
+        case LogTypes::USAGE: return usageLog.isOpen();
+        case LogTypes::QUEST: return questLog.isOpen();
+        case LogTypes::ADMIN: return adminLog.isOpen();
+        case LogTypes::UPNP: return upnpLog.isOpen();
+        case LogTypes::MISC: return miscLog.isOpen();
+        case LogTypes::CHAT: return chatLog.isOpen();
+    }
+    return false;
+}
+
+QFile& Logger::getLogFile(const LogTypes& type)
+{
+    QFile invalid;
+    switch ( type )
+    {
+        case LogTypes::PUNISHMENT: return punishmentLog;
+        case LogTypes::COMMENT: return commentLog;
+        case LogTypes::USAGE: return usageLog;
+        case LogTypes::QUEST: return questLog;
+        case LogTypes::ADMIN: return adminLog;
+        case LogTypes::UPNP: return upnpLog;
+        case LogTypes::MISC: return miscLog;
+        case LogTypes::CHAT: return chatLog;
+    }
+    return miscLog; //Use Misc log as fallthrough.
+}
+
+void Logger::openLogFile(const LogTypes& type)
+{
+    QString date{ QDate::currentDate().toString( "[yyyy-MM-dd]" ) };
+    bool close{ !Helper::cmpStrings( logDate, date ) };
+
+    if ( close )
+    {
+        this->closeAllLogFiles();
+        logDate = date;
+    }
+
+    QString log{ "logs/%1/%2.txt" };
+            log = log.arg( logDate )
+                     .arg( logType.at( static_cast<int>( type ) ) );
+
+    QFileInfo logInfo( log );
+    if ( !logInfo.dir().exists() )
+        logInfo.dir().mkpath( "." );
+
+    switch ( type )
+    {
+        case LogTypes::PUNISHMENT:
+        {
+            punishmentLog.setFileName( log );
+            punishmentLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::COMMENT:
+        {
+            commentLog.setFileName( log );
+            commentLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::USAGE:
+        {
+            usageLog.setFileName( log );
+            usageLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::QUEST:
+        {
+            questLog.setFileName( log );
+            questLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::ADMIN:
+        {
+            adminLog.setFileName( log );
+            adminLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::UPNP:
+        {
+            upnpLog.setFileName( log );
+            upnpLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::MISC:
+        {
+            miscLog.setFileName( log );
+            miscLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::CHAT:
+        {
+            chatLog.setFileName( log );
+            chatLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+    }
+}
+
+void Logger::closeLogFile(QFile& log)
+{
+    if ( log.isOpen() )
+    {
+        log.flush();
+        log.close();
+    }
+}
+
+void Logger::closeAllLogFiles()
+{
+    this->closeLogFile( punishmentLog );
+    this->closeLogFile( commentLog );
+    this->closeLogFile( usageLog );
+    this->closeLogFile( questLog );
+    this->closeLogFile( adminLog );
+    this->closeLogFile( upnpLog );
+    this->closeLogFile( miscLog );
+    this->closeLogFile( chatLog );
 }

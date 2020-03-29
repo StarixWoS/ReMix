@@ -48,7 +48,7 @@ class ChatView : public QDialog
         Ui::ChatView* ui;
 
     signals:
-        void sendChat(const QString&);
+        void sendChatSignal(const QString&);
 };
 
 #endif // CHATVIEW_HPP

@@ -81,7 +81,7 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
              .arg( plr->getSernumHex_s() );
 
     User::addMute( nullptr, plr, msg, false, true, PunishDurations::THIRTY_MINUTES );
-    Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::MUTE, true, true );
+    Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );
 
     return false;
 }

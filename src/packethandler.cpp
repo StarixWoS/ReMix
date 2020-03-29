@@ -116,7 +116,7 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 
                 if ( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
                 {
-                    emit this->signalSendPacketToPlayer( plr, plr->getSocket(), static_cast<qint32>( plr->getTargetType() ),
+                    emit this->sendPacketToPlayerSignal( plr, plr->getSocket(), static_cast<qint32>( plr->getTargetType() ),
                                                          plr->getTargetSerNum(), plr->getTargetScene(), pkt );
                     //Reset the User's target information.
                     plr->setTargetType( PktTarget::ALL );
@@ -129,193 +129,158 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
     return;
 }
 
-void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port )
+void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port)
 {
-    QString logTxt{ "Ignoring UDP from banned %1: "
-                    "[ %2 ] sent command: [ %3 ]" };
-    bool logMsg{ false };
+    QString logTxt{ "Ignoring UDP from banned %1: [ %2 ] sent command: [ %3 ]" };
 
     QString data{ udp };
-    if ( !User::getIsPunished( PunishTypes::Ban, ipAddr.toString(), PunishTypes::IP ) )
-    {
-        QString sernum{ "" };
-        QString dVar{ "" };
-        QString wVar{ "" };
+    QString sernum{ "" };
+    QString dVar{ "" };
+    QString wVar{ "" };
 
-        qint32 index{ 0 };
-        if ( !data.isEmpty() )
+    qint32 index{ 0 };
+    if ( !data.isEmpty() )
+    {
+        QChar opCode{ data.at( 0 ).toLatin1() };
+        bool isMaster{ false };
+        if ( opCode == 'M' )
         {
-            QChar opCode{ data.at( 0 ).toLatin1() };
-            bool isMaster{ false };
-            if ( opCode == 'M' )
+            //Prevent Spoofing a MasterMix response.
+            if ( Helper::cmpStrings( server->getMasterIP(), ipAddr.toString() ) )
+                isMaster = true;
+        }
+
+        switch ( opCode.toLatin1() )
+        {
+            case 'G':   //Set the Server's gameInfoString.
+            {
+                //Check if the IP Address is a properly connected User.
+                //Or at least is in the User list...
+                Player* tmpPlr{ nullptr };
+                bool connected{ false };
+                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                {
+                    tmpPlr = server->getPlayer( i );
+                    if ( tmpPlr != nullptr )
+                    {
+                        if ( Helper::cmpStrings( tmpPlr->getPublicIP(), ipAddr.toString() ) )
+                        {
+                            connected = true;
+                            break;
+                        }
+                    }
+                    connected = false;
+                }
+
+                if ( !connected )
+                    break;
+
+                QString svrInfo{ server->getGameInfo() };
+                QString usrInfo{ data.mid( 1 ) };
+                if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
+                {
+                    //Check if the World String starts with "world="
+                    //And remove the substring.
+                    if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
+                        usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
+
+                    //Enforce a 256 character limit on GameNames.
+                    if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
+                        server->setGameInfo( usrInfo.left( MAX_GAME_NAME_LENGTH ) ); //Truncate the User's GameInfo String to 256.
+                    else
+                        server->setGameInfo( usrInfo ); //Length was less than 256, set without issue.
+                }
+            }
+            break;
+            case 'M':   //Parse the Master Server's response.
             {
                 //Prevent Spoofing a MasterMix response.
-                if ( Helper::cmpStrings( server->getMasterIP(), ipAddr.toString() ) )
-                    isMaster = true;
-            }
+                if ( !isMaster )
+                    break;
 
-            switch ( opCode.toLatin1() )
+                QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. "
+                            "( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
+
+                msg = msg.arg( ipAddr.toString() )
+                         .arg( port );
+
+                //Store the Master Server's Response Time.
+                server->setMasterPingRespTime( QDateTime::currentMSecsSinceEpoch() );
+
+                //We've obtained a Master response.
+                server->setMasterUDPResponse( true );
+
+                quint32 pubIP{ 0 };
+                int pubPort{ 0 };
+                int opcode{ 0 };
+
+                if ( !data.isEmpty() )
+                {
+                    QDataStream mDataStream( udp );
+                                mDataStream >> opcode;
+                                mDataStream >> pubIP;
+                                mDataStream >> pubPort;
+
+                    server->setPublicIP( QHostAddress( pubIP ).toString() );
+                    server->setPublicPort( static_cast<quint16>( qFromBigEndian( pubPort ) ) );
+
+                    msg = msg.arg( server->getPublicIP() )
+                             .arg( server->getPublicPort() )
+                             .arg( server->getMasterPing() )
+                             .arg( server->getMasterPingAvg() )
+                             .arg( server->getMasterPingTrend() )
+                             .arg( server->getMasterPingFailCount() );
+
+                    Logger::getInstance()-> insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
+                }
+            }
+            break;
+            case 'P':   //Store the Player information into a struct.
             {
-                case 'G':   //Set the Server's gameInfoString.
+                index = Helper::getStrIndex( data, "d=" );
+                if ( index >= 0 )
+                    dVar = data.mid( index + 2 ).left( 8 );
+
+                index = Helper::getStrIndex( data, "w=" );
+                if ( index >= 0 )
+                    wVar = data.mid( index + 2 ).left( 8 );
+
+                index = Helper::getStrIndex( data, "sernum=" );
+                if ( index >= 0 )
+                {
+                    sernum = data.mid( index + 7 );
+                    index = Helper::getStrIndex( sernum, "," );
+                    if ( index >= 0 )
                     {
-                        //Check if the IP Address is a properly connected User.
-                        //Or at least is in the User list...
-                        Player* tmpPlr{ nullptr };
-                        bool connected{ false };
-                        for ( int i = 0; i < MAX_PLAYERS; ++i )
-                        {
-                            tmpPlr = server->getPlayer( i );
-                            if ( tmpPlr != nullptr )
-                            {
-                                if ( Helper::cmpStrings( tmpPlr->getPublicIP(), ipAddr.toString() ) )
-                                {
-                                    connected = true;
-                                    break;
-                                }
-                            }
-                            connected = false;
-                        }
-
-                        if ( !connected )
-                            break;
-
-                        QString svrInfo{ server->getGameInfo() };
-                        QString usrInfo{ data.mid( 1 ) };
-                        if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
-                        {
-                            //Check if the World String starts with "world="
-                            //And remove the substring.
-                            if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
-                                usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
-
-                            //Enforce a 256 character limit on GameNames.
-                            if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
-                                server->setGameInfo( usrInfo.left( MAX_GAME_NAME_LENGTH ) ); //Truncate the User's GameInfo String to 256.
-                            else
-                                server->setGameInfo( usrInfo ); //Length was less than 256, set without issue.
-                        }
+                        sernum = sernum.left( index );
+                        if ( !sernum.isEmpty() )
+                            sernum = Helper::serNumToHexStr( sernum );
                     }
-                break;
-                case 'M':   //Parse the Master Server's response.
-                    {
-                        //Prevent Spoofing a MasterMix response.
-                        if ( !isMaster )
-                            break;
+                }
 
-                        QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. "
-                                     "( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
+                QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
+                        msg = msg.arg( ipAddr.toString() )
+                                 .arg( port )
+                                 .arg( Helper::serNumToIntStr( sernum ) )
+                                 .arg( data );
+                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
 
-                                msg = msg.arg( ipAddr.toString() )
-                                         .arg( port );
+                //Server Information is sent to the User within the UdpThread Class.
+                //server->sendServerInfo( ipAddr, port );
 
-                        //Store the Master Server's Response Time.
-                        server->setMasterPingRespTime( QDateTime::currentMSecsSinceEpoch() );
+                Server::insertBioHash( ipAddr, udp.mid( 1 ) );
 
-                        //We've obtained a Master response.
-                        server->setMasterUDPResponse( true );
+                User::logBIO( sernum, ipAddr, dVar, wVar, data );
 
-                        quint32 pubIP{ 0 };
-                        int pubPort{ 0 };
-                        int opcode{ 0 };
-
-                        if ( !data.isEmpty() )
-                        {
-                            QDataStream mDataStream( udp );
-                                        mDataStream >> opcode;
-                                        mDataStream >> pubIP;
-                                        mDataStream >> pubPort;
-
-                            server->setPublicIP( QHostAddress( pubIP ).toString() );
-                            server->setPublicPort( static_cast<quint16>( qFromBigEndian( pubPort ) ) );
-
-                            msg = msg.arg( server->getPublicIP() )
-                                     .arg( server->getPublicPort() )
-                                     .arg( server->getMasterPing() )
-                                     .arg( server->getMasterPingAvg() )
-                                     .arg( server->getMasterPingTrend() )
-                                     .arg( server->getMasterPingFailCount() );
-
-                            Logger::getInstance()-> insertLog( server->getName(), msg, LogTypes::USAGE, true, true );
-                        }
-                    }
-                break;
-                case 'P':   //Store the Player information into a struct.
-                    {
-                        index = Helper::getStrIndex( data, "d=" );
-                        if ( index >= 0 )
-                            dVar = data.mid( index + 2 ).left( 8 );
-
-                        index = Helper::getStrIndex( data, "w=" );
-                        if ( index >= 0 )
-                            wVar = data.mid( index + 2 ).left( 8 );
-
-                        index = Helper::getStrIndex( data, "sernum=" );
-                        if ( index >= 0 )
-                        {
-                            sernum = data.mid( index + 7 );
-                            index = Helper::getStrIndex( sernum, "," );
-                            if ( index >= 0 )
-                            {
-                                sernum = sernum.left( index );
-                                if ( !sernum.isEmpty() )
-                                    sernum = Helper::serNumToHexStr( sernum );
-                            }
-                        }
-
-                        if ( ( Settings::getReqSernums() && Helper::serNumtoInt( sernum ) )
-                          || !Settings::getReqSernums() )
-                        {
-                            if ( this->getIsBanned( sernum, ipAddr.toString(), sernum ) )
-                            {
-                                logTxt = logTxt.arg( "Info" )
-                                               .arg( ipAddr.toString() )
-                                               .arg( data );
-                                logMsg = true;
-                            }
-                            else
-                            {
-                                QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
-                                msg = msg.arg( ipAddr.toString() )
-                                          .arg( port )
-                                          .arg( Helper::serNumToIntStr( sernum ) )
-                                          .arg( data );
-                                Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::USAGE, true, true );
-
-                                server->sendServerInfo( ipAddr, port );
-
-                                Server::insertBioHash( ipAddr, udp.mid( 1 ) );
-                            }
-                            User::logBIO( sernum, ipAddr, dVar, wVar, data );
-                        }
-                        server->setUserPings( server->getUserPings() + 1 );
-                    }
-                break;
-                case 'Q':   //Send Online User Information.
-                    {
-                        server->sendUserList( ipAddr, port, Q_Response );
-                    }
-                break;
-                case 'R':   //Send Online User Information.
-                    {
-                        server->sendUserList( ipAddr, port, R_Response );
-                    }
-                break;
-                default:    //Do nothing; Unknown command.
-                    qDebug() << "Unknown Command!";
-                break;
+                //Server Ping count is increased with a Signal from the UdpThread class to the ServerInfo class.
+                //server->setUserPings( server->getUserPings() + 1 );
             }
+            break;      //Q and R packet types are handled within the UdpThread class.
+            case 'Q':   //Send Online User Information.
+            case 'R':   //Send Online User Information.
+            break;
         }
     }
-    else
-    {
-        logTxt = logTxt.arg( "IP Address" )
-                       .arg( ipAddr.toString() )
-                       .arg( data );
-        logMsg = true;
-    }
-
-    if ( logMsg )
-        Logger::getInstance()->insertLog( server->getName(), logTxt, LogTypes::IGNORE, true, true );
 }
 
 bool PacketHandler::checkBannedInfo(Player* plr) const
@@ -343,7 +308,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                        .arg( plr->getPublicIP() )
                        .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
         plrMessage = plrMessage.arg( "Disconnect" )
                                .arg( "Banned Info" );
@@ -373,7 +338,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                        .arg( plr->getPublicIP() )
                                        .arg( plr->getBioData() );
 
-                        Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
+                        Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                         if ( Settings::getBanDupedIP() )
                         {
@@ -384,7 +349,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                             //Ban for only half an hour.
                             User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
 
-                            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::BAN, true, true );
+                            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                             plrMessage = plrMessage.arg( "Banish" )
                                                    .arg( "Duplicate IP" );
@@ -431,7 +396,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                    .arg( plr->getPublicIP() )
                                    .arg( plr->getBioData() );
 
-                    Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
+                    Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                     plrMessage = plrMessage.arg( "Disconnect" )
                                            .arg( "Duplicate SerNum" );
@@ -471,18 +436,16 @@ void PacketHandler::detectFlooding(Player* plr)
             if ( floodCount >= PACKET_FLOOD_LIMIT
               && !plr->getIsDisconnected() )
             {
-                QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] "
-                                "sent %2 packets in %3 MS, they are "
-                                "disconnected: [ %4 ]" };
+                QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are disconnected: [ %4 ]" };
                         logMsg = logMsg.arg( plr->getPublicIP() )
                                        .arg( floodCount )
                                        .arg( time )
                                        .arg( plr->getBioData() );
 
                 User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
-                Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::DC, true, true );
+                Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
-                QString plrMessage{ "Auto-Mute; Packet Flooding" };
+                QString plrMessage{ "Auto-Mute; Packet Flooding." };
                 plr->sendMessage( plrMessage, false );
             }
         }
@@ -533,8 +496,12 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
 
 void PacketHandler::readMIX5(const QString& packet, Player* plr)
 {
-    if ( plr!= nullptr )
+    QString sernum = packet.mid( 2 ).left( 8 );
+    if ( plr != nullptr )
     {
+        if ( plr->getSernum_i() <= 0 )
+            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+
         //Do not accept comments from User who have been muted.
         if ( !plr->getIsMuted() )
             cmdHandle->parseMix5Command( plr, packet );
@@ -543,7 +510,16 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
 
 void PacketHandler::readMIX6(const QString& packet, Player* plr)
 {
-    cmdHandle->parseMix6Command( plr, packet );
+    QString sernum = packet.mid( 2 ).left( 8 );
+    if ( plr != nullptr )
+    {
+        if ( plr->getSernum_i() <= 0 )
+            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+
+        //Do not accept commands from User who have been muted.
+        if ( !plr->getIsMuted() )
+            cmdHandle->parseMix6Command( plr, packet );
+    }
 }
 
 void PacketHandler::readMIX7(const QString& packet, Player* plr)
@@ -648,6 +624,6 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr,
                  .arg( vars.value( 2 ) ) //variable
                  .arg( vars.value( 3 ) ); //value
 
-        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::QUEST, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::QUEST, true, true );
     }
 }

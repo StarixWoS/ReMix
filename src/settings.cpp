@@ -70,6 +70,7 @@ const QStringList Settings::subKeys =
 SettingsWidget* Settings::settings;
 QTabWidget* Settings::tabWidget;
 Settings* Settings::instance;
+QMutex Settings::mutex;
 
 QSettings* Settings::prefs{ new QSettings( "preferences.ini",
                                            QSettings::IniFormat ) };
@@ -136,7 +137,7 @@ void Settings::updateTabBar(ServerInfo* server)
     if ( settings == nullptr )
         settings = new SettingsWidget( nullptr );
 
-    getInstance()->setWindowTitle( "[ " % server->getName() % " ] Settings:");
+    getInstance()->setWindowTitle( "[ " % server->getServerName() % " ] Settings:");
     tabWidget->insertTab( 0, settings, "Settings" );
     tabWidget->insertTab( 1, RulesWidget::getWidget( server ), "Rules" );
     tabWidget->insertTab( 2, MOTDWidget::getWidget( server ), "MotD" );
@@ -146,7 +147,8 @@ void Settings::updateTabBar(ServerInfo* server)
 
 void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 {
-    QString oldName{ server->getName() };
+    QMutexLocker locker( &mutex );
+    QString oldName{ server->getServerName() };
     if ( oldName != newName )
     {
         //Copy Rules.
@@ -182,18 +184,21 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 //Static-Free Functions.
 void Settings::setSetting(const QString& key, const QString& subKey, const QVariant& value)
 {
+    QMutexLocker locker( &mutex );
     prefs->setValue( key % "/" % subKey, value );
     prefs->sync();
 }
 
 QVariant Settings::getSetting(const QString& key, const QString& subKey)
 {
+    QMutexLocker locker( &mutex );
     return prefs->value( key % "/" % subKey );
 }
 
 void Settings::setServerSetting(const QString& key, const QString& subKey,
                                 const QVariant& value, const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     prefs->setValue( svrID % "/" % key % "/" % subKey, value );
     prefs->sync();
 }
@@ -489,12 +494,14 @@ QString Settings::getServerID(const QString& svrID)
 
 void Settings::setServerRunning(const bool& value, const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     prefs->setValue( svrID % "/" % subKeys[ SubKeys::IsRunning ], value );
     prefs->sync();
 }
 
 bool Settings::getServerRunning(const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     return prefs->value( svrID % "/" % subKeys[ SubKeys::IsRunning ] )
                     .toBool();
 }

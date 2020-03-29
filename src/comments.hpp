@@ -24,8 +24,7 @@ class Comments : public QDialog
         void setTitle(const QString& name);
 
     public slots:
-        void newUserCommentSlot(const QString& sernum, const QString& alias,
-                                const QString& message);
+        void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
 
     private:
         Ui::Comments* ui;

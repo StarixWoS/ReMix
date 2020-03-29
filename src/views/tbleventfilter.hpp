@@ -16,8 +16,7 @@ class TblEventFilter : public QObject
     QModelIndex prevIndex;
 
     public:
-        explicit TblEventFilter(QTableView* tbl = nullptr,
-                                QSortFilterProxyModel* tblProxy = nullptr);
+        explicit TblEventFilter(QTableView* tbl = nullptr, QSortFilterProxyModel* tblProxy = nullptr);
         ~TblEventFilter() override;
 
     signals:

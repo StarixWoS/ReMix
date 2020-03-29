@@ -29,9 +29,12 @@ const QStringList Rules::subKeys =
     "arenaPK"
 };
 
+QMutex Rules::mutex;
+
 void Rules::setRule(const QString& key, const QVariant& value,
                     const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     bool remove{ false };
     if ( !value.toBool()
       && ( value.toInt() == 0 )
@@ -54,16 +57,19 @@ void Rules::setRule(const QString& key, const QVariant& value,
 
 QVariant Rules::getRule(const QString& key, const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     return Settings::prefs->value( svrID % "/" % Settings::keys[ Settings::Rules ] % "/" % key );
 }
 
 void Rules::removeRule(const QString& key, const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     Settings::prefs->remove( svrID % "/" % Settings::keys[ Settings::Rules ] % "/" % key );
 }
 
 QString Rules::getRuleSet(const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     Settings::prefs->beginGroup( svrID % "/" % Settings::keys[ Settings::Rules ] );
 
     QStringList ruleList{ Settings::prefs->allKeys() };

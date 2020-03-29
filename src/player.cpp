@@ -111,7 +111,7 @@ Player::Player()
             reason = reason.arg( this->getSernum_s() )
                            .arg( this->getBioData() );
 
-            Logger::getInstance()->insertLog( serverInfo->getName(), reason, LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -149,7 +149,7 @@ Player::Player()
     }, Qt::QueuedConnection );
 
     //Connect the Player Object to a User UI signal.
-    QObject::connect( User::getInstance(), &User::mutedSerNumDuration, this,
+    QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this,
     [=](const QString& sernum, const quint64& duration)
     {
         if ( !sernum.isEmpty() || duration > 0 )
@@ -216,7 +216,7 @@ void Player::sendMessage(const QString& msg, const bool& toAll)
         if ( messageDialog == nullptr )
         {
             messageDialog = new SendMsg( this->getSernum_s() );
-            QObject::connect( messageDialog, &SendMsg::forwardMessage, messageDialog,
+            QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
             [=](QString message)
             {
                 if ( !message.isEmpty() )
@@ -458,6 +458,8 @@ void Player::setPlayTime(const QString& value)
 
 QString Player::getPlrName() const
 {
+    if ( plrName.isEmpty() )
+        return this->getSernum_s();
     return plrName;
 }
 
@@ -929,7 +931,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
             this->sendMessage( message, false );
 
-            Logger::getInstance()->insertLog( serverInfo->getName(), reason, LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -953,7 +955,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
             User::addMute( nullptr, this, reason, false, true, PunishDurations::THIRTY_MINUTES );
 
-            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::MUTE, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
     }
 }
@@ -978,7 +980,7 @@ void Player::setWVar(const QString& value)
     wVar = value;
 }
 
-void Player::slotSendPacketToPlayer(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
+void Player::sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
                                     quint32 trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.

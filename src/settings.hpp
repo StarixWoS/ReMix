@@ -6,6 +6,7 @@
 
 //Required Qt Includes.
 #include <QDialog>
+#include <QMutex>
 
 namespace Ui {
     class Settings;
@@ -27,8 +28,7 @@ class Settings : public QDialog
         static void setInstance(Settings* value);
 
         static void updateTabBar(ServerInfo* server);
-        static void copyServerSettings(ServerInfo* server,
-                                       const QString& newName);
+        static void copyServerSettings(ServerInfo* server, const QString& newName);
 
         enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
                       AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,
@@ -47,20 +47,11 @@ class Settings : public QDialog
         static const QStringList subKeys;
 
     public: //Static-Free functions. Ported from Helper and Admin.
-        static void setSetting(const QString& key,
-                               const QString& subKey,
-                               const QVariant& value);
-
+        static void setSetting(const QString& key, const QString& subKey, const QVariant& value);
         static QVariant getSetting(const QString& key, const QString& subKey);
 
-        static void setServerSetting(const QString& key,
-                                     const QString& subKey,
-                                     const QVariant& value,
-                                     const QString& svrID);
-
-        static QVariant getServerSetting(const QString& key,
-                                         const QString& subKey,
-                                         const QString& svrID);
+        static void setServerSetting(const QString& key, const QString& subKey, const QVariant& value, const QString& svrID);
+        static QVariant getServerSetting(const QString& key, const QString& subKey, const QString& svrID);
 
         static void setReqAdminAuth(const bool& value);
         static bool getReqAdminAuth();
@@ -120,58 +111,42 @@ class Settings : public QDialog
         static void setDCBlueCodedSerNums(const bool& value);
         static bool getDCBlueCodedSerNums();
 
-        static void setWindowPositions(const QByteArray& geometry,
-                                       const char* dialog);
-
+        static void setWindowPositions(const QByteArray& geometry, const char* dialog);
         static QByteArray getWindowPositions(const char* dialog);
 
         static void setIsInvalidIPAddress(const QString& value);
         static bool getIsInvalidIPAddress(const QString& value);
 
-        static void setMOTDMessage(const QString& value,
-                                   const QString& svrID);
-
+        static void setMOTDMessage(const QString& value, const QString& svrID);
         static QString getMOTDMessage(const QString& svrID);
 
-        static void setServerID(const qint32& value,
-                                const QString& svrID);
-
+        static void setServerID(const qint32& value, const QString& svrID);
         static QString getServerID(const QString& svrID);
 
-        static void setServerRunning(const bool& value,
-                                     const QString& svrID);
-
+        static void setServerRunning(const bool& value, const QString& svrID);
         static bool getServerRunning(const QString& svrID);
 
         static void setWorldDir(const QString& value);
         static QString getWorldDir();
 
-        static void setPortNumber(const quint16& value,
-                                  const QString& svrID);
-
+        static void setPortNumber(const quint16& value, const QString& svrID);
         static QString getPortNumber(const QString& svrID);
 
-        static void setIsPublic(const bool& value,
-                                const QString& svrID);
-
+        static void setIsPublic(const bool& value, const QString& svrID);
         static bool getIsPublic(const QString& svrID);
 
-        static void setUseUPNP(const bool& value,
-                               const QString& svrID);
-
+        static void setUseUPNP(const bool& value, const QString& svrID);
         static bool getUseUPNP(const QString& svrID);
 
-        static void setGameName(const QString& value,
-                                const QString& svrID);
-
+        static void setGameName(const QString& value, const QString& svrID);
         static QString getGameName(const QString& svrID);
-
 
         static void setLoggerAutoScroll(const bool& value);
         static bool getLoggerAutoScroll();
 
     private:
         Ui::Settings* ui;
+        static QMutex mutex;
 };
 
 #endif // SETTINGS_HPP

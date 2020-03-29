@@ -38,9 +38,8 @@ class User : public QDialog
 
         static QSettings* getUserData();
         static void setUserData(const QSettings* value);
+        static void setData(const QString& key, const QString& subKey, const QVariant& value);
 
-        static void setData(const QString& key, const QString& subKey,
-                            const QVariant& value);
         static QVariant getData(const QString& key, const QString& subKey);
 
         static bool makeAdmin(const QString& sernum, const QString& pwd);
@@ -55,35 +54,27 @@ class User : public QDialog
         static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum = "" );
         static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
 
-        static bool addBan(const Player* admin, const Player* target,
-                           const QString& reason, const bool remote,
+        static bool addBan(const Player* admin, const Player* target, const QString& reason, const bool remote,
                            const PunishDurations duration);
-
-        static bool addMute(const Player* admin, Player* target,
-                            const QString& reason, const bool& remote, const bool& autoMute,
+        static bool addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute,
                             const PunishDurations duration);
 
         static void updateCallCount(const QString& serNum);
-        static void logBIO(const QString& serNum, const QHostAddress& ip,
-                           const QString& dv, const QString& wv,
-                           const QString& bio);
 
+        static void logBIO(const QString& serNum, const QHostAddress& ip, const QString& dv, const QString& wv, const QString& bio);
         static QByteArray getBIOData(const QString& sernum);
 
     private:
-        QModelIndex findModelIndex(const QString& value,
-                                   const UserCols& col);
+        QModelIndex findModelIndex(const QString& value, const UserCols& col);
         void loadUserInfo();
-        void updateRowData(const qint32& row, const qint32& col,
-                           const QVariant& data);
+        void updateRowData(const qint32& row, const qint32& col, const QVariant& data);
 
     signals:
-        void mutedSerNumDuration(const QString& sernum, const quint64& duration);
+        void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
 
     private slots:
-        void updateDataValue(const QModelIndex& index,
-                             const QModelIndex&,
-                             const QVector<int>& = QVector<int> ());
+        void updateDataValueSlot(const QModelIndex& index, const QModelIndex&, const QVector<int>& = QVector<int> ());
+
     private:
         Ui::User* ui;
 };

@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 2.5.5 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 2.5.6 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -35,6 +35,7 @@ set(SOURCES src/views/loggersortproxymodel.cpp
         src/widgets/remixwidget.cpp
         src/widgets/ruleswidget.cpp
         src/widgets/motdwidget.cpp
+        src/thread/udpthread.cpp
         src/createinstance.cpp
         src/appeventfilter.cpp
         src/packethandler.cpp
@@ -71,6 +72,7 @@ set(HEADERS src/views/loggersortproxymodel.hpp
         src/widgets/remixwidget.hpp
         src/widgets/ruleswidget.hpp
         src/widgets/motdwidget.hpp
+        src/thread/udpthread.hpp
         src/createinstance.hpp
         src/appeventfilter.hpp
         src/packethandler.hpp

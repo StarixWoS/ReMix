@@ -242,12 +242,11 @@ class Player : public QObject
         void forceSendCampPacket();
 
     private:
-        void setModelData(QStandardItem* model, const qint32& row,
-                          const qint32& column, const QVariant& data,
+        void setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data,
                           const qint32& role, const bool& isColor = false);
 
     public slots:
-        void slotSendPacketToPlayer(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
+        void sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
                                     quint32 trgScene, const QByteArray& packet);
 };
 

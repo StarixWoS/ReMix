@@ -36,10 +36,10 @@ Server::Server(QWidget* parent, ServerInfo* svr,
 
     //Setup Objects.
     serverComments = new Comments( parent, svr );
-    serverComments->setTitle( svr->getName() );
+    serverComments->setTitle( svr->getServerName() );
 
     chatView = new ChatView( parent, server );
-    chatView->setTitle( svr->getName() );
+    chatView->setTitle( svr->getServerName() );
 
     chatView->setGameID( server->getGameId() );
 
@@ -51,7 +51,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
     QObject::connect( this, &QTcpServer::newConnection, this, &Server::newConnectionSlot, Qt::QueuedConnection );
 
     auto* widget = dynamic_cast<ReMixWidget*>( mother );
-    QObject::connect( widget, &ReMixWidget::reValidateServerIP, widget,
+    QObject::connect( widget, &ReMixWidget::reValidateServerIPSignal, widget,
     [=]()
     {
         if ( server->getIsSetUp() )
@@ -60,7 +60,7 @@ Server::Server(QWidget* parent, ServerInfo* svr,
         server->setIsPublic( true );
     }, Qt::QueuedConnection );
 
-    QObject::connect( chatView, &ChatView::sendChat, chatView,
+    QObject::connect( chatView, &ChatView::sendChatSignal, chatView,
     [=](QString msg)
     {
         qint64 bOut{ 0 };

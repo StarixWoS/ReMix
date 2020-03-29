@@ -15,7 +15,8 @@ class ServerInfo : public QObject
 {
     Q_OBJECT
 
-    QUdpSocket* masterSocket{ nullptr };
+    UdpThread* udpThread{ nullptr };
+
     PacketHandler* pktHandle{ nullptr };
     Server* tcpServer{ nullptr };
     UPNP* upnp{ nullptr };
@@ -26,7 +27,7 @@ class ServerInfo : public QObject
     QVariant upTime{ 0.0 };
 
     bool isSetUp{ false };
-    QString name{ "AHitB ReMix Server" };
+    QString serverName{ "AHitB ReMix Server" };
 
     QString privateIP{ "" };
     quint16 privatePort{ 8888 };
@@ -37,11 +38,10 @@ class ServerInfo : public QObject
     quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
     quint32 usageCounter{ 0 };
 
+    QTimer usageUpdate;
     qint32 usageHours{ 0 };
     qint32 usageDays{ 0 };
     qint32 usageMins{ 0 };
-
-    QTimer usageUpdate;
 
     quint32 playerCount{ 0 };
     QString serverID{ "" };
@@ -103,12 +103,9 @@ class ServerInfo : public QObject
         void setupInfo();
         void setupUPNP(const bool& enable = false);
 
-        void sendUDPData(const QHostAddress& addr, const quint16& port,
-                         const QString& data);
-
+        QString getServerInfoString();
         void sendServerInfo(const QHostAddress& addr, const quint16& port);
-        void sendUserList(const QHostAddress& addr, const quint16& port,
-                          const quint32& type = 0);
+        void sendUserList(const QHostAddress& addr, const quint16& port, const quint32& type = 0);
         void sendMasterInfo(const bool& disconnect = false);
 
         Player* createPlayer(const int& slot);
@@ -122,8 +119,7 @@ class ServerInfo : public QObject
         void sendPlayerSocketInfo();
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
-        void sendMasterMessage(const QString& packet, Player* plr = nullptr,
-                               const bool toAll = false);
+        void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);
         void sendToAllConnected(const QString& packet);
 
         quint64 getUpTime() const;
@@ -179,8 +175,8 @@ class ServerInfo : public QObject
         QString getPrivateIP() const;
         void setPrivateIP(const QString& value);
 
-        QString getName() const;
-        void setName(const QString& value);
+        QString getServerName() const;
+        void setServerName(const QString& value);
 
         bool getIsSetUp() const;
         void setIsSetUp(const bool& value);
@@ -212,9 +208,6 @@ class ServerInfo : public QObject
         void setBaudIO(const quint64 &bytes, quint64 &baud);
         quint64 getBaudIn() const;
         quint64 getBaudOut() const;
-
-        QUdpSocket* getMasterSocket() const;
-        bool initMasterSocket(const QHostAddress& addr, const quint16& port);
 
         QString getMasterInfoHost() const;
         void setMasterInfoHost(const QString& value);
@@ -266,10 +259,21 @@ class ServerInfo : public QObject
         void updateBytesOut(Player* plr, const qint64 bOut);
 
     signals:
-        void serverIsSetup();
+        void bindSocketSignal(const QHostAddress& addr, const quint16& port);
+        void sendUdpDataSignal(const QHostAddress& addr, const quint16& port, const QString& data);
+        void closeUdpSocketSignal();
+        void serverIsSetupSignal();
+
+        void serverUsageChangedSignal(const qint32& minute, const qint32& day, const qint32& hour);
+        void serverWorldChangedSignal(const QString& newWorld);
+        void serverNameChangedSignal(const QString& newName);
+        void serverIDChangedSignal(const QString& serverID);
 
     private slots:
-        void readyReadUDPSlot();
+        void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
+        void sendUserListSlot(const QHostAddress& addr, const quint16& port, const quint32& type);
+        void sendServerInfoSlot(const QHostAddress& addr, const quint16& port);
+        void increaseServerPingSlot();
 };
 
 #endif // SERVERINFO_HPP

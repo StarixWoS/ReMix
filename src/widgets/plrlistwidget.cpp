@@ -245,7 +245,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
                        .arg( menuTarget->getSernum_s() )
                        .arg( menuTarget->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), logMsg,LogTypes::MUTE, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), logMsg,LogTypes::PUNISHMENT, true, true );
 
         menuTarget->sendMessage( inform, false );
     }
@@ -282,7 +282,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
         }
     }
     menuTarget = nullptr;
@@ -315,7 +315,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), logMsg, LogTypes::BAN, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
             menuTarget->sendMessage( inform, false );
             if ( sock->waitForBytesWritten() )

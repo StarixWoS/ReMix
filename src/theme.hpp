@@ -14,13 +14,9 @@ class Theme
     static QVector<QStringList> themeColors;
 
     public:
-
         static void applyTheme(const Themes& type = Themes::Light);
-
         static Themes getThemeType();
-
         static void setThemeType(const Themes& value);
-
         static QBrush getThemeColor(const Colors& color);
 };
 

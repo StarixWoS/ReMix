@@ -46,6 +46,7 @@ CreateInstance::~CreateInstance()
 
 void CreateInstance::updateServerList(const bool& firstRun)
 {
+    QMutexLocker locker( &mutex );
     ui->servers->clear();
     ui->servers->addItem( "" );  //First item will always be blank.
 
@@ -121,7 +122,7 @@ void CreateInstance::on_initializeServer_clicked()
             if ( server == nullptr ) //Failed to create the ServerInfo instance.
                 return;
 
-            server->setName( svrName );
+            server->setServerName( svrName );
             server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
             Helper::getSynRealData( server );
             server->setPrivatePort( ui->portNumber->text( ).toUShort() );
@@ -181,7 +182,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         if ( server == nullptr )
             return;
 
-        server->setName( name );
+        server->setServerName( name );
         server->setGameName( gameName );
         Helper::getSynRealData( server );
         server->setPrivatePort( port );

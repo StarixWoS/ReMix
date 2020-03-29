@@ -86,7 +86,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
             reason.append( append );
 
             User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_DAYS );
-            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::BAN, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             plr->setDisconnected( true, DCTypes::IPDC );
         }
@@ -117,7 +117,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
             msg = msg.left( msg.length() - 2 );
 
     if ( !alias.isEmpty()
-      && !msg.isEmpty() )
+      && !msg.trimmed().isEmpty() )
     {
         if ( Helper::strStartsWithStr( msg, "/" ) )
         {
@@ -131,7 +131,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
         }
         else
         {
-            if ( !msg.isEmpty() )
+            if ( !msg.trimmed().isEmpty() )
             {
                 //Echo the chat back to the User.
                 if ( Settings::getEchoComments() )
@@ -387,7 +387,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 if ( !subCmd.isEmpty() )
                 {
-                    if ( ( plr->getAdminPwdRequested()
+                    if ((( plr->getAdminPwdRequested() || plr->getIsAdmin() )
                       || ( plr->getSvrPwdRequested() && !plr->getSvrPwdReceived() ) ) )
                     {
                         this->loginHandler( plr, subCmd );
@@ -495,14 +495,12 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     }
 
     if ( logMsg )
-        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::ADMIN, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::ADMIN, true, true );
 
     return retn;
 }
 
-bool CmdHandler::canIssueAction(Player* admin, Player* target,
-                                const QString& arg1, const GMCmds& argIndex,
-                                const bool& all)
+bool CmdHandler::canIssueAction(Player* admin, Player* target, const QString& arg1, const GMCmds& argIndex, const bool& all)
 {
     if ( admin == nullptr || target == nullptr )
         return false;
@@ -533,8 +531,7 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target,
     return false;
 }
 
-void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1,
-                                   const GMCmds& argIndex)
+void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1, const GMCmds& argIndex)
 {
     if ( admin == nullptr )
         return;
@@ -544,11 +541,10 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1,
                              .arg( cmdTable->getCmdName( argIndex ) )
                              .arg( arg1 );
 
-            admin->sendMessage( message, false );
+    admin->sendMessage( message, false );
 }
 
-bool CmdHandler::isTarget(Player* target, const QString& arg1,
-                          const bool isAll)
+bool CmdHandler::isTarget(Player* target, const QString& arg1, const bool isAll)
 {
     QString sernum = Helper::serNumToHexStr( arg1 );
     if ( ( target->getPublicIP() == arg1 )
@@ -572,9 +568,7 @@ GMRanks CmdHandler::getAdminRank(Player* plr)
     return static_cast<GMRanks>( plr->getAdminRank() );
 }
 
-void CmdHandler::motdHandler(Player* plr, const QString& subCmd,
-                             const QString& arg1,
-                             const QString& msg)
+void CmdHandler::motdHandler(Player* plr, const QString& subCmd, const QString& arg1, const QString& msg)
 {
     if ( !subCmd.isEmpty()
       && cmdTable->isSubCommand( GMCmds::MotD, subCmd ) )
@@ -629,14 +623,12 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr && tmpPlr != plr )
+        if ( tmpPlr != nullptr )
         {
             //Check target validity.
             if ( this->isTarget( tmpPlr, arg1, all ) )
             {
-                ban = this->canIssueAction( plr, tmpPlr, arg1,
-                                            GMCmds::Ban, all );
-
+                ban = this->canIssueAction( plr, tmpPlr, arg1, GMCmds::Ban, all );
                 if ( ban )
                     break;
             }
@@ -679,7 +671,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
                  .arg( plr->getSernum_s() )
                  .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::BAN, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
 
         tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -711,7 +703,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr && tmpPlr != plr )
+        if ( tmpPlr != nullptr )
         {
             //Check target validity.
             if ( this->isTarget( tmpPlr, arg1, all ) )
@@ -726,7 +718,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
                                    .arg( tmpPlr->getSernum_s() )
                                    .arg( tmpPlr->getBioData() );
 
-                    Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
+                    Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                     tmpPlr->setDisconnected( true, DCTypes::IPDC );
                 }
@@ -748,7 +740,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr && tmpPlr != plr )
+        if ( tmpPlr != nullptr )
         {
             //Check target validity.
             if ( this->isTarget( tmpPlr, arg1, all ) )
@@ -796,7 +788,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
                  .arg( tmpPlr->getSernum_s() )
                  .arg( tmpPlr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getName(), msg, LogTypes::MUTE, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
     }
 }
 
@@ -924,7 +916,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
                            .arg( plr->getSernum_s() )
                            .arg( plr->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getName(), reason, LogTypes::DC, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
         plr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -995,9 +987,7 @@ void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
         plr->sendMessage( response, false );
 }
 
-void CmdHandler::shutDownHandler(Player* plr, const QString& duration,
-                                 const QString& reason, bool& stop,
-                                 bool& restart)
+void CmdHandler::shutDownHandler(Player* plr, const QString& duration, const QString& reason, bool& stop, bool& restart)
 {
     bool sendMsg{ true };
     qint32 time{ 0 };
@@ -1232,8 +1222,8 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
 
 //}
 
-void CmdHandler::parseTimeArgs( const QString& str, QString& timeArg,
-                                QString& reason )
+void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg,
+                               QString& reason)
 {
     //This is the Action duration.
     QString duration{ Helper::getStrStr( str, "", "", " " ) };

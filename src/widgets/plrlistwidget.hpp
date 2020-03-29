@@ -26,8 +26,7 @@ class PlrListWidget : public QWidget
     ServerInfo* server{ nullptr };
 
     public:
-        explicit PlrListWidget(QWidget* parent = nullptr,
-                               ServerInfo* svr = nullptr);
+        explicit PlrListWidget(QWidget* parent = nullptr, ServerInfo* svr = nullptr);
         ~PlrListWidget() override;
 
         QStandardItemModel* getPlrModel() const;

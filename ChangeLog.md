@@ -2,6 +2,30 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.6:
+    Change:
+      * Added a new Threaded Class Object. UdpThread.
+        * This class handles some interactions with Users and the Master Mix via the UDP protocol.
+        * While the PacketHandler class still parses some packet information, the UdpClass parses and handles any packets that require a response.
+        * The ServerInfo class retains control over MasterCheckin timing, and sends a signal to the UdpClass to send the packet itself.
+      * The Logger class now has multiple file handles for each individual log type.
+        * These handles are opened as they are needed, and will remain open until ReMix closes.
+          * These file handles are also closed and re-opened when the date used for the Log Folder changes.
+        * These changes are done in an attempt to reduce file opening and closing overhead.
+      
+	  
+
+    Bugfixes:
+      * Reduced latency overhead when pinging a ReMix server hosting multiple Worlds/Games.
+        * The MasterUDP Socket used is now threaded, and should be thread-safe.
+      * Remote Administrator commands will now inform the Admin of an issue if they attempt to use a command on theirself.
+      * Sernum Information is now properly parsed from the MIX5 and MIX6 packet types.
+        * This allows an Admin to log-in before being prompted if they so desire.
+
+
+
+
+
 Version 2.5.5:
     Change:
       * Reduced latency when forwarding packets to players.

@@ -85,7 +85,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    Logger::getInstance()->insertLog( server->getName(), comment, LogTypes::COMMENT, true, true );
+    Logger::getInstance()->insertLog( server->getServerName(), comment, LogTypes::COMMENT, true, true );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

@@ -114,7 +114,7 @@ UPNP::~UPNP()
 
 void UPNP::makeTunnel()
 {
-    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdp, Qt::QueuedConnection );
+    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot, Qt::QueuedConnection );
 
     QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
                                 "HOST:239.255.255.250:1900\r\n"
@@ -134,7 +134,7 @@ void UPNP::makeTunnel()
     Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
-void UPNP::getUdp()
+void UPNP::getUdpSlot()
 {
     QString vs;
     while ( udpSocket->hasPendingDatagrams() )

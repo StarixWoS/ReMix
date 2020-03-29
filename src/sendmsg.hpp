@@ -28,7 +28,7 @@ class SendMsg : public QDialog
         void on_sendMsg_clicked();
 
     signals:
-        void forwardMessage(const QString&);
+        void forwardMessageSignal(const QString&);
 
     private:
         Ui::SendMsg* ui;

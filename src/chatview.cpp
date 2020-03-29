@@ -315,7 +315,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             //Check if the bleeping rule is set.
             //There's no pint in censoring our chat if we aren't censoring chat
             //for other people.
-            if ( Rules::getNoCursing( server->getName() ) )
+            if ( Rules::getNoCursing( server->getServerName() ) )
                 this->bleepChat( message );
         }
 
@@ -370,7 +370,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         }
 
         if ( !message.isEmpty() && log )
-            Logger::getInstance()->insertLog( server->getName(), message, LogTypes::CHAT, true, true );
+            Logger::getInstance()->insertLog( server->getServerName(), message, LogTypes::CHAT, true, true );
     }
     return retn;
 }
@@ -464,8 +464,8 @@ void ChatView::on_chatInput_returnPressed()
         message.prepend( "Owner: " );
 
     if ( !message.isEmpty() )
-        Logger::getInstance()->insertLog( server->getName(), message, LogTypes::CHAT, true, true );
+        Logger::getInstance()->insertLog( server->getServerName(), message, LogTypes::CHAT, true, true );
 
-    emit this->sendChat( message );
+    emit this->sendChatSignal( message );
     ui->chatInput->clear();
 }

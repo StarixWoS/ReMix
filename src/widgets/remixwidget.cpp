@@ -35,12 +35,12 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     motdWidget = MOTDWidget::getWidget( server );
 
     rules = RulesWidget::getWidget( server );
-    QObject::connect( rules, &RulesWidget::gameInfoChanged, rules,
+    QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, rules,
     [=](const QString& gameInfo)
     {
         server->setGameInfo( gameInfo );
     }, Qt::QueuedConnection );
-    rules->setServerName( server->getName() );
+    rules->setServerName( server->getServerName() );
 
     plrWidget = new PlrListWidget( this, server );
     ui->tmpWidget->setLayout( plrWidget->layout() );
@@ -59,7 +59,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
-    defaultPalette = parent->palette();
 }
 
 ReMixWidget::~ReMixWidget()
@@ -94,7 +93,7 @@ void ReMixWidget::renameServer(const QString& newName)
         motdWidget->setServerName( newName );
         rules->setServerName( newName );
 
-        server->setName( newName );
+        server->setServerName( newName );
     }
 }
 
@@ -114,7 +113,7 @@ quint32 ReMixWidget::getPlayerCount() const
 
 QString ReMixWidget::getServerName() const
 {
-    return server->getName();
+    return server->getServerName();
 }
 
 Server* ReMixWidget::getTcpServer() const
@@ -184,7 +183,7 @@ void ReMixWidget::initUIUpdate()
             //If it is now invalid, restart the network sockets.
             if ( Settings::getIsInvalidIPAddress( server->getPrivateIP() ) )
             {
-                emit this->reValidateServerIP();
+                emit this->reValidateServerIPSignal();
             }
             plrWidget->resizeColumns();
         }
@@ -262,7 +261,7 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
     if ( Helper::confirmAction( this, title, prompt ) )
     {
         Settings::setIsInvalidIPAddress( link );
-        emit this->reValidateServerIP();
+        emit this->reValidateServerIPSignal();
 
         title = "Note:";
         prompt = "Please refresh your server list in-game!";

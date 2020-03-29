@@ -6,6 +6,7 @@
 //Required Qt Includes.
 #include <QCollator>
 #include <QDialog>
+#include <QMutex>
 
 namespace Ui {
     class CreateInstance;
@@ -43,10 +44,11 @@ class CreateInstance : public QDialog
 
     signals:
         void createServerAcceptedSignal(ServerInfo* server);
-        void closeServer();
+        void closeServerSignal();
 
     private:
         Ui::CreateInstance* ui;
+        mutable QMutex mutex;
 };
 
 #endif // CREATEINSTANCE_H

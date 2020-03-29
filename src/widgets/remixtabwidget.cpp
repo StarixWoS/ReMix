@@ -216,7 +216,7 @@ void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)
             instance = serverMap.value( i );
             if ( instance != nullptr )
             {
-                if ( instance->getServerInfo()->getName() == server->getName() )
+                if ( instance->getServerInfo()->getServerName() == server->getServerName() )
                 {
                     removeServer( i, true, restart );
                     break;
@@ -267,7 +267,7 @@ void ReMixTabWidget::removeServer(const qint32& index,
     quint16 privatePort{ server->getPrivatePort() };
 
     QString gameName{ server->getGameName() };
-    QString name{ server->getName() };
+    QString name{ server->getServerName() };
 
     bool isPublic{ server->getIsPublic() };
     bool useUPNP{ server->getUseUPNP() };
@@ -457,7 +457,7 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
     if ( server == nullptr )
         return;
 
-    QString serverName{ server->getName() };
+    QString serverName{ server->getServerName() };
     QString title{ "Unable to Initialize Server:" };
     QString prompt{ "You are unable to initialize two servers with the same name!" };
 

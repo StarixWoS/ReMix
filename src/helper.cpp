@@ -434,7 +434,7 @@ void Helper::getSynRealData(ServerInfo* svr)
 
     QString message{ "Fetching Master Info from [ %1 ]." };
             message = message.arg( svr->getMasterInfoHost() );
-    Logger::getInstance()->insertLog( svr->getName(), message, LogTypes::USAGE, true, true );
+    Logger::getInstance()->insertLog( svr->getServerName(), message, LogTypes::USAGE, true, true );
 
     QFileInfo synRealFile( "synReal.ini" );
 
@@ -486,7 +486,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                         msg = msg.arg( svr->getMasterIP() )
                                  .arg( svr->getMasterPort() )
                                  .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getName(), msg, LogTypes::USAGE, true, true );
+                Logger::getInstance()->insertLog( svr->getServerName(), msg, LogTypes::USAGE, true, true );
             }
         }, Qt::QueuedConnection );
 
@@ -510,7 +510,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                 message = message.arg( svr->getMasterIP() )
                                  .arg( svr->getMasterPort() )
                                  .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getName(), message, LogTypes::USAGE, true, true );
+                Logger::getInstance()->insertLog( svr->getServerName(), message, LogTypes::USAGE, true, true );
             }
         }
     }

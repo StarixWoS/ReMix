@@ -109,7 +109,7 @@ User::User(QWidget* parent) :
     //Load Information.
     this->loadUserInfo();
 
-    QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValue, Qt::QueuedConnection );
+    QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValueSlot, Qt::QueuedConnection );
 }
 
 User::~User()
@@ -357,24 +357,23 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
             for ( int i = 0; i < sernums.count(); ++i )
             {
                 sernum = sernums.at( i );
-                sernum = sernum % "/";
                 if ( type == PunishTypes::IP )
-                    ip = userData->value( sernum % value ).toString();
+                    ip = userData->value( sernum % "/" % value ).toString();
 
                 if ( Helper::cmpStrings( sernum, value )
                   || Helper::cmpStrings( ip, value ) )
                 {
                     if ( punishType == PunishTypes::Ban )
                     {
-                        userData->remove( sernum % keys[ UserKeys::kBANNED ] );
-                        userData->remove( sernum % keys[ UserKeys::kBANREASON ] );
-                        userData->remove( sernum % keys[ UserKeys::kBANDURATION ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kBANREASON ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kBANDURATION ] );
                     }
                     else if ( punishType == PunishTypes::Mute )
                     {
-                        userData->remove( sernum % keys[ UserKeys::kMUTED ] );
-                        userData->remove( sernum % keys[ UserKeys::kMUTEREASON ] );
-                        userData->remove( sernum % keys[ UserKeys::kMUTEDURATION ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTED ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEREASON ] );
+                        userData->remove( sernum % "/" % keys[ UserKeys::kMUTEDURATION ] );
                     }
 
                     break;
@@ -666,7 +665,7 @@ void User::loadUserInfo()
                                      .arg( Helper::getTimeAsString( banDate_i ) )
                                      .arg( Helper::getTimeAsString( banDuration_i ) )
                                      .arg( banReason );
-                    Logger::getInstance()->insertLog( "BanLog", message, LogTypes::BAN, true, true );
+                    Logger::getInstance()->insertLog( "BanLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }
 
@@ -682,7 +681,7 @@ void User::loadUserInfo()
                                      .arg( Helper::getTimeAsString( muteDate_i ) )
                                      .arg( Helper::getTimeAsString( muteDuration_i ) )
                                      .arg( muteReason );
-                    Logger::getInstance()->insertLog( "MuteLog", message, LogTypes::MUTE, true, true );
+                    Logger::getInstance()->insertLog( "MuteLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }
         }
@@ -746,7 +745,7 @@ void User::updateRowData(const qint32& row, const qint32& col,
 }
 
 //Private Slots.
-void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
+void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&,
                            const QVector<int>&)
 {
     QString sernum{ "" };
@@ -856,7 +855,7 @@ void User::updateDataValue(const QModelIndex& index, const QModelIndex&,
                         QVariant date = QDateTime::currentDateTimeUtc().toTime_t();
                         value = date.toUInt() + static_cast<uint>( requestDuration( this ) );
 
-                        emit this->mutedSerNumDuration( sernum, value.toUInt() );
+                        emit this->mutedSerNumDurationSignal( sernum, value.toUInt() );
 
                         setData( sernum, keys[ UserKeys::kMUTED ], value );
                         this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );

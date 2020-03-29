@@ -24,14 +24,9 @@ class ReMixWidget : public QWidget
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
-    QPalette defaultPalette;
-    bool nightMode{ false };
-
-    enum Themes{ LIGHT = 0, DARK = 1 };
 
     public:
-        explicit ReMixWidget(QWidget* parent = nullptr,
-                             ServerInfo* svrInfo = nullptr);
+        explicit ReMixWidget(QWidget* parent = nullptr, ServerInfo* svrInfo = nullptr);
         ~ReMixWidget() override;
 
         ServerInfo* getServerInfo() const;
@@ -42,7 +37,6 @@ class ReMixWidget : public QWidget
         QString getServerName() const;
 
         Server* getTcpServer() const;
-
         quint16 getPrivatePort() const;
 
     private:
@@ -61,7 +55,7 @@ class ReMixWidget : public QWidget
         void on_logButton_clicked();
 
     signals:
-        void reValidateServerIP();
+        void reValidateServerIPSignal();
 
     private:
         Ui::ReMixWidget* ui;

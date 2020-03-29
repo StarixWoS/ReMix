@@ -94,6 +94,9 @@
     class RulesWidget;
     class MOTDWidget;
 
+    //Threaded Classes.
+    class UdpThread;
+
     //GUI and Data Storage Classes.
     class CreateInstance;
     class AppEventFilter;
@@ -307,9 +310,7 @@
                                  ColCount = 4 };
 
         //Valid Log types available to the Logger Class.
-        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, BAN, DC,
-                                  MUTE, IGNORE, MISC, PKTFORGE, CHAT,
-                                  QUEST = 11 };
+        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, PUNISHMENT, MISC, CHAT, QUEST = 7, MAX = 7 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,
