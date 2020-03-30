@@ -31,8 +31,7 @@ const QStringList Rules::subKeys =
 
 QMutex Rules::mutex;
 
-void Rules::setRule(const QString& key, const QVariant& value,
-                    const QString& svrID)
+void Rules::setRule(const QString& key, const QVariant& value, const QString& svrID)
 {
     QMutexLocker locker( &mutex );
     bool remove{ false };

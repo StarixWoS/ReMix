@@ -26,6 +26,9 @@ class Comments : public QDialog
     public slots:
         void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
 
+    signals:
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+
     private:
         Ui::Comments* ui;
 };

@@ -24,16 +24,12 @@ class Server : public QTcpServer
     ServerInfo* server{ nullptr };
 
     public:
-        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr,
-               QStandardItemModel* plrView = nullptr);
+        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr);
         ~Server() override;
 
         void setupServerInfo();
-        void updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
-                               const quint16& port);
-        QStandardItem* updatePlayerTableImpl(const QString& peerIP,
-                                             const QByteArray& data,
-                                             Player* plr, const bool& insert);
+        void updatePlayerTable(Player* plr, const QHostAddress& peerAddr, const quint16& port);
+        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert);
 
         Comments* getServerComments() const;
         ChatView* getChatView() const;

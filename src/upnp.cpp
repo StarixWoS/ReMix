@@ -33,35 +33,14 @@ QVector<qint32> UPNP::ports;
 bool UPNP::tunneled{ false };
 UPNP* UPNP::upnp{ nullptr };
 
-UPNP* UPNP::getInstance()
-{
-    if ( upnp == nullptr )
-        upnp = new UPNP();
-
-    QString msg{ "Getting UPNP Object." };
-    Logger::getInstance()->insertLog( "UPNP", msg, LogTypes::UPNP, true, true);
-
-    return upnp;
-}
-
-bool UPNP::getTunneled()
-{
-    return tunneled;
-}
-
-void UPNP::setTunneled(bool value)
-{
-    tunneled = value;
-}
-
-QHostAddress UPNP::getExternalIPAddr()
-{
-    return externalAddress;
-}
-
 UPNP::UPNP(QObject* parent )
     : QObject( parent )
 {
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &UPNP::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
     localIP = QHostAddress( Helper::getPrivateIP() );
 
     //We have a broadcast IP address. We are unable to port forward.
@@ -79,20 +58,20 @@ UPNP::UPNP(QObject* parent )
         refreshTunnel = new QTimer( this );
         refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
         QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
-        [=]()
-        {
-            for ( qint32 port : ports )
+            [=]()
             {
-                if ( port != 0 && !permFwd.value( port, false ) )
+                for ( qint32 port : ports )
                 {
-                    this->addPortForward( "TCP", port );
-                    this->addPortForward( "UDP", port );
+                    if ( port != 0 && !permFwd.value( port, false ) )
+                    {
+                        this->addPortForward( "TCP", port );
+                        this->addPortForward( "UDP", port );
+                    }
                 }
-            }
-        }, Qt::QueuedConnection );
+            }, Qt::QueuedConnection );
 
         QString logMsg{ "Creating UPNP Object." };
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+        emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
     else    //Delete our object at the next oppertunity.
     {
@@ -110,6 +89,32 @@ UPNP::~UPNP()
     udpSocket->deleteLater();
 
     upnp = nullptr;
+}
+
+UPNP* UPNP::getInstance()
+{
+    if ( upnp == nullptr )
+        upnp = new UPNP();
+
+    QString msg{ "Getting UPNP Object." };
+    emit upnp->insertLogSignal( "UPNP", msg, LogTypes::UPNP, true, true);
+
+    return upnp;
+}
+
+bool UPNP::getTunneled()
+{
+    return tunneled;
+}
+
+void UPNP::setTunneled(bool value)
+{
+    tunneled = value;
+}
+
+QHostAddress UPNP::getExternalIPAddr()
+{
+    return externalAddress;
 }
 
 void UPNP::makeTunnel()
@@ -131,7 +136,7 @@ void UPNP::makeTunnel()
     QString logMsg{ "Sent UDP Query Response [ %1 ]." };
     logMsg = logMsg.arg( discover.trimmed() );
 
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
 void UPNP::getUdpSlot()
@@ -161,7 +166,7 @@ void UPNP::getUdpSlot()
                 logMsg = "Got UDP Query Response [ %1 ].";
                 logMsg = logMsg.arg( vs.trimmed() );
 
-                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
             }
 
             int index = Helper::getStrIndex( vs, "Location" );
@@ -225,7 +230,7 @@ void UPNP::getUdpSlot()
                                 logMsg = logMsg.arg( rtrSchema )
                                                .arg( schema );
 
-                                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                                 validSchema = false;
                                 if ( Helper::cmpStrings( rtrSchema, schema ) )
@@ -253,7 +258,7 @@ void UPNP::getUdpSlot()
                                     logMsg = "Got ControlURL[ %1 ].";
                                     logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
 
-                                    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                                    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                                     this->setTunneled( true );
                                     emit this->success();
@@ -274,7 +279,7 @@ void UPNP::getUdpSlot()
                 logMsg = "Requesting Service Information from [ %1 ].";
                 logMsg = logMsg.arg( vs );
 
-                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                 httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
                 udpSocket->close();
@@ -296,11 +301,10 @@ void UPNP::getExternalIP()
 
     QString logMsg{ "Getting ExternalIP." };
 
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
-void UPNP::postSOAP(const QString& action, const QString& message,
-                    const QString& protocol, const qint32& port)
+void UPNP::postSOAP(const QString& action, const QString& message, const QString& protocol, const qint32& port)
 {
     QString soap{ "\"%1#%2\"" };
             soap = soap.arg( rtrSchema )
@@ -359,11 +363,11 @@ void UPNP::postSOAP(const QString& action, const QString& message,
             if ( log )
             {
                 QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
-                logMsg = logMsg.arg( action )
-                               .arg( protocol )
-                               .arg( port );
+                        logMsg = logMsg.arg( action )
+                                       .arg( protocol )
+                                       .arg( port );
 
-                Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
             }
         }
         else
@@ -384,8 +388,7 @@ void UPNP::postSOAP(const QString& action, const QString& message,
     }, Qt::QueuedConnection );
 }
 
-void UPNP::extractError(const QString& message, const qint32& port,
-                        const QString& protocol )
+void UPNP::extractError(const QString& message, const qint32& port, const QString& protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
@@ -400,8 +403,7 @@ void UPNP::extractError(const QString& message, const qint32& port,
                    .arg( port )
                    .arg( message );
 
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP,
-                                      true, true);
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
     if ( Helper::cmpStrings( reader.name().toString(), "errorDescription" ) )
     {
@@ -419,7 +421,7 @@ void UPNP::extractError(const QString& message, const qint32& port,
             logMsg = logMsg.arg( protocol )
                            .arg( port );
 
-            Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+            emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
             this->addPortForward( protocol, port, true );
         }
 
@@ -451,7 +453,7 @@ void UPNP::extractExternalIP(const QString& action, const QString& message )
                 logMsg = logMsg.arg( action )
                                .arg( externalAddress.toString() );
 
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+        emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
 }
 
@@ -476,11 +478,10 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
     logMsg = logMsg.arg( protocol )
                    .arg( port );
 
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
-void UPNP::addPortForward(const QString& protocol, const qint32& port,
-                          const bool& lifetime)
+void UPNP::addPortForward(const QString& protocol, const qint32& port, const bool& lifetime)
 {
     if ( !ports.contains( port ) )
     {
@@ -525,7 +526,7 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port,
         logMsg = logMsg.arg( protocol )
                        .arg( port );
 
-        Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+        emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
     }
 }
 
@@ -553,5 +554,5 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
     logMsg = logMsg.arg( protocol )
                    .arg( port );
 
-    Logger::getInstance()->insertLog( "UPNP", logMsg, LogTypes::UPNP, true, true);
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }

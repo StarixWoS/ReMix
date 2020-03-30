@@ -288,9 +288,7 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
     return index;
 }
 
-qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex,
-                                const QString& subCmd,
-                                const bool& time)
+qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
 {
 
     qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };

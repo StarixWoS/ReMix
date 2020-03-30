@@ -35,6 +35,7 @@ set(SOURCES src/views/loggersortproxymodel.cpp
         src/widgets/remixwidget.cpp
         src/widgets/ruleswidget.cpp
         src/widgets/motdwidget.cpp
+        src/thread/writethread.cpp
         src/thread/udpthread.cpp
         src/createinstance.cpp
         src/appeventfilter.cpp
@@ -72,6 +73,7 @@ set(HEADERS src/views/loggersortproxymodel.hpp
         src/widgets/remixwidget.hpp
         src/widgets/ruleswidget.hpp
         src/widgets/motdwidget.hpp
+        src/thread/writethread.hpp
         src/thread/udpthread.hpp
         src/createinstance.hpp
         src/appeventfilter.hpp

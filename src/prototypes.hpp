@@ -95,6 +95,7 @@
     class MOTDWidget;
 
     //Threaded Classes.
+    class WriteThread;
     class UdpThread;
 
     //GUI and Data Storage Classes.

@@ -14,13 +14,10 @@ UserDelegate::UserDelegate(QObject* parent) : QItemDelegate(parent)
 
 UserDelegate::~UserDelegate() = default;
 
-void UserDelegate::paint(QPainter* painter,
-                         const QStyleOptionViewItem& option,
-                         const QModelIndex& index) const
+void UserDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
     painter->save();
-    QStyleOptionViewItem opt = QItemDelegate::setOptions( index,
-                                                            option );
+    QStyleOptionViewItem opt = QItemDelegate::setOptions( index, option );
 
     QString text = "";
     switch( static_cast<UserCols>( index.column() ) )
@@ -93,8 +90,7 @@ void UserDelegate::paint(QPainter* painter,
     painter->restore();
 }
 
-void UserDelegate::setEditorData(QWidget* editor,
-                                 const QModelIndex& index) const
+void UserDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
     auto* combobox = dynamic_cast<QComboBox*>( editor );
     switch( index.data().toInt() )
@@ -120,9 +116,7 @@ void UserDelegate::setEditorData(QWidget* editor,
     }
 }
 
-QWidget* UserDelegate::createEditor(QWidget* parent,
-                                    const QStyleOptionViewItem&,
-                                    const QModelIndex& index) const
+QWidget* UserDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
     auto* editor = new QComboBox( parent );
           editor->setFocusPolicy( Qt::StrongFocus );
@@ -151,9 +145,7 @@ QWidget* UserDelegate::createEditor(QWidget* parent,
     return editor;
 }
 
-void UserDelegate::setModelData(QWidget* editor,
-                                QAbstractItemModel* model,
-                                const QModelIndex& index) const
+void UserDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
     auto* combobox = dynamic_cast<QComboBox*>( editor );
 
@@ -181,9 +173,7 @@ void UserDelegate::setModelData(QWidget* editor,
     }
 }
 
-void UserDelegate::updateEditorGeometry(QWidget* editor,
-                                        const QStyleOptionViewItem& option,
-                                        const QModelIndex&) const
+void UserDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex&) const
 {
     editor->setGeometry( option.rect );
 }

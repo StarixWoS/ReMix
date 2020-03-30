@@ -62,8 +62,9 @@ class CmdHandler : public QObject
         qint32 getTimePeriodFromString(const QString& str, QString& timeTxt);
 
     signals:
-        void newUserCommentSignal(const QString& sernum, const QString& alias,
-                                  const QString& message);
+        void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
+
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
 };
 
 #endif // CMDHANDLER_HPP

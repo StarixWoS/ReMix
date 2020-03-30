@@ -21,55 +21,24 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
 
     //Load Settings from file.
     pwdCheckState = Settings::getRequirePassword();
-    this->setCheckedState( Toggles::REQPWD,
-                           pwdCheckState );
 
-    //this->setCheckedState( Toggles::REQADMINPWD,
-    //                       Settings::getReqAdminAuth() );
-
-    this->setCheckedState( Toggles::ALLOWDUPEDIP,
-                           Settings::getAllowDupedIP() );
-
-    this->setCheckedState( Toggles::BANDUPEDIP,
-                           Settings::getBanDupedIP() );
-
-    //this->setCheckedState( Toggles::BANHACKERS,
-    //                       Settings::getBanDeviants() );
-
-    this->setCheckedState( Toggles::REQSERNUM,
-                           Settings::getReqSernums() );
-
-    this->setCheckedState( Toggles::DISCONNECTIDLES,
-                           Settings::getDisconnectIdles() );
-
-    this->setCheckedState( Toggles::ALLOWSSV,
-                           Settings::getAllowSSV() );
-
-    this->setCheckedState( Toggles::LOGCOMMENTS,
-                           Settings::getLogComments() );
-
-    this->setCheckedState( Toggles::FWDCOMMENTS,
-                           Settings::getFwdComments() );
-
-    this->setCheckedState( Toggles::INFORMADMINLOGIN,
-                           Settings::getInformAdminLogin() );
-
-    this->setCheckedState( Toggles::ECHOCOMMENTS,
-                           Settings::getEchoComments() );
-
-    this->setCheckedState( Toggles::MINIMIZETOTRAY,
-                           Settings::getMinimizeToTray() );
-
-    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS,
-                           Settings::getSaveWindowPositions() );
-
-    this->setCheckedState( Toggles::LOGFILES,
-                           Settings::getLogFiles() );
-
-//    this->setCheckedState( Toggles::CHECKFORUPDATES,
-//                           Settings::getCheckForUpdates() );
-    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS,
-                           Settings::getDCBlueCodedSerNums() );
+    this->setCheckedState( Toggles::REQPWD, pwdCheckState );
+    //this->setCheckedState( Toggles::REQADMINPWD, Settings::getReqAdminAuth() );
+    this->setCheckedState( Toggles::ALLOWDUPEDIP, Settings::getAllowDupedIP() );
+    this->setCheckedState( Toggles::BANDUPEDIP, Settings::getBanDupedIP() );
+    //this->setCheckedState( Toggles::BANHACKERS, Settings::getBanDeviants() );
+    this->setCheckedState( Toggles::REQSERNUM, Settings::getReqSernums() );
+    this->setCheckedState( Toggles::DISCONNECTIDLES, Settings::getDisconnectIdles() );
+    this->setCheckedState( Toggles::ALLOWSSV, Settings::getAllowSSV() );
+    this->setCheckedState( Toggles::LOGCOMMENTS, Settings::getLogComments() );
+    this->setCheckedState( Toggles::FWDCOMMENTS, Settings::getFwdComments() );
+    this->setCheckedState( Toggles::INFORMADMINLOGIN, Settings::getInformAdminLogin() );
+    this->setCheckedState( Toggles::ECHOCOMMENTS, Settings::getEchoComments() );
+    this->setCheckedState( Toggles::MINIMIZETOTRAY, Settings::getMinimizeToTray() );
+    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS, Settings::getSaveWindowPositions() );
+    this->setCheckedState( Toggles::LOGFILES, Settings::getLogFiles() );
+//    this->setCheckedState( Toggles::CHECKFORUPDATES, Settings::getCheckForUpdates() );
+    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS, Settings::getDCBlueCodedSerNums() );
 
     QString dir{ Settings::getWorldDir() };
     QString rowText{ "World Dir: [ %1 ]" };
@@ -92,8 +61,7 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    QTableWidgetItem* item = ui->settingsView->item(
-                                 static_cast<int>( option ), 0 );
+    QTableWidgetItem* item = ui->settingsView->item( static_cast<int>( option ), 0 );
     if ( item != nullptr )
     {
         ui->settingsView->item(
@@ -118,9 +86,7 @@ void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex& index)
     int row = index.row();
 
     Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
-    ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked
-                                                         ? Qt::Unchecked
-                                                         : Qt::Checked );
+    ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
     val = ui->settingsView->item( row, 0 )->checkState();
     this->toggleSettings( row, val );
@@ -259,9 +225,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 if ( directory.isEmpty() || reUse )
                 {
                     QString title{ "Select WoS Directory" };
-                    directory = QFileDialog::getExistingDirectory( this, title, "/worlds",
-                                    QFileDialog::ShowDirsOnly |
-                                    QFileDialog::DontResolveSymlinks );
+                    directory = QFileDialog::getExistingDirectory( this, title, "/worlds", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 
                     state = false;
                     if ( Helper::strContainsStr( directory, "worlds" ) )
@@ -277,8 +241,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                     {
                         directory = "";
                         title = "Invalid Directory:";
-                        prompt = "You have selected an invalid world directory."
-                                 " Please try again.";
+                        prompt = "You have selected an invalid world directory. Please try again.";
 
                         ui->settingsView->item( Toggles::WORLDDIR, 0 )->setCheckState( Qt::Unchecked );
 

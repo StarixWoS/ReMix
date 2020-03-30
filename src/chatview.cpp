@@ -99,8 +99,13 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     ui->setupUi(this);
     server = svr;
 
-    pktForge = PacketForge::getInstance();
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
 
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
+    pktForge = PacketForge::getInstance();
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
@@ -370,7 +375,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         }
 
         if ( !message.isEmpty() && log )
-            Logger::getInstance()->insertLog( server->getServerName(), message, LogTypes::CHAT, true, true );
+            emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
     }
     return retn;
 }
@@ -383,8 +388,7 @@ void ChatView::bleepChat(QString& message)
     }
 }
 
-void ChatView::insertChat(const QString& msg, const Colors& color,
-                          const bool& newLine)
+void ChatView::insertChat(const QString& msg, const Colors& color, const bool& newLine)
 {
     QTextEdit* obj{ ui->chatView };
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
@@ -451,10 +455,8 @@ void ChatView::on_chatInput_returnPressed()
         }
     }
 
-    this->insertChat( "Owner: ",
-                      Colors::OwnerName, true );
-    this->insertChat( message,
-                      Colors::OwnerChat, false );
+    this->insertChat( "Owner: ", Colors::OwnerName, true );
+    this->insertChat( message, Colors::OwnerChat, false );
 
     if ( gameID == Games::W97 )
     {
@@ -464,7 +466,7 @@ void ChatView::on_chatInput_returnPressed()
         message.prepend( "Owner: " );
 
     if ( !message.isEmpty() )
-        Logger::getInstance()->insertLog( server->getServerName(), message, LogTypes::CHAT, true, true );
+        emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
 
     emit this->sendChatSignal( message );
     ui->chatInput->clear();

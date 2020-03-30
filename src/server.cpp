@@ -25,8 +25,7 @@
 
 QHash<QHostAddress, QByteArray> Server::bioHash;
 
-Server::Server(QWidget* parent, ServerInfo* svr,
-               QStandardItemModel* plrView)
+Server::Server(QWidget* parent, ServerInfo* svr, QStandardItemModel* plrView)
     : QTcpServer(parent)
 {
     //Setup Objects.
@@ -105,8 +104,7 @@ Server::~Server()
     bioHash.clear();
 }
 
-void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
-                               const quint16& port)
+void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr, const quint16& port)
 {
     QString ip{ peerAddr.toString() % ":%1" };
             ip = ip.arg( port );
@@ -139,8 +137,7 @@ void Server::updatePlayerTable(Player* plr, const QHostAddress& peerAddr,
     pktHandle->checkBannedInfo( plr );
 }
 
-QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data,
-                                             Player* plr, const bool& insert)
+QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert)
 {
     QString bio = QString( data );
     int row{ -1 };

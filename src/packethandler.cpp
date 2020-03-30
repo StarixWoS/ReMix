@@ -28,6 +28,12 @@ PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
     cmdHandle = new CmdHandler( this, server );
     chatView->setCmdHandle( cmdHandle );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal, Qt::QueuedConnection );
+
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 }
 
 PacketHandler::~PacketHandler()
@@ -231,7 +237,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                              .arg( server->getMasterPingTrend() )
                              .arg( server->getMasterPingFailCount() );
 
-                    Logger::getInstance()-> insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
+                    emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
                 }
             }
             break;
@@ -263,17 +269,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                                  .arg( port )
                                  .arg( Helper::serNumToIntStr( sernum ) )
                                  .arg( data );
-                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
-
-                //Server Information is sent to the User within the UdpThread Class.
-                //server->sendServerInfo( ipAddr, port );
+                emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
 
                 Server::insertBioHash( ipAddr, udp.mid( 1 ) );
-
                 User::logBIO( sernum, ipAddr, dVar, wVar, data );
-
-                //Server Ping count is increased with a Signal from the UdpThread class to the ServerInfo class.
-                //server->setUserPings( server->getUserPings() + 1 );
             }
             break;      //Q and R packet types are handled within the UdpThread class.
             case 'Q':   //Send Online User Information.
@@ -308,7 +307,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                        .arg( plr->getPublicIP() )
                        .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
         plrMessage = plrMessage.arg( "Disconnect" )
                                .arg( "Banned Info" );
@@ -338,7 +337,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                        .arg( plr->getPublicIP() )
                                        .arg( plr->getBioData() );
 
-                        Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                         if ( Settings::getBanDupedIP() )
                         {
@@ -349,7 +348,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                             //Ban for only half an hour.
                             User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
 
-                            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                             plrMessage = plrMessage.arg( "Banish" )
                                                    .arg( "Duplicate IP" );
@@ -396,7 +395,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                    .arg( plr->getPublicIP() )
                                    .arg( plr->getBioData() );
 
-                    Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                     plrMessage = plrMessage.arg( "Disconnect" )
                                            .arg( "Duplicate SerNum" );
@@ -411,8 +410,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     return badInfo;
 }
 
-bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr,
-                                const QString& plrSerNum) const
+bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr, const QString& plrSerNum) const
 {
     quint64 banned{ 0 };
     banned = User::getIsPunished( PunishTypes::Ban, serNum, PunishTypes::SerNum, plrSerNum );
@@ -443,7 +441,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                        .arg( plr->getBioData() );
 
                 User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
-                Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+                emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding." };
                 plr->sendMessage( plrMessage, false );
@@ -546,8 +544,7 @@ void PacketHandler::readMIX9(const QString& packet, Player* plr)
     this->handleSSVReadWrite( packet, plr, true );
 }
 
-void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr,
-                                       const bool write)
+void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const bool write)
 {
     if ( plr == nullptr || packet.isEmpty() )
         return;
@@ -624,6 +621,6 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr,
                  .arg( vars.value( 2 ) ) //variable
                  .arg( vars.value( 3 ) ); //value
 
-        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::QUEST, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::QUEST, true, true );
     }
 }

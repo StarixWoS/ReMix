@@ -269,6 +269,8 @@ class ServerInfo : public QObject
         void serverNameChangedSignal(const QString& newName);
         void serverIDChangedSignal(const QString& serverID);
 
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const quint32& type);

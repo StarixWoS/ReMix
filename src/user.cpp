@@ -70,6 +70,12 @@ User::User(QWidget* parent) :
 {
     ui->setupUi(this);
 
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &User::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
     if ( instance == nullptr )
         this->setInstance( this );
 
@@ -153,9 +159,8 @@ PunishDurations User::requestDuration(QWidget* parent)
     bool ok;
     QString item = QInputDialog::getItem( parent, "ReMix", "Punishment Duration:", items, 0, false, &ok);
     if ( ok && !item.isEmpty() )
-    {
         return punishDurations[ items.indexOf( item ) ];
-    }
+
     return PunishDurations::Invalid;
 }
 
@@ -398,9 +403,7 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
     }
 }
 
-bool User::addBan(const Player* admin, const Player* target,
-                  const QString& reason, const bool remote,
-                  const PunishDurations duration)
+bool User::addBan(const Player* admin, const Player* target, const QString& reason, const bool remote, const PunishDurations duration)
 {
     User* user = User::getInstance();
     if ( user == nullptr )
@@ -447,9 +450,7 @@ bool User::addBan(const Player* admin, const Player* target,
     return true;
 }
 
-bool User::addMute(const Player* admin, Player* target, const QString& reason,
-                   const bool& remote, const bool& autoMute,
-                   const PunishDurations duration)
+bool User::addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute, const PunishDurations duration)
 {
     User* user = User::getInstance();
     if ( user == nullptr )
@@ -518,8 +519,7 @@ void User::updateCallCount(const QString& serNum)
         user->updateRowData( index.row(), static_cast<int>( UserCols::Calls ), callCount );
 }
 
-void User::logBIO(const QString& serNum, const QHostAddress& ip,
-                  const QString& dv, const QString& wv, const QString& bio)
+void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& dv, const QString& wv, const QString& bio)
 {
     User* user = User::getInstance();
     QString sernum{ serNum };
@@ -665,7 +665,7 @@ void User::loadUserInfo()
                                      .arg( Helper::getTimeAsString( banDate_i ) )
                                      .arg( Helper::getTimeAsString( banDuration_i ) )
                                      .arg( banReason );
-                    Logger::getInstance()->insertLog( "BanLog", message, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( "BanLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }
 
@@ -681,7 +681,7 @@ void User::loadUserInfo()
                                      .arg( Helper::getTimeAsString( muteDate_i ) )
                                      .arg( Helper::getTimeAsString( muteDuration_i ) )
                                      .arg( muteReason );
-                    Logger::getInstance()->insertLog( "MuteLog", message, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( "MuteLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }
         }
@@ -692,8 +692,7 @@ void User::loadUserInfo()
     ui->userTable->resizeColumnsToContents();
 }
 
-void User::updateRowData(const qint32& row, const qint32& col,
-                         const QVariant& data)
+void User::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
 {
     QModelIndex index = tblModel->index( row, col );
     if ( index.isValid() )
@@ -745,8 +744,7 @@ void User::updateRowData(const qint32& row, const qint32& col,
 }
 
 //Private Slots.
-void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&,
-                           const QVector<int>&)
+void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, const QVector<int>&)
 {
     QString sernum{ "" };
     QVariant value;

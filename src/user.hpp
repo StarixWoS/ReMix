@@ -72,6 +72,8 @@ class User : public QDialog
     signals:
         void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
 
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+
     private slots:
         void updateDataValueSlot(const QModelIndex& index, const QModelIndex&, const QVector<int>& = QVector<int> ());
 

@@ -20,6 +20,12 @@
 
 Player::Player()
 {
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &Player::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
@@ -111,7 +117,7 @@ Player::Player()
             reason = reason.arg( this->getSernum_s() )
                            .arg( this->getBioData() );
 
-            Logger::getInstance()->insertLog( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -285,25 +291,21 @@ void Player::setIsVisible(const bool& value)
     isVisible = value;
 }
 
-void Player::setModelData(QStandardItem* model, const qint32& row,
-                          const qint32& column, const QVariant& data,
-                          const qint32& role, const bool& isColor)
+void Player::setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
     if ( model != nullptr )
     {
         QStandardItemModel* sModel = model->model();
         if ( model != nullptr )
         {
-            if ( !isColor )
-            {
-                sModel->setData( model->model()->index( row, column ), data, role );
-            }
-            else
+            if ( isColor )
             {
                 sModel->setData( model->model()->index( row, column ),
                                  Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ),
                                  role );
             }
+            else
+                sModel->setData( model->model()->index( row, column ), data, role );
         }
     }
 }
@@ -931,7 +933,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
             this->sendMessage( message, false );
 
-            Logger::getInstance()->insertLog( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }
@@ -955,7 +957,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
             User::addMute( nullptr, this, reason, false, true, PunishDurations::THIRTY_MINUTES );
 
-            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
     }
 }
@@ -980,8 +982,7 @@ void Player::setWVar(const QString& value)
     wVar = value;
 }
 
-void Player::sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
-                                    quint32 trgScene, const QByteArray& packet)
+void Player::sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
     if ( plr == this )

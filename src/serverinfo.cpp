@@ -28,6 +28,12 @@
 
 ServerInfo::ServerInfo()
 {
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &ServerInfo::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
     QThread* thread{ new QThread() };
     udpThread = UdpThread::getNewUdpThread( nullptr );
     udpThread->moveToThread( thread );
@@ -246,12 +252,11 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        Logger::getInstance()->insertLog( this->getServerName(), msg, LogTypes::USAGE, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
     }
 }
 
-void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
-                              const quint32& type)
+void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, const quint32& type)
 {
     if ( addr.isNull() )
         return;
@@ -298,7 +303,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port,
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        Logger::getInstance()->insertLog( this->getServerName(), msg, LogTypes::USAGE, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
     }
 }
 
@@ -337,7 +342,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
         {
             msg.append( " [ Disconnect ]." );
         }
-        Logger::getInstance()->insertLog( this->getServerName(), msg, LogTypes::USAGE, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
 
         //Store the Master Server Check-In time.
         this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
@@ -392,7 +397,7 @@ void ServerInfo::deletePlayer(const int& slot)
                            .arg( plr->getAvgBaud( false ) )
                            .arg( plr->getBioData() );
 
-            Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::USAGE, true, true );
+            emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::USAGE, true, true );
         }
 
         QTcpSocket* soc = plr->getSocket();
@@ -529,11 +534,11 @@ void ServerInfo::sendServerGreeting(Player* plr)
         this->sendServerRules( plr );
 }
 
-void ServerInfo::sendMasterMessage(const QString& packet, Player* plr,
-                                   const bool toAll)
+void ServerInfo::sendMasterMessage(const QString& packet, Player* plr, const bool toAll)
 {
-    QString msg = QString( ":SR@M%1\r\n" )
-                      .arg( packet );
+    QString msg{ ":SR@M%1\r\n" };
+            msg = msg.arg( packet );
+
     QTcpSocket* soc{ nullptr };
     if ( plr != nullptr )
         soc = plr->getSocket();

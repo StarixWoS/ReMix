@@ -13,25 +13,18 @@ class Helper
     static const QList<qint32> blueCodedList;
 
     public:
-        static QInputDialog* createInputDialog(QWidget* parent, QString& label,
-                                               QInputDialog::InputMode mode,
-                                               int width, int height);
+        static QInputDialog* createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, int height);
 
         template<typename T>
-        static QString intToStr(const T& val, const int& base = 10,
-                                const int& fill = 0, const QChar& filler = '0')
+        static QString intToStr(const T& val, const int& base = 10, const int& fill = 0, const QChar& filler = '0')
         {
             QString str{ "%1" };
                     str = str.arg( val, fill, base, filler ).toUpper();
             return str;
         }
         static qint32 strToInt(const QString& str, const int& base = 16);
-
-        static QString intSToStr(QString& val, int base = 16, int fill = 0,
-                                 QChar filler = '0');
-
-        static QString getStrStr(const QString& str, const QString& indStr,
-                                 const QString& mid, const QString& left);
+        static QString intSToStr(QString& val, int base = 16, int fill = 0, QChar filler = '0');
+        static QString getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left);
 
         static void stripNewlines(QString& string);
         static void stripSerNumHeader(QString& sernum);
@@ -42,16 +35,9 @@ class Helper
 
         static bool isBlueCodedSerNum(const quint32& sernum);
 
-        static bool confirmAction(QWidget* parent, QString& title,
-                                  QString& prompt);
-
-        static qint32 warningMessage(QWidget* parent, const QString& title,
-                                     const QString& prompt);
-
-        static QString getTextResponse(QWidget* parent, const QString& title,
-                                       const QString& prompt,
-                                       const QString& defaultInput,
-                                       bool* ok, int type = 0);
+        static bool confirmAction(QWidget* parent, QString& title, QString& prompt);
+        static qint32 warningMessage(QWidget* parent, const QString& title, const QString& prompt);
+        static QString getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok, int type = 0);
 
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
@@ -60,8 +46,7 @@ class Helper
 
         static bool validateSalt(QString& salt);
 
-        static bool naturalSort(QString& left, QString& right,
-                                bool& result);
+        static bool naturalSort(QString& left, QString& right, bool& result);
         static void delay(const qint32& time);
 
         static QHostAddress getPrivateIP();
@@ -73,8 +58,7 @@ class Helper
         static qint32 getStrIndex(const QString& strA, const QString& strB);
         static QString getTimeAsString(const quint64& time = 0);
         static QString getTimeFormat(const quint64 &time);
-        static quint64 getTimeIntFormat(const quint64 &time,
-                                        const TimeFormat& format);
+        static quint64 getTimeIntFormat(const quint64 &time, const TimeFormat& format);
 };
 
 #endif // PREFERENCES_HPP

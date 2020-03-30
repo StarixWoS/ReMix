@@ -37,9 +37,7 @@ const QList<qint32> Helper::blueCodedList =
     3191, 3149, 3,
 };
 
-QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label,
-                                        QInputDialog::InputMode mode,
-                                        int width, int height)
+QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, int height)
 {
     QInputDialog* dialog = new QInputDialog( parent );
                   dialog->setInputMode( mode );
@@ -83,8 +81,7 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
     return str.toUpper();
 }
 
-QString Helper::getStrStr(const QString& str, const QString& indStr,
-                          const QString& mid, const QString& left)
+QString Helper::getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left)
 {
     /* Search an input string and return a sub-string based on the input strings.
      * indStr --- Sub-string to search for.
@@ -255,16 +252,12 @@ bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
     return value == QMessageBox::Yes;
 }
 
-qint32 Helper::warningMessage(QWidget* parent, const QString& title,
-                              const QString& prompt)
+qint32 Helper::warningMessage(QWidget* parent, const QString& title, const QString& prompt)
 {
     return QMessageBox::warning( parent, title, prompt, QMessageBox::NoButton, QMessageBox::Ok );
 }
 
-QString Helper::getTextResponse(QWidget* parent, const QString& title,
-                                const QString& prompt,
-                                const QString& defaultInput,
-                                bool* ok, int type)
+QString Helper::getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok, int type)
 {
     QString response{ "" };
     if ( type == 0 )    //Single-line message.

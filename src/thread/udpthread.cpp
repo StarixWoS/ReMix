@@ -1,15 +1,15 @@
 
 //Class includes.
-#include "udpthread.hpp"
+#include "thread/udpthread.hpp"
 
 //ReMix Includes
+#include "packethandler.hpp"
 #include "serverinfo.hpp"
-#include "helper.hpp"
 #include "settings.hpp"
+#include "helper.hpp"
 #include "logger.hpp"
 #include "player.hpp"
 #include "server.hpp"
-#include "packethandler.hpp"
 #include "rules.hpp"
 #include "user.hpp"
 

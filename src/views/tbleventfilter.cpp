@@ -7,8 +7,7 @@
 #include <QMouseEvent>
 #include <QTableView>
 
-TblEventFilter::TblEventFilter(QTableView* tbl,
-                               QSortFilterProxyModel* tblProxy)
+TblEventFilter::TblEventFilter(QTableView* tbl, QSortFilterProxyModel* tblProxy)
 {
     tableProxy = tblProxy;
     tableView = tbl;
@@ -37,8 +36,7 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
            || mouseEvent->type() == QEvent::MouseButtonDblClick )
           && mouseEvent->buttons() == Qt::LeftButton )
         {
-            QModelIndex menuIndex = tableView->indexAt(
-                                        mouseEvent->pos() );
+            QModelIndex menuIndex = tableView->indexAt( mouseEvent->pos() );
             if ( menuIndex.isValid() )
             {
                 if ( prevIndex != menuIndex )

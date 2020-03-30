@@ -248,9 +248,7 @@ void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
     }
 }
 
-void ReMixTabWidget::removeServer(const qint32& index,
-                                  const bool& remote,
-                                  const bool& restart)
+void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const bool& restart)
 {
     ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
     if ( tabWidget == nullptr )

@@ -170,9 +170,7 @@ quint16 CreateInstance::genPort()
     return port;
 }
 
-void CreateInstance::restartServer(const QString& name, const QString& gameName,
-                                   const quint16& port, const bool& useUPNP,
-                                   const bool& isPublic)
+void CreateInstance::restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
 {
     if ( !name.isEmpty() )
     {

@@ -67,13 +67,11 @@ const QStringList Settings::subKeys =
 };
 
 //Initialize our QSettings Object globally to make things more responsive.
+QSettings* Settings::prefs{ new QSettings( "preferences.ini", QSettings::IniFormat ) };
 SettingsWidget* Settings::settings;
 QTabWidget* Settings::tabWidget;
 Settings* Settings::instance;
 QMutex Settings::mutex;
-
-QSettings* Settings::prefs{ new QSettings( "preferences.ini",
-                                           QSettings::IniFormat ) };
 
 Settings::Settings(QWidget* parent) :
     QDialog(parent),
@@ -195,16 +193,14 @@ QVariant Settings::getSetting(const QString& key, const QString& subKey)
     return prefs->value( key % "/" % subKey );
 }
 
-void Settings::setServerSetting(const QString& key, const QString& subKey,
-                                const QVariant& value, const QString& svrID)
+void Settings::setServerSetting(const QString& key, const QString& subKey, const QVariant& value, const QString& svrID)
 {
     QMutexLocker locker( &mutex );
     prefs->setValue( svrID % "/" % key % "/" % subKey, value );
     prefs->sync();
 }
 
-QVariant Settings::getServerSetting(const QString& key, const QString& subKey,
-                                    const QString& svrID)
+QVariant Settings::getServerSetting(const QString& key, const QString& subKey, const QString& svrID)
 {
     return prefs->value( svrID % "/" % key % "/" % subKey );
 }
@@ -436,8 +432,7 @@ bool Settings::getDCBlueCodedSerNums()
               .toBool();
 }
 
-void Settings::setWindowPositions(const QByteArray& geometry,
-                                  const char* dialog)
+void Settings::setWindowPositions(const QByteArray& geometry, const char* dialog)
 {
     setSetting( keys[ Keys::Positions ], dialog, geometry );
 }

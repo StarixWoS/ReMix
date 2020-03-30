@@ -69,6 +69,8 @@ class UPNP : public QObject
         void udpResponse();
         void error(const QString& message);
         void createdTunnel();
+
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
 };
 
 #endif // UPNP_HPP

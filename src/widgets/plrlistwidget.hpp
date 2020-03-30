@@ -44,6 +44,9 @@ class PlrListWidget : public QWidget
         void on_actionDisconnectUser_triggered();
         void on_actionBANISHUser_triggered();
 
+    signals:
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+
     private:
         Ui::PlrListWidget* ui;
 };

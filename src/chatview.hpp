@@ -35,8 +35,7 @@ class ChatView : public QDialog
         bool parsePacket(const QByteArray& packet, Player* plr = nullptr);
         bool parseChatEffect(const QString& packet);
         void bleepChat(QString& message);
-        void insertChat(const QString& msg, const Colors& color,
-                        const bool& newLine);
+        void insertChat(const QString& msg, const Colors& color, const bool& newLine);
 
         CmdHandler* getCmdHandle() const;
         void setCmdHandle(CmdHandler* value);
@@ -48,6 +47,7 @@ class ChatView : public QDialog
         Ui::ChatView* ui;
 
     signals:
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void sendChatSignal(const QString&);
 };
 

@@ -200,8 +200,7 @@ class Player : public QObject
         //Note: A User will be disconnected on their next update.
         //Usually every 250 MS or as defined by MAX_DISCONNECT_TTL.
         bool getIsDisconnected() const;
-        void setDisconnected(const bool& value,
-                             const DCTypes& dcType = DCTypes::IPDC);
+        void setDisconnected(const bool& value, const DCTypes& dcType = DCTypes::IPDC);
 
         quint64 getMuteDuration();
         void setMuteDuration(const quint64& value);
@@ -242,12 +241,13 @@ class Player : public QObject
         void forceSendCampPacket();
 
     private:
-        void setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data,
-                          const qint32& role, const bool& isColor = false);
+        void setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
 
     public slots:
-        void sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum,
-                                    quint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
+
+    signals:
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
 };
 
 #endif // PLAYER_HPP

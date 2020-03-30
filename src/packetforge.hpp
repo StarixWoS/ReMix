@@ -4,20 +4,14 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
-#include <QLibrary>
+#include <QObject>
 
-class PacketForge
+class PacketForge : public QObject
 {
+    Q_OBJECT
+
     static PacketForge* instance;
     bool initialized{ false };
-    QLibrary pktDecrypt;
-
-    //Typedefs for imported functions from our PacketDecrypt Library.
-    //typedef QString (*Decrypt)(QByteArray);
-    using Decrypt = QString(*)(QByteArray);
-
-    //Function Pointers for imported functions from the PacketDecrypt Library.
-    Decrypt decryptPkt{};
 
     public:
         PacketForge();
@@ -29,6 +23,9 @@ class PacketForge
         QString decryptPacket(const QByteArray& packet);
 
         bool validateSerNum(Player* plr, const QByteArray& packet);
+
+    signals:
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
 };
 
 #endif // PACKETFORGE_HPP

@@ -9,11 +9,20 @@
 #include "user.hpp"
 
 //Qt Includes.
+#include <QObject>
 #include <QDebug>
 
 PacketForge* PacketForge::instance{ nullptr };
-PacketForge::PacketForge() = default;
 PacketForge::~PacketForge() = default;
+
+PacketForge::PacketForge()
+{
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &PacketForge::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+}
 
 PacketForge* PacketForge::getInstance()
 {
@@ -81,7 +90,7 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
              .arg( plr->getSernumHex_s() );
 
     User::addMute( nullptr, plr, msg, false, true, PunishDurations::THIRTY_MINUTES );
-    Logger::getInstance()->insertLog( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );
+    emit this->insertLogSignal( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );
 
     return false;
 }

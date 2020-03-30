@@ -21,6 +21,12 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
 
     server = serverInfo;
 
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
     if ( Settings::getSaveWindowPositions() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
@@ -42,8 +48,7 @@ void Comments::setTitle(const QString& name)
         this->setWindowTitle( "Server Comments: [ " % name % " ]" );
 }
 
-void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
-                                  const QString& message)
+void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message)
 {
     QTextEdit* obj = ui->msgView;
     if ( obj == nullptr )
@@ -85,7 +90,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias,
                     obj->verticalScrollBar()->maximum() );
     }
 
-    Logger::getInstance()->insertLog( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+    emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

@@ -28,6 +28,12 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
 {
     ui->setupUi(this);
 
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+
     server = svr;
 
     //Create our Context Menus
@@ -35,22 +41,14 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
 
     //Setup the PlayerInfo TableView.
     plrModel = new QStandardItemModel( 0, 8, nullptr );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ),
-                             Qt::Horizontal, "Player IP:Port" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ),
-                             Qt::Horizontal, "SerNum" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Age ),
-                             Qt::Horizontal, "Age" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Alias ),
-                             Qt::Horizontal, "Alias" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Time ),
-                             Qt::Horizontal, "Time" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesIn ),
-                             Qt::Horizontal, "IN" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesOut ),
-                             Qt::Horizontal, "OUT" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BioData ),
-                             Qt::Horizontal, "BIO" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ), Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ), Qt::Horizontal, "SerNum" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Age ), Qt::Horizontal, "Age" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Alias ), Qt::Horizontal, "Alias" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::Time ), Qt::Horizontal, "Time" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesIn ), Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesOut ), Qt::Horizontal, "OUT" );
+    plrModel->setHeaderData( static_cast<int>( PlrCols::BioData ), Qt::Horizontal, "BIO" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -61,9 +59,7 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     ui->playerView->setModel( plrProxy );
 
     //Install Event Filter to enable Row-Deslection.
-    ui->playerView->viewport()->installEventFilter(
-                                    new TblEventFilter( ui->playerView,
-                                                        plrProxy ) );
+    ui->playerView->viewport()->installEventFilter( new TblEventFilter( ui->playerView, plrProxy ) );
 }
 
 PlrListWidget::~PlrListWidget()
@@ -245,7 +241,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
                        .arg( menuTarget->getSernum_s() )
                        .arg( menuTarget->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getServerName(), logMsg,LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg,LogTypes::PUNISHMENT, true, true );
 
         menuTarget->sendMessage( inform, false );
     }
@@ -262,8 +258,8 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
     if ( sock != nullptr )
     {
         QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT [ " %
-                        menuTarget->getSernum_s() % " ]?" };
+        QString prompt{ "Are you certain you want to DISCONNECT [ %1 ]?" };
+                prompt = prompt.arg( menuTarget->getSernum_s() );
 
         QString inform{ "The Server Host has disconnected you from the Server. Reason: %1" };
         QString reason{ "Manual Disconnect; %1" };
@@ -282,7 +278,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
         }
     }
     menuTarget = nullptr;
@@ -294,7 +290,8 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         return;
 
     QString title{ "Ban SerNum:" };
-    QString prompt{ "Are you certain you want to BANISH User [ " % menuTarget->getSernum_s() % " ]?" };
+    QString prompt{ "Are you certain you want to BANISH User [ %1 ]?" };
+            prompt = prompt.arg( menuTarget->getSernum_s() );
 
     QString inform{ "The Server Host has BANISHED you. Reason: %1" };
     QString reason{ "Manual Banish; %1" };
@@ -315,7 +312,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
                            .arg( menuTarget->getSernum_s() )
                            .arg( menuTarget->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
             menuTarget->sendMessage( inform, false );
             if ( sock->waitForBytesWritten() )

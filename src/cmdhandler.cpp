@@ -22,12 +22,17 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
 {
     cmdTable = CmdTable::getInstance();
     server = svr;
+
+    //Register the LogTypes type for use within signals and slots.
+    qRegisterMetaType<LogTypes>("LogTypes");
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &CmdHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 }
 
 CmdHandler::~CmdHandler() = default;
 
-bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
-                                     const QString& cmdStr)
+bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QString& cmdStr)
 {
     bool retn{ false };
     QString invalidAuth{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use commands that you lack access to!" };
@@ -86,7 +91,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank,
             reason.append( append );
 
             User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_DAYS );
-            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
             plr->setDisconnected( true, DCTypes::IPDC );
         }
@@ -135,7 +140,10 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
             {
                 //Echo the chat back to the User.
                 if ( Settings::getEchoComments() )
-                    plr->sendMessage( "Echo: " % msg, false );
+                {
+                    if ( !Settings::getFwdComments() )
+                        plr->sendMessage( "Echo: " % msg, false );
+                }
 
                 if ( Settings::getFwdComments() )
                 {
@@ -495,7 +503,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     }
 
     if ( logMsg )
-        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::ADMIN, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::ADMIN, true, true );
 
     return retn;
 }
@@ -610,9 +618,7 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd, const QString& 
     }
 }
 
-void CmdHandler::banHandler(Player* plr, const QString& arg1,
-                            const QString& duration, const QString& reason,
-                            const bool& all)
+void CmdHandler::banHandler(Player* plr, const QString& arg1, const QString& duration, const QString& reason, const bool& all)
 {
     QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
@@ -671,7 +677,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1,
                  .arg( plr->getSernum_s() )
                  .arg( plr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
 
         tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -686,9 +692,7 @@ void CmdHandler::unBanHandler(const QString& subCmd, const QString& arg1)
         User::removePunishment( sernum, PunishTypes::Ban, PunishTypes::SerNum );
 }
 
-void CmdHandler::kickHandler(Player* plr, const QString& arg1,
-                             const GMCmds& argIndex, const QString& message,
-                             const bool& all)
+void CmdHandler::kickHandler(Player* plr, const QString& arg1, const GMCmds& argIndex, const QString& message, const bool& all)
 {
     QString reason{ "Remote-Admin [ %1 ] has [ Kicked ] you. Reason: [ %2 ]." };
 
@@ -718,7 +722,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
                                    .arg( tmpPlr->getSernum_s() )
                                    .arg( tmpPlr->getBioData() );
 
-                    Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
                     tmpPlr->setDisconnected( true, DCTypes::IPDC );
                 }
@@ -727,9 +731,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1,
     }
 }
 
-void CmdHandler::muteHandler(Player* plr, const QString& arg1,
-                             const QString& duration, const QString& reason,
-                             const bool& all)
+void CmdHandler::muteHandler(Player* plr, const QString& arg1, const QString& duration, const QString& reason, const bool& all)
 {
     QString reasonMsg{ "Remote-Admin [ %1 ] has [ Muted ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
@@ -788,7 +790,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1,
                  .arg( tmpPlr->getSernum_s() )
                  .arg( tmpPlr->getBioData() );
 
-        Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
     }
 }
 
@@ -801,8 +803,7 @@ void CmdHandler::unMuteHandler(const QString& subCmd, const QString& arg1)
         User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 }
 
-void CmdHandler::msgHandler(const QString& arg1, const QString& message,
-                            const bool& all)
+void CmdHandler::msgHandler(const QString& arg1, const QString& message, const bool& all)
 {
     if ( !message.isEmpty() )
     {
@@ -916,7 +917,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
                            .arg( plr->getSernum_s() )
                            .arg( plr->getBioData() );
 
-            Logger::getInstance()->insertLog( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
         plr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -1222,8 +1223,7 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
 
 //}
 
-void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg,
-                               QString& reason)
+void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& reason)
 {
     //This is the Action duration.
     QString duration{ Helper::getStrStr( str, "", "", " " ) };

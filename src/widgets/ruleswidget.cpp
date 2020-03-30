@@ -54,71 +54,45 @@ void RulesWidget::setServerName(const QString& name)
     //Load Rules from file.
     QString rowText{ "" };
     worldCheckState = !Rules::getWorldName( name ).isEmpty();
-    this->setCheckedState( Toggles::world,
-                           worldCheckState );
+    this->setCheckedState( Toggles::world, worldCheckState );
 
     rowText = "World Name: [ %1 ]";
-    rowText = rowText.arg( Rules::getWorldName( name ) );
-    ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
+    ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( Rules::getWorldName( name ) ) );
     emit this->gameInfoChangedSignal( Rules::getWorldName( name ) );
 
     urlCheckState = !Rules::getURLAddress( name ).isEmpty();
     this->setCheckedState( Toggles::url, urlCheckState );
 
     rowText = "Server Home: [ %1 ]";
-    rowText = rowText.arg( Rules::getURLAddress( name ) );
-    ui->rulesView->item( Toggles::url, 0 )->setText( rowText );
+    ui->rulesView->item( Toggles::url, 0 )->setText( rowText.arg( Rules::getURLAddress( name ) ) );
 
-    this->setCheckedState( Toggles::allPK,
-                           Rules::getAllPKing( name ) );
+    this->setCheckedState( Toggles::allPK, Rules::getAllPKing( name ) );
 
     maxPlayersCheckState = !Rules::getRequireMaxPlayers( name );
     this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
 
     rowText = "Max Players: [ %1 ]";
-    rowText = rowText.arg( Rules::getMaxPlayers( name ) );
-    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText );
+    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText.arg( Rules::getMaxPlayers( name ) ) );
 
     maxAFKCheckState = !Rules::getRequireMaxAFK( name );
     this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
 
     rowText = "Max AFK: [ %1 ] Minutes";
-    rowText = rowText.arg( Rules::getMaxAFK( name ) );
-    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText );
+    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( Rules::getMaxAFK( name ) ) );
 
     minVersionCheckState = !Rules::getMinVersion( name ).isEmpty();
     this->setCheckedState( Toggles::minV, minVersionCheckState );
 
-    rowText = "Min Version: [ %1 ]";
-    rowText = rowText.arg( Rules::getMinVersion( name ) );
-    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText );
-
-    this->setCheckedState( Toggles::ladder,
-                           Rules::getReportLadder( name ) );
-
-    this->setCheckedState( Toggles::noBleep,
-                           Rules::getNoCursing( name ));
-
-    this->setCheckedState( Toggles::noCheat,
-                           Rules::getNoCheating( name ) );
-
-    this->setCheckedState( Toggles::noEavesdrop,
-                           Rules::getNoEavesdropping( name ) );
-
-    this->setCheckedState( Toggles::noMigrate,
-                           Rules::getNoMigrating( name ) );
-
-    this->setCheckedState( Toggles::noMod,
-                           Rules::getNoModding( name ) );
-
-    this->setCheckedState( Toggles::noPets,
-                           Rules::getNoPets( name ) );
-
-    this->setCheckedState( Toggles::noPK,
-                           Rules::getNoPKing( name ) );
-
-    this->setCheckedState( Toggles::arenaPK,
-                           Rules::getArenaPKing( name ) );
+    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText.arg( Rules::getMinVersion( name ) ) );
+    this->setCheckedState( Toggles::ladder, Rules::getReportLadder( name ) );
+    this->setCheckedState( Toggles::noBleep, Rules::getNoCursing( name ));
+    this->setCheckedState( Toggles::noCheat, Rules::getNoCheating( name ) );
+    this->setCheckedState( Toggles::noEavesdrop, Rules::getNoEavesdropping( name ) );
+    this->setCheckedState( Toggles::noMigrate, Rules::getNoMigrating( name ) );
+    this->setCheckedState( Toggles::noMod, Rules::getNoModding( name ) );
+    this->setCheckedState( Toggles::noPets, Rules::getNoPets( name ) );
+    this->setCheckedState( Toggles::noPK, Rules::getNoPKing( name ) );
+    this->setCheckedState( Toggles::arenaPK, Rules::getArenaPKing( name ) );
 
     serverName = name;
 }
@@ -143,9 +117,7 @@ void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
         rowText = rowText.arg( worldName );
 
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText );
-    ui->rulesView->item( Toggles::world, 0 )->setCheckState( state
-                                                               ? Qt::Checked
-                                                               : Qt::Unchecked );
+    ui->rulesView->item( Toggles::world, 0 )->setCheckState( state ? Qt::Checked : Qt::Unchecked );
 
     worldCheckState = state;
     Rules::setWorldName( worldName, serverName );
@@ -168,9 +140,7 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
     int row = index.row();
 
     Qt::CheckState val = ui->rulesView->item( row, 0 )->checkState();
-    ui->rulesView->item( row, 0 )->setCheckState( val == Qt::Checked
-                                                      ? Qt::Unchecked
-                                                      : Qt::Checked );
+    ui->rulesView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
     val = ui->rulesView->item( row, 0 )->checkState();
     this->toggleRules( row, val );
