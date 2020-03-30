@@ -12,6 +12,10 @@ Version 2.5.6:
         * These handles are opened as they are needed, and will remain open until ReMix closes.
           * These file handles are also closed and re-opened when the date used for the Log Folder changes.
         * These changes are done in an attempt to reduce file opening and closing overhead.
+      * Convert all calls to the Logger::insertLog() into QObject signals to the Logger class.
+        * These Signals are forwarded to the WriteThread for writing.
+      * Added a new threaded Class Object WriteThread.
+        * This new class handles all file write operations within the Logger Class.
       
 	  
 
