@@ -112,11 +112,13 @@ class ServerInfo : public QObject
         Player* getPlayer(const int& slot);
         void deletePlayer(const int& slot);
 
+        Player* getLastPlayerInStorage(Player* plr);
         int getEmptySlot();
         int getSocketSlot(QTcpSocket* soc);
         int getQItemSlot(QStandardItem* index);
 
         void sendPlayerSocketInfo();
+        void sendPlayerSocketPosition(Player* plr);
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);

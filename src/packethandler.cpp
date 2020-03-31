@@ -98,6 +98,17 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
         {
             return;
         }
+        else if ( Helper::strStartsWithStr( pkt, ":SR?" ) ) //User is requesting Slot information for their packet headers.
+        {
+            QString sernum{ packet.mid( 4 ).left( 8 ) };
+            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+            server->sendPlayerSocketPosition( plr );
+            return; //No need to continue parsing. Return now.
+        }
+
+        //Ensure Players are sending packets using their assigned Header/Slot Position.
+        if ( !this->validatePacketHeader( plr, pkt ) )
+            return;
 
         if ( !plr->getIsMuted()
           && plr->getIsVisible() )
@@ -453,6 +464,35 @@ void PacketHandler::detectFlooding(Player* plr)
             plr->setPacketFloodCount( 0 );
         }
     }
+}
+
+bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
+{
+    QString msg{ "Auto-Disconnect; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]." };
+
+    QString recvSlotPos{ pkt.mid( 4 ).left( 2 ) };
+    qint32 plrPktSlot = plr->getPktHeaderSlot();
+    if ( plrPktSlot != Helper::strToInt( recvSlotPos, 16 ) )
+    {
+        msg = msg.arg( recvSlotPos )
+                 .arg( Helper::intToStr( plrPktSlot, 16, 2 ) );
+    }
+    else //Slot Matched. Return true;
+        return true;
+
+    if ( !msg.isEmpty() )
+        plr->sendMessage( msg, false );
+
+
+    QString logMsg{ "Auto-Disconnect of [ %1 ] due to an Invalid Packet Header [ :SR1%1 ]< %2 > while assigned [ :SR1%2 ]." };
+            logMsg = logMsg.arg( plr->getSernum_s() )
+                           .arg( recvSlotPos )
+                           .arg( QString( pkt ) )
+                           .arg( Helper::intToStr( plrPktSlot, 16, 2 ) );
+    emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+
+    plr->setDisconnected( true, DCTypes::PktDC );
+    return false;
 }
 
 void PacketHandler::readMIX0(const QString& packet, Player* plr)

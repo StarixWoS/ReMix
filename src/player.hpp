@@ -49,6 +49,7 @@ class Player : public QObject
 
     bool svrPwdRequested{ false };
     bool svrPwdReceived{ false };
+    qint32 pktHeaderSlot{ 0 };
     int slotPos{ -1 };
 
     bool adminPwdRequested{ false };
@@ -239,6 +240,9 @@ class Player : public QObject
         void setSentCampPacket(bool value);
 
         void forceSendCampPacket();
+
+        qint32 getPktHeaderSlot() const;
+        void setPktHeaderSlot(const qint32& value);
 
     private:
         void setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);

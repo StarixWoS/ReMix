@@ -34,6 +34,7 @@ class PacketHandler : public QObject
 
     private:
         void detectFlooding(Player* plr);
+        bool validatePacketHeader(Player* plr, const QByteArray& pkt);
 
         void readMIX0(const QString& packet, Player* plr);
         void readMIX1(const QString& packet, Player* plr);

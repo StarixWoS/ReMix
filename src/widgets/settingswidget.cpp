@@ -140,8 +140,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         }
                         else
                         {
-                            ui->settingsView->item( row, 0 )->setCheckState(
-                                        Qt::Unchecked );
+                            ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
 
                             state = false;
                             Settings::setRequirePassword( state );

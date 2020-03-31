@@ -2,6 +2,20 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.7:
+    Change:
+      * ReMix now properly sends a response when receiving a ":SR?" formatted packet.
+        * The information sent within this packet is stored and used to verify that the receiving User is operating correctly.
+        * When ReMix senses that the stored value is different from what the User is sendint, we disconnect the User and send them a message.
+      
+	  
+
+    Bugfixes:
+
+
+
+
+
 Version 2.5.6:
     Change:
       * Added a new Threaded Class Object. UdpThread.

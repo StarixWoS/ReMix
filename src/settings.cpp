@@ -202,6 +202,7 @@ void Settings::setServerSetting(const QString& key, const QString& subKey, const
 
 QVariant Settings::getServerSetting(const QString& key, const QString& subKey, const QString& svrID)
 {
+    QMutexLocker locker( &mutex );
     return prefs->value( svrID % "/" % key % "/" % subKey );
 }
 

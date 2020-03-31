@@ -417,6 +417,20 @@ void ServerInfo::deletePlayer(const int& slot)
     this->setPlayerCount( this->getPlayerCount() - 1 );
 }
 
+Player* ServerInfo::getLastPlayerInStorage(Player* plr)
+{
+    Player* tmpPlayer{ nullptr };
+    for ( auto* tmpPlr : players )
+    {
+        if ( tmpPlr == nullptr )
+            break;
+
+        if ( tmpPlayer != plr )
+            tmpPlayer = tmpPlr;
+    }
+    return tmpPlayer;
+}
+
 int ServerInfo::getEmptySlot()
 {
     int slot{ -1 };
@@ -494,6 +508,39 @@ void ServerInfo::sendPlayerSocketInfo()
                 this->updateBytesOut( tmpPlr, bOut );
             }
         }
+    }
+}
+
+void ServerInfo::sendPlayerSocketPosition(Player* plr)
+{
+    if ( plr == nullptr )
+        return;
+
+    QTcpSocket* plrSoc{ nullptr };
+    plrSoc = plr->getSocket();
+    if ( plrSoc == nullptr )
+        return;
+
+    Player* lastPlr{ this->getLastPlayerInStorage(plr) };
+    qint32 slotPos{ 0 };
+
+    if ( lastPlr != nullptr )
+    {
+        //Increase all slot numbers by 1. This slot information is irrelevant to ReMix, but is to WoS.
+        //WoS uses this Slot number within the :SR1## header of packets.
+        //We want to prevent any Users from Obtaining Slot#0, and ignore any clients ( ReBreather ) that send packets with Slot#0.
+        slotPos = lastPlr->getSlotPos() + 1;
+        if ( slotPos == 0 )
+            ++slotPos;  //Fallthrough. Ensure Slot is at least 1.
+
+        plr->setPktHeaderSlot( slotPos );
+        qint64 bOut{ 0 };
+        QString slotResponse{ ":SR!%1%2%3\r\n" };
+                slotResponse = slotResponse.arg( plr->getSernumHex_s() )
+                                           .arg( Helper::intToStr( slotPos, 16, 2 ) )
+                                           .arg( lastPlr->getSernumHex_s() );
+        bOut = plrSoc->write( slotResponse.toLatin1(), slotResponse.length() );
+        this->updateBytesOut( plr, bOut );
     }
 }
 

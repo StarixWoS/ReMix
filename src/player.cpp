@@ -563,6 +563,16 @@ void Player::setSlotPos(const int& value)
     slotPos = value;
 }
 
+qint32 Player::getPktHeaderSlot() const
+{
+    return pktHeaderSlot;
+}
+
+void Player::setPktHeaderSlot(const qint32& value)
+{
+    pktHeaderSlot = value;
+}
+
 QString Player::getPublicIP() const
 {
     if ( !publicIP.isEmpty() )
