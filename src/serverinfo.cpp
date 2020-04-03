@@ -10,6 +10,7 @@
 
 //ReMix includes.
 #include "packethandler.hpp"
+#include "packetforge.hpp"
 #include "settings.hpp"
 #include "player.hpp"
 #include "server.hpp"
@@ -28,18 +29,12 @@
 
 ServerInfo::ServerInfo()
 {
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ServerInfo::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
     QThread* thread{ new QThread() };
     udpThread = UdpThread::getNewUdpThread( nullptr );
     udpThread->moveToThread( thread );
-
-    //Register the QHostAddress type for use within signals and slots.
-    qRegisterMetaType<QHostAddress>("QHostAddress");
 
     //Connect signals from the UdpThread class to the slots within the ServerInfo class.
     QObject::connect( udpThread, &UdpThread::udpDataSignal, this, &ServerInfo::udpDataSlot, Qt::QueuedConnection );
@@ -174,7 +169,6 @@ void ServerInfo::setupUPNP(const bool& enable)
             {
                 upnp->addPortForward( "TCP", this->getPrivatePort() );
                 upnp->addPortForward( "UDP", this->getPrivatePort() );
-                upnp->disconnect();
             }, Qt::QueuedConnection );
             upnp->makeTunnel();
         }

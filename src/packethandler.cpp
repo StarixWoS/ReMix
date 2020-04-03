@@ -29,9 +29,6 @@ PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
     chatView->setCmdHandle( cmdHandle );
     QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal, Qt::QueuedConnection );
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 }
@@ -484,7 +481,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
         plr->sendMessage( msg, false );
 
 
-    QString logMsg{ "Auto-Disconnect of [ %1 ] due to an Invalid Packet Header [ :SR1%1 ]< %2 > while assigned [ :SR1%2 ]." };
+    QString logMsg{ "Auto-Disconnect of [ %1 ] due to an Invalid Packet Header [ :SR1%2 ]< %3 > while assigned [ :SR1%4 ]." };
             logMsg = logMsg.arg( plr->getSernum_s() )
                            .arg( recvSlotPos )
                            .arg( QString( pkt ) )

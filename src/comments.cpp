@@ -21,9 +21,6 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
 
     server = serverInfo;
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 

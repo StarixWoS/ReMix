@@ -50,7 +50,6 @@ class UPNP : public QObject
 
         static bool getTunneled();
         static void setTunneled(bool value);
-        static QHostAddress getExternalIPAddr();
 
     private:
         void getExternalIP();

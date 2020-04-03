@@ -34,6 +34,7 @@ const QStringList Logger::logType =
     "Misc",
     "ChatLog",
     "QuestLog",
+    "PktForge",
 };
 
 Logger::Logger(QWidget *parent) :
@@ -45,9 +46,6 @@ Logger::Logger(QWidget *parent) :
     QThread* thread{ new QThread() };
     writeThread = WriteThread::getNewWriteThread( logType, nullptr );
     writeThread->moveToThread( thread );
-
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
 
     //Connect the Logger Class to the WriteThread Class.
     QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot, Qt::QueuedConnection );
@@ -164,17 +162,18 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         ui->logView->setRowHeight( row, 20 );
 
         this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
-        emit this->resizeColumnsSlot( LogCols::Date );
+        //emit this->resizeColumnsSlot( LogCols::Date );
 
         this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
-        emit this->resizeColumnsSlot( LogCols::Source );
+        //emit this->resizeColumnsSlot( LogCols::Source );
 
         this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
-        emit this->resizeColumnsSlot( LogCols::Type );
+        //emit this->resizeColumnsSlot( LogCols::Type );
 
         this->updateRowData( row, static_cast<int>( LogCols::Message ), message.simplified() );
-        emit this->resizeColumnsSlot( LogCols::Message );
+        //emit this->resizeColumnsSlot( LogCols::Message );
 
+        ui->logView->resizeColumnsToContents();
         this->scrollToBottom();
     }
 
@@ -193,8 +192,8 @@ void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant&
             msg = data.toString();
 
             tblModel->setData( index, msg, Qt::DisplayRole );
-            if ( col == static_cast<int>( LogCols::Date ) )
-                emit this->resizeColumnsSlot( LogCols::Date );
+            //if ( col == static_cast<int>( LogCols::Date ) )
+            //    emit this->resizeColumnsSlot( LogCols::Date );
         }
         else
             tblModel->setData( index, data, Qt::DisplayRole );

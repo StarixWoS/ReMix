@@ -23,9 +23,6 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     cmdTable = CmdTable::getInstance();
     server = svr;
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &CmdHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 }

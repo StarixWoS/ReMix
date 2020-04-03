@@ -28,9 +28,6 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
 {
     ui->setupUi(this);
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 

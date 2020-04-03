@@ -11,7 +11,9 @@ Version 2.5.7:
 	  
 
     Bugfixes:
-
+      * Fixed an issue where the UPNP class would become disconnected from the Logger class.
+        * This issue was preventing the UPNP from inserting logs to the Logger UI and disk.
+      * Fixed a string formatting error in relation to the new Packet Header checks.
 
 
 

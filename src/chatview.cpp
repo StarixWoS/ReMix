@@ -99,9 +99,6 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     ui->setupUi(this);
     server = svr;
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 

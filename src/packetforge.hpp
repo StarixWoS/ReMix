@@ -11,7 +11,6 @@ class PacketForge : public QObject
     Q_OBJECT
 
     static PacketForge* instance;
-    bool initialized{ false };
 
     public:
         PacketForge();

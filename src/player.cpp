@@ -20,9 +20,6 @@
 
 Player::Player()
 {
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Player::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
@@ -52,8 +49,7 @@ Player::Player()
         QString baudOut{ "%1Bd, %2B, %3 Pkts" };
         if ( row != nullptr )
         {
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::Time ),
-                                Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
 
             this->setAvgBaud( this->getBytesIn(), false );
             baudIn = baudIn.arg( this->getAvgBaud( false ) )
@@ -86,8 +82,7 @@ Player::Player()
                     color = Colors::GoldenSoul;
             }
 
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ),
-                                static_cast<int>( color ), Qt::ForegroundRole, true );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
             //Color the User's IP address Red if the User's is muted.
             //Otherwise, color as Green.
@@ -102,12 +97,10 @@ Player::Player()
             else
                 color = Colors::Invalid;
 
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::IPPort ),
-                                static_cast<int>( color ), Qt::ForegroundRole, true );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
             //Set the NPK/AFK icon.
-            this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ),
-                                this->getAfkIcon(), Qt::DecorationRole, false );
+            this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
         }
 
         if ( Settings::getDisconnectIdles()
@@ -299,11 +292,7 @@ void Player::setModelData(QStandardItem* model, const qint32& row, const qint32&
         if ( model != nullptr )
         {
             if ( isColor )
-            {
-                sModel->setData( model->model()->index( row, column ),
-                                 Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ),
-                                 role );
-            }
+                sModel->setData( model->model()->index( row, column ), Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ), role );
             else
                 sModel->setData( model->model()->index( row, column ), data, role );
         }
@@ -507,9 +496,7 @@ void Player::forceSendCampPacket()
     {
         auto* pktHandle{ svr->getPktHandle() };
         if ( pktHandle != nullptr )
-        {
             pktHandle->parsePacket( this->getCampPacket(), this );
-        }
     }
 }
 

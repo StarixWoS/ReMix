@@ -152,16 +152,10 @@ void Helper::stripNewlines(QString& string)
 void Helper::stripSerNumHeader(QString& sernum)
 {
     if ( strContainsStr( sernum, "SOUL" ) )
-    {
-        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive )
-                       .trimmed();
-    }
+        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
     if ( strContainsStr( sernum, "WP" ) )
-    {
-        sernum = sernum.remove( "WP", Qt::CaseInsensitive )
-                       .trimmed();
-    }
+        sernum = sernum.remove( "WP", Qt::CaseInsensitive ).trimmed();
 }
 
 QString Helper::sanitizeSerNum(const QString& value)
@@ -261,13 +255,10 @@ QString Helper::getTextResponse(QWidget* parent, const QString& title, const QSt
 {
     QString response{ "" };
     if ( type == 0 )    //Single-line message.
-    {
         response = QInputDialog::getText( parent, title, prompt, QLineEdit::Normal, defaultInput, ok );
-    }
     else if ( type == 1 )   //Multi-line message.
-    {
         response = QInputDialog::getMultiLineText( parent, title, prompt, defaultInput, ok );
-    }
+
     return response;
 }
 

@@ -70,9 +70,6 @@ User::User(QWidget* parent) :
 {
     ui->setupUi(this);
 
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &User::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
@@ -641,10 +638,10 @@ void User::loadUserInfo()
             this->updateRowData( row, static_cast<int>( UserCols::LastSeen ), seen_i );
             this->updateRowData( row, static_cast<int>( UserCols::IPAddr ), ip );
             this->updateRowData( row, static_cast<int>( UserCols::Rank ), rank );
-            this->updateRowData( row, static_cast<int>( UserCols::Muted ), banned );
-            this->updateRowData( row, static_cast<int>( UserCols::MuteReason ), banReason );
-            this->updateRowData( row, static_cast<int>( UserCols::MuteDate ), banDate_i );
-            this->updateRowData( row, static_cast<int>( UserCols::MuteDuration ), banDuration_i );
+            this->updateRowData( row, static_cast<int>( UserCols::Muted ), muted );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteReason ), muteReason );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteDate ), muteDate_i );
+            this->updateRowData( row, static_cast<int>( UserCols::MuteDuration ), muteDuration_i );
             this->updateRowData( row, static_cast<int>( UserCols::Banned ), banned );
             this->updateRowData( row, static_cast<int>( UserCols::BanReason ), banReason );
             this->updateRowData( row, static_cast<int>( UserCols::BanDate ), banDate_i );
@@ -661,10 +658,10 @@ void User::loadUserInfo()
                 {
                     this->removePunishment( sernum, PunishTypes::Ban, PunishTypes::SerNum );
                     QString message{ "Automatically removing the Banned User [ %1 ]. Banned on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
-                    message = message.arg( Helper::serNumToIntStr( sernum ) )
-                                     .arg( Helper::getTimeAsString( banDate_i ) )
-                                     .arg( Helper::getTimeAsString( banDuration_i ) )
-                                     .arg( banReason );
+                            message = message.arg( Helper::serNumToIntStr( sernum ) )
+                                             .arg( Helper::getTimeAsString( banDate_i ) )
+                                             .arg( Helper::getTimeAsString( banDuration_i ) )
+                                             .arg( banReason );
                     emit this->insertLogSignal( "BanLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }
@@ -677,10 +674,10 @@ void User::loadUserInfo()
                 {
                     this->removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
                     QString message{ "Automatically removing the Muted User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
-                    message = message.arg( Helper::serNumToIntStr( sernum ) )
-                                     .arg( Helper::getTimeAsString( muteDate_i ) )
-                                     .arg( Helper::getTimeAsString( muteDuration_i ) )
-                                     .arg( muteReason );
+                            message = message.arg( Helper::serNumToIntStr( sernum ) )
+                                             .arg( Helper::getTimeAsString( muteDate_i ) )
+                                             .arg( Helper::getTimeAsString( muteDuration_i ) )
+                                             .arg( muteReason );
                     emit this->insertLogSignal( "MuteLog", message, LogTypes::PUNISHMENT, true, true );
                 }
             }

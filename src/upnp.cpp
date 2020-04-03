@@ -36,9 +36,6 @@ UPNP* UPNP::upnp{ nullptr };
 UPNP::UPNP(QObject* parent )
     : QObject( parent )
 {
-    //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
-
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &UPNP::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
     localIP = QHostAddress( Helper::getPrivateIP() );
@@ -110,11 +107,6 @@ bool UPNP::getTunneled()
 void UPNP::setTunneled(bool value)
 {
     tunneled = value;
-}
-
-QHostAddress UPNP::getExternalIPAddr()
-{
-    return externalAddress;
 }
 
 void UPNP::makeTunnel()
