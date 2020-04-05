@@ -261,6 +261,7 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
     if ( Helper::confirmAction( this, title, prompt ) )
     {
         Settings::setIsInvalidIPAddress( link );
+
         emit this->reValidateServerIPSignal();
 
         title = "Note:";

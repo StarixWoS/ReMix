@@ -5,6 +5,7 @@
 
 //Required Qt Includes..
 #include <QWidget>
+#include <QMutex>
 
 namespace Ui {
     class RulesWidget;
@@ -14,10 +15,10 @@ class RulesWidget : public QWidget
 {
     Q_OBJECT
 
-    enum Toggles{ world = 0, url = 1, allPK = 2, maxP = 3, maxAFK = 4, minV = 5,
-                  ladder = 6, noBleep = 7, noCheat = 8, noEavesdrop = 9,
-                  noMigrate = 10, noMod = 11, noPets = 12, noPK = 13,
-                  arenaPK = 14 };
+    enum Toggles{ svrPassword = 0, world = 1, url = 2, allPK = 3, maxP = 4, maxAFK = 5,
+                  minV = 6, ladder = 7, noBleep = 8, noCheat = 9,
+                  noEavesdrop = 10, noMigrate = 11, noMod = 12, noPets = 13,
+                  noPK = 14, arenaPK = 15 };
 
     static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
 
@@ -27,6 +28,7 @@ class RulesWidget : public QWidget
     bool maxAFKCheckState{ false };
     bool worldCheckState{ false };
     bool urlCheckState{ false };
+    bool pwdCheckState{ false };
     QString serverName{ "" };
 
     public:
@@ -52,6 +54,7 @@ class RulesWidget : public QWidget
 
     private:
         Ui::RulesWidget* ui;
+        static QMutex mutex;
 };
 
 #endif // RULESWIDGET_HPP

@@ -24,7 +24,7 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
@@ -34,7 +34,7 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
 
 Comments::~Comments()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
     delete ui;
 }
@@ -87,7 +87,9 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
                     obj->verticalScrollBar()->maximum() );
     }
 
-    emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+    //Log comments only when enabled.
+    if ( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogComments ).toBool() )
+        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

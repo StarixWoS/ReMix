@@ -103,7 +103,7 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
     pktForge = PacketForge::getInstance();
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
@@ -113,7 +113,7 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
 
 ChatView::~ChatView()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     delete ui;
@@ -317,7 +317,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             //Check if the bleeping rule is set.
             //There's no pint in censoring our chat if we aren't censoring chat
             //for other people.
-            if ( Rules::getNoCursing( server->getServerName() ) )
+            if ( Rules::getRule( server->getServerName(), RuleKeys::NoBleep ).toBool() )
                 this->bleepChat( message );
         }
 

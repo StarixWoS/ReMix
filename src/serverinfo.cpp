@@ -561,8 +561,8 @@ void ServerInfo::sendServerRules(Player* plr)
 void ServerInfo::sendServerGreeting(Player* plr)
 {
     QString serverName{ this->getServerName() };
-    QString greeting = Settings::getMOTDMessage( serverName );
-    if ( Settings::getRequirePassword() )
+    QString greeting{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MOTD, serverName ).toString() };
+    if ( !Rules::getRule( serverName, RuleKeys::SvrPassword ).toString().isEmpty() )
     {
         greeting.append( " Password required: Please reply with (/login *PASS) or be disconnected." );
         plr->setSvrPwdRequested( true );
@@ -687,7 +687,7 @@ void ServerInfo::setGameName(const QString& value)
     gameName = value;
     this->setGameId( value );
 
-    Settings::setGameName( value, this->getServerName() );
+    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::GameName, this->getServerName() );
 }
 
 QHostInfo ServerInfo::getHostInfo() const
@@ -733,7 +733,7 @@ bool ServerInfo::getIsPublic() const
 void ServerInfo::setIsPublic(const bool& value)
 {
     isPublic = value;
-    Settings::setIsPublic( value, this->getServerName() );
+    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::IsPublic, this->getServerName() );
 
     this->setMasterUDPResponse( false );
     this->setSentUDPCheckIn( false );
@@ -767,8 +767,7 @@ bool ServerInfo::getUseUPNP() const
 void ServerInfo::setUseUPNP(const bool& value)
 {
     //Tell the server to use a UPNP Port Forward.
-
-    Settings::setUseUPNP( value, this->getServerName() );
+    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::UseUPNP, this->getServerName() );
     if ( useUPNP != value )
     {
         if ( !this->getIsSetUp() )
@@ -819,7 +818,7 @@ void ServerInfo::setPlayerCount(const quint32& value)
 {
     if ( value <= 0 )
     {
-        this->setGameInfo( Rules::getWorldName( this->getServerName() ) );
+        this->setGameInfo( Rules::getRule( this->getServerName(), RuleKeys::World ).toString() );
         playerCount = 0;
     }
     else
@@ -854,7 +853,7 @@ quint16 ServerInfo::getPrivatePort() const
 void ServerInfo::setPrivatePort(const quint16& value)
 {
     privatePort = value;
-    Settings::setPortNumber( value, this->getServerName() );
+    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::PortNumber, this->getServerName() );
 }
 
 QString ServerInfo::getPrivateIP() const

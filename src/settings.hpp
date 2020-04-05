@@ -30,23 +30,24 @@ class Settings : public QDialog
         static void updateTabBar(ServerInfo* server);
         static void copyServerSettings(ServerInfo* server, const QString& newName);
 
-        enum SubKeys{ Extension = 0, Password, AutoBan, AllowIdle, ReqSerNum,
-                      AllowDupe, AllowSSV, BanDupes,ReqPassword, MOTD,
-                      ReqAdminAuth, LogComments, FwdComments, InformAdminLogin,
-                      EchoComments, MinimizeToTray, SaveWindowPositions,
-                      IsRunning, WorldDir, PortNumber, IsPublic,
-                      GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates,
-                      DCBlueCodedSerNums, LoggerAutoScroll = 27 };
-
-        enum Keys{ Setting = 0, WrongIP, Messages, Positions, Rules,
-                   Logger = 5 };
-
         static QSettings* prefs;
 
         static const QStringList keys;
         static const QStringList subKeys;
 
     public: //Static-Free functions. Ported from Helper and Admin.
+        static QString makeSettingPath(const SettingKeys& key, const SettingSubKeys& subKey);
+        static QString makeSettingPath(const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey);
+
+        static void removeSetting(const QString& path);
+        static bool canRemoveSetting(const QVariant& value);
+
+        static void setSetting(const QVariant& value, const SettingKeys& key, const SettingSubKeys& subKey);
+        static void setSetting(const QVariant& value, const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey);
+
+        static QVariant getSetting(const SettingKeys& key, const SettingSubKeys& subKey);
+        static QVariant getSetting(const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey);
+
         static void setSetting(const QString& key, const QString& subKey, const QVariant& value);
         static QVariant getSetting(const QString& key, const QString& subKey);
 
@@ -58,10 +59,6 @@ class Settings : public QDialog
 
         static void setPassword(const QString& value);
         static QString getPassword();
-
-        static void setRequirePassword(const bool& value);
-        static bool getRequirePassword();
-        static bool cmpServerPassword(const QString& value);
 
         static void setAllowDupedIP(const bool& value);
         static bool getAllowDupedIP();

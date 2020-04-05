@@ -307,15 +307,13 @@
                                   BanReason = 13, ColCount = 14 };
 
         //Valid columns within the Logger Dialog.
-        enum class LogCols: int{ Date = 0, Source, Type, Message = 3,
-                                 ColCount = 4 };
+        enum class LogCols: int{ Date = 0, Source, Type, Message = 3, ColCount = 4 };
 
         //Valid Log types available to the Logger Class.
         enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PKTFORGE = 8, MAX = 8 };
 
         //Used for converting time in seconds to a human readable format.
-        enum class TimeFormat{ Hours = 0, Minutes, Seconds, Default = -1,
-                               HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
+        enum class TimeFormat{ Hours = 0, Minutes = 1, Seconds = 2, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
 
         //Valid Ban Durations in seconds.
         //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent
@@ -334,6 +332,20 @@
 
         //Valid target specifiers for packets. Used by the MIX packet type.
         enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
+
+        //Valid Key values for use within the Rules and Settings Classes.
+        enum class SettingKeys: int{ Setting = 0, WrongIP, Messages, Positions, Rules, Logger = 5, KeyCount = 5 };
+
+        //Valid Sub-Key values for use within the Settings Class.
+        enum class SettingSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
+                                        InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
+                                        GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll = 24, KeyCount = 24 };
+
+        //Valid Sub-Key values for use within the Rules Class.
+        enum class RuleKeys: int{ SvrPassword = 0, World, SvrUrl, AllPK, MaxPlayers, MaxAFK,
+                                  MinVersion, PKLadder, NoBleep, NoCheat,
+                                  NoEavesdrop, NoMigrate, NoModding, NoPets,
+                                  NoPK, ArenaPK = 15, KeyCount = 15 };
 
     #endif  // REMIX_GLOBALS
 

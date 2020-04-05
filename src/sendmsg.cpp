@@ -19,7 +19,7 @@ SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
     QString title{ "Admin Message: [ %1 ]" };
     this->setWindowTitle( title.arg( serNum ) );
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
@@ -33,7 +33,7 @@ SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
 
 SendMsg::~SendMsg()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     delete ui;

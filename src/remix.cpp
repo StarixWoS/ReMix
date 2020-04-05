@@ -34,7 +34,7 @@ ReMix::ReMix(QWidget* parent) :
     ui->setupUi(this);
 
     this->setInstance( this );
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
@@ -62,7 +62,7 @@ ReMix::ReMix(QWidget* parent) :
 
 ReMix::~ReMix()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     if ( trayObject != nullptr )
@@ -190,7 +190,7 @@ void ReMix::initSysTray()
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
-    if ( Settings::getMinimizeToTray()
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MinimizeToTray ).toBool()
       && hasSysTray )
     {
         if ( event->type() == QEvent::WindowStateChange )

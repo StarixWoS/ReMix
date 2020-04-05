@@ -79,24 +79,24 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                     }
                 }
 
-                if (( Settings::getReqSernums() && Helper::serNumtoInt( sernum ) )
-                  || !Settings::getReqSernums() )
+                bool reqSernum{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::ReqSerNum ).toBool() };
+                if (( reqSernum && Helper::serNumtoInt( sernum ) )
+                  || !reqSernum )
                 {
                     QString sGameInfo{ worldInfo };
-                    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 //ReMix[ %7 ]" };
-
                     if ( !sGameInfo.isEmpty() )
                         sGameInfo = " [world=" % worldInfo % "]";
 
-                    response = response.arg( serverName )
-                                       .arg( sGameInfo )
-                                       .arg( Rules::getRuleSet( serverName ) )
-                                       .arg( serverID )
-                                       .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), 16, 8 ) )
-                                       .arg( this->getUsageString() )
-                                       .arg( QString( REMIX_VERSION ) );
-                    this->sendUdpDataSlot( ipAddr, port, response );
+                    QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 //ReMix[ %7 ]" };
+                            response = response.arg( serverName )
+                                               .arg( sGameInfo )
+                                               .arg( Rules::getRuleSet( serverName ) )
+                                               .arg( serverID )
+                                               .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), 16, 8 ) )
+                                               .arg( this->getUsageString() )
+                                               .arg( QString( REMIX_VERSION ) );
 
+                    this->sendUdpDataSlot( ipAddr, port, response );
                     emit this->sendServerInfoSignal( ipAddr, port );
                 }
                 emit this->increaseServerPingsSignal();

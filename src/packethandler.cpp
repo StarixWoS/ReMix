@@ -326,7 +326,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     }
 
     //Disconnect and ban duplicate IP's if required.
-    if ( !Settings::getAllowDupedIP() )
+    if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowDupe ).toBool() )
     {
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
@@ -347,20 +347,24 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
                         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
-                        if ( Settings::getBanDupedIP() )
+                        if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::BanDupes ).toBool() )
                         {
-                            reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
-                            reason = reason.arg( plr->getPublicIP() )
-                                           .arg( plr->getBioData() );
+                            //If AllowDupes is enabled, then Ignore BanDupes.
+                            if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowDupe ).toBool() )
+                            {
+                                reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
+                                reason = reason.arg( plr->getPublicIP() )
+                                               .arg( plr->getBioData() );
 
-                            //Ban for only half an hour.
-                            User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
+                                //Ban for only half an hour.
+                                User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
 
-                            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                                emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
-                            plrMessage = plrMessage.arg( "Banish" )
-                                                   .arg( "Duplicate IP" );
-                            plr->sendMessage( plrMessage, false );
+                                plrMessage = plrMessage.arg( "Banish" )
+                                                       .arg( "Duplicate IP" );
+                                plr->sendMessage( plrMessage, false );
+                            }
                         }
                         else
                         {
@@ -590,7 +594,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
     qint64 bOut{ 0 };
 
     QString accessType{ "Read" };
-    if ( Settings::getAllowSSV() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowSSV ).toBool() )
     {
         QString pkt = packet;
         pkt = pkt.mid( 10 );

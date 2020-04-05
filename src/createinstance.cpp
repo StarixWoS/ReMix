@@ -71,11 +71,9 @@ void CreateInstance::updateServerList(const bool& firstRun)
         {
             running = false;
             if ( firstRun )
-            {
-                Settings::setServerRunning( false, name );
-            }
+                Settings::setSetting( false, SettingKeys::Setting, SettingSubKeys::IsRunning, name );
             else
-                running = Settings::getServerRunning( name );
+                running = Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsRunning, name ).toBool();
         }
 
         if ( !skip && !running )
@@ -118,20 +116,31 @@ void CreateInstance::on_initializeServer_clicked()
         }
         else
         {
-            auto* server = new ServerInfo();
-            if ( server == nullptr ) //Failed to create the ServerInfo instance.
-                return;
+            //Verify that the server hasn't been initialized previously.
+            if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsRunning, svrName ).toBool() )
+            {
+                auto* server = new ServerInfo();
+                if ( server == nullptr ) //Failed to create the ServerInfo instance.
+                    return;
 
-            server->setServerName( svrName );
-            server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
-            Helper::getSynRealData( server );
-            server->setPrivatePort( ui->portNumber->text( ).toUShort() );
-            server->setServerID( Settings::getServerID( svrName ) );
-            server->setUseUPNP( ui->useUPNP->isChecked() );
-            server->setIsPublic( ui->isPublic->isChecked() );
+                server->setServerName( svrName );
+                server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
+                Helper::getSynRealData( server );
+                server->setPrivatePort( ui->portNumber->text( ).toUShort() );
+                server->setServerID( Settings::getServerID( svrName ) );
+                server->setUseUPNP( ui->useUPNP->isChecked() );
+                server->setIsPublic( ui->isPublic->isChecked() );
 
-            emit this->createServerAcceptedSignal( server );
-            emit this->accept();
+                emit this->createServerAcceptedSignal( server );
+                emit this->accept();
+            }
+            else //Warn the Server Host.
+            {
+                title = "Unable to Initialize Server:";
+                message = "You are unable to initialize two servers with the same name!";
+
+               Helper::warningMessage( this, title, message );
+            }
         }
     }
     else
@@ -255,7 +264,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
     QString svrName{ ui->servers->currentText() };
     if ( !svrName.isEmpty() )
     {
-        QString gameName{ Settings::getGameName( svrName ) };
+        QString gameName{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::GameName, svrName ).toString() };
         if ( !gameName.isEmpty() )
         {
             bool notFound{ true };
@@ -273,19 +282,19 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         }
     }
 
-    QString svrPort{ Settings::getPortNumber( svrName ) };
+    QString svrPort{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::PortNumber, svrName ).toString() };
     if ( !svrPort.isEmpty() )
         ui->portNumber->setText( svrPort );
     else
         ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
 
-    bool isPublic{ Settings::getIsPublic( svrName ) };
+    bool isPublic{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsPublic, svrName ).toBool() };
     if ( isPublic )
         ui->isPublic->setChecked( isPublic );
     else
         ui->isPublic->setChecked( false );
 
-    bool useUPNP{ Settings::getUseUPNP( svrName ) };
+    bool useUPNP{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::UseUPNP, svrName ).toBool() };
     if ( useUPNP )
         ui->useUPNP->setChecked( useUPNP );
     else

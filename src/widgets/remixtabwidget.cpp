@@ -122,7 +122,7 @@ ReMixTabWidget::~ReMixTabWidget()
         server = serverMap.value( i );
         if ( server != nullptr )
         {
-            Settings::setServerRunning( false, server->getServerName() );
+            Settings::setSetting( false, SettingKeys::Setting, SettingSubKeys::IsRunning, server->getServerName() );
             server->close();
             server->deleteLater();
         }
@@ -270,7 +270,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     bool isPublic{ server->getIsPublic() };
     bool useUPNP{ server->getUseUPNP() };
 
-    Settings::setServerRunning( false, instance->getServerName() );
+    Settings::setSetting( false, SettingKeys::Setting, SettingSubKeys::IsRunning, instance->getServerName() );
 
     serverMap.remove( index );
     tabWidget->removeTab( index );
@@ -346,7 +346,7 @@ void ReMixTabWidget::createTabButtons()
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
 
-    if ( Settings::getDarkMode() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::DarkMode ).toBool() )
     {
         nightModeButton->setText( "Normal Mode" );
         nightMode = !nightMode;
@@ -371,7 +371,7 @@ void ReMixTabWidget::createTabButtons()
         QString msg{ "The theme change will take effect after a restart." };
 
         Helper::warningMessage( this, title, msg );
-        Settings::setDarkMode( type );
+        Settings::setSetting( type, SettingKeys::Setting, SettingSubKeys::DarkMode );
 
         nightMode = !nightMode;
     }, Qt::QueuedConnection );
@@ -456,8 +456,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
         return;
 
     QString serverName{ server->getServerName() };
-    QString title{ "Unable to Initialize Server:" };
-    QString prompt{ "You are unable to initialize two servers with the same name!" };
 
     qint32 serverID{ 0 };
     ReMixWidget* instance{ nullptr };
@@ -471,12 +469,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
             serverID = i;
             break;
         }
-
-        if ( Helper::cmpStrings( instance->getServerName(), serverName ) )
-        {
-            Helper::warningMessage( this, title, prompt );
-            break;
-        }
     }
 
     if ( serverID <= MAX_SERVER_COUNT )
@@ -485,6 +477,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
         serverMap.insert( serverID, new ReMixWidget( this, server ) );
         this->insertTab( serverMap.size() - 1, serverMap.value( serverID ), serverName );
         this->setCurrentIndex( serverID );
-        Settings::setServerRunning( server->getIsPublic(), serverName );
+        Settings::setSetting( server->getIsPublic(), SettingKeys::Setting, SettingSubKeys::IsRunning, serverName );
     }
 }

@@ -76,7 +76,7 @@ User::User(QWidget* parent) :
     if ( instance == nullptr )
         this->setInstance( this );
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
 
     //Setup our QSettings Object.
@@ -117,7 +117,7 @@ User::User(QWidget* parent) :
 
 User::~User()
 {
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     userData->deleteLater();
@@ -852,7 +852,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
 
                         emit this->mutedSerNumDurationSignal( sernum, value.toUInt() );
 
-                        setData( sernum, keys[ UserKeys::kMUTED ], value );
+                        setData( sernum, keys[ UserKeys::kMUTED ], date );
                         this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );
 
                         setData( sernum, keys[ UserKeys::kMUTEDURATION ], value );

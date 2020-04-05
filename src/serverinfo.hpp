@@ -9,6 +9,7 @@
 #include <QHostInfo>
 #include <QVariant>
 #include <QObject>
+#include <QMutex>
 #include <QTimer>
 
 class ServerInfo : public QObject

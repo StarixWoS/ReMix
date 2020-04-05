@@ -2,6 +2,22 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.8:
+    Change:
+      * Settings and Rules are now handled via directly accessing the values using the getSetting/getRule functions directly in conjunction with Keys and SubKeys.
+        * The goal of these changes is to reduce the verbosity of the Settings and Rules class files.
+      
+	  
+
+    Bugfixes:
+      * Comments are once again only written to disk when the corresponding Setting is toggled on.
+      * Opening a ReMix Instance will no longer overwrite settings if the name of a previous Open Instance is used.
+      * When both "Allow Duplicate IP's" and "Ban Duplicate IP's" enabled, ReMix will only ban a User if "Allow Duplicate IP's" is disabled.
+        * TODO: A more elegant solution is to toggle each setting off when the other is enabled.
+
+
+
+
 Version 2.5.7:
     Change:
       * ReMix now properly sends a response when receiving a ":SR?" formatted packet.

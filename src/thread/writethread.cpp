@@ -44,13 +44,21 @@ WriteThread* WriteThread::getNewWriteThread(const QStringList& types, QObject* p
     return new WriteThread( types, parent );
 }
 
-
 void WriteThread::logToFile(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine)
 {
     QString logTxt{ text };
 
-    if ( Settings::getLogFiles() )
+    if ( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogFiles ).toBool() )
     {
+        QString date{ QDate::currentDate().toString( "[yyyy-MM-dd]" ) };
+        bool close{ !Helper::cmpStrings( logDate, date ) };
+
+        if ( close )
+        {
+            this->closeAllLogFiles();
+            logDate = date;
+        }
+
         if ( !this->isLogOpen( type ) )
             this->openLogFile( type );
 
@@ -102,18 +110,9 @@ QFile& WriteThread::getLogFile(const LogTypes& type)
 
 void WriteThread::openLogFile(const LogTypes& type)
 {
-    QString date{ QDate::currentDate().toString( "[yyyy-MM-dd]" ) };
-    bool close{ !Helper::cmpStrings( logDate, date ) };
-
-    if ( close )
-    {
-        this->closeAllLogFiles();
-        logDate = date;
-    }
-
     QString log{ "logs/%1/%2.txt" };
     log = log.arg( logDate )
-              .arg( logType.at( static_cast<int>( type ) ) );
+             .arg( logType.at( static_cast<int>( type ) ) );
 
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )

@@ -88,9 +88,9 @@ Logger::Logger(QWidget *parent) :
     ui->versionLabel->setText( versionText );
 
     //Restore the AutoLog setting.
-    ui->autoScroll->setChecked( Settings::getLoggerAutoScroll() );
+    ui->autoScroll->setChecked( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LoggerAutoScroll ).toBool() );
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
     {
         QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
         if ( !geometry.isEmpty() )
@@ -108,7 +108,7 @@ Logger::~Logger()
     if ( thread != nullptr )
         thread->exit();
 
-    if ( Settings::getSaveWindowPositions() )
+    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
         Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
 
     iconViewerScene->removeItem( iconViewerItem );
@@ -177,7 +177,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         this->scrollToBottom();
     }
 
-    if ( logToFile && Settings::getLogFiles() )
+    if ( logToFile && Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
 }
 
@@ -226,7 +226,7 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
 
 void Logger::on_autoScroll_clicked()
 {
-    Settings::setLoggerAutoScroll( ui->autoScroll->isChecked() );
+    Settings::setSetting( ui->autoScroll->isChecked(), SettingKeys::Logger, SettingSubKeys::LoggerAutoScroll );
 }
 
 void Logger::resizeColumnsSlot(const LogCols& column)

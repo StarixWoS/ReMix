@@ -19,7 +19,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
 
     QFileSystemModel* model{ new QFileSystemModel( this ) };
                       model->setFilter( QDir::NoDotAndDotDot | QDir::Dirs );
-                      model->setRootPath( Settings::getWorldDir() );
+                      model->setRootPath( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::WorldDir ).toString() );
                       model->setReadOnly( true );
 
     QObject::connect( model, &QFileSystemModel::directoryLoaded, model,
@@ -29,7 +29,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
         for (int i = 1; i < model->columnCount(); ++i)
             ui->worldViewer->hideColumn( i );
 
-        ui->worldViewer->setRootIndex( model->index( Settings::getWorldDir() ) );
+        ui->worldViewer->setRootIndex( model->index( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::WorldDir ).toString() ) );
     }, Qt::QueuedConnection );
 }
 
