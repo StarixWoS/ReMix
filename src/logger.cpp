@@ -91,11 +91,8 @@ Logger::Logger(QWidget *parent) :
     ui->autoScroll->setChecked( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LoggerAutoScroll ).toBool() );
 
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-    {
-        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
-        if ( !geometry.isEmpty() )
-            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
-    }
+        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+
     thread->start();
 }
 
@@ -109,7 +106,7 @@ Logger::~Logger()
         thread->exit();
 
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
 
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();

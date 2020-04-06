@@ -28,8 +28,10 @@ class SettingsWidget : public QWidget
         ~SettingsWidget() override;
 
         void setCheckedState(const Toggles& option, const bool& val);
+        bool getCheckedState(const Toggles& option);
 
     private:
+        void toggleSettingsModel(const qint32 &row);
         void toggleSettings(const qint32& row, Qt::CheckState value);
 
     private slots:

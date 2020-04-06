@@ -60,10 +60,12 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
 
     QTableWidgetItem* item = ui->settingsView->item( static_cast<int>( option ), 0 );
     if ( item != nullptr )
-    {
-        ui->settingsView->item(
-                    static_cast<int>( option ), 0 )->setCheckState( state );
-    }
+        ui->settingsView->item( static_cast<int>( option ), 0 )->setCheckState( state );
+}
+
+bool SettingsWidget::getCheckedState(const Toggles& option)
+{
+    return ui->settingsView->item( option, 0 )->checkState() == Qt::Checked;
 }
 
 void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
@@ -81,7 +83,12 @@ void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
 void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex& index)
 {
     int row = index.row();
+    this->toggleSettingsModel( row );
 
+}
+
+void SettingsWidget::toggleSettingsModel(const qint32 &row)
+{
     Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
     ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
@@ -100,9 +107,19 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
     {
         case Toggles::ALLOWDUPEDIP: //0
             Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::AllowDupe );
+            if ( state )
+            {
+                if ( this->getCheckedState( Toggles::BANDUPEDIP ) )
+                    this->toggleSettingsModel( Toggles::BANDUPEDIP );
+            }
         break;
         case Toggles::BANDUPEDIP: //1
             Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::BanDupes );
+            if ( state )
+            {
+                if ( this->getCheckedState( Toggles::ALLOWDUPEDIP ) )
+                    this->toggleSettingsModel( Toggles::ALLOWDUPEDIP );
+            }
         break;
         case Toggles::REQSERNUM: //2
             Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::ReqSerNum );

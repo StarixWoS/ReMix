@@ -6,6 +6,8 @@ Version 2.5.8:
     Change:
       * Settings and Rules are now handled via directly accessing the values using the getSetting/getRule functions directly in conjunction with Keys and SubKeys.
         * The goal of these changes is to reduce the verbosity of the Settings and Rules class files.
+      * Convert the remaining uses of the older style of accessing Settings.
+        * One exemption is related to getting the ServerID. This is remanining in use due to generating the ServerID in place.
       
 	  
 
@@ -14,6 +16,8 @@ Version 2.5.8:
       * Opening a ReMix Instance will no longer overwrite settings if the name of a previous Open Instance is used.
       * When both "Allow Duplicate IP's" and "Ban Duplicate IP's" enabled, ReMix will only ban a User if "Allow Duplicate IP's" is disabled.
         * TODO: A more elegant solution is to toggle each setting off when the other is enabled.
+      * The Settings "Allow Duplicate IP's" and "Ban Duplicate IP's" will now toggle eachother off as needed. The previous change is undone.
+        *Aditionally; the Rules "AllPK" and "NoPK" will also toggle eachother off as needed.
 
 
 

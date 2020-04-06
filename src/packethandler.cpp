@@ -349,22 +349,18 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
                         if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::BanDupes ).toBool() )
                         {
-                            //If AllowDupes is enabled, then Ignore BanDupes.
-                            if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowDupe ).toBool() )
-                            {
-                                reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
-                                reason = reason.arg( plr->getPublicIP() )
-                                               .arg( plr->getBioData() );
+                            reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
+                            reason = reason.arg( plr->getPublicIP() )
+                                           .arg( plr->getBioData() );
 
-                                //Ban for only half an hour.
-                                User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
+                            //Ban for only half an hour.
+                            User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
 
-                                emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
-                                plrMessage = plrMessage.arg( "Banish" )
-                                                       .arg( "Duplicate IP" );
-                                plr->sendMessage( plrMessage, false );
-                            }
+                            plrMessage = plrMessage.arg( "Banish" )
+                                                   .arg( "Duplicate IP" );
+                            plr->sendMessage( plrMessage, false );
                         }
                         else
                         {

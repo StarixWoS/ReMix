@@ -77,7 +77,7 @@ User::User(QWidget* parent) :
         this->setInstance( this );
 
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
+        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     //Setup our QSettings Object.
     userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
@@ -118,7 +118,7 @@ User::User(QWidget* parent) :
 User::~User()
 {
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
 
     userData->deleteLater();
     delete ui;

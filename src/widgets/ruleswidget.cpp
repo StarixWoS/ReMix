@@ -114,6 +114,11 @@ void RulesWidget::setCheckedState(const Toggles& option, const bool& val)
     ui->rulesView->item( option, 0 )->setCheckState( state );
 }
 
+bool RulesWidget::getCheckedState(const Toggles& option)
+{
+    return ui->rulesView->item( option, 0 )->checkState() == Qt::Checked;
+}
+
 void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
 {
     QString rowText{ "World Name: [ %1 ]" };
@@ -144,7 +149,11 @@ void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem* item)
 void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
 {
     int row = index.row();
+    this->toggleRulesModel( row );
+}
 
+void RulesWidget::toggleRulesModel(const qint32 &row)
+{
     Qt::CheckState val = ui->rulesView->item( row, 0 )->checkState();
     ui->rulesView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
@@ -154,22 +163,14 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
 
 void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 {
-    QMutexLocker locker( &mutex );
     bool state{ value == Qt::Checked };
-
-    QSettings rules( "preferences.ini", QSettings::IniFormat );
-              rules.sync();
-              rules.beginGroup( serverName % "/" % Settings::keys[ static_cast<int>( SettingKeys::Rules ) ] );
 
     QString prompt{ "" };
     QString title{ "" };
 
-    bool removeKey{ false };
     qint32 key{ row };
-
     QString rowText{ "" };
 
-    qDebug() << key;
     switch ( key )
     {
         case Toggles::svrPassword:
@@ -256,15 +257,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             selectWorld->close();
                             selectWorld->disconnect();
                             selectWorld->deleteLater();
-                        }, Qt::QueuedConnection );
+                        }, Qt::DirectConnection );
                         selectWorld->exec();
 
                         state = true;
                         if ( world.isEmpty() )
-                        {
                             state = false;
-                            removeKey = true;
-                        }
                     }
                     else
                     {
@@ -297,10 +295,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 state = true;
                             }
                             else
-                            {
-                                removeKey = true;
                                 world = "";
-                            }
                         }
                     }
                     this->setSelectedWorld( world, state );
@@ -346,7 +341,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            rules.remove( Rules::ruleKeys[ static_cast<int>( RuleKeys::SvrUrl ) ] );
+                            Rules::setRule( serverName, "", RuleKeys::SvrUrl );
                     }
                 }
                 rowText = "Server Home: [ %1 ]";
@@ -357,10 +352,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
             }
         break;
         case Toggles::allPK:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::AllPK );
+            Rules::setRule( serverName, state, RuleKeys::AllPK );
+            if ( state )
+            {
+                if ( getCheckedState( Toggles::noPK ) )
+                    this->toggleRulesModel( Toggles::noPK );
+            }
         break;
         case Toggles::maxP:
             {
@@ -400,7 +397,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            rules.remove( Rules::ruleKeys[ static_cast<int>( RuleKeys::MaxPlayers ) ] );
+                            Rules::setRule( serverName, "", RuleKeys::MaxPlayers );
                     }
                 }
                 rowText = "Max Players: [ %1 ]";
@@ -448,7 +445,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            rules.remove( Rules::ruleKeys[ static_cast<int>( RuleKeys::MaxAFK ) ] );
+                            Rules::setRule( serverName, "", RuleKeys::MaxAFK );
                     }
                 }
                 rowText = "Max AFK: [ %1 ] Minutes";
@@ -496,7 +493,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            rules.remove( Rules::ruleKeys[ static_cast<int>( RuleKeys::MinVersion ) ] );
+                            Rules::setRule( serverName, "", RuleKeys::MinVersion );
                     }
                 }
                 rowText = "Minimum Game Version: [ %1 ]";
@@ -507,61 +504,36 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
             }
         break;
         case Toggles::ladder:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::PKLadder );
+            Rules::setRule( serverName, state, RuleKeys::PKLadder );
         break;
         case Toggles::noBleep:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoBleep );
+            Rules::setRule( serverName, state, RuleKeys::NoBleep );
         break;
         case Toggles::noCheat:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoCheat );
+            Rules::setRule( serverName, state, RuleKeys::NoCheat );
         break;
         case Toggles::noEavesdrop:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoEavesdrop );
+            Rules::setRule( serverName, state, RuleKeys::NoEavesdrop );
         break;
         case Toggles::noMigrate:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoMigrate );
+            Rules::setRule( serverName, state, RuleKeys::NoMigrate );
         break;
         case Toggles::noMod:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoModding );
+            Rules::setRule( serverName, state, RuleKeys::NoModding );
         break;
         case Toggles::noPets:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoPets );
+            Rules::setRule( serverName, state, RuleKeys::NoPets );
         break;
         case Toggles::noPK:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::NoPK );
+            Rules::setRule( serverName, state, RuleKeys::NoPK );
+            if ( state )
+            {
+                if ( getCheckedState( Toggles::allPK ) )
+                    this->toggleRulesModel( Toggles::allPK );
+            }
         break;
         case Toggles::arenaPK:
-            if ( !state )
-                removeKey = true;
-            else
-                Rules::setRule( serverName, state, RuleKeys::ArenaPK );
-         break;
+            Rules::setRule( serverName, state, RuleKeys::ArenaPK );
+        break;
     }
-
-    if ( removeKey )
-        rules.remove( Rules::ruleKeys.at( key ) );
 }

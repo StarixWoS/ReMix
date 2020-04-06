@@ -104,17 +104,13 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
 
     pktForge = PacketForge::getInstance();
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-    {
-        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
-        if ( !geometry.isEmpty() )
-            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
-    }
+        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
 }
 
 ChatView::~ChatView()
 {
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
 
     delete ui;
 }

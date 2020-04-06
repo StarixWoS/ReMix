@@ -40,9 +40,12 @@ class RulesWidget : public QWidget
 
         void setServerName(const QString& name);
         void setCheckedState(const Toggles& option, const bool& val);
+        bool getCheckedState(const Toggles& option);
+
         void setSelectedWorld(const QString& worldName, const bool& state);
 
     private:
+        void toggleRulesModel(const qint32& row);
         void toggleRules(const qint32& row, const Qt::CheckState& value);
 
     private slots:

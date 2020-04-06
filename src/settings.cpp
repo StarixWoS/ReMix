@@ -91,17 +91,13 @@ Settings::Settings(QWidget* parent) :
     }
 
     if ( getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-    {
-        QByteArray geometry{ getWindowPositions( this->metaObject()->className() ) };
-        if ( !geometry.isEmpty() )
-            this->restoreGeometry( getWindowPositions( this->metaObject()->className() ) );
-    }
+        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
 }
 
 Settings::~Settings()
 {
     if ( getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+        setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
 
     tabWidget->deleteLater();
     settings->deleteLater();
@@ -188,12 +184,22 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 }
 
 //Static-Free Functions.
-QString Settings::makeSettingPath(const SettingKeys& key, const SettingSubKeys& subKey)
+void Settings::setSettingFromPath(const QString& path, const QVariant& value)
 {
-    QString path{ "%1/%2" };
-            path = path.arg( Settings::keys[ static_cast<int>( key ) ] )
-                       .arg( subKeys[ static_cast<int>( subKey ) ] );
-            return path;
+    QMutexLocker locker( &mutex );
+    if ( !canRemoveSetting( value ) )
+        prefs->setValue( path, value );
+    else
+        removeSetting( path );
+
+    prefs->sync();
+}
+
+QVariant Settings::getSettingFromPath(const QString& path)
+{
+    QMutexLocker locker( &mutex );
+    prefs->sync();
+    return prefs->value( path );
 }
 
 QString Settings::makeSettingPath(const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey)
@@ -202,13 +208,23 @@ QString Settings::makeSettingPath(const SettingKeys& key, const SettingSubKeys& 
             path = path.arg( childSubKey.toString() )
                        .arg( Settings::keys[ static_cast<int>( key ) ] )
                        .arg( subKeys[ static_cast<int>( subKey ) ] );
-            return path;
+    return path;
 }
 
-void Settings::removeSetting(const QString& path)
+QString Settings::makeSettingPath(const SettingKeys& key, const SettingSubKeys& subKey)
 {
-    prefs->sync();
-    prefs->remove( path );
+    QString path{ "%1/%2" };
+            path = path.arg( Settings::keys[ static_cast<int>( key ) ] )
+                       .arg( subKeys[ static_cast<int>( subKey ) ] );
+    return path;
+}
+
+QString Settings::makeSettingPath(const SettingKeys& key, const QVariant& subKey)
+{
+    QString path{ "%1/%2" };
+            path = path.arg( Settings::keys[ static_cast<int>( key ) ] )
+                       .arg( subKey.toString() );
+    return path;
 }
 
 bool Settings::canRemoveSetting(const QVariant& value)
@@ -225,84 +241,43 @@ bool Settings::canRemoveSetting(const QVariant& value)
     return remove;
 }
 
-void Settings::setSetting(const QVariant& value, const SettingKeys& key, const SettingSubKeys& subKey)
+void Settings::removeSetting(const QString& path)
 {
-    QMutexLocker locker( &mutex );
-    QVariant val{ value };
-
-    QString path{ makeSettingPath( key, subKey ) };
-    if ( !canRemoveSetting( value ) )
-        prefs->setValue( path, val );
-    else
-        removeSetting( path );
-
     prefs->sync();
+    prefs->remove( path );
 }
 
 void Settings::setSetting(const QVariant& value, const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey)
 {
-    QMutexLocker locker( &mutex );
-    QVariant val{ value };
-
-    QString path{ makeSettingPath( key, subKey, childSubKey ) };
-    if ( !canRemoveSetting( value ) )
-        prefs->setValue( path, val );
-    else
-        removeSetting( path );
-
-    prefs->sync();
+    setSettingFromPath( makeSettingPath( key, subKey, childSubKey ), value );
 }
 
-QVariant Settings::getSetting(const SettingKeys& key, const SettingSubKeys& subKey)
+void Settings::setSetting(const QVariant& value, const SettingKeys& key, const SettingSubKeys& subKey)
 {
-    QMutexLocker locker( &mutex );
-    prefs->sync();
-    return prefs->value( makeSettingPath( key, subKey ) );
+    setSettingFromPath( makeSettingPath( key, subKey ), value );
+}
+
+void Settings::setSetting(const QVariant& value, const SettingKeys& key, const QVariant& subKey)
+{
+    setSettingFromPath( makeSettingPath( key, subKey ), value );
 }
 
 QVariant Settings::getSetting(const SettingKeys& key, const SettingSubKeys& subKey, const QVariant& childSubKey)
 {
-    QMutexLocker locker( &mutex );
-    prefs->sync();
-    return prefs->value( makeSettingPath( key, subKey, childSubKey ) );
+    return getSettingFromPath( makeSettingPath( key, subKey, childSubKey ) );
 }
 
-void Settings::setSetting(const QString& key, const QString& subKey, const QVariant& value)
+QVariant Settings::getSetting(const SettingKeys& key, const SettingSubKeys& subKey)
 {
-    QMutexLocker locker( &mutex );
-    prefs->setValue( key % "/" % subKey, value );
-    prefs->sync();
+    return getSettingFromPath( makeSettingPath( key, subKey ) );
 }
 
-QVariant Settings::getSetting(const QString& key, const QString& subKey)
+QVariant Settings::getSetting(const SettingKeys& key, const QString& subKey)
 {
-    QMutexLocker locker( &mutex );
-    prefs->sync();
-    return prefs->value( key % "/" % subKey );
+    return getSettingFromPath( makeSettingPath( key, subKey ) );
 }
 
-void Settings::setWindowPositions(const QByteArray& geometry, const char* dialog)
-{
-    setSetting( keys[ static_cast<int>( SettingKeys::Positions ) ], dialog, geometry );
-}
-
-QByteArray Settings::getWindowPositions(const char* dialog)
-{
-    return getSetting( keys[ static_cast<int>( SettingKeys::Positions ) ], dialog )
-              .toByteArray();
-}
-
-void Settings::setIsInvalidIPAddress(const QString& value)
-{
-    setSetting( keys[ static_cast<int>( SettingKeys::WrongIP ) ], value, true );
-}
-
-bool Settings::getIsInvalidIPAddress(const QString& value)
-{
-    return getSetting( keys[ static_cast<int>( SettingKeys::WrongIP ) ], value )
-              .toBool();
-}
-
+//Retain function for ease of use.
 QString Settings::getServerID(const QString& svrID)
 {
     qint32 id = getSetting( SettingKeys::Setting, SettingSubKeys::Extension, svrID ).toInt();

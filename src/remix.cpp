@@ -35,11 +35,7 @@ ReMix::ReMix(QWidget* parent) :
 
     this->setInstance( this );
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-    {
-        QByteArray geometry{ Settings::getWindowPositions( this->metaObject()->className() ) };
-        if ( !geometry.isEmpty() )
-            this->restoreGeometry( Settings::getWindowPositions( this->metaObject()->className() ) );
-    }
+        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     //Setup Objects.
     Settings::setInstance( new Settings( this ) );
@@ -63,7 +59,7 @@ ReMix::ReMix(QWidget* parent) :
 ReMix::~ReMix()
 {
     if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setWindowPositions( this->saveGeometry(), this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
 
     if ( trayObject != nullptr )
         trayObject->deleteLater();
