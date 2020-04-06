@@ -394,7 +394,7 @@ QHostAddress Helper::getPrivateIP()
           //Remove any ipv6 addresses.
           && ip.toIPv4Address()
           //Remove any addresses the User manually marked invalid.
-          && !Settings::getSetting( SettingKeys::WrongIP, tmp ).toBool()
+          && !Settings::getSetting( SKeys::WrongIP, tmp ).toBool()
           //Remove Windows generated APIPA addresses.
           && !strStartsWithStr( tmp, "169" ) )
         {

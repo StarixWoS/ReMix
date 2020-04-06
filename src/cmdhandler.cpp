@@ -12,7 +12,6 @@
 #include "player.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
-#include "rules.hpp"
 #include "user.hpp"
 
 //Qt includes.
@@ -137,13 +136,13 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
             if ( !msg.trimmed().isEmpty() )
             {
                 //Echo the chat back to the User.
-                if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::EchoComments ).toBool() )
+                if ( Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
                 {
-                    if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::FwdComments ).toBool() )
+                    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
                         plr->sendMessage( "Echo: " % msg, false );
                 }
 
-                if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::FwdComments ).toBool() )
+                if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
@@ -842,7 +841,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
       && !plr->getSvrPwdReceived() )
     {
         pwdType = PwdTypes::Server;
-        if ( Rules::cmpServerPassword( server->getServerName(), pwd ) )
+        if ( Settings::cmpServerPassword( server->getServerName(), pwd ) )
         {
             response = response.arg( valid );
 
@@ -873,7 +872,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
             plr->setAdminPwdReceived( true );
 
             //Inform Other Users of this Remote-Admin's login if enabled.
-            if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::InformAdminLogin ).toBool() )
+            if ( Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
             {
                 QString message{ "Remote Admin [ %1 ] has Authenticated with the server." };
                         message = message.arg( plr->getSernum_s() ) ;
@@ -960,7 +959,7 @@ void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
 
     //Inform Other Users of this Remote-Admin's login if enabled.
     if ( registered
-      && Settings::getSetting( SettingKeys::Setting, SettingSubKeys::InformAdminLogin ).toBool() )
+      && Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
     {
         QString message{ "User [ %1 ] has Registered as a Remote Administrator with the server." };
                 message = message.arg( plr->getSernum_s() );

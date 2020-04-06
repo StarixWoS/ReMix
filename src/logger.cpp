@@ -88,10 +88,10 @@ Logger::Logger(QWidget *parent) :
     ui->versionLabel->setText( versionText );
 
     //Restore the AutoLog setting.
-    ui->autoScroll->setChecked( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LoggerAutoScroll ).toBool() );
+    ui->autoScroll->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoScroll ).toBool() );
 
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     thread->start();
 }
@@ -105,8 +105,8 @@ Logger::~Logger()
     if ( thread != nullptr )
         thread->exit();
 
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();
@@ -174,7 +174,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         this->scrollToBottom();
     }
 
-    if ( logToFile && Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogFiles ).toBool() )
+    if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
 }
 
@@ -223,7 +223,7 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
 
 void Logger::on_autoScroll_clicked()
 {
-    Settings::setSetting( ui->autoScroll->isChecked(), SettingKeys::Logger, SettingSubKeys::LoggerAutoScroll );
+    Settings::setSetting( ui->autoScroll->isChecked(), SKeys::Logger, SSubKeys::LoggerAutoScroll );
 }
 
 void Logger::resizeColumnsSlot(const LogCols& column)

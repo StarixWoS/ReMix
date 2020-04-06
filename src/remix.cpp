@@ -34,8 +34,8 @@ ReMix::ReMix(QWidget* parent) :
     ui->setupUi(this);
 
     this->setInstance( this );
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     //Setup Objects.
     Settings::setInstance( new Settings( this ) );
@@ -58,8 +58,8 @@ ReMix::ReMix(QWidget* parent) :
 
 ReMix::~ReMix()
 {
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     if ( trayObject != nullptr )
         trayObject->deleteLater();
@@ -186,7 +186,7 @@ void ReMix::initSysTray()
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::changeEvent(QEvent* event)
 {
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MinimizeToTray ).toBool()
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool()
       && hasSysTray )
     {
         if ( event->type() == QEvent::WindowStateChange )

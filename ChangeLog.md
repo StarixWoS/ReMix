@@ -8,8 +8,13 @@ Version 2.5.8:
         * The goal of these changes is to reduce the verbosity of the Settings and Rules class files.
       * Convert the remaining uses of the older style of accessing Settings.
         * One exemption is related to getting the ServerID. This is remanining in use due to generating the ServerID in place.
-      
-	  
+      * Completely merged the Rules Class use cases into the Settings Class.
+      * Comments from Users within the Comments Dialog Window will now be printed more like the Chat View.
+        * The CommentLog no-longer double-prints the timestamp or new (blank) lines.
+      * Add the ability to delete Remix Servers from the CreateInstance Dialog.
+        * Server deletions will be confirmed to prevent accidental deletions.
+
+
 
     Bugfixes:
       * Comments are once again only written to disk when the corresponding Setting is toggled on.
@@ -19,6 +24,15 @@ Version 2.5.8:
       * The Settings "Allow Duplicate IP's" and "Ban Duplicate IP's" will now toggle eachother off as needed. The previous change is undone.
         * The Rules "AllPK" and "NoPK" will also toggle eachother off as needed.
         * The Rules "AllPK" and "ArenaPK" will also toggle eachother off as needed.
+      * Server Passwords are once again correctly checked.
+      * The Rules dialog will now once again properly handle checking and unchecking the "Server password" option.
+
+
+     
+    Remove:
+      * Some redundant class files.
+      * Files related to the WorldShuffler Class.
+      * Files related to the Rules Class.
 
 
 

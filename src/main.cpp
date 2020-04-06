@@ -23,7 +23,7 @@ int main(int argc, char* [])
                  a.setApplicationVersion( REMIX_VERSION );
                  a.setQuitOnLastWindowClosed( false );
                  a.installEventFilter( new AppEventFilter() );
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::DarkMode ).toBool() )
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::DarkMode ).toBool() )
         Theme::setThemeType( Themes::Dark );
     else
         Theme::setThemeType( Themes::Light );

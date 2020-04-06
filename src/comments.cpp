@@ -24,14 +24,14 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 }
 
 Comments::~Comments()
 {
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     delete ui;
 }
@@ -48,14 +48,12 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
     if ( obj == nullptr )
         return;
 
-    uint date = QDateTime::currentDateTimeUtc()
-                     .toTime_t();
-    QString comment = QString( "\r\n --- \r\n%1 \r\nSerNum: %2 \r\n%3: %4\r\n --- \r\n" )
-                          .arg( Helper::getTimeAsString( date ) )
-                          .arg( sernum )
-                          .arg( alias )
-                          .arg( message );
+    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
 
+    QString comment{ "%1 [ %2 ]: %2\r\n" };
+            comment = comment.arg( alias )
+                             .arg( sernum )
+                             .arg( message );
 
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
     int selStart{ 0 };
@@ -68,7 +66,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
         selEnd = cursor.selectionEnd();
     }
     cursor.movePosition( QTextCursor::End );
-    cursor.insertText( comment );
+    cursor.insertText( "[ " % Helper::getTimeAsString( date ) % " ] " % comment );
 
     if ( selStart && selEnd )
     {
@@ -79,14 +77,11 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
 
     //Detect when the user is scrolling upwards.
     if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
-    {
-        obj->verticalScrollBar()->setSliderPosition(
-                    obj->verticalScrollBar()->maximum() );
-    }
+        obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
 
     //Log comments only when enabled.
-    if ( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogComments ).toBool() )
-        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+    if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
+        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, false );
 
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )

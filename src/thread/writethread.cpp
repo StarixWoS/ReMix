@@ -48,7 +48,7 @@ void WriteThread::logToFile(const LogTypes& type, const QString& text, const QSt
 {
     QString logTxt{ text };
 
-    if ( Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogFiles ).toBool() )
+    if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
     {
         QString date{ QDate::currentDate().toString( "[yyyy-MM-dd]" ) };
         bool close{ !Helper::cmpStrings( logDate, date ) };

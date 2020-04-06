@@ -16,7 +16,6 @@
 #include "server.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
-#include "rules.hpp"
 #include "user.hpp"
 #include "upnp.hpp"
 
@@ -221,7 +220,7 @@ QString ServerInfo::getServerInfoString()
 
     response = response.arg( serverName )
                        .arg( sGameInfo )
-                       .arg( Rules::getRuleSet( serverName ) )
+                       .arg( Settings::getRuleSet( serverName ) )
                        .arg( this->getServerID() )
                        .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), 16, 8 ) )
                        .arg( this->getUsageString() )
@@ -552,7 +551,7 @@ void ServerInfo::sendServerRules(Player* plr)
 
     QString serverName{ this->getServerName() };
     QString rules{ ":SR$%1\r\n" };
-            rules = rules.arg( Rules::getRuleSet( serverName ) );
+            rules = rules.arg( Settings::getRuleSet( serverName ) );
 
     bOut = soc->write( rules.toLatin1(), rules.length() );
     this->updateBytesOut( plr, bOut );
@@ -561,8 +560,8 @@ void ServerInfo::sendServerRules(Player* plr)
 void ServerInfo::sendServerGreeting(Player* plr)
 {
     QString serverName{ this->getServerName() };
-    QString greeting{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MOTD, serverName ).toString() };
-    if ( !Rules::getRule( serverName, RuleKeys::SvrPassword ).toString().isEmpty() )
+    QString greeting{ Settings::getSetting( SKeys::Setting, SSubKeys::MOTD, serverName ).toString() };
+    if ( !Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverName ).toString().isEmpty() )
     {
         greeting.append( " Password required: Please reply with (/login *PASS) or be disconnected." );
         plr->setSvrPwdRequested( true );
@@ -571,7 +570,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     if ( !greeting.isEmpty() )
         plr->sendMessage( greeting, false );
 
-    if ( !Rules::getRuleSet( serverName ).isEmpty() )
+    if ( !Settings::getRuleSet( serverName ).isEmpty() )
         this->sendServerRules( plr );
 }
 
@@ -687,7 +686,7 @@ void ServerInfo::setGameName(const QString& value)
     gameName = value;
     this->setGameId( value );
 
-    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::GameName, this->getServerName() );
+    Settings::setSetting( value, SKeys::Setting, SSubKeys::GameName, this->getServerName() );
 }
 
 QHostInfo ServerInfo::getHostInfo() const
@@ -733,7 +732,7 @@ bool ServerInfo::getIsPublic() const
 void ServerInfo::setIsPublic(const bool& value)
 {
     isPublic = value;
-    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::IsPublic, this->getServerName() );
+    Settings::setSetting( value, SKeys::Setting, SSubKeys::IsPublic, this->getServerName() );
 
     this->setMasterUDPResponse( false );
     this->setSentUDPCheckIn( false );
@@ -767,7 +766,7 @@ bool ServerInfo::getUseUPNP() const
 void ServerInfo::setUseUPNP(const bool& value)
 {
     //Tell the server to use a UPNP Port Forward.
-    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::UseUPNP, this->getServerName() );
+    Settings::setSetting( value, SKeys::Setting, SSubKeys::UseUPNP, this->getServerName() );
     if ( useUPNP != value )
     {
         if ( !this->getIsSetUp() )
@@ -818,7 +817,7 @@ void ServerInfo::setPlayerCount(const quint32& value)
 {
     if ( value <= 0 )
     {
-        this->setGameInfo( Rules::getRule( this->getServerName(), RuleKeys::World ).toString() );
+        this->setGameInfo( Settings::getSetting( SKeys::Rules, SSubKeys::World, this->getServerName() ).toString() );
         playerCount = 0;
     }
     else
@@ -853,7 +852,7 @@ quint16 ServerInfo::getPrivatePort() const
 void ServerInfo::setPrivatePort(const quint16& value)
 {
     privatePort = value;
-    Settings::setSetting( value, SettingKeys::Setting, SettingSubKeys::PortNumber, this->getServerName() );
+    Settings::setSetting( value, SKeys::Setting, SSubKeys::PortNumber, this->getServerName() );
 }
 
 QString ServerInfo::getPrivateIP() const

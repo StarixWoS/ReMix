@@ -118,7 +118,6 @@
     class Helper;
     class Logger;
     class Theme;
-    class Rules;
     class ReMix;
     class User;
     class UPNP;
@@ -334,18 +333,15 @@
         enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
 
         //Valid Key values for use within the Rules and Settings Classes.
-        enum class SettingKeys: int{ Setting = 0, WrongIP, Messages, Positions, Rules, Logger = 5, KeyCount = 5 };
+        enum class SKeys: int{ Setting = 0, WrongIP, Messages, Positions, Rules, Logger = 5, KeyCount = 5 };
 
         //Valid Sub-Key values for use within the Settings Class.
-        enum class SettingSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
-                                        InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
-                                        GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll = 24, KeyCount = 24 };
+        enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
+                                  InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
+                                  GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, HasSvrPassword,
+                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxAFK, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
+                                  NoMigrate, NoModding, NoPets, NoPK, ArenaPK, KeyCount };
 
-        //Valid Sub-Key values for use within the Rules Class.
-        enum class RuleKeys: int{ SvrPassword = 0, World, SvrUrl, AllPK, MaxPlayers, MaxAFK,
-                                  MinVersion, PKLadder, NoBleep, NoCheat,
-                                  NoEavesdrop, NoMigrate, NoModding, NoPets,
-                                  NoPK, ArenaPK = 15, KeyCount = 15 };
 
     #endif  // REMIX_GLOBALS
 

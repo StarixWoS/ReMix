@@ -8,7 +8,6 @@
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
-#include "rules.hpp"
 
 //Qt Includes.
 #include <QMutexLocker>
@@ -54,51 +53,58 @@ void RulesWidget::deleteWidget(ServerInfo* server)
 void RulesWidget::setServerName(const QString& name)
 {
     //Load Rules from file.
+    QVariant val;
     QString rowText{ "" };
-    pwdCheckState = !Rules::getRule( name, RuleKeys::SvrPassword ).toString().isEmpty();
-    this->setCheckedState( Toggles::svrPassword, pwdCheckState );
 
-    worldCheckState = !Rules::getRule( name, RuleKeys::World ).toString().isEmpty();
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::World, name );
+    worldCheckState = !val.toString().isEmpty();
     this->setCheckedState( Toggles::world, worldCheckState );
 
     rowText = "World Name: [ %1 ]";
-    ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( Rules::getRule( name, RuleKeys::World ).toString() ) );
-    emit this->gameInfoChangedSignal( Rules::getRule( name, RuleKeys::World ).toString() );
-
-    urlCheckState = !Rules::getRule( name, RuleKeys::SvrUrl ).toString().isEmpty();
-    this->setCheckedState( Toggles::url, urlCheckState );
+    ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( val.toString() ) );
+    emit this->gameInfoChangedSignal( val.toString() );
 
     rowText = "Server Home: [ %1 ]";
-    ui->rulesView->item( Toggles::url, 0 )->setText( rowText.arg( Rules::getRule( name, RuleKeys::SvrUrl ).toString() ) );
-
-    this->setCheckedState( Toggles::allPK, Rules::getRule( name, RuleKeys::AllPK ).toBool() );
-
-    maxPlayersCheckState = Rules::getRule( name, RuleKeys::MaxPlayers ).toUInt() != 0;
-    this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, name );
+    ui->rulesView->item( Toggles::url, 0 )->setText( rowText.arg( val.toString() ) );
 
     rowText = "Max Players: [ %1 ]";
-    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText.arg( Rules::getRule( name, RuleKeys::MaxPlayers ).toUInt() ) );
-
-    maxAFKCheckState = Rules::getRule( name, RuleKeys::MaxAFK ).toUInt() != 0;
-    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name );
+    ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText.arg( val.toUInt() ) );
 
     rowText = "Max AFK: [ %1 ] Minutes";
-    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( Rules::getRule( name, RuleKeys::MaxAFK ).toUInt() ) );
-
-    minVersionCheckState = !Rules::getRule( name, RuleKeys::MinVersion ).toString().isEmpty();
-    this->setCheckedState( Toggles::minV, minVersionCheckState );
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
+    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( val.toUInt() ) );
 
     rowText = "Minimum Game Version: [ %1 ]";
-    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText.arg( Rules::getRule( name, RuleKeys::MinVersion ).toString() ) );
-    this->setCheckedState( Toggles::ladder, Rules::getRule( name, RuleKeys::PKLadder ).toBool() );
-    this->setCheckedState( Toggles::noBleep, Rules::getRule( name, RuleKeys::NoBleep ).toBool() );
-    this->setCheckedState( Toggles::noCheat, Rules::getRule( name, RuleKeys::NoCheat ).toBool() );
-    this->setCheckedState( Toggles::noEavesdrop, Rules::getRule( name, RuleKeys::NoEavesdrop ).toBool() );
-    this->setCheckedState( Toggles::noMigrate, Rules::getRule( name, RuleKeys::NoMigrate ).toBool() );
-    this->setCheckedState( Toggles::noMod, Rules::getRule( name, RuleKeys::NoModding ).toBool() );
-    this->setCheckedState( Toggles::noPets, Rules::getRule( name, RuleKeys::NoPets ).toBool() );
-    this->setCheckedState( Toggles::noPK, Rules::getRule( name, RuleKeys::NoPK ).toBool() );
-    this->setCheckedState( Toggles::arenaPK, Rules::getRule( name, RuleKeys::ArenaPK ).toBool() );
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
+    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText.arg( val.toString() ) );
+
+    minVersionCheckState = !Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name ).toString().isEmpty();
+    this->setCheckedState( Toggles::minV, minVersionCheckState );
+
+    maxPlayersCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name ).toUInt() != 0;
+    this->setCheckedState( Toggles::maxP, maxPlayersCheckState );
+
+    urlCheckState = !Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, name ).toString().isEmpty();
+    this->setCheckedState( Toggles::url, urlCheckState );
+
+    pwdCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, name ).toBool();
+    this->setCheckedState( Toggles::svrPassword, pwdCheckState );
+
+    maxAFKCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name ).toUInt() != 0;
+    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
+
+    this->setCheckedState( Toggles::noEavesdrop, Settings::getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, name ).toBool() );
+    this->setCheckedState( Toggles::noMigrate, Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, name ).toBool() );
+    this->setCheckedState( Toggles::arenaPK, Settings::getSetting( SKeys::Rules, SSubKeys::ArenaPK, name ).toBool() );
+    this->setCheckedState( Toggles::ladder, Settings::getSetting( SKeys::Rules, SSubKeys::PKLadder, name ).toBool() );
+    this->setCheckedState( Toggles::noBleep, Settings::getSetting( SKeys::Rules, SSubKeys::NoBleep, name ).toBool() );
+    this->setCheckedState( Toggles::noCheat, Settings::getSetting( SKeys::Rules, SSubKeys::NoCheat, name ).toBool() );
+    this->setCheckedState( Toggles::noMod, Settings::getSetting( SKeys::Rules, SSubKeys::NoModding, name ).toBool() );
+    this->setCheckedState( Toggles::noPets, Settings::getSetting( SKeys::Rules, SSubKeys::NoPets, name ).toBool() );
+    this->setCheckedState( Toggles::allPK, Settings::getSetting( SKeys::Rules, SSubKeys::AllPK, name ).toBool() );
+    this->setCheckedState( Toggles::noPK, Settings::getSetting( SKeys::Rules, SSubKeys::NoPK, name ).toBool() );
 
     serverName = name;
 }
@@ -131,7 +137,7 @@ void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
     ui->rulesView->item( Toggles::world, 0 )->setCheckState( state ? Qt::Checked : Qt::Unchecked );
 
     worldCheckState = state;
-    Rules::setRule( serverName, worldName, RuleKeys::World );
+    Settings::setSetting( worldName, SKeys::Rules, SSubKeys::World, serverName );
 }
 
 void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem* item)
@@ -175,15 +181,15 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
     {
         case Toggles::svrPassword:
             {
-                QString pwd{ Rules::getRule( serverName, RuleKeys::SvrPassword ).toString() };
+                QString pwd{ Settings::getSetting( SKeys::Rules, SSubKeys::SvrPassword, serverName ).toString() };
 
                 bool reUse{ false };
                 bool ok{ false };
 
-                Rules::setRule( serverName, state, RuleKeys::SvrPassword );
+                Settings::setSetting( state, SKeys::Rules, SSubKeys::HasSvrPassword, serverName );
                 if ( state != pwdCheckState )
                 {
-                    if ( !Rules::getRule( serverName, RuleKeys::SvrPassword ).toString().isEmpty() )
+                    if ( state )
                     {
                         //Recycyle the Old password. Assuming it wasn't deleted.
                         if ( !pwd.isEmpty() )
@@ -208,18 +214,17 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                           || reUse )
                         {
                             if ( !reUse )
-                                Rules::setRule( serverName, pwd, RuleKeys::SvrPassword );
+                                Settings::setSetting( pwd, SKeys::Rules, SSubKeys::SvrPassword, serverName );
                         }
                         else
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;
 
-                            pwd.clear();
-                            Rules::setRule( serverName, pwd, RuleKeys::SvrPassword );
+                            Settings::setSetting( state, SKeys::Rules, SSubKeys::HasSvrPassword, serverName );
                         }
                     }
-                    else if ( !Rules::getRule( serverName, RuleKeys::SvrPassword ).toString().isEmpty()
+                    else if ( !Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverName ).toBool()
                            && !pwd.isEmpty() )
                     {
                         title = "Remove Password:";
@@ -229,21 +234,22 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             state = false;
                             pwd.clear();
-                            Rules::setRule( serverName, pwd, RuleKeys::SvrPassword );
+                            Settings::setSetting( pwd, SKeys::Rules, SSubKeys::SvrPassword, serverName );
                         }
                     }
                 }
                 pwdCheckState = state;
+                pwd.clear();
             }
         break;
         case Toggles::world:
             {
-                QString world{ Rules::getRule( serverName, RuleKeys::World ).toString() };
+                QString world{ Settings::getSetting( SKeys::Rules, SSubKeys::World, serverName ).toString() };
                 bool ok{ false };
 
                 if ( state != worldCheckState )
                 {
-                    QString worldDir{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::WorldDir ).toString() };
+                    QString worldDir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                     if ( !worldDir.isEmpty() )
                     {
                         selectWorld = new SelectWorld( this );
@@ -266,7 +272,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     }
                     else
                     {
-                        if (( Rules::getRule( serverName, RuleKeys::World ).toString().isEmpty()
+                        if (( Settings::getSetting( SKeys::Rules, SSubKeys::World, serverName ).toString().isEmpty()
                           || !worldCheckState )
                           && state )
                         {
@@ -283,7 +289,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                                 state = false;
                             }
                         }
-                        else if ( !Rules::getRule( serverName, RuleKeys::World ).toString().isEmpty()
+                        else if ( !Settings::getSetting( SKeys::Rules, SSubKeys::World, serverName ).toString().isEmpty()
                                && !world.isEmpty() )
                         {
                             title = "Remove World:";
@@ -305,12 +311,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case Toggles::url:
             {
-                QString url{ Rules::getRule( serverName, RuleKeys::SvrUrl ).toString() };
+                QString url{ Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, serverName ).toString() };
                 bool ok{ false };
 
                 if ( state != urlCheckState )
                 {
-                    if (( Rules::getRule( serverName, RuleKeys::SvrUrl ).toString().isEmpty()
+                    if (( Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, serverName ).toString().isEmpty()
                        || !urlCheckState )
                       && state )
                     {
@@ -327,9 +333,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = false;
                         }
                         else
-                            Rules::setRule( serverName, url, RuleKeys::SvrUrl );
+                            Settings::setSetting( url, SKeys::Rules, SSubKeys::SvrUrl, serverName );
                     }
-                    else if ( !Rules::getRule( serverName, RuleKeys::SvrUrl ).toString().isEmpty()
+                    else if ( !Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, serverName ).toString().isEmpty()
                            && !url.isEmpty() )
                     {
                         title = "Remove URL:";
@@ -341,18 +347,18 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            Rules::setRule( serverName, "", RuleKeys::SvrUrl );
+                            Settings::setSetting( "", SKeys::Rules, SSubKeys::SvrUrl, serverName );
                     }
                 }
                 rowText = "Server Home: [ %1 ]";
-                rowText = rowText.arg( Rules::getRule( serverName, RuleKeys::SvrUrl ).toString() );
+                rowText = rowText.arg( Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, serverName ).toString() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 urlCheckState = state;
             }
         break;
         case Toggles::allPK:
-            Rules::setRule( serverName, state, RuleKeys::AllPK );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::AllPK, serverName );
             if ( state )
             {
                 if ( getCheckedState( Toggles::noPK ) )
@@ -364,12 +370,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case Toggles::maxP:
             {
-                quint32 maxPlrs{ Rules::getRule( serverName, RuleKeys::MaxPlayers ).toUInt() };
+                quint32 maxPlrs{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ).toUInt() };
                 bool ok{ false };
 
                 if ( state != maxPlayersCheckState )
                 {
-                    if (( ( Rules::getRule( serverName, RuleKeys::MaxPlayers ) == 0 )
+                    if (( ( Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ) == 0 )
                        || !maxPlayersCheckState )
                       && state )
                     {
@@ -386,9 +392,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = false;
                         }
                         else
-                            Rules::setRule( serverName, maxPlrs, RuleKeys::MaxPlayers );
+                            Settings::setSetting( maxPlrs, SKeys::Rules, SSubKeys::MaxPlayers, serverName );
                     }
-                    else if ( !( Rules::getRule( serverName, RuleKeys::MaxPlayers ) == 0 )
+                    else if ( !( Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ) == 0 )
                            && maxPlrs != 0 )
                     {
                         title = "Remove Max-Players:";
@@ -400,11 +406,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            Rules::setRule( serverName, "", RuleKeys::MaxPlayers );
+                            Settings::setSetting( "", SKeys::Rules, SSubKeys::MaxPlayers, serverName );
                     }
                 }
                 rowText = "Max Players: [ %1 ]";
-                rowText = rowText.arg( Rules::getRule( serverName, RuleKeys::MaxPlayers ).toUInt() );
+                rowText = rowText.arg( Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ).toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 maxPlayersCheckState = state;
@@ -412,12 +418,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case Toggles::maxAFK:
             {
-                quint32 maxAFK{ Rules::getRule( serverName, RuleKeys::MaxAFK ).toUInt() };
+                quint32 maxAFK{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() };
                 bool ok{ false };
 
                 if ( state != maxAFKCheckState )
                 {
-                    if (( (Rules::getRule( serverName, RuleKeys::MaxAFK ).toUInt() == 0)
+                    if (( (Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() == 0)
                        || !maxAFKCheckState )
                       && state )
                     {
@@ -434,9 +440,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = false;
                         }
                         else
-                            Rules::setRule( serverName, maxAFK, RuleKeys::MaxAFK );
+                            Settings::setSetting( maxAFK, SKeys::Rules, SSubKeys::MaxAFK, serverName );
                     }
-                    else if ( !( Rules::getRule( serverName, RuleKeys::MaxAFK ).toUInt() == 0 )
+                    else if ( !( Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() == 0 )
                            || maxAFK == 0 )
                     {
                         title = "Remove Max-AFK:";
@@ -448,11 +454,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            Rules::setRule( serverName, "", RuleKeys::MaxAFK );
+                            Settings::setSetting( "", SKeys::Rules, SSubKeys::MaxAFK, serverName );
                     }
                 }
                 rowText = "Max AFK: [ %1 ] Minutes";
-                rowText = rowText.arg( Rules::getRule( serverName, RuleKeys::MaxAFK ).toUInt() );
+                rowText = rowText.arg( Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 maxAFKCheckState = state;
@@ -460,12 +466,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case Toggles::minV:
             {
-                QString version{ Rules::getRule( serverName, RuleKeys::MinVersion ).toString() };
+                QString version{ Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, serverName ).toString() };
                 bool ok{ false };
 
                 if ( state != minVersionCheckState )
                 {
-                    if (( Rules::getRule( serverName, RuleKeys::MinVersion ).toString().isEmpty()
+                    if (( Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, serverName ).toString().isEmpty()
                        || !minVersionCheckState)
                       && state )
                     {
@@ -482,9 +488,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = false;
                         }
                         else
-                            Rules::setRule( serverName, version, RuleKeys::MinVersion );
+                            Settings::setSetting( version, SKeys::Rules, SSubKeys::MinVersion, serverName );
                     }
-                    else if ( !Rules::getRule( serverName, RuleKeys::MinVersion ).toString().isEmpty()
+                    else if ( !Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, serverName ).toString().isEmpty()
                            && !version.isEmpty() )
                     {
                         title = "Remove Minimum Game Version:";
@@ -496,39 +502,39 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            Rules::setRule( serverName, "", RuleKeys::MinVersion );
+                            Settings::setSetting( "", SKeys::Rules, SSubKeys::MinVersion, serverName );
                     }
                 }
                 rowText = "Minimum Game Version: [ %1 ]";
-                rowText = rowText.arg( Rules::getRule( serverName, RuleKeys::MinVersion ).toString() );
+                rowText = rowText.arg( Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, serverName ).toString() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
                 minVersionCheckState = state;
             }
         break;
         case Toggles::ladder:
-            Rules::setRule( serverName, state, RuleKeys::PKLadder );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::PKLadder, serverName );
         break;
         case Toggles::noBleep:
-            Rules::setRule( serverName, state, RuleKeys::NoBleep );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoBleep, serverName );
         break;
         case Toggles::noCheat:
-            Rules::setRule( serverName, state, RuleKeys::NoCheat );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoCheat, serverName );
         break;
         case Toggles::noEavesdrop:
-            Rules::setRule( serverName, state, RuleKeys::NoEavesdrop );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoEavesdrop, serverName );
         break;
         case Toggles::noMigrate:
-            Rules::setRule( serverName, state, RuleKeys::NoMigrate );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoMigrate, serverName );
         break;
         case Toggles::noMod:
-            Rules::setRule( serverName, state, RuleKeys::NoModding );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoModding, serverName );
         break;
         case Toggles::noPets:
-            Rules::setRule( serverName, state, RuleKeys::NoPets );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoPets, serverName );
         break;
         case Toggles::noPK:
-            Rules::setRule( serverName, state, RuleKeys::NoPK );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::NoPK, serverName );
             if ( state )
             {
                 if ( getCheckedState( Toggles::allPK ) )
@@ -536,7 +542,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
             }
         break;
         case Toggles::arenaPK:
-            Rules::setRule( serverName, state, RuleKeys::ArenaPK );
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::ArenaPK, serverName );
             if ( state )
             {
                 if ( getCheckedState( Toggles::allPK ) )

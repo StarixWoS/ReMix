@@ -29,7 +29,7 @@ MOTDWidget::MOTDWidget(const QString& name) :
         QString strVar{ ui->motdEdit->toPlainText() };
         Helper::stripNewlines( strVar );
 
-        Settings::setSetting( strVar, SettingKeys::Setting, SettingSubKeys::MOTD, serverName );
+        Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
     }, Qt::QueuedConnection );
 }
 
@@ -61,11 +61,11 @@ void MOTDWidget::deleteWidget(ServerInfo* server)
 
 void MOTDWidget::setServerName(const QString& name)
 {
-    QString text{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MOTD, name ).toString() };
+    QString text{ Settings::getSetting( SKeys::Setting, SSubKeys::MOTD, name ).toString() };
     if ( text.isEmpty() )
     {
         text = ui->motdEdit->toPlainText();
-        Settings::setSetting( text, SettingKeys::Setting, SettingSubKeys::MOTD, name );
+        Settings::setSetting( text, SKeys::Setting, SSubKeys::MOTD, name );
     }
     else
         ui->motdEdit->setText( text );

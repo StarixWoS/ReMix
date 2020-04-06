@@ -19,8 +19,8 @@ SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
     QString title{ "Admin Message: [ %1 ]" };
     this->setWindowTitle( title.arg( serNum ) );
 
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     //Install EventFilters.
     this->installEventFilter( this );
@@ -29,8 +29,8 @@ SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
 
 SendMsg::~SendMsg()
 {
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     delete ui;
 }

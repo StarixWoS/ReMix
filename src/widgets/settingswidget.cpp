@@ -20,21 +20,21 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     ui->setupUi(this);
 
     //Load Settings from file.
-    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() );
-    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::DCBlueCodedSerNums ).toBool() );
-    this->setCheckedState( Toggles::INFORMADMINLOGIN, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::InformAdminLogin ).toBool() );
-    this->setCheckedState( Toggles::MINIMIZETOTRAY, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::MinimizeToTray ).toBool() );
-    this->setCheckedState( Toggles::DISCONNECTIDLES, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowIdle ).toBool() );
-    this->setCheckedState( Toggles::ECHOCOMMENTS, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::EchoComments ).toBool() );
-    this->setCheckedState( Toggles::FWDCOMMENTS, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::FwdComments ).toBool() );
-    this->setCheckedState( Toggles::ALLOWDUPEDIP, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowDupe ).toBool() );
-    this->setCheckedState( Toggles::LOGCOMMENTS, Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogComments ).toBool() );
-    this->setCheckedState( Toggles::BANDUPEDIP, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::BanDupes ).toBool() );
-    this->setCheckedState( Toggles::REQSERNUM, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::ReqSerNum ).toBool() );
-    this->setCheckedState( Toggles::ALLOWSSV, Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowSSV ).toBool() );
-    this->setCheckedState( Toggles::LOGFILES, Settings::getSetting( SettingKeys::Logger, SettingSubKeys::LogFiles ).toBool() );
+    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS, Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() );
+    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS, Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() );
+    this->setCheckedState( Toggles::INFORMADMINLOGIN, Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() );
+    this->setCheckedState( Toggles::MINIMIZETOTRAY, Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool() );
+    this->setCheckedState( Toggles::DISCONNECTIDLES, Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() );
+    this->setCheckedState( Toggles::ECHOCOMMENTS, Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() );
+    this->setCheckedState( Toggles::FWDCOMMENTS, Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() );
+    this->setCheckedState( Toggles::ALLOWDUPEDIP, Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() );
+    this->setCheckedState( Toggles::LOGCOMMENTS, Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() );
+    this->setCheckedState( Toggles::BANDUPEDIP, Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() );
+    this->setCheckedState( Toggles::REQSERNUM, Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() );
+    this->setCheckedState( Toggles::ALLOWSSV, Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() );
+    this->setCheckedState( Toggles::LOGFILES, Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() );
 
-    QString dir{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::WorldDir ).toString() };
+    QString dir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
     QString rowText{ "World Dir: [ %1 ]" };
     if ( !dir.isEmpty() )
         rowText = rowText.arg( dir );
@@ -106,7 +106,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
     switch ( static_cast<Toggles>( row ) )
     {
         case Toggles::ALLOWDUPEDIP: //0
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::AllowDupe );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowDupe );
             if ( state )
             {
                 if ( this->getCheckedState( Toggles::BANDUPEDIP ) )
@@ -114,7 +114,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
             }
         break;
         case Toggles::BANDUPEDIP: //1
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::BanDupes );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::BanDupes );
             if ( state )
             {
                 if ( this->getCheckedState( Toggles::ALLOWDUPEDIP ) )
@@ -122,41 +122,41 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
             }
         break;
         case Toggles::REQSERNUM: //2
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::ReqSerNum );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::ReqSerNum );
         break;
         case Toggles::DCBLUECODEDSERNUMS: //3
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::DCBlueCodedSerNums );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::DCBlueCodedSerNums );
         break;
         case Toggles::DISCONNECTIDLES: //4
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::AllowIdle );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowIdle );
         break;
         case Toggles::ALLOWSSV: //5
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::AllowSSV );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowSSV );
         break;
         case Toggles::LOGCOMMENTS: //6
-            Settings::setSetting( state, SettingKeys::Logger, SettingSubKeys::LogComments );
+            Settings::setSetting( state, SKeys::Logger, SSubKeys::LogComments );
         break;
         case Toggles::FWDCOMMENTS: //7
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::FwdComments );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::FwdComments );
         break;
         case Toggles::ECHOCOMMENTS: //8
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::EchoComments );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::EchoComments );
         break;
         case Toggles::INFORMADMINLOGIN: //9
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::InformAdminLogin );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::InformAdminLogin );
         break;
         case Toggles::MINIMIZETOTRAY: //10
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::MinimizeToTray );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::MinimizeToTray );
         break;
         case Toggles::SAVEWINDOWPOSITIONS: //11
-            Settings::setSetting( state, SettingKeys::Setting, SettingSubKeys::SaveWindowPositions );
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::SaveWindowPositions );
         break;
         case Toggles::LOGFILES: //12
-            Settings::setSetting( state, SettingKeys::Logger, SettingSubKeys::LogFiles );
+            Settings::setSetting( state, SKeys::Logger, SSubKeys::LogFiles );
         break;
         case Toggles::WORLDDIR: //13
             {
-                QString directory{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::WorldDir ).toString() };
+                QString directory{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                 QString rowText{ "World Dir: [ %1 ]" };
 
                 bool reUse{ false };
@@ -196,7 +196,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                     rowText = rowText.arg( directory );
                     ui->settingsView->item( Toggles::WORLDDIR, 0 )->setText( rowText );
 
-                    Settings::setSetting( directory, SettingKeys::Setting, SettingSubKeys::WorldDir );
+                    Settings::setSetting( directory, SKeys::Setting, SSubKeys::WorldDir );
                 }
             }
         break;

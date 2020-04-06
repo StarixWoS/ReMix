@@ -37,8 +37,8 @@ class CreateInstance : public QDialog
         void on_initializeServer_clicked();
         void showEvent(QShowEvent* event) override;
         void on_close_clicked();
-
         void on_randomizePort_clicked();
+        void on_deleteServer_clicked();
 
     signals:
         void createServerAcceptedSignal(ServerInfo* server);

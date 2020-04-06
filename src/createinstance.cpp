@@ -13,6 +13,7 @@
 #include "helper.hpp"
 
 //Qt Includes.
+#include <QMessageBox>
 #include <QCloseEvent>
 #include <QTcpSocket>
 #include <QSettings>
@@ -61,7 +62,7 @@ void CreateInstance::updateServerList(const bool& firstRun)
     for ( int i = 0; i < servers.count(); ++i )
     {
         name = servers.at( i );
-        for ( const auto& key : Settings::keys )
+        for ( const auto& key : Settings::pKeys )
         {
             if ( Helper::cmpStrings( name, key ) )
                 skip = true;
@@ -71,9 +72,9 @@ void CreateInstance::updateServerList(const bool& firstRun)
         {
             running = false;
             if ( firstRun )
-                Settings::setSetting( false, SettingKeys::Setting, SettingSubKeys::IsRunning, name );
+                Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
             else
-                running = Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsRunning, name ).toBool();
+                running = Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool();
         }
 
         if ( !skip && !running )
@@ -117,7 +118,7 @@ void CreateInstance::on_initializeServer_clicked()
         else
         {
             //Verify that the server hasn't been initialized previously.
-            if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsRunning, svrName ).toBool() )
+            if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
                 auto* server = new ServerInfo();
                 if ( server == nullptr ) //Failed to create the ServerInfo instance.
@@ -264,7 +265,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
     QString svrName{ ui->servers->currentText() };
     if ( !svrName.isEmpty() )
     {
-        QString gameName{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::GameName, svrName ).toString() };
+        QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, svrName ).toString() };
         if ( !gameName.isEmpty() )
         {
             bool notFound{ true };
@@ -282,19 +283,19 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         }
     }
 
-    QString svrPort{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::PortNumber, svrName ).toString() };
+    QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, svrName ).toString() };
     if ( !svrPort.isEmpty() )
         ui->portNumber->setText( svrPort );
     else
         ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
 
-    bool isPublic{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::IsPublic, svrName ).toBool() };
+    bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, svrName ).toBool() };
     if ( isPublic )
         ui->isPublic->setChecked( isPublic );
     else
         ui->isPublic->setChecked( false );
 
-    bool useUPNP{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::UseUPNP, svrName ).toBool() };
+    bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, svrName ).toBool() };
     if ( useUPNP )
         ui->useUPNP->setChecked( useUPNP );
     else
@@ -344,4 +345,20 @@ void CreateInstance::on_randomizePort_clicked()
     //Simple. Set the text to an empty string and
     //let "on_portNumber_textChanged" handle the port generation.
     ui->portNumber->setText( "" );
+}
+
+void CreateInstance::on_deleteServer_clicked()
+{
+    QString svrName{ ui->servers->currentText() };
+    QString title{ "Warning:" };
+    QString message{ "Please make sure that you would like the server [ %1 ] to be deleted from storage!" };
+    if ( !svrName.isEmpty() )
+    {
+        message = message.arg( svrName );
+        if ( Helper::confirmAction( this, title, message ) )
+        {
+            Settings::removeSetting( svrName );
+            this->updateServerList( false );
+        }
+    }
 }

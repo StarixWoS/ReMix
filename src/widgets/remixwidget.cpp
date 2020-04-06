@@ -181,7 +181,7 @@ void ReMixWidget::initUIUpdate()
 
             //Validate the server's IP Address is still valid.
             //If it is now invalid, restart the network sockets.
-            if ( Settings::getSetting( SettingKeys::WrongIP, server->getPrivateIP() ).toBool() )
+            if ( Settings::getSetting( SKeys::WrongIP, server->getPrivateIP() ).toBool() )
             {
                 emit this->reValidateServerIPSignal();
             }
@@ -260,7 +260,7 @@ void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
     prompt = prompt.arg( link );
     if ( Helper::confirmAction( this, title, prompt ) )
     {
-        Settings::setSetting( true, SettingKeys::WrongIP, link );
+        Settings::setSetting( true, SKeys::WrongIP, link );
 
         emit this->reValidateServerIPSignal();
 

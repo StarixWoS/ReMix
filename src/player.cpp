@@ -10,7 +10,6 @@
 #include "helper.hpp"
 #include "logger.hpp"
 #include "theme.hpp"
-#include "rules.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -104,7 +103,7 @@ Player::Player()
             this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
         }
 
-        if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowIdle ).toBool()
+        if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
           && idleTime.elapsed() >= MAX_IDLE_TIME )
         {
             QString reason{ "Auto-Disconnect; Idle timeout: [ %1 ], [ %2 ]" };
@@ -128,7 +127,7 @@ Player::Player()
                     if ( !this->getNewAdminPwdReceived() )
                         this->setNewAdminPwdRequested( true );
                 }
-                else if ( ( !Rules::getRule( serverInfo->getServerName(), RuleKeys::SvrPassword ).toString().isEmpty()
+                else if (( !Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverInfo->getServerName() ).toString().isEmpty()
                        || this->getSvrPwdReceived() )
                        && !this->getNewAdminPwdRequested() )
                 {
@@ -874,13 +873,13 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
       || this->getSernum_i() == 0 )
     {
         if ( !isBlueCoded
-          || !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::DCBlueCodedSerNums ).toBool() )
+          || !Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() )
         {
             if ( this->getSernum_i() == 0 )
             {
                 //Disconnect the User if they have no SerNum,
                 //as we require SerNums.
-                if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::ReqSerNum ).toBool()
+                if ( Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool()
                   && id == 0 )
                 {
                     zeroSerNum = true;
@@ -901,7 +900,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 
         if ( disconnect
           || ( isBlueCoded
-            && Settings::getSetting( SettingKeys::Setting, SettingSubKeys::DCBlueCodedSerNums ).toBool() ) )
+            && Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() ) )
         {
             message = "";
             reason = "";

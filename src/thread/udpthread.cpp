@@ -10,7 +10,6 @@
 #include "logger.hpp"
 #include "player.hpp"
 #include "server.hpp"
-#include "rules.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -79,7 +78,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                     }
                 }
 
-                bool reqSernum{ Settings::getSetting( SettingKeys::Setting, SettingSubKeys::ReqSerNum ).toBool() };
+                bool reqSernum{ Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() };
                 if (( reqSernum && Helper::serNumtoInt( sernum ) )
                   || !reqSernum )
                 {
@@ -90,7 +89,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 //ReMix[ %7 ]" };
                             response = response.arg( serverName )
                                                .arg( sGameInfo )
-                                               .arg( Rules::getRuleSet( serverName ) )
+                                               .arg( Settings::getRuleSet( serverName ) )
                                                .arg( serverID )
                                                .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), 16, 8 ) )
                                                .arg( this->getUsageString() )

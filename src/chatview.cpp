@@ -13,7 +13,6 @@
 #include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
-#include "rules.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
@@ -103,14 +102,14 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
     pktForge = PacketForge::getInstance();
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SettingKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 }
 
 ChatView::~ChatView()
 {
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SettingKeys::Positions, this->metaObject()->className() );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     delete ui;
 }
@@ -311,9 +310,9 @@ bool ChatView::parseChatEffect(const QString& packet)
         if ( server != nullptr )
         {
             //Check if the bleeping rule is set.
-            //There's no pint in censoring our chat if we aren't censoring chat
+            //There's no pont in censoring our chat if we aren't censoring chat
             //for other people.
-            if ( Rules::getRule( server->getServerName(), RuleKeys::NoBleep ).toBool() )
+            if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoBleep, server->getServerName() ).toBool() )
                 this->bleepChat( message );
         }
 

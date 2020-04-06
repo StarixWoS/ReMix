@@ -326,7 +326,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     }
 
     //Disconnect and ban duplicate IP's if required.
-    if ( !Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowDupe ).toBool() )
+    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() )
     {
         for ( int i = 0; i < MAX_PLAYERS; ++i )
         {
@@ -341,13 +341,13 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                            QString& plrMessage )
                     {
                         QString reason{ logMsg };
-                        reason = reason.arg( "Duplicate IP" )
-                                       .arg( plr->getPublicIP() )
-                                       .arg( plr->getBioData() );
+                                reason = reason.arg( "Duplicate IP" )
+                                               .arg( plr->getPublicIP() )
+                                               .arg( plr->getBioData() );
 
                         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
-                        if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::BanDupes ).toBool() )
+                        if ( Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() )
                         {
                             reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
                             reason = reason.arg( plr->getPublicIP() )
@@ -590,7 +590,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
     qint64 bOut{ 0 };
 
     QString accessType{ "Read" };
-    if ( Settings::getSetting( SettingKeys::Setting, SettingSubKeys::AllowSSV ).toBool() )
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() )
     {
         QString pkt = packet;
         pkt = pkt.mid( 10 );
