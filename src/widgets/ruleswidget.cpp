@@ -357,6 +357,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
             {
                 if ( getCheckedState( Toggles::noPK ) )
                     this->toggleRulesModel( Toggles::noPK );
+
+                if ( getCheckedState( Toggles::arenaPK ) )
+                    this->toggleRulesModel( Toggles::arenaPK );
             }
         break;
         case Toggles::maxP:
@@ -534,6 +537,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case Toggles::arenaPK:
             Rules::setRule( serverName, state, RuleKeys::ArenaPK );
+            if ( state )
+            {
+                if ( getCheckedState( Toggles::allPK ) )
+                    this->toggleRulesModel( Toggles::allPK );
+            }
         break;
     }
 }

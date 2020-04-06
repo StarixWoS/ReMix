@@ -17,7 +17,8 @@ Version 2.5.8:
       * When both "Allow Duplicate IP's" and "Ban Duplicate IP's" enabled, ReMix will only ban a User if "Allow Duplicate IP's" is disabled.
         * TODO: A more elegant solution is to toggle each setting off when the other is enabled.
       * The Settings "Allow Duplicate IP's" and "Ban Duplicate IP's" will now toggle eachother off as needed. The previous change is undone.
-        *Aditionally; the Rules "AllPK" and "NoPK" will also toggle eachother off as needed.
+        * The Rules "AllPK" and "NoPK" will also toggle eachother off as needed.
+        * The Rules "AllPK" and "ArenaPK" will also toggle eachother off as needed.
 
 
 
