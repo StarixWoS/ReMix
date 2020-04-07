@@ -64,6 +64,14 @@ void RulesWidget::setServerName(const QString& name)
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( val.toString() ) );
     emit this->gameInfoChangedSignal( val.toString() );
 
+    rowText = "Max AFK: [ %1 ] Minutes";
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
+    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( val.toUInt() ) );
+
+    rowText = "Minimum Game Version: [ %1 ]";
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
+    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText.arg( val.toString() ) );
+
     rowText = "Server Home: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, name );
     ui->rulesView->item( Toggles::url, 0 )->setText( rowText.arg( val.toString() ) );
@@ -72,13 +80,6 @@ void RulesWidget::setServerName(const QString& name)
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name );
     ui->rulesView->item( Toggles::maxP, 0 )->setText( rowText.arg( val.toUInt() ) );
 
-    rowText = "Max AFK: [ %1 ] Minutes";
-    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
-    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( val.toUInt() ) );
-
-    rowText = "Minimum Game Version: [ %1 ]";
-    val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
-    ui->rulesView->item( Toggles::minV, 0 )->setText( rowText.arg( val.toString() ) );
 
     minVersionCheckState = !Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name ).toString().isEmpty();
     this->setCheckedState( Toggles::minV, minVersionCheckState );

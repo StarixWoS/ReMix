@@ -281,8 +281,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     instanceCount -= 1;
     if ( !restart ) //The server was designated to not restart.
     {
-        //Server instance was the last, check if it was a remote shutdown
-        //and if so, ignore the creation dialog and gracefully close.
+        //Server instance was the last, check if it was a remote shutdown and if so, ignore the creation dialog and gracefully close.
         if ( instanceCount == 0 )
         {
             if ( !remote )
@@ -415,8 +414,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
                     //Last server instance is being closed. Prompt User.
                     if ( Helper::confirmAction( this, title, prompt ) )
                     {
-                        //Correctly switch the tab to a valid server instance
-                        //before closing the current instance.
+                        //Correctly switch the tab to a valid server instance before closing the current instance.
                         if ( i == 0 )
                         {
                             qint32 servercount{ serverMap.size() };

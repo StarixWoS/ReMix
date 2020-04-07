@@ -47,36 +47,33 @@ Logger::Logger(QWidget *parent) :
     writeThread = WriteThread::getNewWriteThread( logType, nullptr );
     writeThread->moveToThread( thread );
 
-    //Connect the Logger Class to the WriteThread Class.
+    //Connect Objects to Slots.
     QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot, Qt::QueuedConnection );
 
     tblModel = new QStandardItemModel( 0, 4, nullptr );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Date ), Qt::Horizontal, "Date" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Source ), Qt::Horizontal, "Source" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
     tblModel->setHeaderData( static_cast<int>( LogCols::Message ), Qt::Horizontal, "Message" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Source ), Qt::Horizontal, "Source" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Date ), Qt::Horizontal, "Date" );
+    tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
 
-    QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot, Qt::QueuedConnection );
     ui->logView->setModel( tblModel );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
     tblProxy = new LoggerSortProxyModel();
+    tblProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     tblProxy->setDynamicSortFilter( true );
     tblProxy->setSourceModel( tblModel );
-    tblProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
     ui->logView->setModel( tblProxy );
 
-    //ui->logView->verticalHeader()->setSectionResizeMode( QHeaderView::Fixed );
-    //ui->logView->verticalHeader()->setDefaultSectionSize( 15 );
-    ui->logView->verticalHeader()->setVisible( false );
-    ui->logView->horizontalHeader()->setVisible( true );
-
     ui->logView->horizontalHeader()->setStretchLastSection( true );
+    ui->logView->horizontalHeader()->setVisible( true );
+    ui->logView->verticalHeader()->setVisible( false );
 
     //Load the application Icon into the top left of the dialog.
-    iconViewerScene = new QGraphicsScene();
     iconViewerItem = new QGraphicsPixmapItem( QPixmap::fromImage( QImage( ":/icon/ReMix.png" ) ) );
+    iconViewerScene = new QGraphicsScene();
     iconViewerScene->addItem( iconViewerItem );
 
     ui->iconViewer->setScene( iconViewerScene );
@@ -84,7 +81,7 @@ Logger::Logger(QWidget *parent) :
 
     //Set the version number into the versionLabel.
     QString versionText{ ui->versionLabel->text() };
-    versionText = versionText.arg( QString( REMIX_VERSION ) );
+            versionText = versionText.arg( QString( REMIX_VERSION ) );
     ui->versionLabel->setText( versionText );
 
     //Restore the AutoLog setting.
@@ -138,8 +135,7 @@ void Logger::scrollToBottom()
     {
         QTableView* obj{ ui->logView };
 
-        //Detect when the user is scrolling upwards.
-        //And prevent scrolling.
+        //Detect when the user is scrolling upwards. And prevent scrolling.
         if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum() )
             obj->scrollToBottom();
     }
@@ -151,24 +147,16 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
     QString time = Helper::getTimeAsString();
 
     if ( tblModel != nullptr
-      && ( type != LogTypes::CHAT ) ) //Prevent Chat from appearing
-                                      //within the Logger UI.
+      && ( type != LogTypes::CHAT ) ) //Prevent Chat from appearing within the Logger UI.
     {
         qint32 row = tblModel->rowCount();
         tblModel->insertRow( row );
         ui->logView->setRowHeight( row, 20 );
 
-        this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
-        //emit this->resizeColumnsSlot( LogCols::Date );
-
-        this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
-        //emit this->resizeColumnsSlot( LogCols::Source );
-
         this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
-        //emit this->resizeColumnsSlot( LogCols::Type );
-
         this->updateRowData( row, static_cast<int>( LogCols::Message ), message.simplified() );
-        //emit this->resizeColumnsSlot( LogCols::Message );
+        this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
+        this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
 
         ui->logView->resizeColumnsToContents();
         this->scrollToBottom();
@@ -183,15 +171,8 @@ void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant&
     QModelIndex index = tblModel->index( row, col );
     if ( index.isValid() )
     {
-        QString msg{ "" };
         if ( col == static_cast<int>( LogCols::Date ) )
-        {
-            msg = data.toString();
-
-            tblModel->setData( index, msg, Qt::DisplayRole );
-            //if ( col == static_cast<int>( LogCols::Date ) )
-            //    emit this->resizeColumnsSlot( LogCols::Date );
-        }
+            tblModel->setData( index, data.toString(), Qt::DisplayRole );
         else
             tblModel->setData( index, data, Qt::DisplayRole );
     }

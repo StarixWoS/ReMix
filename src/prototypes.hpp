@@ -342,7 +342,6 @@
                                   SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxAFK, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
                                   NoMigrate, NoModding, NoPets, NoPK, ArenaPK, KeyCount };
 
-
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

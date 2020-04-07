@@ -6,7 +6,6 @@
 #include "packethandler.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
-#include "sendmsg.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
 #include "theme.hpp"
@@ -36,7 +35,7 @@ Player::Player()
         this->setIsAFK( true );
     }, Qt::QueuedConnection );
 
-    //Start the AFK timer. - 300,000 milliseconds - 5 minutes.
+    //Start the AFK timer.
     afkTimer.start( MAX_AFK_TIME );
 
     QObject::connect( &connTimer, &QTimer::timeout, &connTimer,
@@ -65,8 +64,7 @@ Player::Player()
                              .arg( this->getPacketsOut() );
             this->setModelData( row, row->row(), static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
 
-            //Color the User's IP address Green if the Admin is authed
-            //Otherwise, color as Red.
+            //Color the User's IP address Green if the Admin is authed Otherwise, color as Red.
             Colors color{ Colors::Default };
             if ( this->getIsAdmin() )
             {
@@ -84,8 +82,7 @@ Player::Player()
 
             this->setModelData( row, row->row(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
-            //Color the User's IP address Red if the User's is muted.
-            //Otherwise, color as Green.
+            //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
             color = Colors::Default;
             if ( !this->getIsMuted() )
             {
@@ -127,7 +124,7 @@ Player::Player()
                     if ( !this->getNewAdminPwdReceived() )
                         this->setNewAdminPwdRequested( true );
                 }
-                else if (( !Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverInfo->getServerName() ).toString().isEmpty()
+                else if (( Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverInfo->getServerName() ).toString().isEmpty()
                        || this->getSvrPwdReceived() )
                        && !this->getNewAdminPwdRequested() )
                 {
@@ -140,7 +137,7 @@ Player::Player()
                         if ( this->getIsAdmin() )
                         {
                             this->setAdminPwdRequested( true );
-                            this->sendMessage( msg );
+                            serverInfo->sendMasterMessage( msg, this, false );
                         }
                     }
                 }
@@ -178,16 +175,6 @@ Player::Player()
 
 Player::~Player()
 {
-    if ( messageDialog != nullptr )
-    {
-        if ( messageDialog->isVisible() )
-        {
-            messageDialog->close();
-        }
-        messageDialog->disconnect();
-        messageDialog->deleteLater();
-    }
-
     connTimer.stop();
     connTimer.disconnect();
 
@@ -196,48 +183,6 @@ Player::~Player()
 
     this->disconnect();
     this->deleteLater();
-}
-
-void Player::sendMessage(const QString& msg, const bool& toAll)
-{
-    ServerInfo* server{ this->getServerInfo() };
-    if ( server == nullptr )
-        return;
-
-    if ( !msg.isEmpty() )
-    {
-        if ( toAll )
-            server->sendMasterMessage( msg, nullptr, true );
-        else
-            server->sendMasterMessage( msg, this, false );
-    }
-    else
-    {
-        if ( messageDialog == nullptr )
-        {
-            messageDialog = new SendMsg( this->getSernum_s() );
-            QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
-            [=](QString message)
-            {
-                if ( !message.isEmpty() )
-                {
-                    bool sendToAll{ messageDialog->sendToAll() };
-                    if ( server != nullptr )
-                    {
-                        if ( sendToAll )
-                            server->sendMasterMessage( message, nullptr, true );
-                        else
-                            server->sendMasterMessage( message, this, false );
-                    }
-                }
-            }, Qt::QueuedConnection );
-        }
-
-        if ( !messageDialog->isVisible() )
-            messageDialog->show();
-        else
-            messageDialog->hide();
-    }
 }
 
 quint64 Player::getConnTime() const
@@ -333,8 +278,7 @@ void Player::setSernum_i(quint32 value)
                 {
                     model->setData( model->index( row->row(), 1 ), sernum_s, Qt::DisplayRole );
 
-                    //Correct the User's BIO Data based on their serNum.
-                    //This will only succeed if the User is on file.
+                    //Correct the User's BIO Data based on their serNum. This will only succeed if the User is on file.
                     bool newBioData{ false };
                     QByteArray data{ "" };
 
@@ -748,7 +692,7 @@ void Player::setNewAdminPwdRequested(const bool& value)
                      "(/register *YOURPASS). Note: The server Host and other Admins will not have access to this information." };
 
         if ( this->getIsAdmin() )
-            this->sendMessage( msg, false );
+            this->getServerInfo()->sendMasterMessage( msg, this, false );
     }
 }
 
@@ -877,8 +821,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
         {
             if ( this->getSernum_i() == 0 )
             {
-                //Disconnect the User if they have no SerNum,
-                //as we require SerNums.
+                //Disconnect the User if they have no SerNum, as we require SerNums.
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool()
                   && id == 0 )
                 {
@@ -891,8 +834,6 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
                    && this->getSernum_i() > 0 )
             {
                 //User's sernum has somehow changed. Disconnect them.
-                //This is a possible Ban event.
-                //TODO: Add Setting to enable banning.
                 serNumChanged = true;
                 disconnect = true;
             }
@@ -930,7 +871,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
                                .arg( this->getBioData() );
             }
 
-            this->sendMessage( message, false );
+            server->sendMasterMessage( message, this, false );
 
             emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
@@ -946,7 +887,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
         {
             //Ban IP?
             message = "Auto-Mute; Attempting to use SerNum 1 with the incorrect IP address. Be warned that this may become a ban within future ReMix versions.";
-            this->sendMessage( message, false );
+            server->sendMasterMessage( message, this, false );
 
             reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the usage of <[ Soul 1 ][ %3 ]> while connecting from an "
                      "improper IP Address.";
@@ -961,26 +902,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
     }
 }
 
-QString Player::getDVar() const
-{
-    return dVar;
-}
-
-void Player::setDVar(const QString& value)
-{
-    dVar = value;
-}
-
-QString Player::getWVar() const
-{
-    return wVar;
-}
-
-void Player::setWVar(const QString& value)
-{
-    wVar = value;
-}
-
+//Slots
 void Player::sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
@@ -1032,4 +954,25 @@ void Player::sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 t
         }
     }
     return;
+}
+
+void Player::sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet)
+{
+    QTcpSocket* soc{ this->getSocket() };
+    qint64 bOut{ 0 };
+
+    if ( soc == nullptr )
+         return;
+
+    if ( !all
+      || plr != nullptr )
+    {
+        if ( this == plr )
+            bOut = soc->write( packet, packet.length() );
+    }
+    else
+        bOut = soc->write( packet, packet.length() );
+
+    if ( bOut >= 0 )
+        serverInfo->updateBytesOut( this, bOut );
 }

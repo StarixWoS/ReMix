@@ -49,7 +49,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QStr
             if ( plrRank < rank )
             {
                 invalidAuth = invalidAuth.arg( cmdStr );
-                plr->sendMessage( invalidAuth, false );
+                server->sendMasterMessage( invalidAuth, plr, false );
                 retn = false;
             }
             else
@@ -60,7 +60,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QStr
             if ( rank <= GMRanks::User )
                 retn = true;
             else
-                plr->sendMessage( unauth, false );
+                server->sendMasterMessage( unauth, plr, false );
         }
     }
     else
@@ -78,7 +78,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QStr
 
             reason = reason.arg (plr->getSernum_s() )
                            .arg( plr->getCmdAttempts() );
-            plr->sendMessage( reason, false );
+            server->sendMasterMessage( reason, plr, false );
 
             //Append IP:Port and BIO data to the reason for the Ban log.
             QString append{ " [ %1:%2 ], %3" };
@@ -93,7 +93,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QStr
             plr->setDisconnected( true, DCTypes::IPDC );
         }
         else
-            plr->sendMessage( invalid, false );
+            server->sendMasterMessage( invalid, plr, false );
 
         retn = false;
     }
@@ -139,7 +139,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
                 {
                     if ( !Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
-                        plr->sendMessage( "Echo: " % msg, false );
+                        server->sendMasterMessage( "Echo: " % msg, plr, false );
                 }
 
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
@@ -161,7 +161,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
                             if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
                               && tmpPlr->getAdminPwdReceived() )
                             {
-                                tmpPlr->sendMessage( message, false );
+                                server->sendMasterMessage( message, tmpPlr, false );
                             }
                         }
                     }
@@ -233,7 +233,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             {
                 all = true;
             }
-            else    //Invalid Rank. Give generic response.
+            else    //Invalid Rank.
                 return false;
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
@@ -251,10 +251,8 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
             message = packet.mid( Helper::getStrIndex( packet, arg2 ) );
     }
     else
-    {
-        //Command parameter is not a Sub-Command.
-        message = packet.mid( Helper::getStrIndex( packet, cmd )
-                            + cmd.length() ).simplified();
+    {   //Command parameter is not a Sub-Command.
+        message = packet.mid( Helper::getStrIndex( packet, cmd ) + cmd.length() ).simplified();
     }
 
     bool canUseCommands{ false };
@@ -270,14 +268,14 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 //Send command description and usage.
                 if ( index != GMCmds::Invalid )
                 {
-                    plr->sendMessage( cmdTable->getCommandInfo( index, false ), false );
-                    plr->sendMessage( cmdTable->getCommandInfo( index, true ), false );
+                    server->sendMasterMessage( cmdTable->getCommandInfo( index, false ), plr, false );
+                    server->sendMasterMessage( cmdTable->getCommandInfo( index, true ), plr, false );
                 }
             }
         break;
         case GMCmds::List:
             {
-                plr->sendMessage( cmdTable->collateCmdList( this->getAdminRank( plr ) ), false );
+                server->sendMasterMessage( cmdTable->collateCmdList( this->getAdminRank( plr ) ), plr, false );
             }
         break;
         case GMCmds::MotD:
@@ -308,7 +306,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                     tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
                                    .arg( server->getPlayerCount() )
                                    .arg( adminCount );
-                    plr->sendMessage( tmpMsg, false );
+                    server->sendMasterMessage( tmpMsg, plr, false );
                 }
                 retn = true;
             }
@@ -433,32 +431,6 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 }
             }
         break;
-//        case GMCmds::MKAdmin:
-//            {
-//                this->mkAdminHandler( plr, arg1, arg2 );
-//            }
-//        break;
-//        case GMCmds::RMAdmin:
-//            {
-//                this->rmAdminHandler( plr, arg1 );
-//            }
-//        break;
-//        case GMCmds::CHAdmin:
-//            {
-//                this->chAdminHandler( plr, arg1, arg2 );
-//            }
-//        break;
-//        case GMCmds::CHRules:
-//            {
-//                if ( this->validateAdmin( plr, GMRanks::CoAdmin ) )
-//                    this->chRulesHandler( plr, arg1, QVariant() );
-//            }
-//        break;
-//        case GMCmds::CHSettings:
-//            {
-//                this->chSettingsHandler( plr, arg1, arg2 );
-//            }
-//        break;
         case GMCmds::Vanish:
             {
                 if ( this->validateAdmin( plr, cmdRank, cmd ) )
@@ -470,7 +442,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
                 QString ver{ "ReMix Version: [ %1 ]" };
                 ver = ver.arg( QString( REMIX_VERSION ) );
                 if ( plr != nullptr )
-                    plr->sendMessage( ver, false );
+                    server->sendMasterMessage( ver, plr, false );
 
                 //Version can be used by any User.
                 //Do not log usage to file.
@@ -496,7 +468,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
     if ( argIndex != GMCmds::Message )
     {
         if ( retn && canUseCommands )
-            plr->sendMessage( msg, false );
+            server->sendMasterMessage( msg, plr, false );
     }
 
     if ( logMsg )
@@ -546,7 +518,7 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1, const GMC
                              .arg( cmdTable->getCmdName( argIndex ) )
                              .arg( arg1 );
 
-    admin->sendMessage( message, false );
+    server->sendMasterMessage( message, admin, false );
 }
 
 bool CmdHandler::isTarget(Player* target, const QString& arg1, const bool isAll)
@@ -611,7 +583,7 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd, const QString& 
     else
     {
         //Invalid argument listing. Send the command syntax.
-        plr->sendMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ) );
+        server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ), plr, false );
     }
 }
 
@@ -664,7 +636,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1, const QString& dur
                              .arg( msg );
 
         if ( !reasonMsg.isEmpty() )
-            tmpPlr->sendMessage( reasonMsg, false );
+            server->sendMasterMessage( reasonMsg, tmpPlr, false );
 
         msg = msg.prepend( "Remote-Banish; " );
         User::addBan( plr, tmpPlr, msg, true,
@@ -711,7 +683,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1, const GMCmds& arg
             {
                 if ( this->canIssueAction( plr, tmpPlr, arg1, argIndex, all ) )
                 {
-                    tmpPlr->sendMessage( reason, false );
+                    server->sendMasterMessage( reason, tmpPlr, false );
 
                     reason = "Remote-Kick by admin [ %1 ]; %2: [ %3 ], [ %4 ]";
                     reason = reason.arg( plr->getSernum_s() )
@@ -777,7 +749,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1, const QString& du
                              .arg( msg );
 
         if ( !reasonMsg.isEmpty() )
-            tmpPlr->sendMessage( reasonMsg, false );
+            server->sendMasterMessage( reasonMsg, tmpPlr, false );
 
         msg = msg.prepend( "Remote-Mute by admin [ %1 ]; " )
                  .arg( plr->getSernum_s() );
@@ -815,7 +787,7 @@ void CmdHandler::msgHandler(const QString& arg1, const QString& message, const b
                     if ( tmpPlr->getPublicIP() == arg1
                       || tmpPlr->getSernum_s() == arg1 )
                     {
-                        tmpPlr->sendMessage( message, false );
+                        server->sendMasterMessage( message, tmpPlr, false );
                     }
                 }
             }
@@ -888,7 +860,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
                         {
                             //Do not Inform our own Admin.. --Redundant..
                             if ( tmpPlr != plr )
-                                tmpPlr->sendMessage( message, false );
+                                server->sendMasterMessage( message, tmpPlr, false );
                         }
                     }
                 }
@@ -903,7 +875,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
     }
 
     if ( !response.isEmpty() )
-        plr->sendMessage( response, false );
+        server->sendMasterMessage( response, plr, false );
 
     if ( disconnect )
     {
@@ -975,14 +947,14 @@ void CmdHandler::registerHandler(Player* plr, const QString& subCmd)
                 {
                     //Do not Inform our own Admin.. --Redundant..
                     if ( tmpPlr != plr )
-                        tmpPlr->sendMessage( message, false );
+                        server->sendMasterMessage( message, plr, false );
                 }
             }
         }
     }
 
     if ( !response.isEmpty() )
-        plr->sendMessage( response, false );
+        server->sendMasterMessage( response, plr, false );
 }
 
 void CmdHandler::shutDownHandler(Player* plr, const QString& duration, const QString& reason, bool& stop, bool& restart)
@@ -1100,125 +1072,8 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
 
     message = message.arg( plr->getSernum_s() )
                      .arg( state );
-    plr->sendMessage( message, false );
+    server->sendMasterMessage( message, plr, false );
 }
-
-//void CmdHandler::mkAdminHandler(Player* plr, QString& sernum, QString& arg)
-//{
-//    QString msg{ "The Remote Admin [ %1 ] is attempting to register you as an "
-//                 "Admin with the server. Please reply to this message with "
-//                 "(/register *YOURPASS). Note: Neither the Server Host or "
-//                 "other Admins will have access to this information." };
-
-//    qint32 rank{ arg.toInt( 0, 10 ) };
-
-//    Player* tmpPlr{ nullptr };
-//    if ( plr != nullptr )
-//    {
-//        if ( !sernum.isEmpty() )
-//        {
-//            tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
-//            if ( tmpPlr != nullptr )
-//            {
-//                msg = msg.arg( plr->getSernum_s() );
-
-//                if ( !msg.isEmpty() )
-//                    server->sendMasterMessage( msg, tmpPlr, false );
-//            }
-//        }
-//    }
-//}
-
-//void CmdHandler::rmAdminHandler(Player* plr, QString& sernum)
-//{
-//    QString msg{ "Your Remote Administrator privileges have been REVOKED "
-//                 "by the Remote Admin [ %1 ]. Please contact the Server Host "
-//                 "if you believe this was in error." };
-
-//    Player* tmpPlr{ nullptr };
-//    if ( plr != nullptr )
-//    {
-//        if ( !sernum.isEmpty() )
-//        {
-//            if ( Admin::remoteRemoveAdmin( sernum ) )
-//            {
-//                tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
-//                if ( tmpPlr != nullptr )
-//                {
-//                    msg = msg.arg( plr->getSernum_s() );
-//                    if ( !msg.isEmpty() )
-//                        server->sendMasterMessage( msg, tmpPlr, false );
-//                }
-//            }
-//        }
-//    }
-//}
-
-//void CmdHandler::chAdminHandler(Player* plr, QString& sernum, QString& arg)
-//{
-//    QString msg{ "The Remote Admin [ %1 ] has changed your rank from [ %1 ] "
-//                 "to [ %2 ]. If you feel this was in error, please contact the "
-//                 "Server Host." };
-
-//    qint32 rank{ arg.toInt( 0, 10 ) };
-
-//    Player* tmpPlr{ nullptr };
-//    if ( plr != nullptr )
-//    {
-//        if ( !sernum.isEmpty() )
-//        {
-//            if ( Admin::remoteChangeRank( sernum, rank ) )
-//            {
-//                tmpPlr = server->getPlayer( server->getSernumSlot( sernum ) );
-//                if ( tmpPlr != nullptr )
-//                {
-//                    qint32 prevRank{ tmpPlr->getAdminRank() };
-//                    if ( Admin::remoteChangeRank( sernum, rank ) )
-//                    {
-//                        msg = msg.arg( plr->getSernum_s() )
-//                              .arg( prevRank )
-//                              .arg( rank );
-
-//                        if ( !msg.isEmpty() )
-//                            server->sendMasterMessage( msg, tmpPlr, false );
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-//void CmdHandler::chRulesHandler(Player* plr, const QString& rule,
-//                                const QVariant& value)
-//{
-//    //The rule is empty, return.
-//    if ( rule.isEmpty() )
-//        return;
-
-//    RulesWidget* widget = RulesWidget::getWidget( plr->getServerInfo() );
-//    if ( widget != nullptr )
-//    {
-//        for ( auto toggle : ruleToggles )
-//        {
-//            if ( Helper::cmpStrings( rule, toggle ) )
-//            {
-//                RulesWidget::toggleRules( ruleToggles.value( toggle ), );
-//                break;
-//            }
-//        }
-//    }
-//}
-
-//void CmdHandler::getCommentsHandler(Player* plr, QString& arg)
-//{
-
-//}
-
-//void CmdHandler::chSettingsHandler(Player* plr, QString& setting,
-//                                   QString& value)
-//{
-
-//}
 
 void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& reason)
 {

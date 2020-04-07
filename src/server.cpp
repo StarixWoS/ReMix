@@ -158,33 +158,12 @@ QStandardItem* Server::updatePlayerTableImpl(const QString& peerIP, const QByteA
     if ( !bio.isEmpty() )
     {
         QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        //plr->validateSerNum( plr->getServerInfo(),
-        //                     Helper::serNumToHexStr( sernum )
-        //                                .toUInt( nullptr, 16 ) );
+        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
+        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
 
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
-
-        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
-        plr->setAlias( alias );
-
-        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
         plr->setPlayTime( age );
-
-        qint32 index{ Helper::getStrIndex( bio, "d=" ) };
-        QString dVar{ "" };
-        QString wVar{ "" };
-        if ( index >= 0 )
-        {
-            dVar = bio.mid( index + 2 ).left( 8 );
-            plr->setDVar( dVar );
-        }
-
-        index = Helper::getStrIndex( bio, "w=" );
-        if ( index >= 0 )
-        {
-            wVar = bio.mid( index + 2 ).left( 8 );
-            plr->setWVar( wVar );
-        }
+        plr->setAlias( alias );
 
         plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
         plrViewModel->setData( plrViewModel->index( row, 2 ), age, Qt::DisplayRole );

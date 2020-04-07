@@ -154,8 +154,6 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
         pkt = pktForge->decryptPacket( packet );
         if ( !pkt.isEmpty() )
         {
-            //WoS and Arcadia both use the opCode 'C' at position '3'
-            //in the packet to denote Chat packets.
 
             //Remove checksum from Arcadia chat packet.
             if ( this->getGameID() == Games::ToY )
@@ -165,6 +163,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 pkt = pkt.left( pkt.length() - 4 );
             }
 
+            //WoS and Arcadia both use the opCode 'C' at position '3' in the packet to denote Chat packets.
             if ( pkt.at( 3 ) == 'C' )
             {
                 plr->chatPacketFound();
@@ -309,9 +308,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         //Quick and dirty word replacement.
         if ( server != nullptr )
         {
-            //Check if the bleeping rule is set.
-            //There's no pont in censoring our chat if we aren't censoring chat
-            //for other people.
+            //Check if the bleeping rule is set. There's no pont in censoring our chat if we aren't censoring chat for other people.
             if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoBleep, server->getServerName() ).toBool() )
                 this->bleepChat( message );
         }
@@ -411,13 +408,10 @@ void ChatView::insertChat(const QString& msg, const Colors& color, const bool& n
     }
 
     //Detect when the user is scrolling upwards.
-    if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
+    if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax)
     {
         if ( selStart == 0 && selEnd == 0 )
-        {
-            obj->verticalScrollBar()->setSliderPosition(
-                        obj->verticalScrollBar()->maximum() );
-        }
+            obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
     }
 }
 

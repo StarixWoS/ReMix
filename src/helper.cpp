@@ -63,10 +63,7 @@ qint32 Helper::strToInt(const QString& str, const int& base)
 
 QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
 {
-    /* This overload is mainly used to reformat a QString's numeric format
-     * if the source is in an unknown format.
-     *
-     * base --- What numeric format the string will be in.
+    /* base --- What numeric format the string will be in.
      * fill --- How much padding will be prepended to the string.
      * filler --- The char used to pad the string
      */
@@ -83,8 +80,7 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
 
 QString Helper::getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left)
 {
-    /* Search an input string and return a sub-string based on the input strings.
-     * indStr --- Sub-string to search for.
+    /* indStr --- Sub-string to search for.
      * mid --- Obtain data after this sub-string.
      * left --- Obtain data before this sub-string.
      */
@@ -389,17 +385,13 @@ QHostAddress Helper::getPrivateIP()
     for ( const auto& ip : ipList )
     {
         QString tmp = ip.toString();
-        //Remove localhost addresses.
-        if ( ip != QHostAddress::LocalHost
-          //Remove any ipv6 addresses.
-          && ip.toIPv4Address()
-          //Remove any addresses the User manually marked invalid.
-          && !Settings::getSetting( SKeys::WrongIP, tmp ).toBool()
-          //Remove Windows generated APIPA addresses.
-          && !strStartsWithStr( tmp, "169" ) )
+
+        if ( ip != QHostAddress::LocalHost    //Remove localhost addresses.
+          && ip.toIPv4Address()    //Remove any ipv6 addresses.
+          && !Settings::getSetting( SKeys::WrongIP, tmp ).toBool()    //Remove any addresses the User manually marked invalid.
+          && !strStartsWithStr( tmp, "169" ) )    //Remove Windows generated APIPA addresses.
         {
-            //Use first non-local IP address.
-            ipAddress = QHostAddress( ip );
+            ipAddress = QHostAddress( ip );    //Use first non-local IP address.
             break;
         }
     }
@@ -442,8 +434,7 @@ void Helper::getSynRealData(ServerInfo* svr)
         QObject::connect( socket, &QTcpSocket::connected, socket,
         [=]()
         {
-            socket->write( QString( "GET %1\r\n" )
-                               .arg( svr->getMasterInfoHost() ).toLatin1() );
+            socket->write( QString( "GET %1\r\n" ) .arg( svr->getMasterInfoHost() ).toLatin1() );
         }, Qt::QueuedConnection );
 
         QObject::connect( socket, &QTcpSocket::readyRead, socket,

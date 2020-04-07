@@ -17,7 +17,6 @@ class Player : public QObject
     QStandardItem* tableRow{ nullptr };
     ServerInfo* serverInfo{ nullptr };
     User* userUIObject{ nullptr };
-    SendMsg* messageDialog{ nullptr };
     QTcpSocket* socket{ nullptr };
     QByteArray outBuff;
 
@@ -27,8 +26,6 @@ class Player : public QObject
     QString plrName{ "Unincarnated" };
     QString alias{ "" };
     QString playTime{ "" };
-    QString dVar{ "" };
-    QString wVar{ "" };
 
     QByteArray campPacket{ "" };
     bool sentCampPacket{ false };
@@ -91,8 +88,6 @@ class Player : public QObject
     public:
         explicit Player();
         ~Player() override;
-
-        void sendMessage(const QString& msg = "", const bool& toAll = false);
 
         quint64 getConnTime() const;
         void startConnTimer();
@@ -218,12 +213,6 @@ class Player : public QObject
 
         void validateSerNum(ServerInfo* server, const quint32& id);
 
-        QString getDVar() const;
-        void setDVar(const QString& value);
-
-        QString getWVar() const;
-        void setWVar(const QString& value);
-
         ServerInfo* getServerInfo() const;
         void setServerInfo(ServerInfo* value);
 
@@ -249,6 +238,7 @@ class Player : public QObject
 
     public slots:
         void sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
+        void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;

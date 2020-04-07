@@ -123,7 +123,6 @@ class ServerInfo : public QObject
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);
-        void sendToAllConnected(const QString& packet);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -273,6 +272,7 @@ class ServerInfo : public QObject
         void serverIDChangedSignal(const QString& serverID);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
 
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);

@@ -362,6 +362,7 @@ Player* ServerInfo::createPlayer(const int& slot)
         this->setPlayerCount( this->getPlayerCount() + 1 );
 
         QObject::connect( pktHandle, &PacketHandler::sendPacketToPlayerSignal, players[ slot ], &Player::sendPacketToPlayerSlot );
+        QObject::connect( this, &ServerInfo::sendMasterMsgToPlayerSignal, players[ slot ], &Player::sendMasterMsgToPlayerSlot );
         return players[ slot ];
     }
     return nullptr;
@@ -568,7 +569,7 @@ void ServerInfo::sendServerGreeting(Player* plr)
     }
 
     if ( !greeting.isEmpty() )
-        plr->sendMessage( greeting, false );
+        this->sendMasterMessage( greeting, plr, false );
 
     if ( !Settings::getRuleSet( serverName ).isEmpty() )
         this->sendServerRules( plr );
@@ -579,49 +580,7 @@ void ServerInfo::sendMasterMessage(const QString& packet, Player* plr, const boo
     QString msg{ ":SR@M%1\r\n" };
             msg = msg.arg( packet );
 
-    QTcpSocket* soc{ nullptr };
-    if ( plr != nullptr )
-        soc = plr->getSocket();
-
-    qint64 bOut{ 0 };
-    if ( toAll )
-    {
-        this->sendToAllConnected( msg );
-    }
-    else if ( plr == nullptr
-           && toAll )
-    {
-        this->sendToAllConnected( msg );
-    }
-    else if (( plr != nullptr
-            && soc != nullptr )
-           && !toAll )
-    {
-        bOut = soc->write( msg.toLatin1(), msg.length() );
-        this->updateBytesOut( plr, bOut );
-    }
-}
-
-void ServerInfo::sendToAllConnected(const QString& packet)
-{
-    Player* tmpPlr{ nullptr };
-    qint64 bOut{ 0 };
-
-    QTcpSocket* tmpSoc{ nullptr };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
-    {
-        tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr )
-        {
-            tmpSoc = tmpPlr->getSocket();
-            if ( tmpSoc != nullptr )
-            {
-                bOut = tmpSoc->write( packet.toLatin1(), packet.length() );
-                this->updateBytesOut( tmpPlr, bOut );
-            }
-        }
-    }
-    return;
+    emit this->sendMasterMsgToPlayerSignal( plr, toAll, msg.toLatin1() );
 }
 
 quint64 ServerInfo::getUpTime() const
@@ -875,6 +834,11 @@ void ServerInfo::setServerName(const QString& value)
     if ( !Helper::cmpStrings( serverName, value ) )
     {
         serverName = value;
+        if ( this->getMasterUDPResponse() )
+        {
+            this->sendMasterInfo( true ); //Disconnect from the Master Mix.
+            this->sendMasterInfo( false ); //Reconnect to the Master Mix using the new name.
+        }
         emit this->serverNameChangedSignal( serverName );
     }
 }

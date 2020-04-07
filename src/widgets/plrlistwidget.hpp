@@ -20,6 +20,7 @@ class PlrListWidget : public QWidget
 
     QModelIndex prevIndex;
 
+    SendMsg* messageDialog{ nullptr };
     QMenu* contextMenu{ nullptr };
     Player* menuTarget{ nullptr };
 

@@ -61,7 +61,7 @@ class User : public QDialog
 
         static void updateCallCount(const QString& serNum);
 
-        static void logBIO(const QString& serNum, const QHostAddress& ip, const QString& dv, const QString& wv, const QString& bio);
+        static void logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio);
         static QByteArray getBIOData(const QString& sernum);
 
     private:

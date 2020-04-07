@@ -49,13 +49,6 @@ class CmdHandler : public QObject
 
         void shutDownHandler(Player* plr, const QString& duration, const QString& reason, bool& stop, bool& restart);
 
-//        void mkAdminHandler(Player* plr, QString& sernum, QString& arg);
-//        void rmAdminHandler(Player* plr, QString& sernum);
-//        void chAdminHandler(Player* plr, QString& sernum, QString& arg);
-
-        void chRulesHandler(Player* plr, const QString& rule, const QVariant& value);
-//        void getCommentsHandler(Player* plr, QString& arg);
-//        void chSettingsHandler(Player* plr, QString& setting, QString& value);
         void vanishHandler(Player* plr, const QString& subCmd);
 
         void parseTimeArgs(const QString& str, QString& timeArg, QString& reason);

@@ -80,7 +80,6 @@ void CreateInstance::updateServerList(const bool& firstRun)
         if ( !skip && !running )
         {
             validServers.append( name );
-            //ui->servers->addItem( name );
             ++serverCount;
         }
 
@@ -342,8 +341,7 @@ void CreateInstance::on_servers_currentTextChanged(const QString& arg1)
 
 void CreateInstance::on_randomizePort_clicked()
 {
-    //Simple. Set the text to an empty string and
-    //let "on_portNumber_textChanged" handle the port generation.
+    //Let "on_portNumber_textChanged" handle the port generation.
     ui->portNumber->setText( "" );
 }
 

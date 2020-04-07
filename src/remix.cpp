@@ -122,22 +122,13 @@ void ReMix::initSysTray()
         trayObject = new QSystemTrayIcon( trayIcon, this );
         trayObject->show();
 
-        QAction* showAction = new QAction( "Show", this );
-        QObject::connect( showAction, &QAction::triggered, this, &QMainWindow::show, Qt::QueuedConnection );
-
-        QAction* hideAction = new QAction( "Hide", this );
-        QObject::connect( hideAction, &QAction::triggered, this, &QMainWindow::hide, Qt::QueuedConnection );
-
         QAction* minimizeAction = new QAction( "Minimize", this );
+        QAction* restoreAction = new QAction( "Restore", this );
+        QAction* quitAction = new QAction( "Quit", this );
+
+        QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal, Qt::QueuedConnection );
         QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide, Qt::QueuedConnection );
 
-        QAction* maximizeAction = new QAction( "Maximize", this );
-        QObject::connect( maximizeAction, &QAction::triggered, this, &QMainWindow::showMaximized, Qt::QueuedConnection );
-
-        QAction* restoreAction = new QAction( "Restore", this );
-        QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal, Qt::QueuedConnection );
-
-        QAction* quitAction = new QAction( "Quit", this );
         QObject::connect( quitAction, &QAction::triggered, quitAction,
         [=]()
         {
@@ -147,11 +138,8 @@ void ReMix::initSysTray()
         }, Qt::QueuedConnection );
 
         trayMenu = new QMenu( this );
-        trayMenu->addAction( showAction );
-        trayMenu->addAction( hideAction );
         trayMenu->addSeparator();
         trayMenu->addAction( minimizeAction );
-        trayMenu->addAction( maximizeAction );
         trayMenu->addAction( restoreAction );
         trayMenu->addAction( quitAction );
 
@@ -229,12 +217,11 @@ bool ReMix::rejectCloseEvent()
     if ( serverUI->getServerCount() == 0 )
         return false;
 
-    QString title = QString( "Close [ %1 ] Server Instances:" )
-                        .arg( serverUI->getServerCount() );
+    QString title{ "Close [ %1 ] Server Instances:" };
+            title = title.arg( serverUI->getServerCount() );
 
-    QString prompt = QString( "You are about to shut down your ReMix game server!\r\nThis will affect [ %1 ] User(s) "
-                              "connected to it.\r\n\r\nAre you certain?" )
-                         .arg( serverUI->getPlayerCount() );
+    QString prompt{ "You are about to shut down your ReMix game server!\r\nThis will affect [ %1 ] User(s) connected to it.\r\n\r\nAre you certain?" };
+            prompt = prompt.arg( serverUI->getPlayerCount() );
 
     serverUI->sendMultiServerMessage( "The admin is taking this server down..." );
 

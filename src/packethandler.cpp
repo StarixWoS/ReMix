@@ -168,8 +168,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
         {
             case 'G':   //Set the Server's gameInfoString.
             {
-                //Check if the IP Address is a properly connected User.
-                //Or at least is in the User list...
+                //Check if the IP Address is a properly connected User. Or at least is in the User list...
                 Player* tmpPlr{ nullptr };
                 bool connected{ false };
                 for ( int i = 0; i < MAX_PLAYERS; ++i )
@@ -193,8 +192,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                 QString usrInfo{ data.mid( 1 ) };
                 if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
                 {
-                    //Check if the World String starts with "world="
-                    //And remove the substring.
+                    //Check if the World String starts with "world=" And remove the substring.
                     if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
                         usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
 
@@ -208,8 +206,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
             break;
             case 'M':   //Parse the Master Server's response.
             {
-                //Prevent Spoofing a MasterMix response.
-                if ( !isMaster )
+                if ( !isMaster )   //Prevent Spoofing a MasterMix response.
                     break;
 
                 QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. "
@@ -251,14 +248,6 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
             break;
             case 'P':   //Store the Player information into a struct.
             {
-                index = Helper::getStrIndex( data, "d=" );
-                if ( index >= 0 )
-                    dVar = data.mid( index + 2 ).left( 8 );
-
-                index = Helper::getStrIndex( data, "w=" );
-                if ( index >= 0 )
-                    wVar = data.mid( index + 2 ).left( 8 );
-
                 index = Helper::getStrIndex( data, "sernum=" );
                 if ( index >= 0 )
                 {
@@ -280,7 +269,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                 emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
 
                 Server::insertBioHash( ipAddr, udp.mid( 1 ) );
-                User::logBIO( sernum, ipAddr, dVar, wVar, data );
+                User::logBIO( sernum, ipAddr, data );
             }
             break;      //Q and R packet types are handled within the UdpThread class.
             case 'Q':   //Send Online User Information.
@@ -319,7 +308,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
         plrMessage = plrMessage.arg( "Disconnect" )
                                .arg( "Banned Info" );
-        plr->sendMessage( plrMessage, false );
+        server->sendMasterMessage( plrMessage, plr, false );
 
         plr->setDisconnected( true, DCTypes::IPDC );
         badInfo = true;
@@ -360,20 +349,18 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
                             plrMessage = plrMessage.arg( "Banish" )
                                                    .arg( "Duplicate IP" );
-                            plr->sendMessage( plrMessage, false );
+                            server->sendMasterMessage( plrMessage, plr, false );
                         }
                         else
                         {
                             plrMessage = plrMessage.arg( "Disconnect" )
                                                    .arg( "Duplicate IP" );
-                            plr->sendMessage( plrMessage, false );
+                            server->sendMasterMessage( plrMessage, plr, false );
                         }
                         plr->setDisconnected( true, DCTypes::DupDC );
                     };
 
-                    //Only disconnect the new Player.
-                    //If [Settings::getBanDupedIP()] is true
-                    //the second Player will be removed.
+                    //Only disconnect the new Player. If [Settings::getBanDupedIP()] is true the second Player will be removed.
                     disconnect( plr, logMsg, plrMessage );
 
                     badInfo = true;
@@ -381,10 +368,6 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             }
         }
     }
-
-    //Disconnect new Players using the same SerNum as another Player.
-    //This is an un-optional disconnect due to how Private chat is handled.
-    //Perhaps once a better fix is found we can remove this.
 
     //Disconnect only the newly connected Player.
     if ( plr != nullptr )
@@ -407,7 +390,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
 
                     plrMessage = plrMessage.arg( "Disconnect" )
                                            .arg( "Duplicate SerNum" );
-                    plr->sendMessage( plrMessage, false );
+                    server->sendMasterMessage( plrMessage, plr, false );
 
                     plr->setDisconnected( true, DCTypes::DupDC );
                     badInfo = true;
@@ -452,7 +435,7 @@ void PacketHandler::detectFlooding(Player* plr)
                 emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding." };
-                plr->sendMessage( plrMessage, false );
+                server->sendMasterMessage( plrMessage, plr, false );
             }
         }
         else if ( time >= PACKET_FLOOD_TIME )
@@ -478,8 +461,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
         return true;
 
     if ( !msg.isEmpty() )
-        plr->sendMessage( msg, false );
-
+        server->sendMasterMessage( msg, plr, false );
 
     QString logMsg{ "Auto-Disconnect of [ %1 ] due to an Invalid Packet Header [ :SR1%2 ]< %3 > while assigned [ :SR1%4 ]." };
             logMsg = logMsg.arg( plr->getSernum_s() )

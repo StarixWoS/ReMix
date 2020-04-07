@@ -13,6 +13,10 @@ Version 2.5.8:
         * The CommentLog no-longer double-prints the timestamp or new (blank) lines.
       * Add the ability to delete Remix Servers from the CreateInstance Dialog.
         * Server deletions will be confirmed to prevent accidental deletions.
+      * Unify Master Server Messages to a signal to the Player class.
+        * This reduces the risk of sending a Master Message to a nullptr, and the need to iterate over every Player Object.
+      * ReMix will no longer Parse a User's BIO data for the DVariable, or the WVariable.
+      * When changing a ReMix Server Instance's Name, the Instance will first disconnect from the MasterMix before reconnecting with the new name.
 
 
 
@@ -33,6 +37,7 @@ Version 2.5.8:
       * Some redundant class files.
       * Files related to the WorldShuffler Class.
       * Files related to the Rules Class.
+      * Removed unused/commented code from several Class Files.
 
 
 
