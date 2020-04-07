@@ -50,7 +50,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
 
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
 
-    QString comment{ "%1 [ %2 ]: %2\r\n" };
+    QString comment{ "%1 [ %2 ]: %3\r\n" };
             comment = comment.arg( alias )
                              .arg( sernum )
                              .arg( message );
