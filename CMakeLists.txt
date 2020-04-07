@@ -40,7 +40,6 @@ set(SOURCES src/views/loggersortproxymodel.cpp
         src/createinstance.cpp
         src/appeventfilter.cpp
         src/packethandler.cpp
-        src/worldshuffler.cpp
         src/packetforge.cpp
         src/selectworld.cpp
         src/cmdhandler.cpp
@@ -57,7 +56,6 @@ set(SOURCES src/views/loggersortproxymodel.cpp
         src/helper.cpp
         src/logger.cpp
         src/theme.cpp
-        src/rules.cpp
         src/remix.cpp
         src/user.cpp
         src/upnp.cpp
@@ -78,7 +76,6 @@ set(HEADERS src/views/loggersortproxymodel.hpp
         src/createinstance.hpp
         src/appeventfilter.hpp
         src/packethandler.hpp
-        src/worldshuffler.hpp
         src/packetforge.hpp
         src/selectworld.hpp
         src/cmdhandler.hpp
@@ -96,7 +93,6 @@ set(HEADERS src/views/loggersortproxymodel.hpp
         src/helper.hpp
         src/logger.hpp
         src/theme.hpp
-        src/rules.hpp
         src/remix.hpp
         src/user.hpp
         src/upnp.hpp)
