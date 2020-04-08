@@ -130,8 +130,8 @@ void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
 
                 if ( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
                 {
-                    emit this->sendPacketToPlayerSignal( plr, plr->getSocket(), static_cast<qint32>( plr->getTargetType() ),
-                                                         plr->getTargetSerNum(), plr->getTargetScene(), pkt );
+                    emit this->sendPacketToPlayerSignal( plr, static_cast<qint32>( plr->getTargetType() ), plr->getTargetSerNum(),
+                                                         plr->getTargetScene(), pkt );
                     //Reset the User's target information.
                     plr->setTargetType( PktTarget::ALL );
                     plr->setTargetSerNum( 0 );
@@ -176,7 +176,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                     tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr )
                     {
-                        if ( Helper::cmpStrings( tmpPlr->getPublicIP(), ipAddr.toString() ) )
+                        if ( Helper::cmpStrings( tmpPlr->peerAddress().toString(), ipAddr.toString() ) )
                         {
                             connected = true;
                             break;
@@ -298,10 +298,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getPublicIP(), plrSerNum ) )
+    if ( this->getIsBanned( plr->getSernumHex_s(), plr->peerAddress().toString(), plrSerNum ) )
     {
         reason = reason.arg( "Banned Info" )
-                       .arg( plr->getPublicIP() )
+                       .arg( plr->peerAddress().toString() )
                        .arg( plr->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -323,7 +323,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             if ( tmpPlr != nullptr
               && tmpPlr != plr )
             {
-                if ( ( tmpPlr->getPublicIP() == plr->getPublicIP() )
+                if ( ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString() )
                   && ( !tmpPlr->getIsDisconnected() || !plr->getIsDisconnected() ) )
                 {
                     auto disconnect = [=]( Player* plr, const QString& logMsg,
@@ -331,7 +331,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                     {
                         QString reason{ logMsg };
                                 reason = reason.arg( "Duplicate IP" )
-                                               .arg( plr->getPublicIP() )
+                                               .arg( plr->peerAddress().toString() )
                                                .arg( plr->getBioData() );
 
                         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -339,7 +339,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         if ( Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() )
                         {
                             reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
-                            reason = reason.arg( plr->getPublicIP() )
+                            reason = reason.arg( plr->peerAddress().toString() )
                                            .arg( plr->getBioData() );
 
                             //Ban for only half an hour.
@@ -383,7 +383,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 {
                     reason = logMsg;
                     reason = reason.arg( "Duplicate SerNum" )
-                                   .arg( plr->getPublicIP() )
+                                   .arg( plr->peerAddress().toString() )
                                    .arg( plr->getBioData() );
 
                     emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -426,7 +426,7 @@ void PacketHandler::detectFlooding(Player* plr)
               && !plr->getIsDisconnected() )
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are disconnected: [ %4 ]" };
-                        logMsg = logMsg.arg( plr->getPublicIP() )
+                        logMsg = logMsg.arg( plr->peerAddress().toString() )
                                        .arg( floodCount )
                                        .arg( time )
                                        .arg( plr->getBioData() );
@@ -568,7 +568,6 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
     if ( plr == nullptr || packet.isEmpty() )
         return;
 
-    QTcpSocket* soc{ plr->getSocket() };
     qint64 bOut{ 0 };
 
     QString accessType{ "Read" };
@@ -604,28 +603,22 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
             if ( write )
             {
                 Player* tmpPlr{ nullptr };
-                QTcpSocket* tmpSoc{ nullptr };
                 for ( int i = 0; i < MAX_PLAYERS; ++i )
                 {
                     tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr
                       && plr != tmpPlr )
                     {
-                        tmpSoc = plr->getSocket();
-                        if ( tmpSoc != nullptr )
-                        {
-                            bOut = tmpSoc->write( val.toLatin1(), val.length() );
-                            server->updateBytesOut( tmpPlr, bOut );
-                        }
+                        bOut = tmpPlr->write( val.toLatin1(), val.length() );
+                        server->updateBytesOut( tmpPlr, bOut );
                     }
                 }
             }
             else if ( !val.isEmpty()
-                   && !write
-                   && soc != nullptr )
+                   && !write )
             {
-                    bOut = soc->write( val.toLatin1(), val.length() );
-                    server->updateBytesOut( plr, bOut );
+                bOut = plr->write( val.toLatin1(), val.length() );
+                server->updateBytesOut( plr, bOut );
             }
         }
 

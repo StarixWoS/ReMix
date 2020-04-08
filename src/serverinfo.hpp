@@ -81,7 +81,6 @@ class ServerInfo : public QObject
     QString info{ "" };
 
     QVector<Player*> players;
-    //Player* players[ MAX_PLAYERS ];
 
     quint32 userCalls{ 0 };
     quint32 userPings{ 0 };
@@ -109,13 +108,13 @@ class ServerInfo : public QObject
         void sendUserList(const QHostAddress& addr, const quint16& port, const quint32& type = 0);
         void sendMasterInfo(const bool& disconnect = false);
 
-        Player* createPlayer(const int& slot);
+        Player* createPlayer(const int& slot, qintptr socketDescriptor);
         Player* getPlayer(const int& slot);
-        void deletePlayer(const int& slot);
+        void deletePlayer(Player* plr);
 
         Player* getLastPlayerInStorage(Player* plr);
         int getEmptySlot();
-        int getSocketSlot(QTcpSocket* soc);
+        int getSocketSlot(qintptr socketDescriptor);
         int getQItemSlot(QStandardItem* index);
 
         void sendPlayerSocketInfo();

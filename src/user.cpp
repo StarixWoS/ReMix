@@ -84,20 +84,20 @@ User::User(QWidget* parent) :
 
     //Setup the ServerInfo TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>( UserCols::ColCount ), nullptr );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDuration ), Qt::Horizontal, "Muted Until" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanDuration ), Qt::Horizontal, "Banned Until" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteReason ), Qt::Horizontal, "Mute Reason" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanReason ), Qt::Horizontal, "Ban Reason" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDate ), Qt::Horizontal, "Mute Date" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::LastSeen ), Qt::Horizontal, "Last Seen" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::BanDate ), Qt::Horizontal, "Ban Date" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::IPAddr ), Qt::Horizontal, "Last IP" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Banned ), Qt::Horizontal, "Banned" );
     tblModel->setHeaderData( static_cast<int>( UserCols::SerNum ), Qt::Horizontal, "SerNum" );
+    tblModel->setHeaderData( static_cast<int>( UserCols::Muted ), Qt::Horizontal, "Muted" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Pings ), Qt::Horizontal, "Pings" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Calls ), Qt::Horizontal, "Calls" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::LastSeen ), Qt::Horizontal, "Last Seen" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::IPAddr ), Qt::Horizontal, "Last IP" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Rank ), Qt::Horizontal, "Rank" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Muted ), Qt::Horizontal, "Muted" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDate ), Qt::Horizontal, "Mute Date" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteDuration ), Qt::Horizontal, "Muted Until" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::MuteReason ), Qt::Horizontal, "Mute Reason" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Banned ), Qt::Horizontal, "Banned" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanDate ), Qt::Horizontal, "Ban Date" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanDuration ), Qt::Horizontal, "Banned Until" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::BanReason ), Qt::Horizontal, "Ban Reason" );
 
     //Proxy model to support sorting without actually
     //altering the underlying model
@@ -470,7 +470,7 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
     if ( target->getSernum_i() == 0 )
         serNum = "00000000"; //Special case.
 
-    target->setIsMuted( muteDuration );
+    target->setMuteDuration( muteDuration );
     setData( serNum, keys[ UserKeys::kMUTEREASON ], msg );
     setData( serNum, keys[ UserKeys::kMUTEDURATION ], muteDuration );
     setData( serNum, keys[ UserKeys::kMUTED ], date );

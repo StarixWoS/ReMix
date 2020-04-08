@@ -17,6 +17,8 @@ Version 2.5.8:
         * This reduces the risk of sending a Master Message to a nullptr, and the need to iterate over every Player Object.
       * ReMix will no longer Parse a User's BIO data for the DVariable, or the WVariable.
       * When changing a ReMix Server Instance's Name, the Instance will first disconnect from the MasterMix before reconnecting with the new name.
+      * The Player Class now Inherits from the QTcpSocket class.
+        * This allows the Player class to send/recieve packets on it's own without the need for a QTcpSocket variable or checking it's validity.
 
 
 
@@ -30,6 +32,7 @@ Version 2.5.8:
         * The Rules "AllPK" and "ArenaPK" will also toggle eachother off as needed.
       * Server Passwords are once again correctly checked.
       * The Rules dialog will now once again properly handle checking and unchecking the "Server password" option.
+      * Revoking a ReMote Administrator who is in a pending state will now properly revoke the rights to register with the server.
 
 
      

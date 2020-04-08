@@ -182,7 +182,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         return;
 
     QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
-                   "if you believe this was in error." };
+                    "if you believe this was in error." };
     QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
 
     QString sernum{ menuTarget->getSernumHex_s() };
@@ -212,12 +212,10 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         if ( Helper::confirmAction( this, title, prompt ) )
         {
             User::setAdminRank( sernum, GMRanks::User );
-            menuTarget->setAdminPwdReceived( false );
-            menuTarget->setAdminPwdRequested( false );
+            menuTarget->resetAdminAuth();
             server->sendMasterMessage( revoke, menuTarget, false );
         }
     }
-
     menuTarget = nullptr;
 }
 
@@ -267,7 +265,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         else
             User::removePunishment( menuTarget->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
 
-        menuTarget->setIsMuted( static_cast<quint64>( muteDuration ) );
+        menuTarget->setMuteDuration( static_cast<quint64>( muteDuration ) );
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
         logMsg = logMsg.arg( reason )
@@ -287,32 +285,28 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QTcpSocket* sock = menuTarget->getSocket();
-    if ( sock != nullptr )
+    QString title{ "Disconnect User:" };
+    QString prompt{ "Are you certain you want to DISCONNECT [ %1 ]?" };
+            prompt = prompt.arg( menuTarget->getSernum_s() );
+
+    QString inform{ "The Server Host has disconnected you from the Server. Reason: %1" };
+    QString reason{ "Manual Disconnect; %1" };
+
+    if ( Helper::confirmAction( this, title, prompt ) )
     {
-        QString title{ "Disconnect User:" };
-        QString prompt{ "Are you certain you want to DISCONNECT [ %1 ]?" };
-                prompt = prompt.arg( menuTarget->getSernum_s() );
+        reason = reason.arg( Helper::getDisconnectReason( this ) );
+        inform = inform.arg( reason );
 
-        QString inform{ "The Server Host has disconnected you from the Server. Reason: %1" };
-        QString reason{ "Manual Disconnect; %1" };
+        server->sendMasterMessage( inform, menuTarget, false );
+        if ( menuTarget->waitForBytesWritten() )
+            menuTarget->setDisconnected( true, DCTypes::IPDC );
 
-        if ( Helper::confirmAction( this, title, prompt ) )
-        {
-            reason = reason.arg( Helper::getDisconnectReason( this ) );
-            inform = inform.arg( reason );
+        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                logMsg = logMsg.arg( reason )
+                         .arg( menuTarget->getSernum_s() )
+                         .arg( menuTarget->getBioData() );
 
-            server->sendMasterMessage( inform, menuTarget, false );
-            if ( sock->waitForBytesWritten() )
-                menuTarget->setDisconnected( true, DCTypes::IPDC );
-
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-            logMsg = logMsg.arg( reason )
-                           .arg( menuTarget->getSernum_s() )
-                           .arg( menuTarget->getBioData() );
-
-            emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
-        }
+        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
     }
     menuTarget = nullptr;
 }
@@ -329,28 +323,24 @@ void PlrListWidget::on_actionBANISHUser_triggered()
     QString inform{ "The Server Host has BANISHED you. Reason: %1" };
     QString reason{ "Manual Banish; %1" };
 
-    QTcpSocket* sock = menuTarget->getSocket();
-    if ( sock != nullptr )
+    if ( Helper::confirmAction( this, title, prompt ) )
     {
-        if ( Helper::confirmAction( this, title, prompt ) )
-        {
-            reason = reason.arg( User::requestReason( this ) );
-            inform = inform.arg( reason );
+        reason = reason.arg( User::requestReason( this ) );
+        inform = inform.arg( reason );
 
-            PunishDurations banDuration{ User::requestDuration() };
-            User::addBan( nullptr, menuTarget, reason, false, banDuration );
+        PunishDurations banDuration{ User::requestDuration() };
+        User::addBan( nullptr, menuTarget, reason, false, banDuration );
 
-            QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-            logMsg = logMsg.arg( reason )
-                           .arg( menuTarget->getSernum_s() )
-                           .arg( menuTarget->getBioData() );
+        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                logMsg = logMsg.arg( reason )
+                         .arg( menuTarget->getSernum_s() )
+                         .arg( menuTarget->getBioData() );
 
-            emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
-            server->sendMasterMessage( inform, menuTarget, false );
-            if ( sock->waitForBytesWritten() )
-                menuTarget->setDisconnected( true, DCTypes::IPDC );
-        }
+        server->sendMasterMessage( inform, menuTarget, false );
+        if ( menuTarget->waitForBytesWritten() )
+            menuTarget->setDisconnected( true, DCTypes::IPDC );
     }
     menuTarget = nullptr;
 }

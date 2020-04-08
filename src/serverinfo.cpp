@@ -133,9 +133,10 @@ ServerInfo::~ServerInfo()
     if ( thread != nullptr )
         thread->exit();
 
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( Player* plr : players )
     {
-        this->deletePlayer( i );
+        if ( plr != nullptr )
+            plr->deleteLater();
     }
     upTimer.disconnect();
 }
@@ -353,11 +354,11 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     }
 }
 
-Player* ServerInfo::createPlayer(const int& slot)
+Player* ServerInfo::createPlayer(const int& slot, qintptr socketDescriptor)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS )
     {
-        players[ slot ] = new Player();
+        players[ slot ] = new Player( socketDescriptor );
         players[ slot ]->setSlotPos( slot );
         this->setPlayerCount( this->getPlayerCount() + 1 );
 
@@ -370,45 +371,35 @@ Player* ServerInfo::createPlayer(const int& slot)
 
 Player* ServerInfo::getPlayer(const int& slot)
 {
+    Player* plr{ nullptr };
     if ( slot >= 0 )
-        return players.at( slot );
+        plr = players.at( slot );
 
-    return nullptr;
+    return plr;
 }
 
-void ServerInfo::deletePlayer(const int& slot)
+void ServerInfo::deletePlayer(Player* plr)
 {
-    Player* plr = this->getPlayer( slot );
-    if ( plr != nullptr )
-    {
-        QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
-        if ( plr != nullptr )
-        {
-            logMsg = logMsg.arg( plr->getPublicIP() )
+    if ( plr == nullptr )
+        return;
+
+    int slot = plr->getSlotPos();
+    QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
+            logMsg = logMsg.arg( plr->peerAddress().toString() )
                            .arg( Helper::getTimeIntFormat( plr->getConnTime(), TimeFormat::Minutes ) )
                            .arg( plr->getBytesIn() )
                            .arg( plr->getPacketsIn() )
                            .arg( plr->getAvgBaud( false ) )
                            .arg( plr->getBioData() );
-
-            emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::USAGE, true, true );
-        }
-
-        QTcpSocket* soc = plr->getSocket();
-        if ( soc != nullptr )
-        {
-            soc->disconnect();
-            soc->deleteLater();
-        }
-        plr->setSocket( nullptr );
-        plr->disconnect();
-    }
+    plr->disconnect();
+    plr->deleteLater();
     plr = nullptr;
 
-    delete players[ slot ];
+    //delete players[ slot ];
     players[ slot ] = nullptr;
 
     this->setPlayerCount( this->getPlayerCount() - 1 );
+    emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::USAGE, true, true );
 }
 
 Player* ServerInfo::getLastPlayerInStorage(Player* plr)
@@ -437,13 +428,13 @@ int ServerInfo::getEmptySlot()
     return slot;
 }
 
-int ServerInfo::getSocketSlot(QTcpSocket* soc)
+int ServerInfo::getSocketSlot(qintptr socketDescriptor)
 {
     int slot{ -1 };
     for ( auto* plr : players )
     {
         if ( plr != nullptr
-          && plr->getSocket() == soc )
+          && plr->socketDescriptor() == socketDescriptor )
         {
             slot = plr->getSlotPos();
             break;
@@ -477,30 +468,26 @@ void ServerInfo::sendPlayerSocketInfo()
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr && tmpPlr->getHasSernum() )
+        if ( tmpPlr != nullptr
+          && tmpPlr->getHasSernum() )
         {
-            ipAddr = QHostAddress( tmpPlr->getPublicIP() );
+            ipAddr = QHostAddress( tmpPlr->peerAddress().toString() );
             response = response.append( filler.arg( Helper::intToStr( tmpPlr->getSernum_i(), 16 ) )
                                               .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, 16 ) ) );
         }
     }
     response = response.append( "\r\n" );
 
-    QTcpSocket* soc{ nullptr };
-    tmpPlr = nullptr;
     qint64 bOut{ 0 };
 
+    tmpPlr = nullptr;
     for ( int i = 0; i < MAX_PLAYERS; ++i )
     {
         tmpPlr = this->getPlayer( i );
-        if ( tmpPlr!= nullptr )
+        if ( tmpPlr != nullptr )
         {
-            soc = tmpPlr->getSocket();
-            if ( soc != nullptr )
-            {
-                bOut = soc->write( response.toLatin1(), response.length() );
-                this->updateBytesOut( tmpPlr, bOut );
-            }
+            bOut = tmpPlr->write( response.toLatin1(), response.length() );
+            this->updateBytesOut( tmpPlr, bOut );
         }
     }
 }
@@ -508,11 +495,6 @@ void ServerInfo::sendPlayerSocketInfo()
 void ServerInfo::sendPlayerSocketPosition(Player* plr)
 {
     if ( plr == nullptr )
-        return;
-
-    QTcpSocket* plrSoc{ nullptr };
-    plrSoc = plr->getSocket();
-    if ( plrSoc == nullptr )
         return;
 
     Player* lastPlr{ this->getLastPlayerInStorage(plr) };
@@ -523,38 +505,30 @@ void ServerInfo::sendPlayerSocketPosition(Player* plr)
         //Increase all slot numbers by 1. This slot information is irrelevant to ReMix, but is to WoS.
         //WoS uses this Slot number within the :SR1## header of packets.
         //We want to prevent any Users from Obtaining Slot#0, and ignore any clients ( ReBreather ) that send packets with Slot#0.
-        slotPos = lastPlr->getSlotPos() + 1;
+        slotPos = lastPlr->getPktHeaderSlot();
         if ( slotPos == 0 )
             ++slotPos;  //Fallthrough. Ensure Slot is at least 1.
 
-        plr->setPktHeaderSlot( slotPos );
-        qint64 bOut{ 0 };
         QString slotResponse{ ":SR!%1%2%3\r\n" };
                 slotResponse = slotResponse.arg( plr->getSernumHex_s() )
                                            .arg( Helper::intToStr( slotPos, 16, 2 ) )
                                            .arg( lastPlr->getSernumHex_s() );
-        bOut = plrSoc->write( slotResponse.toLatin1(), slotResponse.length() );
+
+        qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };
         this->updateBytesOut( plr, bOut );
     }
 }
 
 void ServerInfo::sendServerRules(Player* plr)
 {
-    QTcpSocket* soc{ nullptr };
     if ( plr == nullptr )
         return;
-
-    soc = plr->getSocket();
-    if ( soc == nullptr )
-        return;
-
-    qint64 bOut{ 0 };
 
     QString serverName{ this->getServerName() };
     QString rules{ ":SR$%1\r\n" };
             rules = rules.arg( Settings::getRuleSet( serverName ) );
 
-    bOut = soc->write( rules.toLatin1(), rules.length() );
+    qint64 bOut{ plr->write( rules.toLatin1(), rules.length() ) };
     this->updateBytesOut( plr, bOut );
 }
 

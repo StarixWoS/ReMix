@@ -6,87 +6,74 @@
 
 //Required Qt Includes.
 #include <QElapsedTimer>
+#include <QTcpSocket>
 #include <QObject>
 #include <QTimer>
 #include <QIcon>
 
-class Player : public QObject
+class Player : public QTcpSocket
 {
     Q_OBJECT
 
     QStandardItem* tableRow{ nullptr };
     ServerInfo* serverInfo{ nullptr };
     User* userUIObject{ nullptr };
-    QTcpSocket* socket{ nullptr };
-    QByteArray outBuff;
-
-    QString publicIP{ "" };
-    quint32 publicPort{ 0 };
-
-    QString plrName{ "Unincarnated" };
-    QString alias{ "" };
-    QString playTime{ "" };
-
-    QByteArray campPacket{ "" };
-    bool sentCampPacket{ false };
-
-    QString bioData{ "" };
-    bool hasBioData{ false };
-
-    bool hasSernum{ false };
-    quint32 sernum_i{ 0 };
-    QString sernum_s{ "" };
-    QString sernumHex_s{ "" };
-
-    quint32 sceneHost{ 0 };
-
-    quint32 targetHost{ 0 };
-    quint32 targetSerNum{ 0 };
-    PktTarget targetType{ PktTarget::ALL };
-
-    bool svrPwdRequested{ false };
-    bool svrPwdReceived{ false };
-    qint32 pktHeaderSlot{ 0 };
-    int slotPos{ -1 };
-
-    bool adminPwdRequested{ false };
-    bool adminPwdReceived{ false };
-    qint32 adminRank{ -1 };
-
-    qint32 cmdAttempts{ 0 };  //Max limit is 3 attempts before auto-banning.
 
     bool newAdminPwdRequested{ false };
     bool newAdminPwdReceived{ false };
-
-    QElapsedTimer floodTimer;
-    int packetFloodCount{ 0 };
-
-    int packetsIn{ 0 };
-    quint64 bytesIn{ 0 };
-    quint64 avgBaudIn{ 0 };
-
-    int packetsOut{ 0 };
-    quint64 bytesOut{ 0 };
-    quint64 avgBaudOut{ 0 };
-
-    QTimer connTimer;
-    quint64 connTime{ 0 };
-    QElapsedTimer idleTime;
-
-    QTimer killTimer;
-
+    bool adminPwdRequested{ false };
+    bool adminPwdReceived{ false };
+    bool svrPwdRequested{ false };
+    bool sentCampPacket{ false };
+    bool svrPwdReceived{ false };
     bool isDisconnected{ false };
     bool isVisible{ true };
-    bool isMuted{ false };
-
-    quint64 muteDuration{ 0 };
-
-    QTimer afkTimer;
-    QIcon afkIcon;
     bool isAFK{ false };
 
+    QString plrName{ "Unincarnated" };
+    QString sernumHex_s{ "" };
+    QString sernum_s{ "" };
+    QString playTime{ "" };
+    QString bioData{ "" };
+    QString alias{ "" };
+
+    QByteArray campPacket{ "" };
+    QByteArray outBuff;
+
+    quint64 muteDuration{ 0 };
+    quint64 avgBaudOut{ 0 };
+    quint64 avgBaudIn{ 0 };
+    quint64 connTime{ 0 };
+    quint64 bytesOut{ 0 };
+    quint64 bytesIn{ 0 };
+
+    quint32 targetSerNum{ 0 };
+    quint32 targetHost{ 0 };
+    quint32 sceneHost{ 0 };
+    quint32 sernum_i{ 0 };
+
+    qint32 pktHeaderSlot{ 0 };
+    qint32 cmdAttempts{ 0 };
+    qint32 adminRank{ -1 };
+
+    int packetFloodCount{ 0 };
+    int packetsOut{ 0 };
+    int packetsIn{ 0 };
+    int slotPos{ -1 };
+
+    QElapsedTimer floodTimer;
+    QElapsedTimer idleTime;
+
+    QTimer connTimer;
+    QTimer killTimer;
+    QTimer afkTimer;
+
+    PktTarget targetType{ PktTarget::ALL };
+
+    QIcon afkIcon;
+
     public:
-        explicit Player();
+        explicit Player(qintptr socketDescriptor);
         ~Player() override;
 
         quint64 getConnTime() const;
@@ -94,10 +81,16 @@ class Player : public QObject
 
         QStandardItem* getTableRow() const;
         void setTableRow(QStandardItem* value);
+        void setTableRowData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data,
+                             const qint32& role, const bool& isColor = false);
 
-        QTcpSocket* getSocket() const;
-        void setSocket(QTcpSocket* value);
+        ServerInfo* getServerInfo() const;
+        void setServerInfo(ServerInfo* value);
 
+        bool getIsVisible() const;
+        void setIsVisible(const bool& value);
+
+        bool getHasSernum() const;
         quint32 getSernum_i() const;
         void setSernum_i(quint32 value);
 
@@ -128,29 +121,26 @@ class Player : public QObject
         QString getAlias() const;
         void setAlias(const QString& value);
 
+        QByteArray getCampPacket() const;
+        void setCampPacket(const QByteArray& value);
+
+        bool getSentCampPacket() const;
+        void setSentCampPacket(bool value);
+
+        void forceSendCampPacket();
         QString getBioData() const;
         void setBioData(const QByteArray& value);
 
         bool getHasBioData() const;
-        void setHasBioData(bool value);
 
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
-        bool getSvrPwdRequested() const;
-        void setSvrPwdRequested(bool value);
-
         int getSlotPos() const;
         void setSlotPos(const int& value);
 
-        QString getPublicIP() const;
-        void setPublicIP(const QString& value);
-
-        quint32 getPublicPort() const;
-        void setPublicPort(const quint32& value);
-
-        bool getSvrPwdReceived() const;
-        void setSvrPwdReceived(const bool& value);
+        qint32 getPktHeaderSlot() const;
+        void setPktHeaderSlot(const qint32& value);
 
         qint64 getFloodTime() const;
         void restartFloodTimer();
@@ -173,6 +163,12 @@ class Player : public QObject
         quint64 getAvgBaud(const bool& out) const;
         void setAvgBaud(const quint64 &bytes, const bool& out);
 
+        bool getSvrPwdRequested() const;
+        void setSvrPwdRequested(bool value);
+
+        bool getSvrPwdReceived() const;
+        void setSvrPwdReceived(const bool& value);
+
         void resetAdminAuth();
 
         bool getAdminPwdRequested() const;
@@ -181,29 +177,24 @@ class Player : public QObject
         bool getAdminPwdReceived() const;
         void setAdminPwdReceived(const bool& value);
 
-        bool getIsAdmin() const;
-        qint32 getAdminRank() const;
-
-        qint32 getCmdAttempts() const;
-        void setCmdAttempts(const qint32& value);
-
         bool getNewAdminPwdRequested() const;
         void setNewAdminPwdRequested(const bool& value);
 
         bool getNewAdminPwdReceived() const;
         void setNewAdminPwdReceived(const bool& value);
 
-        //Note: A User will be disconnected on their next update.
-        //Usually every 250 MS or as defined by MAX_DISCONNECT_TTL.
+        bool getIsAdmin() const;
+        qint32 getAdminRank() const;
+
+        qint32 getCmdAttempts() const;
+        void setCmdAttempts(const qint32& value);
+
         bool getIsDisconnected() const;
         void setDisconnected(const bool& value, const DCTypes& dcType = DCTypes::IPDC);
 
         quint64 getMuteDuration();
         void setMuteDuration(const quint64& value);
         bool getIsMuted();
-        void setIsMuted(const quint64& duration);
-
-        void chatPacketFound();
 
         QIcon getAfkIcon() const;
         void setAfkIcon(const QString& value);
@@ -213,31 +204,8 @@ class Player : public QObject
 
         void validateSerNum(ServerInfo* server, const quint32& id);
 
-        ServerInfo* getServerInfo() const;
-        void setServerInfo(ServerInfo* value);
-
-        bool getIsVisible() const;
-        void setIsVisible(const bool& value);
-
-        bool getHasSernum() const;
-        void setHasSernum(bool value);
-
-        QByteArray getCampPacket() const;
-        void setCampPacket(const QByteArray& value);
-
-        bool getSentCampPacket() const;
-        void setSentCampPacket(bool value);
-
-        void forceSendCampPacket();
-
-        qint32 getPktHeaderSlot() const;
-        void setPktHeaderSlot(const qint32& value);
-
-    private:
-        void setModelData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
-
     public slots:
-        void sendPacketToPlayerSlot(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
 
     signals:

@@ -34,16 +34,15 @@ class Server : public QTcpServer
         Comments* getServerComments() const;
         ChatView* getChatView() const;
 
-        void userReadyRead(QTcpSocket* socket);
-        void userDisconnected(QTcpSocket* socket);
+        void userReadyRead(Player* plr);
+        void userDisconnected(Player* plr);
 
         static QHash<QHostAddress, QByteArray> getBioHash();
         static void insertBioHash(const QHostAddress& addr, const QByteArray& value);
         static QByteArray getBioHashValue(const QHostAddress& addr);
         static QHostAddress getBioHashKey(const QByteArray& bio);
 
-    private slots:
-        void newConnectionSlot();
+        void incomingConnection(qintptr socketDescriptor) override;
 };
 
 #endif // SERVER_HPP

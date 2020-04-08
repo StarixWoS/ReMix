@@ -166,7 +166,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
             //WoS and Arcadia both use the opCode 'C' at position '3' in the packet to denote Chat packets.
             if ( pkt.at( 3 ) == 'C' )
             {
-                plr->chatPacketFound();
+                plr->setIsAFK( false );
                 retn = this->parseChatEffect( pkt );
             }
             else if ( pkt.at( 3 ) == '3'
@@ -248,7 +248,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
             this->insertChat( plr->getPlrName() % ": ", Colors::Name, true );
             this->insertChat( pkt, Colors::Chat, false );
 
-            plr->chatPacketFound();
+            plr->setIsAFK( false );
         }
         else if ( pkt.at( 7 ) == '4' )
         {

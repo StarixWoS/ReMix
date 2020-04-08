@@ -50,7 +50,7 @@ class PacketHandler : public QObject
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
-        void sendPacketToPlayerSignal(Player* plr, QTcpSocket* srcSocket, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSignal(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
 };
