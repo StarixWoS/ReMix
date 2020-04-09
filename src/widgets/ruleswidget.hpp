@@ -29,7 +29,9 @@ class RulesWidget : public QWidget
     bool worldCheckState{ false };
     bool urlCheckState{ false };
     bool pwdCheckState{ false };
+
     QString serverName{ "" };
+    QString gameInfo{ "" };
 
     public:
         explicit RulesWidget();
@@ -43,6 +45,9 @@ class RulesWidget : public QWidget
         bool getCheckedState(const Toggles& option);
 
         void setSelectedWorld(const QString& worldName, const bool& state);
+
+        void setGameInfo(const QString& gInfo);
+        const QString& getGameInfo() const;
 
     private:
         void toggleRulesModel(const qint32& row);

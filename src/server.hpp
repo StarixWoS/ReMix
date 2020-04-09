@@ -6,43 +6,21 @@
 
 //Required Qt Includes.
 #include <QTcpServer>
-#include <QTimer>
 
 class Server : public QTcpServer
 {
     Q_OBJECT
 
-    static QHash<QHostAddress, QByteArray> bioHash;
-    QStandardItemModel* plrViewModel{ nullptr };
-    QHash<QString, QStandardItem*> plrTableItems;
-
     QWidget* mother{ nullptr };
 
-    Comments* serverComments{ nullptr };
-    PacketHandler* pktHandle{ nullptr };
-    ChatView* chatView{ nullptr };
-    ServerInfo* server{ nullptr };
-
     public:
-        Server(QWidget* parent = nullptr, ServerInfo* svr = nullptr, QStandardItemModel* plrView = nullptr);
+        Server(QWidget* parent = nullptr);
         ~Server() override;
 
-        void setupServerInfo();
-        void updatePlayerTable(Player* plr, const QHostAddress& peerAddr, const quint16& port);
-        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert);
-
-        Comments* getServerComments() const;
-        ChatView* getChatView() const;
-
-        void userReadyRead(Player* plr);
-        void userDisconnected(Player* plr);
-
-        static QHash<QHostAddress, QByteArray> getBioHash();
-        static void insertBioHash(const QHostAddress& addr, const QByteArray& value);
-        static QByteArray getBioHashValue(const QHostAddress& addr);
-        static QHostAddress getBioHashKey(const QByteArray& bio);
-
         void incomingConnection(qintptr socketDescriptor) override;
+
+    signals:
+        void plrConnectedSignal(qintptr socketDescriptor);
 };
 
 #endif // SERVER_HPP

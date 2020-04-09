@@ -1,4 +1,4 @@
-
+﻿
 //Class includes.
 #include "upnp.hpp"
 
@@ -29,7 +29,6 @@ QStringList UPNP::schemas =
 
 QHostAddress UPNP::externalAddress;
 QMap<qint32, bool> UPNP::permFwd;
-QVector<qint32> UPNP::ports;
 bool UPNP::tunneled{ false };
 UPNP* UPNP::upnp{ nullptr };
 
@@ -49,23 +48,6 @@ UPNP::UPNP(QObject* parent )
         httpSocket = new QNetworkAccessManager();
         udpSocket = new QUdpSocket();
         udpSocket->bind( localAddress.ip(), 0 );
-
-        //When the UPNP Tunnel is initialized, begin refreshing the Tunnel
-        //every 30 minutes as it time's out.
-        refreshTunnel = new QTimer( this );
-        refreshTunnel->setInterval( UPNP_TIME_OUT_MS );
-        QObject::connect( refreshTunnel, &QTimer::timeout, refreshTunnel,
-            [=]()
-            {
-                for ( qint32 port : ports )
-                {
-                    if ( port != 0 && !permFwd.value( port, false ) )
-                    {
-                        this->addPortForward( "TCP", port );
-                        this->addPortForward( "UDP", port );
-                    }
-                }
-            }, Qt::QueuedConnection );
 
         QString logMsg{ "Creating UPNP Object." };
         emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
@@ -253,7 +235,7 @@ void UPNP::getUdpSlot()
                                     emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 
                                     this->setTunneled( true );
-                                    emit this->success();
+                                    emit this->upnpTunnelSuccessSignal();
                                     break;
                                 }
                             }
@@ -263,7 +245,7 @@ void UPNP::getUdpSlot()
                         else
                             reader.readNext();
                     }
-                    this->getExternalIP();
+                    //this->getExternalIP();
 
                     httpSocket->disconnect();
                 }, Qt::QueuedConnection );
@@ -296,7 +278,7 @@ void UPNP::getExternalIP()
     emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
-void UPNP::postSOAP(const QString& action, const QString& message, const QString& protocol, const qint32& port)
+void UPNP::postSOAP(const QString& action, const QString& message, const QString& protocol, const quint16& port)
 {
     QString soap{ "\"%1#%2\"" };
             soap = soap.arg( rtrSchema )
@@ -320,46 +302,23 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
     [=]()
     {
         QString reply = httpReply->readAll();
-        bool log{ true };
         if ( !Helper::strContainsStr( reply, "UPnPError" ) )
         {
             if ( Helper::strContainsStr( reply, "NewExternalIPAddress" ) )
             {
                 this->extractExternalIP( action, reply );
-
-                //IP Extraction handles it's own log output.
-                log = false;
             }
 
             if ( Helper::strContainsStr( reply, "DeletePortMappingResponse" ) )
             {
-                emit this->removedPortForward( port, protocol );
+                this->logActionReply( action, protocol, port );
+                emit this->upnpPortRemovedSignal( port, protocol );
             }
 
             if ( Helper::strContainsStr( reply, "AddPortMappingResponse" ) )
             {
-                emit this->addedPortForward( port, protocol );
-                refreshTunnel->start();
-            }
-
-            if ( Helper::strContainsStr(reply,"GetSpecificPortMappingEntryResponse" ) )
-            {
-                //The port is valid, but we didn't add it.
-                //Add the port to be refreshed.
-                if ( !ports.contains( port ) )
-                {
-                    ports.append( port );
-                }
-            }
-
-            if ( log )
-            {
-                QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
-                        logMsg = logMsg.arg( action )
-                                       .arg( protocol )
-                                       .arg( port );
-
-                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
+                this->logActionReply( action, protocol, port );
+                emit this->upnpPortAddedSignal( port, protocol );
             }
         }
         else
@@ -370,7 +329,7 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
             //Try and add port forwards if our response holds this value.
             if ( Helper::strContainsStr( reply, "Invalid Args" ) )
             {
-                this->addPortForward( protocol, port );
+                this->portForwardAdd( protocol, port );
             }
             else
                 this->extractError( reply, port, protocol );
@@ -380,7 +339,7 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
     }, Qt::QueuedConnection );
 }
 
-void UPNP::extractError(const QString& message, const qint32& port, const QString& protocol )
+void UPNP::extractError(const QString& message, const quint16& port, const QString& protocol )
 {
     QXmlStreamReader reader( message );
     reader.readNext();
@@ -403,8 +362,8 @@ void UPNP::extractError(const QString& message, const qint32& port, const QStrin
         if ( (Helper::cmpStrings( elementText, "NoSuchEntryInArray" ))
           || (Helper::cmpStrings( elementText, "Invalid Args" ) ))
         {
-            this->addPortForward( protocol, port );
-            emit this->checkedPortForward( port, protocol );
+            this->portForwardAdd( protocol, port );
+            emit this->upnpPortCheckedSignal( protocol );
         }
 
         if ( Helper::cmpStrings( elementText, "OnlyPermanentLeasesSupported" ) )
@@ -414,16 +373,44 @@ void UPNP::extractError(const QString& message, const qint32& port, const QStrin
                            .arg( port );
 
             emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
-            this->addPortForward( protocol, port, true );
+            this->portForwardAdd( protocol, port, true );
         }
 
         if ( Helper::cmpStrings( reader.readElementText(), "errorDescription" ) )
         {
-            this->addPortForward( protocol, port );
-            emit this->checkedPortForward( port, protocol );
+            this->portForwardAdd( protocol, port );
+            emit this->upnpPortCheckedSignal( protocol );
         }
         else
-            emit this->error( reader.readElementText() );
+            emit this->upnpErrorSignal( reader.readElementText() );
+    }
+}
+
+void UPNP::upnpPortForwardSlot(const quint16& port, const bool& insert)
+{
+    if ( insert )
+    {
+        if ( !this->getTunneled()
+          && port >= 1)
+        {
+            this->makeTunnel();
+            QObject::connect( this, &UPNP::upnpTunnelSuccessSignal, this,
+            [=]()
+            {
+                this->portForwardAdd( "TCP", port );
+                this->portForwardAdd( "UDP", port );
+            });
+        }
+        else if ( this->getTunneled() )
+        {
+            this->portForwardAdd( "TCP", port );
+            this->portForwardAdd( "UDP", port );
+        }
+    }
+    else if ( this->getTunneled() )
+    {
+        this->portForwardRemove( "TCP", port );
+        this->portForwardRemove( "UDP", port );
     }
 }
 
@@ -449,7 +436,7 @@ void UPNP::extractExternalIP(const QString& action, const QString& message )
     }
 }
 
-void UPNP::checkPortForward(const QString& protocol, const qint32& port)
+void UPNP::checkPortForward(const QString& protocol, const quint16& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
@@ -473,13 +460,8 @@ void UPNP::checkPortForward(const QString& protocol, const qint32& port)
     emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
 }
 
-void UPNP::addPortForward(const QString& protocol, const qint32& port, const bool& lifetime)
+void UPNP::portForwardAdd(const QString& protocol, const quint16& port, const bool& lifetime)
 {
-    if ( !ports.contains( port ) )
-    {
-        ports.append( port );
-    }
-
     QString message{ "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
                      "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
@@ -522,7 +504,7 @@ void UPNP::addPortForward(const QString& protocol, const qint32& port, const boo
     }
 }
 
-void UPNP::removePortForward(const QString& protocol, const qint32& port)
+void UPNP::portForwardRemove(const QString& protocol, const quint16& port)
 {
     QString message( "<?xml version=\"1.0\"?>"
                      "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
@@ -539,12 +521,19 @@ void UPNP::removePortForward(const QString& protocol, const qint32& port)
 
     this->postSOAP( "DeletePortMapping", message, protocol, port );
 
-    if ( ports.contains( port ) )
-        ports.remove( ports.indexOf( port ) );
-
     QString logMsg{ "Removing Port[ %1:%2 ]." };
     logMsg = logMsg.arg( protocol )
                    .arg( port );
 
     emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
+}
+
+void UPNP::logActionReply(const QString& action, const QString& protocol, const int& port)
+{
+    QString logMsg{ "Got Reply from Action[ %1 ] for Port[ %2:%3 ]" };
+            logMsg = logMsg.arg( action )
+                           .arg( protocol )
+                           .arg( port );
+
+    emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true );
 }

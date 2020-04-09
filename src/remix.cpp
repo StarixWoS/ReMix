@@ -78,6 +78,7 @@ ReMix::~ReMix()
     instance->deleteLater();
 
     Settings::prefs->deleteLater();
+    Settings::bioHash.clear();
     delete ui;
 }
 

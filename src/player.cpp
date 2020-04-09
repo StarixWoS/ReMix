@@ -25,6 +25,9 @@ Player::Player(qintptr socketDescriptor)
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Player::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
 
+    //Connect the Player to the ReadyRead slot.
+    QObject::connect( this, &Player::readyRead, this, &Player::readyReadSlot, Qt::DirectConnection );
+
     //Update the User's UI row. --Every 1000MS.
     connTimer.start( 1000 );
 
@@ -422,7 +425,7 @@ void Player::forceSendCampPacket()
     {
         auto* pktHandle{ svr->getPktHandle() };
         if ( pktHandle != nullptr )
-            pktHandle->parsePacket( this->getCampPacket(), this );
+            emit this->parsePacketSignal( this->getCampPacket(), this );
     }
 }
 
@@ -914,4 +917,44 @@ void Player::sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByte
 
     if ( bOut >= 0 )
         serverInfo->updateBytesOut( this, bOut );
+}
+
+
+void Player::readyReadSlot()
+{
+    QByteArray data{ this->getOutBuff() };
+    qint64 bIn{ data.length() };
+
+    data.append( this->readAll() );
+    serverInfo->setBytesIn( serverInfo->getBytesIn() + static_cast<quint64>( data.length() - bIn ) );
+
+    if ( data.contains( "\r" )
+      || data.contains( "\n" ) )
+    {
+        int bytes = data.indexOf( "\r\n" );
+        if ( bytes <= 0 )
+            bytes = data.indexOf( "\n" );
+        if ( bytes <= 0 )
+            bytes = data.indexOf( "\r" );
+
+        if ( bytes > 0 )
+        {
+            QByteArray packet = data.left( bytes + 1 );
+                       packet = packet.left( packet.length() - 1 );
+
+            data = data.mid( bytes + 1 ).data();
+
+            this->setOutBuff( data );
+
+            this->setPacketsIn( this->getPacketsIn(), 1 );
+            this->setBytesIn( this->getBytesIn() + static_cast<quint64>( packet.length() ) );
+
+            emit this->parsePacketSignal( packet, this );
+            if ( this->bytesAvailable() > 0
+              || this->getOutBuff().size() > 0 )
+            {
+                emit this->readyRead();
+            }
+        }
+    }
 }

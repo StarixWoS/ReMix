@@ -208,8 +208,12 @@ class Player : public QTcpSocket
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
 
+    private slots:
+        void readyReadSlot();
+
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void parsePacketSignal(const QByteArray& packet, Player* plr);
 };
 
 #endif // PLAYER_HPP

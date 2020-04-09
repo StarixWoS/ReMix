@@ -50,6 +50,18 @@ ServerInfo::ServerInfo()
     QObject::connect( this, &ServerInfo::serverUsageChangedSignal, udpThread, &UdpThread::serverUsageChangedSlot, Qt::QueuedConnection );
     QObject::connect( this, &ServerInfo::serverIDChangedSignal, udpThread, &UdpThread::serverIDChangedSlot, Qt::QueuedConnection );
 
+    //Connect the ServerInfo Class Signals to the UPNP Class Slots.
+    upnp = UPNP::getInstance();
+    QObject::connect( this, &ServerInfo::upnpPortForwardSignal, upnp, &UPNP::upnpPortForwardSlot, Qt::QueuedConnection );
+    QObject::connect( upnp, &UPNP::upnpPortAddedSignal, this, &ServerInfo::upnpPortAddedSlot, Qt::QueuedConnection );
+
+    upnpPortRefresh.setInterval( UPNP_TIME_OUT_MS );
+    QObject::connect( &upnpPortRefresh, &QTimer::timeout, &upnpPortRefresh,
+    [=]()
+    {
+        emit this->upnpPortForwardSignal( this->getPrivatePort(), this->getUseUPNP() );
+    }, Qt::QueuedConnection );
+
     players.resize( static_cast<int>( MAX_PLAYERS ) );
     players.fill( nullptr );
 
@@ -139,6 +151,7 @@ ServerInfo::~ServerInfo()
             plr->deleteLater();
     }
     upTimer.disconnect();
+    upnpPortRefresh.disconnect();
 }
 
 void ServerInfo::setupInfo()
@@ -155,34 +168,10 @@ void ServerInfo::setupInfo()
 
 void ServerInfo::setupUPNP(const bool& enable)
 {
-    upnp = UPNP::getInstance();
-    if ( upnp == nullptr )
-        return;
+    if ( !enable )
+        this->setUpnpPortAdded( false );
 
-    if ( enable )
-    {
-        bool tunneled = UPNP::getTunneled();
-        if ( !tunneled )
-        {
-            QObject::connect( upnp, &UPNP::success, upnp,
-            [=]()
-            {
-                upnp->addPortForward( "TCP", this->getPrivatePort() );
-                upnp->addPortForward( "UDP", this->getPrivatePort() );
-            }, Qt::QueuedConnection );
-            upnp->makeTunnel();
-        }
-        else
-        {
-            upnp->addPortForward( "TCP", this->getPrivatePort() );
-            upnp->addPortForward( "UDP", this->getPrivatePort() );
-        }
-    }
-    else //Remove our UPNP Port Forward.
-    {
-        upnp->removePortForward( "TCP", this->getPrivatePort() );
-        upnp->removePortForward( "UDP", this->getPrivatePort() );
-    }
+    emit this->upnpPortForwardSignal( this->getPrivatePort(), enable );
 }
 
 QString ServerInfo::getMasterInfoHost() const
@@ -395,7 +384,6 @@ void ServerInfo::deletePlayer(Player* plr)
     plr->deleteLater();
     plr = nullptr;
 
-    //delete players[ slot ];
     players[ slot ] = nullptr;
 
     this->setPlayerCount( this->getPlayerCount() - 1 );
@@ -675,13 +663,13 @@ void ServerInfo::setIsPublic(const bool& value)
         if ( !this->getIsSetUp() )
             this->setupInfo();
 
-        this->startMasterCheckIn();
-
-        Server* server{ this->getTcpServer() };
-        if ( server != nullptr )
-            server->setupServerInfo();
-
-        this->sendMasterInfo();
+        if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
+          || ( this->getUpnpPortAdded() && this->getUseUPNP() ) )
+        {
+            this->startMasterCheckIn();
+            emit this->initializeServerSignal();
+            this->sendMasterInfo();
+        }
     }
     else
     {
@@ -714,6 +702,10 @@ void ServerInfo::setUseUPNP(const bool& value)
         else
             this->setupUPNP( value );
     }
+
+    if ( !value )
+        upnpPortRefresh.stop();
+
     useUPNP = value;
 }
 
@@ -1114,6 +1106,16 @@ void ServerInfo::updateBytesOut(Player* plr, const qint64 bOut)
     return;
 }
 
+bool ServerInfo::getUpnpPortAdded() const
+{
+    return upnpPortAdded;
+}
+
+void ServerInfo::setUpnpPortAdded(bool value)
+{
+    upnpPortAdded = value;
+}
+
 Server* ServerInfo::getTcpServer() const
 {
     return tcpServer;
@@ -1145,4 +1147,20 @@ void ServerInfo::sendServerInfoSlot(const QHostAddress& addr, const quint16& por
 void ServerInfo::increaseServerPingSlot()
 {
     this->setUserPings( this->getUserPings() + 1 );
+}
+
+void ServerInfo::upnpPortAddedSlot(const quint16& port, const QString& protocol)
+{
+    if ( port != this->getPrivatePort() )
+        return;
+
+    if ( Helper::cmpStrings( protocol, "UDP" ) )
+    {
+        this->startMasterCheckIn();
+        emit this->initializeServerSignal();
+        this->sendMasterInfo();
+
+        this->setUpnpPortAdded( true );
+        upnpPortRefresh.start();
+    }
 }

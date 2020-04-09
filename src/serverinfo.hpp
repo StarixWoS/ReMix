@@ -96,6 +96,9 @@ class ServerInfo : public QObject
     quint64 bytesOut{ 0 };
     quint64 baudOut{ 0 };
 
+    QTimer upnpPortRefresh;
+    bool upnpPortAdded{ false };
+
     public:
         ServerInfo();
         ~ServerInfo() override;
@@ -259,9 +262,13 @@ class ServerInfo : public QObject
 
         void updateBytesOut(Player* plr, const qint64 bOut);
 
+        bool getUpnpPortAdded() const;
+        void setUpnpPortAdded(bool value);
+
     signals:
         void bindSocketSignal(const QHostAddress& addr, const quint16& port);
         void sendUdpDataSignal(const QHostAddress& addr, const quint16& port, const QString& data);
+        void initializeServerSignal();
         void closeUdpSocketSignal();
         void serverIsSetupSignal();
 
@@ -273,11 +280,14 @@ class ServerInfo : public QObject
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
 
+        void upnpPortForwardSignal(const quint16& port, const bool& insert);
+
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const quint32& type);
         void sendServerInfoSlot(const QHostAddress& addr, const quint16& port);
         void increaseServerPingSlot();
+        void upnpPortAddedSlot(const quint16& port, const QString& protocol);
 };
 
 #endif // SERVERINFO_HPP

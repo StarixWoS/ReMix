@@ -38,7 +38,7 @@ PacketHandler::~PacketHandler()
     cmdHandle->deleteLater();
 }
 
-void PacketHandler::parsePacket(const QByteArray& packet, Player* plr)
+void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 {
     QByteArray pkt{ packet };
     QChar opCode{ pkt.at( 4 ) };
@@ -268,7 +268,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                                  .arg( data );
                 emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
 
-                Server::insertBioHash( ipAddr, udp.mid( 1 ) );
+                Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
                 User::logBIO( sernum, ipAddr, data );
             }
             break;      //Q and R packet types are handled within the UdpThread class.

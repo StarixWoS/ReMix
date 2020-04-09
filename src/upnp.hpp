@@ -17,7 +17,6 @@ class UPNP : public QObject
     public:
         static QStringList schemas;
         static QHostAddress externalAddress;
-        static QVector<qint32> ports;
         static QMap<qint32, bool> permFwd;
         static bool tunneled;
         static UPNP* upnp;
@@ -42,9 +41,11 @@ class UPNP : public QObject
     public:
         void makeTunnel();
 
-        void checkPortForward(const QString& protocol, const qint32& port);
-        void addPortForward(const QString& protocol, const qint32& port, const bool& lifetime = false);
-        void removePortForward(const QString& protocol, const qint32& port);
+        void checkPortForward(const QString& protocol, const quint16& port);
+        void portForwardAdd(const QString& protocol, const quint16& port, const bool& lifetime = false);
+        void portForwardRemove(const QString& protocol, const quint16& port);
+
+        void logActionReply(const QString& action, const QString& protocol, const int& port);
 
         static UPNP* getInstance();
 
@@ -54,20 +55,21 @@ class UPNP : public QObject
     private:
         void getExternalIP();
         void extractExternalIP(const QString& action, const QString& message);
-        void postSOAP(const QString& action, const QString& message, const QString& protocol, const qint32& port = 0);
-        void extractError(const QString& message, const qint32& port, const QString& protocol);
+        void postSOAP(const QString& action, const QString& message, const QString& protocol, const quint16& port = 0);
+        void extractError(const QString& message, const quint16& port, const QString& protocol);
+
+    public slots:
+        void upnpPortForwardSlot(const quint16& port, const bool& insert);
 
     private slots:
         void getUdpSlot();
 
     signals:
-        void removedPortForward(const qint32 port, const QString& protocol);
-        void addedPortForward(const qint32 port, const QString& protocol);
-        void checkedPortForward(const qint32 port, const QString protocol);
-        void success();
-        void udpResponse();
-        void error(const QString& message);
-        void createdTunnel();
+        void upnpPortRemovedSignal(const quint16& port, const QString& protocol);
+        void upnpPortAddedSignal(const quint16& port, const QString& protocol);
+        void upnpPortCheckedSignal(const QString protocol);
+        void upnpTunnelSuccessSignal();
+        void upnpErrorSignal(const QString& message);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
 };

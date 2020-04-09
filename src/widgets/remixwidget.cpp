@@ -10,17 +10,21 @@
 
 //ReMix includes.
 #include "remixtabwidget.hpp"
+#include "packethandler.hpp"
 #include "serverinfo.hpp"
+#include "comments.hpp"
 #include "chatview.hpp"
 #include "comments.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
+#include "player.hpp"
 #include "server.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
 #include "user.hpp"
 
 //Qt Includes.
+#include <QStandardItemModel>
 #include <QMenu>
 
 ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
@@ -28,31 +32,71 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     ui(new Ui::ReMixWidget)
 {
     ui->setupUi( this );
-
     server = svrInfo;
+
+    //Initialize the ChatView Dialog.
+    chatView = new ChatView( parent, server );
+    chatView->setTitle( server->getServerName() );
+    chatView->setGameID( server->getGameId() );
+
+    //Initialize the PacketHandler Object..
+    pktHandle = new PacketHandler( server, chatView );
+    server->setPktHandle( pktHandle );
+
+    //Initialize the Comments Dialog.
+    serverComments = new Comments( parent, server );
+    serverComments->setTitle( server->getServerName() );
 
     //Setup Objects.
     motdWidget = MOTDWidget::getWidget( server );
 
+    //Initialize the RulesWidget
     rules = RulesWidget::getWidget( server );
-    QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, rules,
-    [=](const QString& gameInfo)
-    {
-        server->setGameInfo( gameInfo );
-    }, Qt::QueuedConnection );
     rules->setServerName( server->getServerName() );
+    server->setGameInfo( rules->getGameInfo() );
 
+    //Initialize the PlrListWidget.
     plrWidget = new PlrListWidget( this, server );
+    plrViewModel = plrWidget->getPlrModel();
+
+    //Fill the ReMix UI with the PlrListWidget.
     ui->tmpWidget->setLayout( plrWidget->layout() );
     ui->tmpWidget->layout()->addWidget( plrWidget );
 
     //Setup Networking Objects.
-    tcpServer = new Server( this, server, plrWidget->getPlrModel() );
+    tcpServer = new Server( this );
     server->setTcpServer( tcpServer );
+
+    //Connect Object Signals to Slots.
+    QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot, Qt::QueuedConnection );
+    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot, Qt::QueuedConnection );
+    QObject::connect( server, &ServerInfo::initializeServerSignal, this, &ReMixWidget::initializeServerSlot, Qt::QueuedConnection );
+
+    QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,
+    [=]()
+    {
+        if ( server->getIsSetUp() )
+            server->setIsSetUp( false );
+
+        server->setIsPublic( true );
+    }, Qt::QueuedConnection );
+
+    QObject::connect( chatView, &ChatView::sendChatSignal, chatView,
+    [=](QString msg)
+    {
+        if ( !msg.isEmpty() )
+            server->sendMasterMessage( msg, nullptr, true );
+    }, Qt::QueuedConnection );
+
+    QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, this,
+    [=](const QString& gameInfo)
+    {
+        server->setGameInfo( gameInfo );
+    }, Qt::QueuedConnection );
 
     //Initialize the TCP Server if we're starting as a public instance.
     if ( server->getIsPublic() )
-        tcpServer->setupServerInfo();
+        this->initializeServerSlot();
 
     ui->isPublicServer->setChecked( server->getIsPublic() );
     ui->useUPNP->setChecked( server->getUseUPNP() );
@@ -68,10 +112,19 @@ ReMixWidget::~ReMixWidget()
     if ( ui->useUPNP->isChecked() )
         server->setupUPNP( false );
 
-    tcpServer->close();
+    //Disconnect and Delete Objects.
+    serverComments->disconnect();
+    serverComments->deleteLater();
+    pktHandle->disconnect();
+    pktHandle->deleteLater();
+    tcpServer->disconnect();
     tcpServer->deleteLater();
-
+    plrWidget->disconnect();
     plrWidget->deleteLater();
+    pktHandle->disconnect();
+    pktHandle->deleteLater();
+    chatView->disconnect();
+    chatView->deleteLater();
 
     RulesWidget::deleteWidget( server );
     MOTDWidget::deleteWidget( server );
@@ -182,9 +235,8 @@ void ReMixWidget::initUIUpdate()
             //Validate the server's IP Address is still valid.
             //If it is now invalid, restart the network sockets.
             if ( Settings::getSetting( SKeys::WrongIP, server->getPrivateIP() ).toBool() )
-            {
                 emit this->reValidateServerIPSignal();
-            }
+
             plrWidget->resizeColumns();
         }
         ui->networkStatus->setText( msg );
@@ -214,16 +266,12 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openUserComments_clicked()
 {
-    if ( tcpServer != nullptr )
+    if ( serverComments != nullptr )
     {
-        Comments* comments{ tcpServer->getServerComments() };
-        if ( comments != nullptr )
-        {
-            if ( comments->isVisible() )
-                comments->hide();
-            else
-                comments->show();
-        }
+        if ( serverComments->isVisible() )
+            serverComments->hide();
+        else
+            serverComments->show();
     }
     else
     {
@@ -235,13 +283,18 @@ void ReMixWidget::on_openUserComments_clicked()
 
 void ReMixWidget::on_openChatView_clicked()
 {
-    ChatView* viewer{ tcpServer->getChatView() };
-    if ( viewer != nullptr )
+    if ( chatView != nullptr )
     {
-        if ( viewer->isVisible() )
-            viewer->hide();
+        if ( chatView->isVisible() )
+            chatView->hide();
         else
-            viewer->show();
+            chatView->show();
+    }
+    else
+    {
+        QString title{ "Error:" };
+        QString message{ "Unable to fetch the Server's Chat View dialog!" };
+        Helper::warningMessage( this, title, message );
     }
 }
 
@@ -249,7 +302,9 @@ void ReMixWidget::on_isPublicServer_toggled(bool value)
 {
     //Prevent the Server class from re-initializing the ServerInfo.
     if ( value != server->getIsPublic() )
+    {
         server->setIsPublic( ui->isPublicServer->isChecked() );
+    }
 }
 
 void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
@@ -301,4 +356,134 @@ void ReMixWidget::on_logButton_clicked()
         else
             logUi->show();
     }
+}
+
+void ReMixWidget::initializeServerSlot()
+{
+    if ( tcpServer != nullptr )
+    {
+        if ( tcpServer->isListening() )
+            tcpServer->close();
+
+        tcpServer->listen( QHostAddress( server->getPrivateIP() ), server->getPrivatePort() );
+    }
+}
+
+void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
+{
+    Player* plr{ nullptr };
+
+    server->setUserCalls( server->getUserCalls() + 1 );
+    int slot = server->getSocketSlot( socketDescriptor );
+    if ( slot < 0 )
+        plr = server->createPlayer( server->getEmptySlot(), socketDescriptor );
+    else
+        plr = server->getPlayer( slot );
+
+    //Set the Player's reference to the ServerInfo class.
+    plr->setServerInfo( server );
+
+    //Connect the pending Connection to a Disconnected lambda.
+    //Using a lambda to safely access the Plr Object within the Slot.
+    QObject::connect( plr, &Player::disconnected, plr,
+    [=]()
+    {
+        this->plrDisconnectedSlot( plr );
+    });
+
+    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::QueuedConnection );
+
+    server->sendServerGreeting( plr );
+    this->updatePlayerTable( plr );
+}
+
+void ReMixWidget::plrDisconnectedSlot(Player* plr)
+{
+    if ( plr == nullptr )
+        return;
+
+    QString ip{ plr->peerAddress().toString() % ":%1" };
+            ip = ip.arg( plr->peerPort() );
+
+    QStandardItem* item = plrTableItems.take( ip );
+    if ( item != nullptr )
+    {
+        if ( item == plr->getTableRow() )
+        {
+            plrViewModel->removeRow( item->row() );
+            plr->setTableRow( nullptr );
+        }
+        else    //The item is unrelated to our User, re-insert it.
+            plrTableItems.insert( ip, item );
+    }
+
+    server->deletePlayer( plr );
+    server->sendMasterInfo();
+}
+
+void ReMixWidget::updatePlayerTable(Player* plr)
+{
+    if ( plr == nullptr )
+        return;
+
+    QHostAddress ipAddr{ plr->peerAddress() };
+    QString ip{ ipAddr.toString() % ":%1" };
+            ip = ip.arg( plr->peerPort() );
+
+    QByteArray data{ Settings::getBioHashValue( ipAddr ) };
+    if ( data.isEmpty() )
+    {
+        data = QByteArray( "No BIO Data Detected. Be wary of this User!" );
+        Settings::insertBioHash( ipAddr, data );
+    }
+
+    plr->setBioData( data );
+    if ( plrTableItems.contains( ip ) )
+    {
+        plr->setTableRow( this->updatePlayerTableImpl( ip, data, plr, false ) );
+    }
+    else
+    {
+        plrTableItems[ ip ] = this->updatePlayerTableImpl( ip, data, plr, true );
+
+        plr->setTableRow( plrTableItems.value( ip ) );
+        server->sendMasterInfo();
+    }
+    pktHandle->checkBannedInfo( plr );
+}
+
+QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert)
+{
+    QString bio = QString( data );
+    int row{ -1 };
+
+    QStandardItem* item;
+    if ( !insert )
+    {
+        item = plrTableItems.value( peerIP );
+        row = item->row();
+    }
+    else
+    {
+        row = plrViewModel->rowCount();
+        plrViewModel->insertRow( row );
+    }
+
+    plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
+    if ( !bio.isEmpty() )
+    {
+        QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
+        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
+        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
+
+        User::updateCallCount( Helper::serNumToHexStr( sernum ) );
+        plr->setPlayTime( age );
+        plr->setAlias( alias );
+
+        plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 2 ), age, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 3 ), alias, Qt::DisplayRole );
+        plrViewModel->setData( plrViewModel->index( row, 7 ), bio, Qt::DisplayRole );
+    }
+    return plrViewModel->item( row, 0 );
 }

@@ -81,6 +81,9 @@ const QStringList Settings::sKeys =
     "arenaPK",
 };
 
+//The BIO Hash is accessible via any ReMix Server Instance.
+QHash<QHostAddress, QByteArray> Settings::bioHash;
+
 //Initialize our QSettings Object globally to make things more responsive.
 QSettings* Settings::prefs{ new QSettings( "preferences.ini", QSettings::IniFormat ) };
 SettingsWidget* Settings::settings;
@@ -239,6 +242,7 @@ QVariant Settings::getSettingFromPath(const QString& path)
 
 QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey)
 {
+    QMutexLocker locker( &mutex );
     QString path{ "%1/%2/%3" };
             path = path.arg( childSubKey.toString() )
                        .arg( Settings::pKeys[ static_cast<int>( key ) ] )
@@ -248,6 +252,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, cons
 
 QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
 {
+    QMutexLocker locker( &mutex );
     QString path{ "%1/%2" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
                        .arg( sKeys[ static_cast<int>( subKey ) ] );
@@ -256,6 +261,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
 
 QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
 {
+    QMutexLocker locker( &mutex );
     QString path{ "%1/%2" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
                        .arg( subKey.toString() );
@@ -264,6 +270,7 @@ QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
 
 QString Settings::makeRulePath(const QString& serverName, const SSubKeys& key)
 {
+    QMutexLocker locker( &mutex );
     QString path{ "%1/%2/%3" };
             path = path.arg( serverName )
                        .arg( pKeys[ static_cast<int>( SKeys::Rules ) ] )
@@ -384,4 +391,19 @@ bool Settings::cmpServerPassword(const QString& serverName, const QString& value
         return ( val.toString() == Helper::hashPassword( hash ) );
 
     return false;
+}
+
+void Settings::insertBioHash(const QHostAddress& addr, const QByteArray& value)
+{
+    bioHash.insert( addr, value );
+}
+
+QByteArray Settings::getBioHashValue(const QHostAddress& addr)
+{
+    return bioHash.value( addr );
+}
+
+QHostAddress Settings::getBioHashKey(const QByteArray& bio)
+{
+    return bioHash.key( bio );
 }

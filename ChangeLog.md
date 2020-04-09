@@ -2,6 +2,22 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+Version 2.5.9:
+    Change:
+      * The Server Class now only handles receiving a socketdescriptor and forwarding it to the ReMixWidget Class.
+      * The Settings class now controls the plrBioHash.
+      * The Player Class now handles it's own readyRead signal/slot, and emits incoming packets to the PacketHandler Class.
+      * The ServerInfo class should now interact with the UPNP class much better to allow forwarding ports before checking in with the MixMaster.
+
+
+
+    Bugfixes:
+      * Added a few QMutexLockers within the Settings Class to prevent possible threading issues from reading rules/settings.
+      * A ReMix Server's GameInfo string will once again be obtained from the RulesWidget Class and appended to any Ping Response.
+
+
+
+
 Version 2.5.8:
     Change:
       * Settings and Rules are now handled via directly accessing the values using the getSetting/getRule functions directly in conjunction with Keys and SubKeys.

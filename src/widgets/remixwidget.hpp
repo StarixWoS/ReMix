@@ -15,12 +15,19 @@ class ReMixWidget : public QWidget
 {
     Q_OBJECT
 
+    QHash<QString, QStandardItem*> plrTableItems;
+    QStandardItemModel* plrViewModel{ nullptr };
+
     MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
     PlrListWidget* plrWidget{ nullptr };
     ServerInfo* server{ nullptr };
     Server* tcpServer{ nullptr };
+
+    Comments* serverComments{ nullptr };
+    PacketHandler* pktHandle{ nullptr };
+    ChatView* chatView{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
@@ -53,6 +60,14 @@ class ReMixWidget : public QWidget
         void on_openChatView_clicked();
 
         void on_logButton_clicked();
+
+        void initializeServerSlot();
+
+        void plrConnectedSlot(qintptr socketDescriptor);
+        void plrDisconnectedSlot(Player* plr);
+
+        void updatePlayerTable(Player* plr);
+        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert);
 
     signals:
         void reValidateServerIPSignal();

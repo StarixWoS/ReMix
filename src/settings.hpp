@@ -30,6 +30,7 @@ class Settings : public QDialog
         static void updateTabBar(ServerInfo* server);
         static void copyServerSettings(ServerInfo* server, const QString& newName);
 
+        static QHash<QHostAddress, QByteArray> bioHash;
         static QSettings* prefs;
 
         static const QStringList pKeys;
@@ -62,6 +63,10 @@ class Settings : public QDialog
 
         static QString getRuleSet(const QString& svrID);
         static bool cmpServerPassword(const QString& serverName, const QString& value);
+
+        static void insertBioHash(const QHostAddress& addr, const QByteArray& value);
+        static QByteArray getBioHashValue(const QHostAddress& addr);
+        static QHostAddress getBioHashKey(const QByteArray& bio);
 
     private:
         Ui::Settings* ui;

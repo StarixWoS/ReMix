@@ -62,7 +62,8 @@ void RulesWidget::setServerName(const QString& name)
 
     rowText = "World Name: [ %1 ]";
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( val.toString() ) );
-    emit this->gameInfoChangedSignal( val.toString() );
+    this->setGameInfo( val.toString() );
+    emit gameInfoChangedSignal( val.toString() );
 
     rowText = "Max AFK: [ %1 ] Minutes";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
@@ -139,6 +140,16 @@ void RulesWidget::setSelectedWorld(const QString& worldName, const bool& state)
 
     worldCheckState = state;
     Settings::setSetting( worldName, SKeys::Rules, SSubKeys::World, serverName );
+}
+
+void RulesWidget::setGameInfo(const QString& gInfo)
+{
+    gameInfo = gInfo;
+}
+
+const QString& RulesWidget::getGameInfo() const
+{
+    return gameInfo;
 }
 
 void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem* item)

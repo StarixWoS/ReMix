@@ -26,7 +26,6 @@ class PacketHandler : public QObject
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        void parsePacket(const QByteArray& packet, Player* plr = nullptr);
         void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port);
 
         bool checkBannedInfo(Player* plr) const;
@@ -47,6 +46,9 @@ class PacketHandler : public QObject
         void readMIX8(const QString& packet, Player* plr);
         void readMIX9(const QString& packet, Player* plr);
         void handleSSVReadWrite(const QString& packet, Player* plr, const bool write);
+
+    public slots:
+        void parsePacketSlot(const QByteArray& packet, Player* plr = nullptr);
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
