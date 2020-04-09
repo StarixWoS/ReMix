@@ -359,7 +359,6 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
                         userData->remove( sernum % "/" % keys[ UserKeys::kMUTEREASON ] );
                         userData->remove( sernum % "/" % keys[ UserKeys::kMUTEDURATION ] );
                     }
-
                     break;
                 }
             }

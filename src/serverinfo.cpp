@@ -36,19 +36,19 @@ ServerInfo::ServerInfo()
     udpThread->moveToThread( thread );
 
     //Connect signals from the UdpThread class to the slots within the ServerInfo class.
-    QObject::connect( udpThread, &UdpThread::udpDataSignal, this, &ServerInfo::udpDataSlot, Qt::QueuedConnection );
-    QObject::connect( udpThread, &UdpThread::sendUserListSignal, this, &ServerInfo::sendUserListSlot, Qt::QueuedConnection );
-    QObject::connect( udpThread, &UdpThread::sendServerInfoSignal, this, &ServerInfo::sendServerInfoSlot, Qt::QueuedConnection );
     QObject::connect( udpThread, &UdpThread::increaseServerPingsSignal, this, &ServerInfo::increaseServerPingSlot, Qt::QueuedConnection );
+    QObject::connect( udpThread, &UdpThread::sendServerInfoSignal, this, &ServerInfo::sendServerInfoSlot, Qt::QueuedConnection );
+    QObject::connect( udpThread, &UdpThread::sendUserListSignal, this, &ServerInfo::sendUserListSlot, Qt::QueuedConnection );
+    QObject::connect( udpThread, &UdpThread::udpDataSignal, this, &ServerInfo::udpDataSlot, Qt::QueuedConnection );
 
     //Connect signals from the ServerInfo class to the slots within the UdpThread class.
-    QObject::connect( this, &ServerInfo::bindSocketSignal, udpThread, &UdpThread::bindSocketSlot, Qt::QueuedConnection );
-    QObject::connect( this, &ServerInfo::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot, Qt::QueuedConnection );
-    QObject::connect( this, &ServerInfo::closeUdpSocketSignal, udpThread, &UdpThread::closeUdpSocketSlot, Qt::QueuedConnection );
-    QObject::connect( this, &ServerInfo::serverNameChangedSignal, udpThread, &UdpThread::serverNameChangedSlot, Qt::QueuedConnection );
     QObject::connect( this, &ServerInfo::serverWorldChangedSignal, udpThread, &UdpThread::serverWorldChangedSlot, Qt::QueuedConnection );
     QObject::connect( this, &ServerInfo::serverUsageChangedSignal, udpThread, &UdpThread::serverUsageChangedSlot, Qt::QueuedConnection );
+    QObject::connect( this, &ServerInfo::serverNameChangedSignal, udpThread, &UdpThread::serverNameChangedSlot, Qt::QueuedConnection );
     QObject::connect( this, &ServerInfo::serverIDChangedSignal, udpThread, &UdpThread::serverIDChangedSlot, Qt::QueuedConnection );
+    QObject::connect( this, &ServerInfo::closeUdpSocketSignal, udpThread, &UdpThread::closeUdpSocketSlot, Qt::BlockingQueuedConnection );
+    QObject::connect( this, &ServerInfo::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot, Qt::QueuedConnection );
+    QObject::connect( this, &ServerInfo::bindSocketSignal, udpThread, &UdpThread::bindSocketSlot, Qt::QueuedConnection );
 
     //Connect the ServerInfo Class Signals to the UPNP Class Slots.
     upnp = UPNP::getInstance();
@@ -145,13 +145,16 @@ ServerInfo::~ServerInfo()
     if ( thread != nullptr )
         thread->exit();
 
-    for ( Player* plr : players )
+    for ( Player* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr )
             plr->deleteLater();
     }
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
+
+    thread->deleteLater();
+    thread = nullptr;
 }
 
 void ServerInfo::setupInfo()
@@ -281,7 +284,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
 
     if ( !response.isEmpty() )
     {
-        emit this->sendUdpDataSignal( addr, port, response );
+        emit this->sendUdpDataSignal( addr, port, response % "/r/n" );
         QString msg{ "Sending User List to [ %1:%2 ]; %3" };
                 msg = msg.arg( addr.toString() )
                          .arg( port )
@@ -321,22 +324,21 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        if ( response == "X" )
+        if ( !disconnect )
         {
-            msg.append( " [ Disconnect ]." );
+            this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
+            this->setSentUDPCheckIn( true );
         }
+        else
+            msg.append( " [ Disconnect ]." );
+
         emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
-
-        //Store the Master Server Check-In time.
-        this->setMasterPingSendTime( QDateTime::currentMSecsSinceEpoch() );
-
-        emit this->sendUdpDataSignal( addr, port, response );
-        this->setSentUDPCheckIn( true );
+        emit this->sendUdpDataSignal( addr, port, response % "/r/n" );
     }
     else
         this->setSentUDPCheckIn( false );
 
-    if ( this->getGameId() == Games::W97 )
+    if ( !disconnect )
     {
         masterCheckIn.setInterval( MAX_MASTER_CHECKIN_TIME );
         this->setMasterTimedOut( false );
@@ -362,7 +364,7 @@ Player* ServerInfo::getPlayer(const int& slot)
 {
     Player* plr{ nullptr };
     if ( slot >= 0 )
-        plr = players.at( slot );
+        plr = this->getPlayerVector().at( slot );
 
     return plr;
 }
@@ -393,7 +395,7 @@ void ServerInfo::deletePlayer(Player* plr)
 Player* ServerInfo::getLastPlayerInStorage(Player* plr)
 {
     Player* tmpPlayer{ nullptr };
-    for ( auto* tmpPlr : players )
+    for ( auto* tmpPlr : this->getPlayerVector() )
     {
         if ( tmpPlr == nullptr )
             break;
@@ -407,7 +409,7 @@ Player* ServerInfo::getLastPlayerInStorage(Player* plr)
 int ServerInfo::getEmptySlot()
 {
     int slot{ -1 };
-    for ( auto* plr : players )
+    for ( auto* plr : this->getPlayerVector() )
     {
         ++slot;
         if ( plr == nullptr )
@@ -419,7 +421,7 @@ int ServerInfo::getEmptySlot()
 int ServerInfo::getSocketSlot(qintptr socketDescriptor)
 {
     int slot{ -1 };
-    for ( auto* plr : players )
+    for ( auto* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
           && plr->socketDescriptor() == socketDescriptor )
@@ -434,7 +436,7 @@ int ServerInfo::getSocketSlot(qintptr socketDescriptor)
 int ServerInfo::getQItemSlot(QStandardItem* index)
 {
     int slot{ -1 };
-    for ( auto* plr : players )
+    for ( auto* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
           && plr->getTableRow() == index )
@@ -451,31 +453,27 @@ void ServerInfo::sendPlayerSocketInfo()
     QString response{ ":SR@I" };
     QString filler{ "%1=%2," };
 
-    Player* tmpPlr{ nullptr };
     QHostAddress ipAddr;
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+
+    for ( auto* plr : this->getPlayerVector() )
     {
-        tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr
-          && tmpPlr->getHasSernum() )
+        if ( plr != nullptr && plr->getHasSernum() )
         {
-            ipAddr = QHostAddress( tmpPlr->peerAddress().toString() );
-            response = response.append( filler.arg( Helper::intToStr( tmpPlr->getSernum_i(), 16 ) )
+            ipAddr = QHostAddress( plr->peerAddress().toString() );
+            response = response.append( filler.arg( Helper::intToStr( plr->getSernum_i(), 16 ) )
                                               .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, 16 ) ) );
         }
     }
+
     response = response.append( "\r\n" );
 
     qint64 bOut{ 0 };
-
-    tmpPlr = nullptr;
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( auto* plr : this->getPlayerVector() )
     {
-        tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr )
+        if ( plr != nullptr )
         {
-            bOut = tmpPlr->write( response.toLatin1(), response.length() );
-            this->updateBytesOut( tmpPlr, bOut );
+            bOut = plr->write( response.toLatin1(), response.length() );
+            this->updateBytesOut( plr, bOut );
         }
     }
 }
@@ -485,7 +483,7 @@ void ServerInfo::sendPlayerSocketPosition(Player* plr)
     if ( plr == nullptr )
         return;
 
-    Player* lastPlr{ this->getLastPlayerInStorage(plr) };
+    Player* lastPlr{ this->getLastPlayerInStorage( plr ) };
     qint32 slotPos{ 0 };
 
     if ( lastPlr != nullptr )
@@ -806,6 +804,7 @@ void ServerInfo::setServerName(const QString& value)
             this->sendMasterInfo( false ); //Reconnect to the Master Mix using the new name.
         }
         emit this->serverNameChangedSignal( serverName );
+        this->setGameInfo( "" );
     }
 }
 

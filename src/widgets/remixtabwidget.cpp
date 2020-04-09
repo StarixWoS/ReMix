@@ -28,7 +28,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     this->setMovable( true );
 
     user = User::getInstance();
-    createDialog = this->getCreateDialog( this );
+    createDialog = new CreateInstance( this );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot, Qt::QueuedConnection );
 
     this->setTabsClosable( true );
@@ -113,13 +113,17 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
 ReMixTabWidget::~ReMixTabWidget()
 {
+    if ( createDialog != nullptr )
+    {
+        createDialog->deleteLater();
+        createDialog = nullptr;
+    }
+
     nightModeButton->deleteLater();
     newTabButton->deleteLater();
 
-    ReMixWidget* server{ nullptr };
-    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    for ( auto* server : serverMap )
     {
-        server = serverMap.value( i );
         if ( server != nullptr )
         {
             Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, server->getServerName() );
@@ -131,10 +135,8 @@ ReMixTabWidget::~ReMixTabWidget()
 
 void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 {
-    ReMixWidget* server{ nullptr };
-    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    for ( auto* server : serverMap )
     {
-        server = serverMap.value( i );
         if ( server != nullptr )
             server->sendServerMessage( msg );
     }
@@ -143,11 +145,8 @@ void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 quint32 ReMixTabWidget::getPlayerCount() const
 {
     quint32 playerCount{ 0 };
-
-    ReMixWidget* server{ nullptr };
-    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    for ( auto* server : serverMap )
     {
-        server = serverMap.value( i );
         if ( server != nullptr )
             playerCount += server->getPlayerCount();
     }
@@ -157,11 +156,8 @@ quint32 ReMixTabWidget::getPlayerCount() const
 quint32 ReMixTabWidget::getServerCount() const
 {
     quint32 serverCount{ 0 };
-
-    ReMixWidget* server{ nullptr };
-    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    for ( auto* server : serverMap )
     {
-        server = serverMap.value( i );
         if ( server != nullptr )
             ++serverCount;
     }
@@ -193,15 +189,6 @@ ReMixTabWidget* ReMixTabWidget::getTabInstance(QWidget* parent)
             tabInstance = new ReMixTabWidget();
     }
     return tabInstance;
-}
-
-CreateInstance* ReMixTabWidget::getCreateDialog(QWidget* parent)
-{
-    if ( createDialog == nullptr )
-    {
-        createDialog = new CreateInstance( parent );
-    }
-    return createDialog;
 }
 
 void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)

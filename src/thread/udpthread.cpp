@@ -172,6 +172,7 @@ void UdpThread::closeUdpSocketSlot()
 {
     if ( socket != nullptr )
     {
+        socket->flush();
         socket->close();
         socket->deleteLater();
     }

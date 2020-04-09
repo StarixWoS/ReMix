@@ -63,7 +63,6 @@ void RulesWidget::setServerName(const QString& name)
     rowText = "World Name: [ %1 ]";
     ui->rulesView->item( Toggles::world, 0 )->setText( rowText.arg( val.toString() ) );
     this->setGameInfo( val.toString() );
-    emit gameInfoChangedSignal( val.toString() );
 
     rowText = "Max AFK: [ %1 ] Minutes";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );

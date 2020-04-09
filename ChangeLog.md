@@ -14,6 +14,16 @@ Version 2.5.9:
     Bugfixes:
       * Added a few QMutexLockers within the Settings Class to prevent possible threading issues from reading rules/settings.
       * A ReMix Server's GameInfo string will once again be obtained from the RulesWidget Class and appended to any Ping Response.
+      * Fixed a crash related to creating a Server Instance.
+        * The crash was caused by deleting a (global) RandDev Object from within the Settings Class.
+      * Fixed an issue when closing a ReMix Instance.
+        * Instances would close far too fast to properly inform the MasterMix that it had indeed closed.
+        * This issue is most apparent when closing a large number of servers at once.
+      * ReMix will now warn the host when they have reached the maxiumum server count.
+        * In the case that the Server Count has been reached, no Server Instance will be created.
+        * Previously the Server Instance was created, and active without being appended to the ReMixTabWidget UI.
+          * If a User were to attempt to create another Server Instance with ReMix in this state, the MasterMix would ban the User.
+      * Fixed a possible crash related to not properly deleting the UdpThread Objects stored within the ServerInfo Class.
 
 
 

@@ -339,8 +339,7 @@ QString Settings::getServerID(const QString& svrID)
             id = randDev->genRandNum( 1, 0x7FFFFFFE );
 
         setSetting( id, SKeys::Setting, SSubKeys::Extension, svrID );
-
-        delete randDev;
+        randDev = nullptr;
     }
     return Helper::intToStr( id, 16, 8 );
 }

@@ -265,6 +265,9 @@ class ServerInfo : public QObject
         bool getUpnpPortAdded() const;
         void setUpnpPortAdded(bool value);
 
+    private:
+        const inline QVector<Player*> getPlayerVector(){ return players; }
+
     signals:
         void bindSocketSignal(const QHostAddress& addr, const quint16& port);
         void sendUdpDataSignal(const QHostAddress& addr, const quint16& port, const QString& data);

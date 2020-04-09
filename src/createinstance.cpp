@@ -42,7 +42,8 @@ CreateInstance::~CreateInstance()
     this->disconnect();
     this->deleteLater();
 
-    delete ui;
+    if ( ui != nullptr )
+        delete ui;
 }
 
 void CreateInstance::updateServerList(const bool& firstRun)
@@ -119,20 +120,31 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                auto* server = new ServerInfo();
-                if ( server == nullptr ) //Failed to create the ServerInfo instance.
-                    return;
+                if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
+                {
+                    auto* server = new ServerInfo();
+                    if ( server == nullptr ) //Failed to create the ServerInfo instance.
+                        return;
 
-                server->setServerName( svrName );
-                server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
-                Helper::getSynRealData( server );
-                server->setPrivatePort( ui->portNumber->text( ).toUShort() );
-                server->setServerID( Settings::getServerID( svrName ) );
-                server->setUseUPNP( ui->useUPNP->isChecked() );
-                server->setIsPublic( ui->isPublic->isChecked() );
+                    server->setServerName( svrName );
+                    server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
+                    Helper::getSynRealData( server );
+                    server->setPrivatePort( ui->portNumber->text( ).toUShort() );
+                    server->setServerID( Settings::getServerID( svrName ) );
+                    server->setUseUPNP( ui->useUPNP->isChecked() );
+                    server->setIsPublic( ui->isPublic->isChecked() );
 
-                emit this->createServerAcceptedSignal( server );
-                emit this->accept();
+                    emit this->createServerAcceptedSignal( server );
+                    emit this->accept();
+                }
+                else
+                {
+                    title = "Unable to Initialize Server:";
+                    message = "You have reached the limit of [ %1 ] concurrently running Server Instances.!";
+                    message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
+
+                   Helper::warningMessage( this, title, message );
+                }
             }
             else //Warn the Server Host.
             {
@@ -183,22 +195,33 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
 {
     if ( !name.isEmpty() )
     {
-        auto* server = new ServerInfo();
+        if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
+        {
+            auto* server = new ServerInfo();
 
-        //Failed to create the ServerInfo instance.
-        if ( server == nullptr )
-            return;
+            //Failed to create the ServerInfo instance.
+            if ( server == nullptr )
+                return;
 
-        server->setServerName( name );
-        server->setGameName( gameName );
-        Helper::getSynRealData( server );
-        server->setPrivatePort( port );
-        server->setServerID( Settings::getServerID( name ) );
-        server->setUseUPNP( useUPNP );
-        server->setIsPublic( isPublic );
+            server->setServerName( name );
+            server->setGameName( gameName );
+            Helper::getSynRealData( server );
+            server->setPrivatePort( port );
+            server->setServerID( Settings::getServerID( name ) );
+            server->setUseUPNP( useUPNP );
+            server->setIsPublic( isPublic );
 
-        emit this->createServerAcceptedSignal( server );
-        emit this->accept();
+            emit this->createServerAcceptedSignal( server );
+            emit this->accept();
+        }
+        else
+        {
+            QString title{ "Unable to Initialize Server:" };
+            QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
+                    message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
+
+           Helper::warningMessage( this, title, message );
+        }
     }
 }
 
