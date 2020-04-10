@@ -284,7 +284,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
 
     if ( !response.isEmpty() )
     {
-        emit this->sendUdpDataSignal( addr, port, response % "/r/n" );
+        emit this->sendUdpDataSignal( addr, port, response );
         QString msg{ "Sending User List to [ %1:%2 ]; %3" };
                 msg = msg.arg( addr.toString() )
                          .arg( port )
@@ -333,7 +333,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
             msg.append( " [ Disconnect ]." );
 
         emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
-        emit this->sendUdpDataSignal( addr, port, response % "/r/n" );
+        emit this->sendUdpDataSignal( addr, port, response );
     }
     else
         this->setSentUDPCheckIn( false );
