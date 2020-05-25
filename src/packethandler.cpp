@@ -40,6 +40,10 @@ PacketHandler::~PacketHandler()
 
 void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 {
+    //Do not parse packets from Muted Users.
+    if ( plr->getIsMuted() )
+        return;
+
     QByteArray pkt{ packet };
     QChar opCode{ pkt.at( 4 ) };
     QString data{ pkt };
@@ -323,8 +327,8 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             if ( tmpPlr != nullptr
               && tmpPlr != plr )
             {
-                if ( ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString() )
-                  && ( !tmpPlr->getIsDisconnected() || !plr->getIsDisconnected() ) )
+                if ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString()
+                  && !plr->getIsDisconnected() )
                 {
                     auto disconnect = [=]( Player* plr, const QString& logMsg,
                                            QString& plrMessage )
@@ -378,8 +382,8 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             if ( ( tmpPlr != nullptr )
               && ( tmpPlr->getSernum_i() == plr->getSernum_i() ) )
             {
-                if ( ( tmpPlr != plr )
-                     && !plr->getIsDisconnected() )
+                if ( tmpPlr != plr
+                  && !plr->getIsDisconnected() )
                 {
                     reason = logMsg;
                     reason = reason.arg( "Duplicate SerNum" )

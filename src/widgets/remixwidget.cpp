@@ -417,6 +417,7 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr)
             plrTableItems.insert( ip, item );
     }
 
+    plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
     server->deletePlayer( plr );
     server->sendMasterInfo();
 }

@@ -17,6 +17,7 @@ class UPNP : public QObject
     public:
         static QStringList schemas;
         static QHostAddress externalAddress;
+        static QHostAddress localGatewayIP;
         static QMap<qint32, bool> permFwd;
         static bool tunneled;
         static UPNP* upnp;

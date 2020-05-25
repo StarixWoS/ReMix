@@ -2,7 +2,6 @@
 #include "ui_logger.h"
 
 //ReMix includes.
-#include "views/loggersortproxymodel.hpp"
 #include "thread/writethread.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
@@ -19,7 +18,6 @@
 #include <QObject>
 #include <QtCore>
 
-LoggerSortProxyModel* Logger::tblProxy{ nullptr };
 QStandardItemModel* Logger::tblModel{ nullptr };
 Logger* Logger::logInstance;
 
@@ -58,14 +56,9 @@ Logger::Logger(QWidget *parent) :
     tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
 
     ui->logView->setModel( tblModel );
-
-    //Proxy model to support sorting without actually
-    //altering the underlying model
-    tblProxy = new LoggerSortProxyModel();
-    tblProxy->setSortCaseSensitivity( Qt::CaseInsensitive );
-    tblProxy->setDynamicSortFilter( true );
-    tblProxy->setSourceModel( tblModel );
-    ui->logView->setModel( tblProxy );
+    ui->logView->setColumnWidth( static_cast<int>( LogCols::Source ), 150 );
+    ui->logView->setColumnWidth( static_cast<int>( LogCols::Date ), 150 );
+    ui->logView->setColumnWidth( static_cast<int>( LogCols::Type ), 100 );
 
     ui->logView->horizontalHeader()->setStretchLastSection( true );
     ui->logView->horizontalHeader()->setVisible( true );
@@ -108,7 +101,6 @@ Logger::~Logger()
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();
 
-    tblProxy->deleteLater();
     tblModel->deleteLater();
     this->deleteLater();
 
@@ -158,7 +150,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
         this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
 
-        ui->logView->resizeColumnsToContents();
+        //ui->logView->resizeColumnsToContents();
         this->scrollToBottom();
     }
 
@@ -207,10 +199,10 @@ void Logger::on_autoScroll_clicked()
     Settings::setSetting( ui->autoScroll->isChecked(), SKeys::Logger, SSubKeys::LoggerAutoScroll );
 }
 
-void Logger::resizeColumnsSlot(const LogCols& column)
+void Logger::resizeColumnsSlot(const LogCols&)
 {
     if ( ui == nullptr )
         return;
 
-    ui->logView->resizeColumnToContents( static_cast<int>( column ) );
+    //ui->logView->resizeColumnToContents( static_cast<int>( column ) );
 }

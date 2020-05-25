@@ -81,7 +81,6 @@
     #define REMIX_PROTOTYPES_HPP
 
     //Table-View Classes.
-    class LoggerSortProxyModel;
     class UserSortProxyModel;
     class PlrSortProxyModel;
     class TblEventFilter;

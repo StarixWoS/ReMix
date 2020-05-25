@@ -43,7 +43,6 @@ class Settings : public QDialog
         static QString makeSettingPath(const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey);
         static QString makeSettingPath(const SKeys& key, const SSubKeys& subKey);
         static QString makeSettingPath(const SKeys& key, const QVariant& subKey);
-        static QString makeRulePath(const QString& serverName, const SSubKeys& key);
 
         static void removeSetting(const QString& path);
         static bool canRemoveSetting(const QVariant& value);

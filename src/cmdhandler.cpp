@@ -138,8 +138,11 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
                 //Echo the chat back to the User.
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
                 {
-                    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
+                    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool()
+                      && !plr->getAdminPwdReceived() )
+                    {
                         server->sendMasterMessage( "Echo: " % msg, plr, false );
+                    }
                 }
 
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )

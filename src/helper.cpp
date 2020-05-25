@@ -414,14 +414,17 @@ void Helper::getSynRealData(ServerInfo* svr)
 
     QFileInfo synRealFile( "synReal.ini" );
 
-    bool downloadFile = true;
+    bool downloadFile{ true };
     if ( synRealFile.exists() )
     {
-        qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
-        qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
+        if ( synRealFile.size() != 0 ) //File exists and contains data.
+        {
+            qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
+            qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
 
-        //Check if the file is 48 hours old and set our bool.
-        downloadFile = ( curTime - modTime >= 172800 );
+            //Check if the file is 24 hours old and set our bool.
+            downloadFile = ( curTime - modTime >= 86400 );
+        }
     }
 
     //The file was older than 48 hours or did not exist. Request a fresh copy.
@@ -441,12 +444,13 @@ void Helper::getSynRealData(ServerInfo* svr)
         [=]()
         {
             QFile synreal( "synReal.ini" );
-            if ( synreal.open( QIODevice::WriteOnly ) )
+            if ( synreal.open( QIODevice::WriteOnly | QIODevice::Append ) )
             {
                 socket->waitForReadyRead();
                 synreal.write( socket->readAll() );
             }
 
+            synreal.flush();
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
@@ -463,8 +467,7 @@ void Helper::getSynRealData(ServerInfo* svr)
                                  .arg( svr->getGameName() );
                 Logger::getInstance()->insertLog( svr->getServerName(), msg, LogTypes::USAGE, true, true );
             }
-        }, Qt::QueuedConnection );
-
+        } );
         QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater, Qt::QueuedConnection );
     }
     else

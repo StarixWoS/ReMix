@@ -362,10 +362,19 @@ Player* ServerInfo::createPlayer(const int& slot, qintptr socketDescriptor)
 
 Player* ServerInfo::getPlayer(const int& slot)
 {
+    //Return the Player object within the position [ slot ] of the Players vector.
+    //Do not return Player objects which are 'valid' but in a disconnected state.
+
     Player* plr{ nullptr };
     if ( slot >= 0 )
         plr = this->getPlayerVector().at( slot );
 
+    if ( plr != nullptr )
+    {
+        //Reduce instances where a disconnected Player object is not cleared
+        if ( plr->getIsDisconnected() )
+            plr = nullptr;
+    }
     return plr;
 }
 
@@ -641,6 +650,7 @@ QString ServerInfo::getMasterIP() const
 void ServerInfo::setMasterIP(const QString& value)
 {
     masterIP = value;
+    this->setIsPublic( this->getIsPublic() );
 }
 
 bool ServerInfo::getIsPublic() const

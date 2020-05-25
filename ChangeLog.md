@@ -2,6 +2,28 @@ TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
 
+
+
+
+Version 2.5.10:
+    Change:
+      * ReMix will now attempt to re-fetch the 'synreal.ini' file every 24 hours down from previously 48 hours.
+      * ReMix no longer parses any packets for Users within a Muted state.
+      * Users in a disconnected state will no longer be parsed as a valid User from the Players Vector.
+
+
+
+    Bugfixes:
+      * ReMix will no longer Echo comments from Users to ReMote Administrators when comments are being forwarded to all Remote Administrators.
+        * This is to prevent the same message from being sent to the originating User\Remote Administrator twice.
+      * Attempt to prevent the 'synreal.ini' file from being created in a 'null' or empty state.
+        * ReMix will now also properly re-initialize itself with any newly fetched information contained within the 'synreal.ini' file.
+      * Reduce UI 'lag' in relation to resizing UI columns.
+      * Player Objects will now correctly be placed in a disconnected state when the TcpSocket signals that it is disconnecting.
+
+
+
+
 Version 2.5.9:
     Change:
       * The Server Class now only handles receiving a socketdescriptor and forwarding it to the ReMixWidget Class.

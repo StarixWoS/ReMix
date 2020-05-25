@@ -25,7 +25,6 @@ class Logger : public QDialog
 
     static const QStringList logType;
     static const QString website;
-    static LoggerSortProxyModel* tblProxy;
     static QStandardItemModel* tblModel;
     static Logger* logInstance;
 

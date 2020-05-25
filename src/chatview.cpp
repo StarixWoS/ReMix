@@ -341,13 +341,11 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '`': //Custom command input.
                 {
                     auto* cHandle{ this->getCmdHandle() };
-                    if ( cHandle != nullptr )
+                    if ( cHandle != nullptr
+                      && plr != nullptr )
                     {
-                        if ( plr != nullptr )
-                        {
-                            message = message.mid( 1 );
-                            cHandle->parseCommandImpl( plr, message );
-                        }
+                        message = message.mid( 1 );
+                        cHandle->parseCommandImpl( plr, message );
                     }
                     log = false;
                     retn = false;

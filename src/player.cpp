@@ -949,7 +949,9 @@ void Player::readyReadSlot()
             this->setPacketsIn( this->getPacketsIn(), 1 );
             this->setBytesIn( this->getBytesIn() + static_cast<quint64>( packet.length() ) );
 
+            //Only parse Packets if the Player is not muted.
             emit this->parsePacketSignal( packet, this );
+
             if ( this->bytesAvailable() > 0
               || this->getOutBuff().size() > 0 )
             {

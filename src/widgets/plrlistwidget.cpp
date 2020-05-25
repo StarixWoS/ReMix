@@ -55,6 +55,16 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     plrProxy->setSourceModel( plrModel );
     ui->playerView->setModel( plrProxy );
 
+    ui->playerView->setColumnHidden( static_cast<int>( PlrCols::BioData ), true );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesOut ), 120 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesIn ), 120 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::IPPort ), 130 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::SerNum ), 100 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Alias ), 70 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Time ), 50 );
+    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Age ), 80 );
+    ui->playerView->horizontalHeader()->setStretchLastSection( true );
+
     //Install Event Filter to enable Row-Deslection.
     ui->playerView->viewport()->installEventFilter( new TblEventFilter( ui->playerView, plrProxy ) );
 }
@@ -86,7 +96,7 @@ QStandardItemModel* PlrListWidget::getPlrModel() const
 
 void PlrListWidget::resizeColumns()
 {
-    ui->playerView->resizeColumnsToContents();
+    //ui->playerView->resizeColumnsToContents();
 }
 
 void PlrListWidget::initContextMenu()

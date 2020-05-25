@@ -268,16 +268,6 @@ QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
     return path;
 }
 
-QString Settings::makeRulePath(const QString& serverName, const SSubKeys& key)
-{
-    QMutexLocker locker( &mutex );
-    QString path{ "%1/%2/%3" };
-            path = path.arg( serverName )
-                       .arg( pKeys[ static_cast<int>( SKeys::Rules ) ] )
-                       .arg( sKeys[ static_cast<int>( key ) ] );
-    return path;
-}
-
 bool Settings::canRemoveSetting(const QVariant& value)
 {
     bool remove{ false };
