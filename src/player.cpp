@@ -106,16 +106,23 @@ Player::Player(qintptr socketDescriptor)
             this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
         }
 
-        if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
-          && idleTime.elapsed() >= MAX_IDLE_TIME )
+        if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() )
         {
-            QString reason{ "Auto-Disconnect; Idle timeout: [ %1 ], [ %2 ]" };
-                    reason = reason.arg( this->getSernum_s() )
-                                   .arg( this->getBioData() );
+            bool defaultAFKTime{ false };
+            if ( this->getMaxIdleTime() == static_cast<qint64>( MAX_IDLE_TIME ) )
+                defaultAFKTime = true;
 
-            emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            if ( ( idleTime.elapsed() >= static_cast<qint64>( MAX_IDLE_TIME ) && defaultAFKTime )
+              || ( idleTime.elapsed() >= this->getMaxIdleTime() ) )
+            {
+                QString reason{ "Auto-Disconnect; Idle timeout: [ %1 ], [ %2 ]" };
+                        reason = reason.arg( this->getSernum_s() )
+                                       .arg( this->getBioData() );
 
-            this->setDisconnected( true, DCTypes::IPDC );
+                emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+
+                this->setDisconnected( true, DCTypes::IPDC );
+            }
         }
 
         //Authenticate Remote Admins as required.
@@ -173,6 +180,7 @@ Player::Player(qintptr socketDescriptor)
         }
     }, Qt::QueuedConnection );
     floodTimer.start();
+    idleTime.start();
 }
 
 Player::~Player()
@@ -710,6 +718,16 @@ void Player::setMuteDuration(const quint64& value)
     muteDuration = value;
 }
 
+qint64 Player::getMaxIdleTime() const
+{
+    return maxIdleTime;
+}
+
+void Player::setMaxIdleTime(const qint64& value)
+{
+    maxIdleTime = value;
+}
+
 bool Player::getIsMuted()
 {
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
@@ -919,6 +937,11 @@ void Player::sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByte
         serverInfo->updateBytesOut( this, bOut );
 }
 
+void Player::setMaxIdleTimeSlot(const qint64& maxAFK)
+{
+    if ( maxAFK != this->getMaxIdleTime() )
+        this->setMaxIdleTime( maxAFK );
+}
 
 void Player::readyReadSlot()
 {

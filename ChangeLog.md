@@ -4,6 +4,18 @@ TODO:
 
 
 
+Version 2.5.11:
+    Bugfixes:
+      * Fixed an issue related to disconnecting idle users.
+      * Idle duration is now correctly applied to all Player objects if changed after server initialization.
+        * When showing the default Idle Duration, the Rule will remain un-checked.
+      * The Rules Widget now reflects the default Idle Duration when the Host has not changed it.
+        * This duration is only enforced when the Host has also enabled the Setting "Disconnect Idle Users".
+      * UI Elements related to the Max Idle duration have been renamed to more correctly show their intended purpose.
+        * Previously within the Rules Widget it was referred to as a "Max AFK Duration".
+
+
+
 
 Version 2.5.10:
     Change:

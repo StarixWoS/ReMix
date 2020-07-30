@@ -265,6 +265,8 @@ class ServerInfo : public QObject
         bool getUpnpPortAdded() const;
         void setUpnpPortAdded(bool value);
 
+        qint64 getMaxIdleTime();
+
     private:
         const inline QVector<Player*> getPlayerVector(){ return players; }
 
@@ -279,11 +281,15 @@ class ServerInfo : public QObject
         void serverWorldChangedSignal(const QString& newWorld);
         void serverNameChangedSignal(const QString& newName);
         void serverIDChangedSignal(const QString& serverID);
+        void setMaxIdleTimeSignal(const qint64& maxAFK);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
 
         void upnpPortForwardSignal(const quint16& port, const bool& insert);
+
+    public slots:
+        void setMaxIdleTimeSlot();
 
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);

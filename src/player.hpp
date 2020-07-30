@@ -52,6 +52,8 @@ class Player : public QTcpSocket
     quint32 sceneHost{ 0 };
     quint32 sernum_i{ 0 };
 
+    qint64 maxIdleTime{ 0 };
+
     qint32 pktHeaderSlot{ 0 };
     qint32 cmdAttempts{ 0 };
     qint32 adminRank{ -1 };
@@ -204,9 +206,13 @@ class Player : public QTcpSocket
 
         void validateSerNum(ServerInfo* server, const quint32& id);
 
+        qint64 getMaxIdleTime() const;
+        void setMaxIdleTime(const qint64& value);
+
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
+        void setMaxIdleTimeSlot(const qint64& maxAFK);
 
     private slots:
         void readyReadSlot();

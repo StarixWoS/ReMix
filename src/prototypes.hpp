@@ -312,6 +312,7 @@
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes = 1, Seconds = 2, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
+        enum class MultiplyTime: int{ Hours = 60, Minutes = 60, Seconds = 60, Miliseconds = 1000 };
 
         //Valid Ban Durations in seconds.
         //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent

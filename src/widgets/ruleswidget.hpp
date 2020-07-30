@@ -59,6 +59,7 @@ class RulesWidget : public QWidget
 
     signals:
         void gameInfoChangedSignal(const QString& gameInfo);
+        void setMaxIdleTimeSignal();
 
     private:
         Ui::RulesWidget* ui;

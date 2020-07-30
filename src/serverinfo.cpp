@@ -354,7 +354,10 @@ Player* ServerInfo::createPlayer(const int& slot, qintptr socketDescriptor)
         this->setPlayerCount( this->getPlayerCount() + 1 );
 
         QObject::connect( pktHandle, &PacketHandler::sendPacketToPlayerSignal, players[ slot ], &Player::sendPacketToPlayerSlot );
+        QObject::connect( this, &ServerInfo::setMaxIdleTimeSignal, players[ slot ], &Player::setMaxIdleTimeSlot );
         QObject::connect( this, &ServerInfo::sendMasterMsgToPlayerSignal, players[ slot ], &Player::sendMasterMsgToPlayerSlot );
+        emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );
+
         return players[ slot ];
     }
     return nullptr;
@@ -1125,6 +1128,18 @@ void ServerInfo::setUpnpPortAdded(bool value)
     upnpPortAdded = value;
 }
 
+qint64 ServerInfo::getMaxIdleTime()
+{
+    auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, this->getServerName() );
+    qint64 maxAfk{ static_cast<qint64>( MAX_IDLE_TIME ) };
+    if ( val.isValid() && val.toBool() )
+    {
+        maxAfk = val.toUInt() * static_cast<qint64>( MultiplyTime::Seconds )
+                              * static_cast<qint64>( MultiplyTime::Miliseconds );
+    }
+    return maxAfk;
+}
+
 Server* ServerInfo::getTcpServer() const
 {
     return tcpServer;
@@ -1136,6 +1151,11 @@ void ServerInfo::setTcpServer(Server* value)
 }
 
 //Slots
+void ServerInfo::setMaxIdleTimeSlot()
+{
+    emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );
+}
+
 void ServerInfo::udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port)
 {
     PacketHandler* pktHandle{ this->getPktHandle() };
