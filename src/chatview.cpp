@@ -13,6 +13,7 @@
 #include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "user.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
@@ -214,20 +215,67 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
             }
             else if ( this->getGameID() == Games::WoS )
             {
-                //Save the User's camp packet. --Send to newly connecting Users.
-                if ( pkt.at( 3 ) == 'F' )
+                switch ( pkt.at( 3 ).toLatin1() )
                 {
-                    if ( plr->getCampPacket().isEmpty() )
-                    {
-                        qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
-                        if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
-                            plr->setCampPacket( packet );
-                    }
-                }  //User un-camp. Remove camp packet.
-                else if ( pkt.at( 3 ) == 'f' )
-                {
-                    if ( !plr->getCampPacket().isEmpty() )
-                        plr->setCampPacket( "" );
+                    case 'F':
+                        {  //Save the User's camp packet. --Send to newly connecting Users.
+                            if ( plr->getCampPacket().isEmpty()
+                              && !plr->getIsCampOptOut() ) //The Player has opted out from allowing others to enter their "Old" scenes.
+                            {
+                                qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
+                                if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
+                                {
+                                    plr->setCampPacket( packet );
+                                    plr->setCampCreatedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
+                                }
+                            }
+                        }
+                    break;
+                    case 'f':
+                        {  //User un-camp. Remove camp packet.
+                            if ( !plr->getCampPacket().isEmpty() )
+                            {
+                                plr->setCampPacket( "" );
+                                plr->setCampCreatedTime( 0 );
+                            }
+                        }
+                    break;
+                    case 'J':
+                        {
+                            QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
+                            Player* tmpPlr{ nullptr };
+                            for ( int i = 0; i < MAX_PLAYERS; ++i )
+                            {
+                                tmpPlr = server->getPlayer( i );
+                                if ( tmpPlr != nullptr )
+                                {
+                                    if ( Helper::cmpStrings( tmpPlr->getSernumHex_s(), trgSerNum ) )
+                                        break;
+                                }
+                                tmpPlr = nullptr;
+                            }
+
+                            if ( tmpPlr != nullptr )
+                            {
+                                QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
+                                if ( tmpPlr->getIsCampLocked() )
+                                {
+                                    retn = false;
+                                }
+                                else if ( tmpPlr->getIsCampOptOut() )
+                                {
+                                    message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
+                                    retn = false;
+                                }
+
+                                if ( !retn )
+                                {
+                                    message = message.arg( tmpPlr->getPlrName() );
+                                    server->sendMasterMessage( message, plr, false );
+                                }
+                            }
+                        }
+                    break;
                 }
             }
         }

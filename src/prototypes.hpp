@@ -263,7 +263,7 @@
                                 UnBan, Kick, Mute, UnMute, Message, Login,
                                 Register, ShutDown, ReStart, MKAdmin, RMAdmin,
                                 CHAdmin, CHRules, CHSettings, Vanish, Version,
-                                Invalid = -1 };
+                                Camp, Invalid = -1 };
         //Valid Remote Administrator sub-commands.
         enum class GMSubCmds: int{ One = 0, Two, Three, Four, Five,
                                    Six, Seven = 6, Invalid = -1 };
@@ -339,7 +339,7 @@
         enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, HasSvrPassword,
-                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxAFK, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
+                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
                                   NoMigrate, NoModding, NoPets, NoPK, ArenaPK, KeyCount };
 
     #endif  // REMIX_GLOBALS

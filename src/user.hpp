@@ -25,7 +25,7 @@ class User : public QDialog
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
                        kMUTED, kMUTEDURATION, kMUTEREASON,
-                       kBANNED, kBANDURATION, kBANREASON, kPINGS, kCALLS = 15 };
+                       kBANNED, kBANDURATION, kBANREASON, kPINGS, kCALLS, kSceneOptOut = 16 };
 
         explicit User(QWidget* parent = nullptr);
         ~User() override;
@@ -63,6 +63,9 @@ class User : public QDialog
 
         static void logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio);
         static QByteArray getBIOData(const QString& sernum);
+
+        static bool getCampOptOut(const QString& plrSernum);
+        static void setCampOptOut(const QString& plrSernum, const bool& optOut);
 
     private:
         QModelIndex findModelIndex(const QString& value, const UserCols& col);

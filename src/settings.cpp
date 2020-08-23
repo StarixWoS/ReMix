@@ -68,7 +68,7 @@ const QStringList Settings::sKeys =
     "url",
     "allPK",
     "maxP",
-    "maxAFK",
+    "maxIdle",
     "minV",
     "ladder",
     "noBleep",
@@ -191,8 +191,8 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
               setSetting( val, SKeys::Rules, SSubKeys::SvrUrl, newName );
         val = getSetting( SKeys::Rules, SSubKeys::NoPets, oldName );
               setSetting( val, SKeys::Rules, SSubKeys::NoPets, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::MaxAFK, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::MaxAFK, newName );
+        val = getSetting( SKeys::Rules, SSubKeys::MaxIdle, oldName );
+              setSetting( val, SKeys::Rules, SSubKeys::MaxIdle, newName );
         val = getSetting( SKeys::Rules, SSubKeys::World, oldName );
               setSetting( val, SKeys::Rules, SSubKeys::World, newName );
         val = getSetting( SKeys::Rules, SSubKeys::AllPK, oldName );

@@ -40,7 +40,8 @@ const QStringList User::keys =
     "bannedUntil",
     "banReason",
     "pings",
-    "calls"
+    "calls",
+    "sceneOptOut",
 };
 
 const QVector<PunishDurations> User::punishDurations =
@@ -533,6 +534,16 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
 QByteArray User::getBIOData(const QString& sernum)
 {
     return getData( sernum, keys[ UserKeys::kBIO ] ).toByteArray();
+}
+
+bool User::getCampOptOut(const QString& plrSernum)
+{
+    return getData( plrSernum, keys[ UserKeys::kSceneOptOut ] ).toBool();
+}
+
+void User::setCampOptOut(const QString& plrSernum, const bool& optOut)
+{
+    setData( plrSernum, keys[ UserKeys::kSceneOptOut ], optOut );
 }
 
 //Private Functions.

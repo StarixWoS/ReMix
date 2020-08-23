@@ -300,6 +300,7 @@ void Player::setSernum_i(quint32 value)
 
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
+        this->loadCampOptOut();
 
         quint64 muteDuration{ 0 };
         muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
@@ -708,6 +709,33 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     }
 }
 
+bool Player::getIsCampLocked() const
+{
+    return isCampLocked;
+}
+
+void Player::setIsCampLocked(bool value)
+{
+    isCampLocked = value;
+}
+
+bool Player::getIsCampOptOut() const
+{
+    return isCampOptOut;
+}
+
+void Player::setIsCampOptOut(bool value)
+{
+    User::setCampOptOut( this->getSernumHex_s(), value );
+    isCampOptOut = value;
+}
+
+void Player::loadCampOptOut()
+{
+    bool optout{ User::getCampOptOut( this->getSernumHex_s() ) };
+    this->setIsCampOptOut( optout );
+}
+
 quint64 Player::getMuteDuration()
 {
     return muteDuration;
@@ -716,6 +744,26 @@ quint64 Player::getMuteDuration()
 void Player::setMuteDuration(const quint64& value)
 {
     muteDuration = value;
+}
+
+qint64 Player::getPlrConnectedTime() const
+{
+    return plrConnectedTime;
+}
+
+void Player::setPlrConnectedTime(const qint64& value)
+{
+    plrConnectedTime = value;
+}
+
+qint64 Player::getCampCreatedTime() const
+{
+    return campCreatedTime;
+}
+
+void Player::setCampCreatedTime(const qint64& value)
+{
+    campCreatedTime = value;
 }
 
 qint64 Player::getMaxIdleTime() const
@@ -855,8 +903,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
             message = "Auto-Mute; Attempting to use SerNum 1 with the incorrect IP address. Be warned that this may become a ban within future ReMix versions.";
             server->sendMasterMessage( message, this, false );
 
-            reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the usage of <[ Soul 1 ][ %3 ]> while connecting from an "
-                     "improper IP Address.";
+            reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the usage of <[ Soul 1 ][ %3 ]> while connecting from an improper IP Address.";
             reason = reason.arg( this->getSernum_s() )
                            .arg( socketIP )
                            .arg( masterIP );
@@ -879,44 +926,41 @@ void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgS
     bool isAuth{ false };
     bool send{ false };
 
-    if ( plr != this )
+    if ( this->getSvrPwdReceived()
+      || !this->getSvrPwdRequested() )
     {
-        if ( this->getSvrPwdReceived()
-          || !this->getSvrPwdRequested() )
-        {
-            isAuth = true;
-            send = false;
+        isAuth = true;
+        send = false;
 
-            switch( static_cast<PktTarget>( targetType ) )
+        switch( static_cast<PktTarget>( targetType ) )
+        {
+            case PktTarget::ALL:
             {
-                case PktTarget::ALL:
+                send = true;
+            }
+            break;
+            case PktTarget::PLAYER:
+            {
+                if ( trgSerNum == this->getSernum_i() )
+                    send = true;
+            }
+            break;
+            case PktTarget::SCENE:
+            {
+                if (( trgScene == this->getSernum_i()
+                  || trgScene == this->getSceneHost() ))
                 {
                     send = true;
                 }
-                break;
-                case PktTarget::PLAYER:
-                {
-                    if ( trgSerNum == this->getSernum_i() )
-                        send = true;
-                }
-                break;
-                case PktTarget::SCENE:
-                {
-                    if (( trgScene == this->getSernum_i()
-                      || trgScene == this->getSceneHost() ))
-                    {
-                        send = true;
-                    }
-                }
-                break;
             }
+            break;
         }
+    }
 
-        if ( send && isAuth )
-        {
-            bOut = this->write( packet, packet.length() );
-            serverInfo->updateBytesOut( this, bOut );
-        }
+    if ( send && isAuth )
+    {
+        bOut = this->write( packet, packet.length() );
+        serverInfo->updateBytesOut( this, bOut );
     }
     return;
 }

@@ -224,6 +224,16 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         GMRanks::User,
         true,
     },
+    {
+        "camp",
+        { "lock", "unlock", "onlycurrent", "allownew" },
+        4,
+        "Camp Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. If enabling \"onlycurrent\" then only "
+        "Players online when the Scene was created can enter and the command \"allownew\" reverses that limitation.",
+        "Camp Usage: /camp lock|unlock|onlycurrent|allownew.",
+        GMRanks::User,
+        true,
+    }
 };
 
 CmdTable* CmdTable::getInstance()
@@ -300,7 +310,7 @@ qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, c
         for ( const auto& el : cmdAt.subCmd )
         {
             ++sCmdIdx;
-            if ( Helper::strContainsStr( el, subCmd ) )
+            if ( Helper::cmpStrings( el, subCmd ) )
                 index = sCmdIdx;
         }
     }

@@ -443,13 +443,74 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         case GMCmds::Version:
             {
                 QString ver{ "ReMix Version: [ %1 ]" };
-                ver = ver.arg( QString( REMIX_VERSION ) );
+                        ver = ver.arg( QString( REMIX_VERSION ) );
+
                 if ( plr != nullptr )
                     server->sendMasterMessage( ver, plr, false );
 
                 //Version can be used by any User.
                 //Do not log usage to file.
                 logMsg = false;
+            }
+        break;
+        case GMCmds::Camp:
+            {
+                QString msg{ "" };
+                QString unlock{ "Unlocked" };
+                QString lock{ "Locked" };
+
+                qint32 idx{ -1 };
+                if ( !subCmd.isEmpty() )
+                {
+
+                    idx = cmdTable->getSubCmdIndex( index, subCmd, false );
+                    if ( idx >= 0 )
+                        msg = "Your Camp has been %1!";
+
+                    switch ( idx )
+                    {
+                        case 0: //Lock
+                            {
+                                msg = msg.arg( lock );
+                                plr->setIsCampLocked( true );
+                            }
+                        break;
+                        case 1: //Unlock
+                            {
+                                msg = msg.arg( unlock );
+                                plr->setIsCampLocked( false );
+                            }
+                        break;
+                        case 2: //Only Current.
+                            {
+                                msg = "You are now preventing players from entering your camp if it's considered old.";
+                                plr->setIsCampOptOut( true );
+                            }
+                        break;
+                        case 3: //Allow All
+                            {
+                                msg = "You are now allowing players to enter your camp even if it's considered old.";
+                                plr->setIsCampOptOut( false );
+                            }
+                        break;
+                    }
+                }
+                else //Send Scene Status.
+                {
+                    msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
+                    if ( plr->getIsCampLocked() )
+                        msg = msg.arg( lock );
+                    else
+                        msg = msg.arg( unlock );
+
+                    if ( plr->getIsCampOptOut() )
+                        msg = msg.arg( "Not Allowed" );
+                    else
+                        msg = msg.arg( "Allowed" );
+                }
+
+                if ( !msg.isEmpty() )
+                    server->sendMasterMessage( msg, plr, false );
             }
         break;
         case GMCmds::Invalid:
@@ -885,9 +946,9 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
         if ( pwdType != PwdTypes::Invalid )
         {
             QString reason{ "Auto-Disconnect; Invalid %1 password: [ %2 ], [ %3 ]" };
-            reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ) )
-                           .arg( plr->getSernum_s() )
-                           .arg( plr->getBioData() );
+                    reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ) )
+                                   .arg( plr->getSernum_s() )
+                                   .arg( plr->getBioData() );
 
             emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }

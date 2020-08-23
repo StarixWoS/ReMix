@@ -70,11 +70,11 @@ void RulesWidget::setServerName(const QString& name)
     this->setGameInfo( val.toString() );
 
     rowText = "Max Idle: [ %1 ] Minutes";
-    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name );
     if ( !val.isValid() )
         val = static_cast<qint64>( MAX_IDLE_TIME ) / 1000 / 60;
 
-    ui->rulesView->item( Toggles::maxAFK, 0 )->setText( rowText.arg( val.toUInt() ) );
+    ui->rulesView->item( Toggles::maxIdle, 0 )->setText( rowText.arg( val.toUInt() ) );
 
     rowText = "Minimum Game Version: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
@@ -101,8 +101,8 @@ void RulesWidget::setServerName(const QString& name)
     pwdCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, name ).toBool();
     this->setCheckedState( Toggles::svrPassword, pwdCheckState );
 
-    maxAFKCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name ).toUInt() != 0;
-    this->setCheckedState( Toggles::maxAFK, maxAFKCheckState );
+    maxIdleCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name ).toUInt() != 0;
+    this->setCheckedState( Toggles::maxIdle, maxIdleCheckState );
 
     this->setCheckedState( Toggles::noEavesdrop, Settings::getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, name ).toBool() );
     this->setCheckedState( Toggles::noMigrate, Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, name ).toBool() );
@@ -435,34 +435,34 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 maxPlayersCheckState = state;
             }
         break;
-        case Toggles::maxAFK:
+        case Toggles::maxIdle:
             {
-                quint32 maxAFK{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() };
+                quint32 maxIdle{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ).toUInt() };
                 bool ok{ false };
 
-                if ( state != maxAFKCheckState )
+                if ( state != maxIdleCheckState )
                 {
-                    if (( (Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() == 0)
-                       || !maxAFKCheckState )
+                    if (( (Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ).toUInt() == 0)
+                       || !maxIdleCheckState )
                       && state )
                     {
-                        if ( maxAFK == 0 )
+                        if ( maxIdle == 0 )
                         {
                             title = "Max-Idle:";
                             prompt = "Value:";
-                            maxAFK = Helper::getTextResponse( this, title, prompt, "", &ok, 0 ).toUInt();
+                            maxIdle = Helper::getTextResponse( this, title, prompt, "", &ok, 0 ).toUInt();
                         }
 
-                        if ( maxAFK == 0 && !ok )
+                        if ( maxIdle == 0 && !ok )
                         {
                             ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                             state = false;
                         }
                         else
-                            Settings::setSetting( maxAFK, SKeys::Rules, SSubKeys::MaxAFK, serverName );
+                            Settings::setSetting( maxIdle, SKeys::Rules, SSubKeys::MaxIdle, serverName );
                     }
-                    else if ( !( Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() == 0 )
-                           || maxAFK == 0 )
+                    else if ( !( Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ).toUInt() == 0 )
+                           || maxIdle == 0 )
                     {
                         title = "Remove Max-Idle:";
                         prompt = "Do you wish to erase the stored Max-Idle Value?";
@@ -473,20 +473,20 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             state = true;
                         }
                         else
-                            Settings::setSetting( 0, SKeys::Rules, SSubKeys::MaxAFK, serverName );
+                            Settings::setSetting( 0, SKeys::Rules, SSubKeys::MaxIdle, serverName );
                     }
                 }
                 rowText = "Max Idle: [ %1 ] Minutes";
-                auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName );
+                auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName );
                 if ( !val.isValid() )
                     val = static_cast<qint64>( MAX_IDLE_TIME ) / 1000 / 60;
 
                 rowText = rowText.arg( val.toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                maxAFKCheckState = state;
+                maxIdleCheckState = state;
 
-                //Max AFK Duration has changed, update all Players.
+                //Max Idle Duration has changed, update all Players.
                 emit this->setMaxIdleTimeSignal();
             }
         break;

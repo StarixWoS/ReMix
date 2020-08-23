@@ -27,6 +27,8 @@ class Player : public QTcpSocket
     bool sentCampPacket{ false };
     bool svrPwdReceived{ false };
     bool isDisconnected{ false };
+    bool isCampLocked{ false };
+    bool isCampOptOut{ false };
     bool isVisible{ true };
     bool isAFK{ false };
 
@@ -52,6 +54,8 @@ class Player : public QTcpSocket
     quint32 sceneHost{ 0 };
     quint32 sernum_i{ 0 };
 
+    qint64 plrConnectedTime{ 0 };
+    qint64 campCreatedTime{ 0 };
     qint64 maxIdleTime{ 0 };
 
     qint32 pktHeaderSlot{ 0 };
@@ -194,6 +198,13 @@ class Player : public QTcpSocket
         bool getIsDisconnected() const;
         void setDisconnected(const bool& value, const DCTypes& dcType = DCTypes::IPDC);
 
+        bool getIsCampLocked() const;
+        void setIsCampLocked(bool value);
+
+        bool getIsCampOptOut() const;
+        void setIsCampOptOut(bool value);
+        void loadCampOptOut();
+
         quint64 getMuteDuration();
         void setMuteDuration(const quint64& value);
         bool getIsMuted();
@@ -205,6 +216,12 @@ class Player : public QTcpSocket
         void setIsAFK(bool value);
 
         void validateSerNum(ServerInfo* server, const quint32& id);
+
+        qint64 getPlrConnectedTime() const;
+        void setPlrConnectedTime(const qint64& value);
+
+        qint64 getCampCreatedTime() const;
+        void setCampCreatedTime(const qint64& value);
 
         qint64 getMaxIdleTime() const;
         void setMaxIdleTime(const qint64& value);

@@ -4,6 +4,28 @@ TODO:
 
 
 
+Version 2.6.0:
+    Change:
+      * Implemented the chat command "/camp" with 4 sub-commands; "lock", "unlock", "onlycurrent", and "allownew".
+        * Using "/camp" without any subcommands will issue the Player their current camp(scene) settings.
+        * "lock" Prevents all other Players from entering any scene(camp) hosted by the command issuer.
+        * "unlock" Returns the camp(scene) to default functionality. 
+          * Unless "onlycurrent" is toggled on.
+        * "onlycurrent" Makes it so only Players online when the command issuers scene(camp) was created can enter.
+          * This is an opt-out function and is not the default.
+        * "allowall" Allows Players to enter a camp(scene) hosted by the command issuer. This is regardless of connection or camp(scene) creation time.
+          * Unless "lock" is toggled on.
+      * The locked state issued via the command "/camp lock" is not saved to the Player's data on disk and will only persist while the Player remains connected.
+        * The "onlycurrent" and "allowall" states are however saved to disk and will persist permanently until changed by the Player.
+
+
+
+    Compatibility:
+      * The server rule "maxAFK" has been renamed to "maxIdle" thus compatibility with the old Rule is broken, and Server Hosts will need to re-set this rule if it was in use.
+
+
+
+
 Version 2.5.11:
     Bugfixes:
       * Fixed an issue related to disconnecting idle users.

@@ -1130,14 +1130,14 @@ void ServerInfo::setUpnpPortAdded(bool value)
 
 qint64 ServerInfo::getMaxIdleTime()
 {
-    auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, this->getServerName() );
-    qint64 maxAfk{ static_cast<qint64>( MAX_IDLE_TIME ) };
+    auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() );
+    qint64 maxIdle{ static_cast<qint64>( MAX_IDLE_TIME ) };
     if ( val.isValid() && val.toBool() )
     {
-        maxAfk = val.toUInt() * static_cast<qint64>( MultiplyTime::Seconds )
+        maxIdle = val.toUInt() * static_cast<qint64>( MultiplyTime::Seconds )
                               * static_cast<qint64>( MultiplyTime::Miliseconds );
     }
-    return maxAfk;
+    return maxIdle;
 }
 
 Server* ServerInfo::getTcpServer() const

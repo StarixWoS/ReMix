@@ -394,6 +394,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::QueuedConnection );
 
     server->sendServerGreeting( plr );
+    plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
     this->updatePlayerTable( plr );
 }
 
