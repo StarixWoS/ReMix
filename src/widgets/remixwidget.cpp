@@ -382,6 +382,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
 
     //Set the Player's reference to the ServerInfo class.
     plr->setServerInfo( server );
+    plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
 
     //Connect the pending Connection to a Disconnected lambda.
     //Using a lambda to safely access the Plr Object within the Slot.

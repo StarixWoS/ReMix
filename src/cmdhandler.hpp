@@ -51,6 +51,8 @@ class CmdHandler : public QObject
 
         void vanishHandler(Player* plr, const QString& subCmd);
 
+        void campHandler(Player* plr, const QString& subCmd, const GMCmds& index);
+
         void parseTimeArgs(const QString& str, QString& timeArg, QString& reason);
         qint32 getTimePeriodFromString(const QString& str, QString& timeTxt);
 

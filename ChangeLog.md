@@ -4,6 +4,13 @@ TODO:
 
 
 
+Version 2.6.1:
+    Bugfixes:
+      * The method for preventing new Players from entering old camps(scenes) should now correctly function and should allow Players to enter camps(scenes) that are set to the "allow all"/default status.
+
+
+
+
 Version 2.6.0:
     Change:
       * Implemented the chat command "/camp" with 4 sub-commands; "lock", "unlock", "onlycurrent", and "allownew".

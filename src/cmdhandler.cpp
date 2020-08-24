@@ -38,7 +38,7 @@ bool CmdHandler::canUseAdminCommands(Player* plr, const GMRanks rank, const QStr
                     "commands. Please reply to this message with (/login *PASS) and the server will authenticate you." };
 
     QString invalid{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use Remote Admin "
-                     "commands as you will automatically be banned after [ %2 ] attempts" };
+                     "commands as you will automatically be banned after [ %2 ] attempts." };
 
     GMRanks plrRank{ this->getAdminRank( plr ) };
     if ( plr->getIsAdmin() )
@@ -455,62 +455,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::Camp:
             {
-                QString msg{ "" };
-                QString unlock{ "Unlocked" };
-                QString lock{ "Locked" };
-
-                qint32 idx{ -1 };
-                if ( !subCmd.isEmpty() )
-                {
-
-                    idx = cmdTable->getSubCmdIndex( index, subCmd, false );
-                    if ( idx >= 0 )
-                        msg = "Your Camp has been %1!";
-
-                    switch ( idx )
-                    {
-                        case 0: //Lock
-                            {
-                                msg = msg.arg( lock );
-                                plr->setIsCampLocked( true );
-                            }
-                        break;
-                        case 1: //Unlock
-                            {
-                                msg = msg.arg( unlock );
-                                plr->setIsCampLocked( false );
-                            }
-                        break;
-                        case 2: //Only Current.
-                            {
-                                msg = "You are now preventing players from entering your camp if it's considered old.";
-                                plr->setIsCampOptOut( true );
-                            }
-                        break;
-                        case 3: //Allow All
-                            {
-                                msg = "You are now allowing players to enter your camp even if it's considered old.";
-                                plr->setIsCampOptOut( false );
-                            }
-                        break;
-                    }
-                }
-                else //Send Scene Status.
-                {
-                    msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
-                    if ( plr->getIsCampLocked() )
-                        msg = msg.arg( lock );
-                    else
-                        msg = msg.arg( unlock );
-
-                    if ( plr->getIsCampOptOut() )
-                        msg = msg.arg( "Not Allowed" );
-                    else
-                        msg = msg.arg( "Allowed" );
-                }
-
-                if ( !msg.isEmpty() )
-                    server->sendMasterMessage( msg, plr, false );
+                this->campHandler( plr, subCmd, index );
             }
         break;
         case GMCmds::Invalid:
@@ -527,8 +472,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
              .arg( arg2 )
              .arg( message );
 
-    //The command was a Message, do not send command information to
-    //online Users.
+    //The command was a Message, do not send command information to online Users.
     if ( argIndex != GMCmds::Message )
     {
         if ( retn && canUseCommands )
@@ -893,8 +837,7 @@ void CmdHandler::loginHandler(Player* plr, const QString& subCmd)
     }
     else if ( !plr->getAdminPwdReceived()
            || plr->getAdminPwdRequested()
-           || plr->getIsAdmin() ) //Allow a Remote Admin to authenticate before
-                                  //a password is requested.
+           || plr->getIsAdmin() ) //Allow a Remote Admin to authenticate before a password is requested.
     {
         pwdType = PwdTypes::Admin;
 
@@ -1137,6 +1080,65 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
     message = message.arg( plr->getSernum_s() )
                      .arg( state );
     server->sendMasterMessage( message, plr, false );
+}
+
+void CmdHandler::campHandler(Player* plr, const QString& subCmd, const GMCmds& index)
+{
+    QString msg{ "" };
+    QString unlock{ "Unlocked" };
+    QString lock{ "Locked" };
+
+    qint32 idx{ -1 };
+    if ( !subCmd.isEmpty() )
+    {
+        idx = cmdTable->getSubCmdIndex( index, subCmd, false );
+        if ( idx >= 0 )
+            msg = "Your Camp has been %1!";
+
+        switch ( idx )
+        {
+            case 0: //Lock
+                {
+                    msg = msg.arg( lock );
+                    plr->setIsCampLocked( true );
+                }
+            break;
+            case 1: //Unlock
+                {
+                    msg = msg.arg( unlock );
+                    plr->setIsCampLocked( false );
+                }
+            break;
+            case 2: //OnlyCurrent.
+                {
+                    msg = "You are now preventing players from entering your camp if it's considered old.";
+                    plr->setIsCampOptOut( true );
+                }
+            break;
+            case 3: //AllowAll
+                {
+                    msg = "You are now allowing players to enter your camp even if it's considered old.";
+                    plr->setIsCampOptOut( false );
+                }
+            break;
+        }
+    }
+    else //Send Scene Status.
+    {
+        msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
+        if ( plr->getIsCampLocked() )
+            msg = msg.arg( lock );
+        else
+            msg = msg.arg( unlock );
+
+        if ( plr->getIsCampOptOut() )
+            msg = msg.arg( "Not Allowed" );
+        else
+            msg = msg.arg( "Allowed" );
+    }
+
+    if ( !msg.isEmpty() )
+        server->sendMasterMessage( msg, plr, false );
 }
 
 void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& reason)

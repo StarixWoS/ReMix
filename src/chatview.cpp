@@ -219,8 +219,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                 {
                     case 'F':
                         {  //Save the User's camp packet. --Send to newly connecting Users.
-                            if ( plr->getCampPacket().isEmpty()
-                              && !plr->getIsCampOptOut() ) //The Player has opted out from allowing others to enter their "Old" scenes.
+                            if ( plr->getCampPacket().isEmpty() )
                             {
                                 qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
                                 if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
@@ -264,8 +263,14 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                                 }
                                 else if ( tmpPlr->getIsCampOptOut() )
                                 {
-                                    message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
-                                    retn = false;
+                                    //The Camp was created before the Player connected. Mark it as old.
+                                    if (( tmpPlr->getCampCreatedTime() - plr->getPlrConnectedTime() ) < 0 )
+                                    {
+                                        message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
+                                        retn = false;
+                                    }
+                                    else
+                                        retn = true;
                                 }
 
                                 if ( !retn )
