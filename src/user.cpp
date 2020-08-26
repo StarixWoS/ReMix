@@ -121,6 +121,7 @@ User::~User()
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
+    userData->sync();
     userData->deleteLater();
     delete ui;
 }

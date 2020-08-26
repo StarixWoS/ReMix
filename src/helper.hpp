@@ -27,13 +27,13 @@ class Helper
         static QString getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left);
 
         static void stripNewlines(QString& string);
-        static void stripSerNumHeader(QString& sernum);
+        static QString stripSerNumHeader(const QString& sernum);
         static QString sanitizeSerNum(const QString& value);
         static QString serNumToHexStr(QString sernum, int fillAmt = 8);
         static QString serNumToIntStr(const QString& sernum);
-        static qint32 serNumtoInt(QString& sernum);
+        static qint32 serNumtoInt(const QString& sernum);
 
-        static bool isBlueCodedSerNum(const quint32& sernum);
+        static bool isBlueCodedSerNum(const qint32& sernum);
 
         static bool confirmAction(QWidget* parent, QString& title, QString& prompt);
         static qint32 warningMessage(QWidget* parent, const QString& title, const QString& prompt);

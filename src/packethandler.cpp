@@ -102,7 +102,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
         else if ( Helper::strStartsWithStr( pkt, ":SR?" ) ) //User is requesting Slot information for their packet headers.
         {
             QString sernum{ packet.mid( 4 ).left( 8 ) };
-            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+            plr->validateSerNum( server, Helper::serNumtoInt( sernum ) );
             server->sendPlayerSocketPosition( plr );
             return; //No need to continue parsing. Return now.
         }
@@ -483,14 +483,14 @@ void PacketHandler::readMIX0(const QString& packet, Player* plr)
     QString sernum = packet.mid( 2 ).left( 8 );
 
     //Send the next Packet to the Scene's Host.
-    plr->setTargetScene( sernum.toUInt( nullptr, 16 ) );
+    plr->setTargetScene( Helper::serNumtoInt( sernum ) );
     plr->setTargetType( PktTarget::SCENE );
 }
 
 void PacketHandler::readMIX1(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
-    plr->setSceneHost( sernum.toUInt( nullptr, 16 ) );
+    plr->setSceneHost( Helper::serNumtoInt( sernum ) );
 }
 
 void PacketHandler::readMIX2(const QString&, Player* plr)
@@ -503,7 +503,7 @@ void PacketHandler::readMIX3(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+    plr->validateSerNum( server, Helper::serNumtoInt( sernum ) );
     this->checkBannedInfo( plr );
 }
 
@@ -511,7 +511,7 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
-    plr->setTargetSerNum( sernum.toUInt( nullptr, 16 ) );
+    plr->setTargetSerNum( Helper::serNumtoInt( sernum ) );
     plr->setTargetType( PktTarget::PLAYER );
 }
 
@@ -521,7 +521,7 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
     if ( plr != nullptr )
     {
         if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+            plr->validateSerNum( server, Helper::serNumtoInt( sernum ) );
 
         //Do not accept comments from User who have been muted.
         if ( !plr->getIsMuted() )
@@ -535,7 +535,7 @@ void PacketHandler::readMIX6(const QString& packet, Player* plr)
     if ( plr != nullptr )
     {
         if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, sernum.toUInt( nullptr, 16 ) );
+            plr->validateSerNum( server, Helper::serNumtoInt( sernum ) );
 
         //Do not accept commands from User who have been muted.
         if ( !plr->getIsMuted() )
@@ -553,7 +553,7 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
             pkt = pkt.left( pkt.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, pkt.toUInt( nullptr, 16 ) );
+    plr->validateSerNum( server, Helper::serNumtoInt( pkt ) );
     this->checkBannedInfo( plr );
 }
 

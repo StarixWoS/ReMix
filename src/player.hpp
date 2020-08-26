@@ -49,10 +49,10 @@ class Player : public QTcpSocket
     quint64 bytesOut{ 0 };
     quint64 bytesIn{ 0 };
 
-    quint32 targetSerNum{ 0 };
-    quint32 targetHost{ 0 };
-    quint32 sceneHost{ 0 };
-    quint32 sernum_i{ 0 };
+    qint32 targetSerNum{ 0 };
+    qint32 targetHost{ 0 };
+    qint32 sceneHost{ 0 };
+    qint32 sernum_i{ 0 };
 
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
@@ -97,8 +97,8 @@ class Player : public QTcpSocket
         void setIsVisible(const bool& value);
 
         bool getHasSernum() const;
-        quint32 getSernum_i() const;
-        void setSernum_i(quint32 value);
+        qint32 getSernum_i() const;
+        void setSernum_i(qint32 value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);
@@ -106,14 +106,14 @@ class Player : public QTcpSocket
         QString getSernumHex_s() const;
         void setSernumHex_s(const QString& value);
 
-        quint32 getTargetScene() const;
-        void setTargetScene(quint32 value);
+        qint32 getTargetScene() const;
+        void setTargetScene(qint32 value);
 
-        quint32 getSceneHost() const;
-        void setSceneHost(quint32 value);
+        qint32 getSceneHost() const;
+        void setSceneHost(qint32 value);
 
-        quint32 getTargetSerNum() const;
-        void setTargetSerNum(quint32 value);
+        qint32 getTargetSerNum() const;
+        void setTargetSerNum(qint32 value);
 
         PktTarget getTargetType() const;
         void setTargetType(const PktTarget& value);
@@ -215,7 +215,7 @@ class Player : public QTcpSocket
         bool getIsAFK() const;
         void setIsAFK(bool value);
 
-        void validateSerNum(ServerInfo* server, const quint32& id);
+        void validateSerNum(ServerInfo* server, const qint32& id);
 
         qint64 getPlrConnectedTime() const;
         void setPlrConnectedTime(const qint64& value);
@@ -227,7 +227,7 @@ class Player : public QTcpSocket
         void setMaxIdleTime(const qint64& value);
 
     public slots:
-        void sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
         void setMaxIdleTimeSlot(const qint64& maxAFK);
 

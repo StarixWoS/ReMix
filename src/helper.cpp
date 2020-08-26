@@ -145,19 +145,22 @@ void Helper::stripNewlines(QString& string)
         string = string.replace( "\n", " " );
 }
 
-void Helper::stripSerNumHeader(QString& sernum)
+QString Helper::stripSerNumHeader(const QString& sernum)
 {
+    QString serNum{ sernum };
     if ( strContainsStr( sernum, "SOUL" ) )
-        sernum = sernum.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
+        serNum = serNum.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
     if ( strContainsStr( sernum, "WP" ) )
-        sernum = sernum.remove( "WP", Qt::CaseInsensitive ).trimmed();
+        serNum = serNum.remove( "WP", Qt::CaseInsensitive ).trimmed();
+
+    return serNum;
 }
 
 QString Helper::sanitizeSerNum(const QString& value)
 {
     QString sernum{ value };
-    stripSerNumHeader( sernum );
+            sernum = stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
@@ -168,7 +171,7 @@ QString Helper::sanitizeSerNum(const QString& value)
 
 QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
-    stripSerNumHeader( sernum );
+    sernum = stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
     QString result{ "" };
@@ -218,8 +221,10 @@ QString Helper::serNumToIntStr(const QString& sernum)
     return retn;
 }
 
-qint32 Helper::serNumtoInt(QString& sernum)
+qint32 Helper::serNumtoInt(const QString& sernum)
 {
+    QString serNum{ sernum };
+            serNum = stripSerNumHeader( sernum );
     stripSerNumHeader( sernum );
 
     qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
@@ -231,9 +236,9 @@ qint32 Helper::serNumtoInt(QString& sernum)
     return sernum_i;
 }
 
-bool Helper::isBlueCodedSerNum(const quint32& sernum)
+bool Helper::isBlueCodedSerNum(const qint32& sernum)
 {
-    return blueCodedList.contains( static_cast<int>( sernum ) );
+    return blueCodedList.contains( sernum );
 }
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)

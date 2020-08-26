@@ -251,12 +251,12 @@ bool Player::getHasSernum() const
     return this->getSernum_i() != 0;
 }
 
-quint32 Player::getSernum_i() const
+qint32 Player::getSernum_i() const
 {
     return sernum_i;
 }
 
-void Player::setSernum_i(quint32 value)
+void Player::setSernum_i(qint32 value)
 {
     if ( value != this->getSernum_i() )
     {
@@ -335,32 +335,32 @@ void Player::setSernumHex_s(const QString& value)
     sernumHex_s = value;
 }
 
-quint32 Player::getTargetScene() const
+qint32 Player::getTargetScene() const
 {
     return targetHost;
 }
 
-void Player::setTargetScene(quint32 value)
+void Player::setTargetScene(qint32 value)
 {
     targetHost = value;
 }
 
-quint32 Player::getSceneHost() const
+qint32 Player::getSceneHost() const
 {
     return sceneHost;
 }
 
-void Player::setSceneHost(quint32 value)
+void Player::setSceneHost(qint32 value)
 {
     sceneHost = value;
 }
 
-quint32 Player::getTargetSerNum() const
+qint32 Player::getTargetSerNum() const
 {
     return targetSerNum;
 }
 
-void Player::setTargetSerNum(quint32 value)
+void Player::setTargetSerNum(qint32 value)
 {
     targetSerNum = value;
 }
@@ -816,7 +816,7 @@ void Player::setAfkIcon(const QString& value)
     afkIcon = QIcon( ":/icon/" + value + ".png" );
 }
 
-void Player::validateSerNum(ServerInfo* server, const quint32& id)
+void Player::validateSerNum(ServerInfo* server, const qint32& id)
 {
     QString message{ "" };
     QString reason{ "" };
@@ -916,7 +916,7 @@ void Player::validateSerNum(ServerInfo* server, const quint32& id)
 }
 
 //Slots
-void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, quint32 trgSerNum, quint32 trgScene, const QByteArray& packet)
+void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
     if ( plr == this )

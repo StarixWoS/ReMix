@@ -226,11 +226,13 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     },
     {
         "camp",
-        { "lock", "unlock", "onlycurrent", "allownew" },
-        4,
-        "Camp Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. If enabling \"onlycurrent\" then only "
-        "Players online when the Scene was created can enter and the command \"allownew\" reverses that limitation.",
-        "Camp Usage: /camp lock|unlock|onlycurrent|allownew.",
+        { "lock", "unlock", "allowcurrent", "allowall", "allow" },
+        5,
+        "Camp Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. "
+        "If enabling \"allowcurrent\" then only Players online when the Scene was created can enter and the command \"allowall\" reverses that limitation. "
+        "Using the command syntax \"/camp allow soul 4000\" you may exempt specific Players from any limitations.",
+        "Camp Usage: /camp lock|unlock|allowcurrent|allowall|allow. Remote Administrators may append \"soul *PlayerSerNum\" to override a Player's status. "
+        "e.g. \"/camp lock soul 4000\".",
         GMRanks::User,
         true,
     }

@@ -101,6 +101,7 @@
     class CreateInstance;
     class AppEventFilter;
     class PacketHandler;
+    class CampExemption;
     class SelectWorld;
     class PacketForge;
     class ServerInfo;

@@ -4,6 +4,22 @@ TODO:
 
 
 
+Version 2.6.2:
+    Change:
+      * Implemented the ability for Users with the Remote Administrator rank Admin or above to alter a Player's camp(scene) status. Whether locked or allowing only current Players.
+        * These features can be used by appending "soul *PlayerSerNum" to the normal sub-command. e.g. "/camp lock soul 4000".
+        * As ReMix does not supprt sub-sub commands, this command does not appear within the output generated via "/list".
+      * Implemented the ability for Players to individually allow specific Users to bypass a camp(scene)'s locked status.
+        * This is done via the sub-command "allow", and the appended sub-command "soul". e.g. "/camp allow soul 4000".
+          * Players are added to an exemption list which is saved to disk.
+          * The command "allow" currently acts as a toggle, and allowing a previously exempted Player will remove them from the exemption list.
+        * As noted previously, the "soul" command does not appear within the output generated via "/list" for the "/camp" command.
+        * An example of the "/list" output: camp[ lock, unlock, onlycurrent, allownew, allow,  ], 
+        
+
+
+
+
 Version 2.6.1:
     Bugfixes:
       * The method for preventing new Players from entering old camps(scenes) should now correctly function and should allow Players to enter camps(scenes) that are set to the "allow all"/default status.

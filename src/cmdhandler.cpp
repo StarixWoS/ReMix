@@ -5,6 +5,7 @@
 //ReMix includes.
 #include "widgets/remixtabwidget.hpp"
 #include "widgets/motdwidget.hpp"
+#include "campexemption.hpp"
 #include "serverinfo.hpp"
 #include "cmdtable.hpp"
 #include "settings.hpp"
@@ -455,7 +456,20 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         break;
         case GMCmds::Camp:
             {
-                this->campHandler( plr, subCmd, index );
+                logMsg = false; //Do not log User level commands to file.
+                QString serNum{ "" };
+                bool soulSubCmd{ false };
+                if ( Helper::cmpStrings( arg1, "soul" )
+                  && !arg2.isEmpty() )
+                {
+                    if ( !arg2.isEmpty() )
+                    {
+                        serNum = arg2;
+                        soulSubCmd = true;
+                        logMsg = true;
+                    }
+                }
+                this->campHandler( plr, serNum, subCmd, index, soulSubCmd );
             }
         break;
         case GMCmds::Invalid:
@@ -1082,43 +1096,130 @@ void CmdHandler::vanishHandler(Player* plr, const QString& subCmd)
     server->sendMasterMessage( message, plr, false );
 }
 
-void CmdHandler::campHandler(Player* plr, const QString& subCmd, const GMCmds& index)
+void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd)
 {
     QString msg{ "" };
+    QString allowCurrent{ "Players can not your camp if it's considered old." };
+    QString allowExempt{ "The Player [ %1 ] has been [ %2 ] your Camp Exemptions list." };
+    QString allowNew{ "Players can enter your camp even if it's considered old." };
+    QString lockMsg{ "Your Camp has been %1!" };
+
+    QString overrideConfirm{ "Player [ %1 ] has had their camp status changed!" };
+    QString overrideLockAppend{ " by Admin [ %1 ]" };
+    QString overrideAllowAppend{ "Admin [ %1 ]: " };
+
     QString unlock{ "Unlocked" };
     QString lock{ "Locked" };
 
+    QString removed{ "Removed From" };
+    QString added{ "Added To" };
+
+    //Swap to the targeted Player.
+    Player* tmpPlr{ nullptr };
+    bool override{ false };
+
     qint32 idx{ -1 };
     if ( !subCmd.isEmpty() )
-    {
         idx = cmdTable->getSubCmdIndex( index, subCmd, false );
+
+    if ( soulSubCmd
+      && !serNum.isEmpty() )
+    {
+        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        {
+            tmpPlr = server->getPlayer( i );
+            if ( tmpPlr != nullptr )
+            {
+                //Check target validity.
+                if ( this->isTarget( tmpPlr, serNum, false ) )
+                {
+                    if ( idx != 4 //Allow Soul is exempted from Admin checking.
+                      && this->canUseAdminCommands( plr, GMRanks::Admin, "soul" ) )
+                    {
+                        override = this->canIssueAction( plr, tmpPlr, serNum, GMCmds::Camp, false );
+                        if ( override )
+                            break;
+                    }
+                    else
+                        break;
+                }
+            }
+        }
+    }
+
+    if ( idx != -1 )
+    {
         if ( idx >= 0 )
-            msg = "Your Camp has been %1!";
+            msg = lockMsg;
+
+        if ( soulSubCmd
+          && tmpPlr == nullptr )
+        {
+            return;
+        }
 
         switch ( idx )
         {
             case 0: //Lock
                 {
                     msg = msg.arg( lock );
-                    plr->setIsCampLocked( true );
+                    if ( override )
+                        msg = msg.append( overrideLockAppend.arg( plr->getSernum_s() ) );
+
+                    if ( tmpPlr != nullptr )
+                        tmpPlr->setIsCampLocked( true );
+                    else
+                        plr->setIsCampLocked( true );
                 }
             break;
             case 1: //Unlock
                 {
                     msg = msg.arg( unlock );
-                    plr->setIsCampLocked( false );
+                    if ( override )
+                        msg = msg.append( overrideLockAppend.arg( plr->getSernum_s() ) );
+
+                    if ( tmpPlr != nullptr )
+                        tmpPlr->setIsCampLocked( false );
+                    else
+                        plr->setIsCampLocked( false );
                 }
             break;
             case 2: //OnlyCurrent.
                 {
-                    msg = "You are now preventing players from entering your camp if it's considered old.";
-                    plr->setIsCampOptOut( true );
+                    msg = allowCurrent;
+                    if ( override )
+                        msg = msg.prepend( overrideAllowAppend.arg( plr->getSernum_s() ) );
+
+                    if ( tmpPlr != nullptr )
+                        tmpPlr->setIsCampOptOut( true );
+                    else
+                        plr->setIsCampOptOut( true );
                 }
             break;
             case 3: //AllowAll
                 {
-                    msg = "You are now allowing players to enter your camp even if it's considered old.";
-                    plr->setIsCampOptOut( false );
+                    msg = allowNew;
+                    if ( override )
+                        msg = msg.prepend( overrideAllowAppend.arg( plr->getSernum_s() ) );
+
+                    if ( tmpPlr != nullptr )
+                        tmpPlr->setIsCampOptOut( false );
+                    else
+                        plr->setIsCampOptOut( false );
+                }
+            break;
+            case 4: //Allow. Only online Players may be exempted for storage.
+                {
+                    override = false;
+
+                    msg = allowExempt;
+                    msg = msg.arg( tmpPlr->getSernum_s() );
+                    if ( !CampExemption::getInstance()->setPlayerExemption( plr->getSernumHex_s(), tmpPlr->getSernumHex_s() ) )
+                    {
+                        msg = msg.arg( removed );
+                    }
+                    else
+                        msg = msg.arg( added );
                 }
             break;
         }
@@ -1138,7 +1239,15 @@ void CmdHandler::campHandler(Player* plr, const QString& subCmd, const GMCmds& i
     }
 
     if ( !msg.isEmpty() )
-        server->sendMasterMessage( msg, plr, false );
+    {
+        if ( override )
+        {
+            server->sendMasterMessage( msg, tmpPlr, false );
+            server->sendMasterMessage( overrideConfirm.arg( tmpPlr->getSernum_s() ), plr, false );
+        }
+        else
+            server->sendMasterMessage( msg, plr, false );
+    }
 }
 
 void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& reason)

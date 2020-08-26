@@ -125,6 +125,9 @@ Settings::~Settings()
     instance->close();
     instance->deleteLater();
 
+    prefs->sync();
+    prefs->deleteLater();
+
     delete ui;
 }
 

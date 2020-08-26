@@ -5,6 +5,7 @@
 
 //ReMix includes.
 #include "packethandler.hpp"
+#include "campexemption.hpp"
 #include "packetforge.hpp"
 #include "serverinfo.hpp"
 #include "cmdhandler.hpp"
@@ -257,20 +258,23 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             if ( tmpPlr != nullptr )
                             {
                                 QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
-                                if ( tmpPlr->getIsCampLocked() )
-                                {
-                                    retn = false;
-                                }
-                                else if ( tmpPlr->getIsCampOptOut() )
-                                {
-                                    //The Camp was created before the Player connected. Mark it as old.
-                                    if (( tmpPlr->getCampCreatedTime() - plr->getPlrConnectedTime() ) < 0 )
+                                if ( !CampExemption::getInstance()->getPlayerExpemption( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
+                                {   //The Player is not exempted from further checking.
+                                    if ( tmpPlr->getIsCampLocked() )
                                     {
-                                        message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
                                         retn = false;
                                     }
-                                    else
-                                        retn = true;
+                                    else if ( tmpPlr->getIsCampOptOut() )
+                                    {
+                                        //The Camp was created before the Player connected. Mark it as old.
+                                        if (( tmpPlr->getCampCreatedTime() - plr->getPlrConnectedTime() ) < 0 )
+                                        {
+                                            message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
+                                            retn = false;
+                                        }
+                                        else
+                                            retn = true;
+                                    }
                                 }
 
                                 if ( !retn )
