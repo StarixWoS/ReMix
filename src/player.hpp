@@ -53,6 +53,7 @@ class Player : public QTcpSocket
     qint32 targetHost{ 0 };
     qint32 sceneHost{ 0 };
     qint32 sernum_i{ 0 };
+    qint32 plrLevel{ 0 };
 
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
@@ -225,6 +226,9 @@ class Player : public QTcpSocket
 
         qint64 getMaxIdleTime() const;
         void setMaxIdleTime(const qint64& value);
+
+        qint32 getPlrLevel() const;
+        void setPlrLevel(const qint32& value);
 
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);

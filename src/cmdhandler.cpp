@@ -1158,9 +1158,9 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
             return;
         }
 
-        switch ( idx )
+        switch ( static_cast<GMSubCmds>( idx ) )
         {
-            case 0: //Lock
+            case GMSubCmds::Zero: //Lock
                 {
                     msg = msg.arg( lock );
                     if ( override )
@@ -1172,7 +1172,7 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
                         plr->setIsCampLocked( true );
                 }
             break;
-            case 1: //Unlock
+            case GMSubCmds::One: //Unlock
                 {
                     msg = msg.arg( unlock );
                     if ( override )
@@ -1184,7 +1184,7 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
                         plr->setIsCampLocked( false );
                 }
             break;
-            case 2: //OnlyCurrent.
+            case GMSubCmds::Two: //OnlyCurrent.
                 {
                     msg = allowCurrent;
                     if ( override )
@@ -1196,7 +1196,7 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
                         plr->setIsCampOptOut( true );
                 }
             break;
-            case 3: //AllowAll
+            case GMSubCmds::Three: //AllowAll
                 {
                     msg = allowNew;
                     if ( override )
@@ -1208,7 +1208,7 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
                         plr->setIsCampOptOut( false );
                 }
             break;
-            case 4: //Allow. Only online Players may be exempted for storage.
+            case GMSubCmds::Four: //Allow. Only online Players may be exempted for storage.
                 {
                     override = false;
 
@@ -1220,6 +1220,14 @@ void CmdHandler::campHandler(Player* plr, const QString& serNum, const QString& 
                     }
                     else
                         msg = msg.arg( added );
+                }
+            break;
+            case GMSubCmds::Five:
+            case GMSubCmds::Six:
+            case GMSubCmds::Seven:
+            case GMSubCmds::Invalid:
+                {
+                    //Unused commands.
                 }
             break;
         }

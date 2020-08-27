@@ -266,8 +266,8 @@
                                 CHAdmin, CHRules, CHSettings, Vanish, Version,
                                 Camp, Invalid = -1 };
         //Valid Remote Administrator sub-commands.
-        enum class GMSubCmds: int{ One = 0, Two, Three, Four, Five,
-                                   Six, Seven = 6, Invalid = -1 };
+        enum class GMSubCmds: int{ Zero = 0, One, Two, Three, Four, Five,
+                                   Six, Seven = 7, Invalid = -1 };
 
         //Valid Command Structure Format.
         enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,

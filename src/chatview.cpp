@@ -240,6 +240,25 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             }
                         }
                     break;
+                    case 's': //Parse Player Level and AFK status.
+                        {
+                            plr->setPlrLevel( Helper::strToInt( pkt.mid( 21 ).left( 4 ) ) );
+                            plr->setIsAFK( Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) & 1 );
+                        }
+                    break;
+                    case 'K':  //If pet level exceess the Player's level then discard the packet.
+                        {
+                            QString msg{ "You may not call a pet stronger than yourself within a camp (scene) hosted by another Player!" };
+                            qint32 petLevel{ Helper::strToInt( pkt.mid( 19 ).left( 4 ) ) };
+
+                            if ( plr->getPlrLevel() >= 1
+                              && petLevel > plr->getPlrLevel() )
+                            {
+                                server->sendMasterMessage( msg, plr, false );
+                                retn = false;
+                            }
+                        }
+                    break;
                     case 'J':
                         {
                             QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };

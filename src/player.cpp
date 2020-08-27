@@ -788,6 +788,16 @@ bool Player::getIsMuted()
     return this->getMuteDuration() >= date;
 }
 
+qint32 Player::getPlrLevel() const
+{
+    return plrLevel;
+}
+
+void Player::setPlrLevel(const qint32& value)
+{
+    plrLevel = value;
+}
+
 bool Player::getIsAFK() const
 {
     return isAFK;

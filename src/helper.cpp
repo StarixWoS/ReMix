@@ -173,13 +173,13 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     sernum = stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
+    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
     QString result{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
     {
         bool ok{ false };
-        sernum.toUInt( &ok, 10 );
+        sernum.toInt( &ok, 10 );
 
         if ( !ok )
         {
@@ -205,7 +205,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(const QString& sernum)
 {
-    quint32 sernum_i{ sernum.toUInt( nullptr, 16 ) };
+    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
     QString retn{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -225,13 +225,12 @@ qint32 Helper::serNumtoInt(const QString& sernum)
 {
     QString serNum{ sernum };
             serNum = stripSerNumHeader( sernum );
-    stripSerNumHeader( sernum );
 
-    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
+    qint32 sernum_i{ serNum.toInt( nullptr, 16 ) };
     if ( sernum_i & MIN_HEX_SERNUM )
-        sernum_i = strToInt( sernum, 16 );
+        sernum_i = strToInt( serNum, 16 );
     else
-        sernum_i = strToInt( sernum, 10 );
+        sernum_i = strToInt( serNum, 10 );
 
     return sernum_i;
 }

@@ -7,6 +7,7 @@
 #include "widgets/remixtabwidget.hpp"
 
 //ReMix includes.
+#include "campexemption.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "logger.hpp"
@@ -67,6 +68,7 @@ ReMix::~ReMix()
     if ( trayMenu != nullptr )
         trayMenu->deleteLater();
 
+    CampExemption::getInstance()->deleteLater();
     Settings::getInstance()->deleteLater();
     Logger::getInstance()->deleteLater();
     User::getInstance()->deleteLater();

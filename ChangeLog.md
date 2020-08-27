@@ -4,6 +4,21 @@ TODO:
 
 
 
+Version 2.6.3:
+    Change:
+      * ReMix now checks the 'K' and 's' packet for Pet and Player levels. We also parse the Player's AFK status, but it is not meaningfully used.
+        * If calling a pet into another Player's scene then we check these two levels and confirm that the Pet can be called by the Player.
+        * If the pet is a higher level than the Player then we drop the packet and inform the Player that the pet cannot be called.
+
+
+
+      Bugfixes:
+        * Fixed an issue where GS sernums were being read as white souls.
+        * Properly clean up the CampExemption object when closing ReMix.
+
+
+
+
 Version 2.6.2:
     Change:
       * Implemented the ability for Users with the Remote Administrator rank Admin or above to alter a Player's camp(scene) status. Whether locked or allowing only current Players.
