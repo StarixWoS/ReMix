@@ -17,11 +17,10 @@ bool AppEventFilter::eventFilter(QObject* obj, QEvent* event)
     {
         if ( obj->isWidgetType() )
         {
-            auto* w = dynamic_cast<QWidget*>( obj );
-            QIcon icon = w->windowIcon();
+            QWidget* w{ dynamic_cast<QWidget*>( obj ) };
+            QIcon icon{ w->windowIcon() };
 
-            w->setWindowFlags( w->windowFlags()
-                               & ( ~Qt::WindowContextHelpButtonHint ) );
+            w->setWindowFlags( w->windowFlags() & ( ~Qt::WindowContextHelpButtonHint ) );
             w->setWindowIcon( icon );
         }
     }

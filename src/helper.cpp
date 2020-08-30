@@ -39,7 +39,7 @@ const QList<qint32> Helper::blueCodedList =
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, int height)
 {
-    QInputDialog* dialog = new QInputDialog( parent );
+    QInputDialog* dialog{ new QInputDialog( parent ) };
                   dialog->setInputMode( mode );
                   dialog->setLabelText( label );
                   dialog->resize( width, height );
@@ -48,10 +48,10 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputD
 
 qint32 Helper::strToInt(const QString& str, const int& base)
 {
-    bool base16 = ( base != 10 );
+    bool base16{ base != 10 };
     bool ok{ false };
 
-    qint32 val = str.toInt( &ok, base );
+    qint32 val{ str.toInt( &ok, base ) };
     if ( !ok && !base16 )
         val = str.toInt( &ok, 16 );
 
@@ -68,7 +68,7 @@ QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
      * filler --- The char used to pad the string
      */
 
-    int val_i = val.toInt();
+    int val_i{ val.toInt() };
     QString str{ "%1" };
     if ( val_i > 0 )
         str = str.arg( val_i, fill, base, filler );
@@ -203,12 +203,12 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
     return result;
 }
 
-QString Helper::serNumToIntStr(const QString& sernum)
+QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 {
-    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
+    qint32 sernum_i{ serNumtoInt( sernum, isHex ) };
     QString retn{ "" };
 
-    if ( !( sernum_i & MIN_HEX_SERNUM ) )
+    if ( !( sernum_i & MIN_HEX_SERNUM ) || !isHex )
         retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, 10 ) );
     else
         retn = QString( "%1" ).arg( intToStr( sernum_i, 16 ) );
@@ -221,17 +221,20 @@ QString Helper::serNumToIntStr(const QString& sernum)
     return retn;
 }
 
-qint32 Helper::serNumtoInt(const QString& sernum)
+qint32 Helper::serNumtoInt(const QString& sernum, const bool& isHex)
 {
     QString serNum{ sernum };
             serNum = stripSerNumHeader( sernum );
 
-    qint32 sernum_i{ serNum.toInt( nullptr, 16 ) };
-    if ( sernum_i & MIN_HEX_SERNUM )
-        sernum_i = strToInt( serNum, 16 );
-    else
-        sernum_i = strToInt( serNum, 10 );
-
+    bool ok{ false };
+    qint32 sernum_i{ serNum.toInt( &ok, 16 ) };
+    if ( !ok )
+    {
+        if ( isHex )
+            sernum_i = strToInt( serNum, 16 );
+        else
+            sernum_i = strToInt( serNum, 10 );
+    }
     return sernum_i;
 }
 
@@ -242,7 +245,7 @@ bool Helper::isBlueCodedSerNum(const qint32& sernum)
 
 bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
 {
-    qint32 value = QMessageBox::question( parent, title, prompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+    qint32 value{ QMessageBox::question( parent, title, prompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) };
     return value == QMessageBox::Yes;
 }
 
@@ -307,8 +310,8 @@ QString Helper::genPwdSalt(const qint32& length)
 
 bool Helper::validateSalt(QString& salt)
 {
-    QSettings* userData = User::getUserData();
-    QStringList groups = userData->childGroups();
+    QSettings* userData{ User::getUserData() };
+    QStringList groups{ userData->childGroups() };
     QString j{ "" };
 
     for ( int i = 0; i < groups.count(); ++i )
@@ -325,8 +328,8 @@ bool Helper::naturalSort(QString& left, QString& right, bool& result)
 {
     do
     {
-        int posL = left.indexOf( QRegExp( "[0-9]" ) );
-        int posR = right.indexOf( QRegExp( "[0-9]" ) );
+        int posL{ left.indexOf( QRegExp( "[0-9]" ) ) };
+        int posR{ right.indexOf( QRegExp( "[0-9]" ) ) };
         if ( posL == -1 || posR == -1 )
             break;
 
@@ -373,7 +376,7 @@ bool Helper::naturalSort(QString& left, QString& right, bool& result)
 void Helper::delay(const qint32& time)
 {
     //Delay the next Port refresh by /time/ seconds.
-    QTime delayedTime = QTime::currentTime().addSecs( time );
+    QTime delayedTime{ QTime::currentTime().addSecs( time ) };
     while ( QTime::currentTime() < delayedTime )
     {
         QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
@@ -382,13 +385,13 @@ void Helper::delay(const qint32& time)
 
 QHostAddress Helper::getPrivateIP()
 {
-    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+    QList<QHostAddress> ipList{ QNetworkInterface::allAddresses() };
 
     //Default to our localhost address if nothing valid is found.
     QHostAddress ipAddress{ QHostAddress::Null };
-    for ( const auto& ip : ipList )
+    for ( const QHostAddress& ip : ipList )
     {
-        QString tmp = ip.toString();
+        QString tmp{ ip.toString() };
 
         if ( ip != QHostAddress::LocalHost    //Remove localhost addresses.
           && ip.toIPv4Address()    //Remove any ipv6 addresses.
@@ -434,8 +437,8 @@ void Helper::getSynRealData(ServerInfo* svr)
     //The file was older than 48 hours or did not exist. Request a fresh copy.
     if ( downloadFile )
     {
-        auto* socket = new QTcpSocket;
-        QUrl url( svr->getMasterInfoHost() );
+        QTcpSocket* socket{ new QTcpSocket() };
+        QUrl url{ svr->getMasterInfoHost() };
 
         socket->connectToHost( url.host(), 80 );
         QObject::connect( socket, &QTcpSocket::connected, socket,
@@ -458,8 +461,9 @@ void Helper::getSynRealData(ServerInfo* svr)
             synreal.close();
 
             QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str = settings.value( svr->getGameName() % "/master" ).toString();
-            int index = str.indexOf( ":" );
+            QString str{ settings.value( svr->getGameName() % "/master" ).toString() };
+
+            int index{ str.indexOf( ":" ) };
             if ( index > 0 )
             {
                 svr->setMasterIP( str.left( index ) );

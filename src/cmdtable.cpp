@@ -19,6 +19,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/help help) will show the command description and format!",
         GMRanks::User,
         true,
+        GMCmds::Help,
     },
     {   //Command Implemented.
         "list",
@@ -28,6 +29,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "List Usage: /list", //List does not have a Syntax.
         GMRanks::User,
         true,
+        GMCmds::List,
     },
     {   //Command Implemented.
         "motd",
@@ -38,6 +40,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
         GMRanks::CoAdmin,
         true,
+        GMCmds::MotD,
     },
     {
         //Server UpTime, Connected Users, Connected Admins.
@@ -48,6 +51,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Info Usage: /info",
         GMRanks::GMaster,
         true,
+        GMCmds::Info,
     },
     {   //Command Unimplemented.
         //Server Network information. IP, Ping, Bandwidth Used.
@@ -58,6 +62,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Admin,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Implemented.
         //TODO: Allow the Admin to select a duration for the ban.
@@ -69,6 +74,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
         GMRanks::CoAdmin,
         true,
+        GMCmds::Ban,
     },
     {   //Command Implemented.
         "unban",
@@ -79,6 +85,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
         GMRanks::CoAdmin,
         true,
+        GMCmds::UnBan,
     },
     {   //Command Implemented.
         "kick",
@@ -89,6 +96,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
         GMRanks::GMaster,
         true,
+        GMCmds::Kick,
     },
     {   //Command Implemented.
         //TODO: Allow the Admin to select a duration for the Mute.
@@ -100,6 +108,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
         GMRanks::GMaster,
         true,
+        GMCmds::Mute,
     },
     {   //Command Implemented.
         "unmute",
@@ -110,6 +119,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
         GMRanks::GMaster,
         true,
+        GMCmds::UnMute,
     },
     {   //Command Implemented.
         //TODO: Add alternate initializer word "message".
@@ -121,6 +131,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
         GMRanks::GMaster,
         true,
+        GMCmds::Message,
     },
     {   //Command Implemented.
         "login",
@@ -130,6 +141,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Login Usage: /login *Password",
         GMRanks::User,
         true,
+        GMCmds::Login,
     },
     {   //Command Implemented.
         "register",
@@ -139,6 +151,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Register Usage: /register *Password",
         GMRanks::User,
         true,
+        GMCmds::Register,
     },
     {   //Command Implemented.
         "shutdown",
@@ -149,6 +162,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
         GMRanks::Admin,
         true,
+        GMCmds::ShutDown,
     },
     {   //Command Implemented.
         "restart",
@@ -159,6 +173,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "will cause the server to shutdown in 30 seconds, (/restart stop) will cease an inprogress restart.",
         GMRanks::Admin,
         true,
+        GMCmds::ReStart,
     },
     {   //Command Unimplemented.
         "mkadmin",
@@ -168,6 +183,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Owner,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Unimplemented.
         "rmadmin",
@@ -177,6 +193,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Owner,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Unimplemented.
         "chadmin",
@@ -186,6 +203,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Owner,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Unimplemented.
         "chrules",
@@ -195,6 +213,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Admin,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Unimplemented.
         "chsettings",
@@ -204,6 +223,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "",
         GMRanks::Admin,
         false,
+        GMCmds::Invalid,
     },
     {   //Command Implemented.
         "vanish",
@@ -214,6 +234,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "entered the command acts as an on|off toggle.",
         GMRanks::GMaster,
         true,
+        GMCmds::Vanish,
     },
     {   //Command Implemented.
         "version",
@@ -223,6 +244,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Version Usage: /version *Message (Optional comment to the Server Host.)",
         GMRanks::User,
         true,
+        GMCmds::Version,
     },
     {
         "camp",
@@ -235,7 +257,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "e.g. \"/camp lock soul 4000\".",
         GMRanks::User,
         true,
-    }
+        GMCmds::Camp,
+    },
 };
 
 CmdTable* CmdTable::getInstance()
@@ -255,7 +278,7 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd,
                             const bool& time)
 {
     qint32 idx{ static_cast<int>( index ) };
-    auto& cmdAt{ cmdTable.at( idx ) };
+    const CmdTable::CmdStruct& cmdAt{ cmdTable.at( idx ) };
     if ( cmdAt.subCmdCount > 0 )
     {
         if ( !time )
@@ -286,7 +309,7 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
 {
     GMCmds index{ GMCmds::Invalid };
     qint32 idx{ -1 };
-    for ( const auto& el : cmdTable )
+    for ( const CmdTable::CmdStruct& el : cmdTable )
     {
         ++idx;
         //Check the current Object if it contains our command information,
@@ -306,10 +329,10 @@ qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, c
     qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };
     qint32 cmdIdx{ static_cast<qint32>( cmdIndex ) };
     qint32 sCmdIdx{ -1 };
-    auto& cmdAt{ cmdTable.at( cmdIdx ) };
+    const CmdTable::CmdStruct& cmdAt{ cmdTable.at( cmdIdx ) };
     if ( !time )
     {
-        for ( const auto& el : cmdAt.subCmd )
+        for ( const QString& el : cmdAt.subCmd )
         {
             ++sCmdIdx;
             if ( Helper::cmpStrings( el, subCmd ) )
@@ -331,7 +354,7 @@ GMRanks CmdTable::getCmdRank(const GMCmds& index)
 QString CmdTable::collateCmdList(const GMRanks& rank)
 {
     QString list{ "Available Command list: " };
-    for ( const auto& el : cmdTable )
+    for ( const CmdTable::CmdStruct& el : cmdTable )
     {
         //Check the current Object if it contains our command information,
         if ( el.cmdRank <= rank && el.cmdIsActive )
@@ -340,7 +363,7 @@ QString CmdTable::collateCmdList(const GMRanks& rank)
             if ( el.subCmdCount > 0 )
             {
                 list.append( "[ " );
-                for ( const auto& sEl : el.subCmd )
+                for ( const QString& sEl : el.subCmd )
                 {
                     list.append( sEl % ", " );
                 }

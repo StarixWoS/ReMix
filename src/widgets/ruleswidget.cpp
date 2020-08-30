@@ -179,7 +179,7 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
 
 void RulesWidget::toggleRulesModel(const qint32 &row)
 {
-    Qt::CheckState val = ui->rulesView->item( row, 0 )->checkState();
+    Qt::CheckState val{ ui->rulesView->item( row, 0 )->checkState() };
     ui->rulesView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
     val = ui->rulesView->item( row, 0 )->checkState();
@@ -477,7 +477,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     }
                 }
                 rowText = "Max Idle: [ %1 ] Minutes";
-                auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName );
+                QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
                 if ( !val.isValid() )
                     val = static_cast<qint64>( MAX_IDLE_TIME ) / 1000 / 60;
 

@@ -156,7 +156,7 @@ PunishDurations User::requestDuration(QWidget* parent)
                       << "24 Hours" << "7 Days" << "30 Days" << "6 Months" << "1 Year" << "Permanent";
 
     bool ok;
-    QString item = QInputDialog::getItem( parent, "ReMix", "Punishment Duration:", items, 0, false, &ok);
+    QString item{ QInputDialog::getItem( parent, "ReMix", "Punishment Duration:", items, 0, false, &ok) };
     if ( ok && !item.isEmpty() )
         return punishDurations[ items.indexOf( item ) ];
 
@@ -185,20 +185,20 @@ QVariant User::getData(const QString& key, const QString& subKey)
 bool User::makeAdmin(const QString& sernum, const QString& pwd)
 {
     GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
 
     if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
     {
-        QString salt = Helper::genPwdSalt( SALT_LENGTH );
-        QString hash( salt + pwd );
+        QString salt{ Helper::genPwdSalt( SALT_LENGTH ) };
+        QString hash{ salt + pwd };
                 hash = Helper::hashPassword( hash );
 
         if ( rank == GMRanks::User )
         {
-            setData( sernum, keys[ UserKeys::kRANK ],
-                     static_cast<int>( GMRanks::GMaster ) );
-            QModelIndex index = user->findModelIndex( Helper::serNumToIntStr( sernum ), UserCols::SerNum );
+            setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( GMRanks::GMaster ) );
+
+            QModelIndex index{ user->findModelIndex( Helper::serNumToIntStr( sernum, true ), UserCols::SerNum ) };
             if ( index.isValid() )
                 user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( GMRanks::GMaster ) );
         }
@@ -224,8 +224,8 @@ bool User::getHasPassword(const QString& sernum)
 
 bool User::cmpAdminPwd(const QString& sernum, const QString& value)
 {
-    QString recSalt = getData( sernum, keys[ UserKeys::kSALT ] ).toString();
-    QString recHash = getData( sernum, keys[ UserKeys::kHASH ] ).toString();
+    QString recSalt{ getData( sernum, keys[ UserKeys::kSALT ] ).toString() };
+    QString recHash{ getData( sernum, keys[ UserKeys::kHASH ] ).toString() };
 
     QString hash{ recSalt + value };
             hash = Helper::hashPassword( hash );
@@ -240,11 +240,11 @@ qint32 User::getAdminRank(const QString& sernum)
 
 void User::setAdminRank(const QString& sernum, const GMRanks& rank)
 {
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
 
     setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( rank ) );
 
-    QModelIndex index = user->findModelIndex( sernum, UserCols::SerNum );
+    QModelIndex index{ user->findModelIndex( sernum, UserCols::SerNum ) };
     if ( index.isValid() )
         user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( rank ) );
 }
@@ -254,7 +254,7 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
     if ( value.isEmpty() )
         return false;
 
-    QStringList sernums = userData->childGroups();
+    QStringList sernums{ userData->childGroups() };
     QString sernum{ "" };
     QString var{ "" };
 
@@ -326,17 +326,17 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
 {
     QList<QStandardItem*> list;
     if ( type == PunishTypes::SerNum )
-        list = tblModel->findItems( Helper::serNumToIntStr( value ), Qt::MatchFixedString, static_cast<qint32>( UserCols::SerNum ) );
+        list = tblModel->findItems( Helper::serNumToIntStr( value, true ), Qt::MatchFixedString, static_cast<qint32>( UserCols::SerNum ) );
     else
         list = tblModel->findItems( value, Qt::MatchFixedString, static_cast<qint32>( UserCols::IPAddr ) );
 
     User* user = User::getInstance();
     if ( list.count() )
     {
-        QModelIndex index = list.value( 0 )->index();
+        QModelIndex index{ list.value( 0 )->index() };
         if ( index.isValid() )
         {
-            QStringList sernums = userData->childGroups();
+            QStringList sernums{ userData->childGroups() };
             QString sernum{ "" };
             QString ip{ "" };
 
@@ -385,7 +385,7 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
 
 bool User::addBan(const Player* admin, const Player* target, const QString& reason, const bool remote, const PunishDurations duration)
 {
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
     if ( user == nullptr )
         return false;
 
@@ -419,7 +419,7 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
     setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
     setData( serNum, keys[ UserKeys::kBANNED ], date );
 
-    QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
+    QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
     if ( index.isValid() )
     {
         user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), msg );
@@ -432,7 +432,7 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
 
 bool User::addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute, const PunishDurations duration)
 {
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
     if ( user == nullptr )
         return false;
 
@@ -476,7 +476,7 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
     setData( serNum, keys[ UserKeys::kMUTEDURATION ], muteDuration );
     setData( serNum, keys[ UserKeys::kMUTED ], date );
 
-    QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
+    QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
     if ( index.isValid() )
     {
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), msg );
@@ -490,18 +490,18 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
 void User::updateCallCount(const QString& serNum)
 {
     quint32 callCount{ getData( serNum, keys[ UserKeys::kCALLS ] ).toUInt() + 1 };
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
 
     setData( serNum, keys[ UserKeys::kCALLS ], callCount );
 
-    QModelIndex index = user->findModelIndex( serNum, UserCols::SerNum );
+    QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
     if ( index.isValid() )
         user->updateRowData( index.row(), static_cast<int>( UserCols::Calls ), callCount );
 }
 
 void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio)
 {
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
     QString sernum{ serNum };
     if ( Helper::strContainsStr( sernum, "SOUL" ) )
         sernum = Helper::serNumToHexStr( serNum, 8 );
@@ -515,17 +515,17 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
     setData( sernum, keys[ UserKeys::kIP ], ip_s );
     setData( sernum, keys[ UserKeys::kSEEN ], date );
 
-    QModelIndex index = user->findModelIndex( sernum, UserCols::SerNum );
+    QModelIndex index{ user->findModelIndex( sernum, UserCols::SerNum ) };
     if ( !index.isValid() )
     {
-        qint32 row = tblModel->rowCount();
+        qint32 row{ tblModel->rowCount() };
         tblModel->insertRow( row );
         index = tblModel->index( row, static_cast<int>( UserCols::SerNum ) );
     }
 
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum ) );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum, true ) );
         user->updateRowData( index.row(), static_cast<int>( UserCols::IPAddr ), ip_s );
         user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
         user->updateRowData( index.row(), static_cast<int>( UserCols::LastSeen ), date );
@@ -552,9 +552,9 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
 {
     QString serNum{ value };
     if ( col == UserCols::SerNum )
-        serNum = Helper::serNumToIntStr( value );
+        serNum = Helper::serNumToIntStr( value, true );
 
-    QList<QStandardItem*> list = tblModel->findItems( serNum, Qt::MatchExactly, static_cast<int>( col ) );
+    QList<QStandardItem*> list{ tblModel->findItems( serNum, Qt::MatchExactly, static_cast<int>( col ) ) };
     QModelIndex index;
     if ( list.count() )
     {
@@ -562,7 +562,7 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
         if ( index.isValid() )
             return index;
     }
-    return QModelIndex{};
+    return QModelIndex{ };
 }
 
 void User::loadUserInfo()
@@ -573,7 +573,7 @@ void User::loadUserInfo()
     QString title{ "User Information:" };
     if ( QFile( "userInfo.ini" ).exists() )
     {
-        QStringList sernums = userData->childGroups();
+        QStringList sernums{ userData->childGroups() };
 
         title = title.append( " [ %1 ] Users" )
                      .arg( sernums.count() );
@@ -618,7 +618,7 @@ void User::loadUserInfo()
             tblModel->insertRow( row );
 
             tblProxy->rowCount();
-            tblModel->setData( tblModel->index( row, 0 ), Helper::serNumToIntStr( sernum ), Qt::DisplayRole );
+            tblModel->setData( tblModel->index( row, 0 ), Helper::serNumToIntStr( sernum, true ), Qt::DisplayRole );
 
             this->updateRowData( row, static_cast<int>( UserCols::MuteDuration ), muteDuration_i );
             this->updateRowData( row, static_cast<int>( UserCols::BanDuration ), banDuration_i );
@@ -644,8 +644,8 @@ void User::loadUserInfo()
                   || ( banDuration_i <= date ) )
                 {
                     this->removePunishment( sernum, PunishTypes::Ban, PunishTypes::SerNum );
-                    QString message{ "Automatically removing the Banned User [ %1 ]. Banned on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
-                            message = message.arg( Helper::serNumToIntStr( sernum ) )
+                    QString message{ "Automatically removing the Banned User [ %1 ]. Banned on [ %2 ] until [ %3 ]; With the reason [ %4 ]." };
+                            message = message.arg( Helper::serNumToIntStr( sernum, true ) )
                                              .arg( Helper::getTimeAsString( banDate_i ) )
                                              .arg( Helper::getTimeAsString( banDuration_i ) )
                                              .arg( banReason );
@@ -660,8 +660,8 @@ void User::loadUserInfo()
                   || ( muteDuration_i <= date ) )
                 {
                     this->removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
-                    QString message{ "Automatically removing the Muted User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]."};
-                            message = message.arg( Helper::serNumToIntStr( sernum ) )
+                    QString message{ "Automatically removing the Muted User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]." };
+                            message = message.arg( Helper::serNumToIntStr( sernum, true ) )
                                              .arg( Helper::getTimeAsString( muteDate_i ) )
                                              .arg( Helper::getTimeAsString( muteDuration_i ) )
                                              .arg( muteReason );
@@ -678,7 +678,7 @@ void User::loadUserInfo()
 
 void User::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
 {
-    QModelIndex index = tblModel->index( row, col );
+    QModelIndex index{ tblModel->index( row, col ) };
     if ( index.isValid() )
     {
         QString msg{ "" };
@@ -777,7 +777,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 bool setReason{ false };
                 QString reason{ "" };
 
-                bool banned = tblModel->data( index ).toBool();
+                bool banned{ tblModel->data( index ).toBool() };
                 if ( banned )
                 {
                     reason = getData( sernum, keys[ UserKeys::kBANREASON ] ).toString();
@@ -823,7 +823,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 bool setReason{ false };
                 QString reason{ "" };
 
-                bool muted = tblModel->data( index ).toBool();
+                bool muted{ tblModel->data( index ).toBool() };
 
                 if ( muted )
                 {
@@ -833,7 +833,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                         setReason = true;
                         reason = "Manual Mute; " % requestReason( this );
 
-                        QVariant date = QDateTime::currentDateTimeUtc().toTime_t();
+                        QVariant date{ QDateTime::currentDateTimeUtc().toTime_t() };
                         value = date.toUInt() + static_cast<uint>( requestDuration( this ) );
 
                         emit this->mutedSerNumDurationSignal( sernum, value.toUInt() );

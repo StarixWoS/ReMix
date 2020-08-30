@@ -74,7 +74,7 @@ void SelectWorld::on_okButton_clicked()
     QString title{ "Select World:" };
     QString  prompt{ "Are you certain that you want to select the world [ %1 ]?" };
 
-    QString world = this->getSelectedWorld();
+    QString world{ this->getSelectedWorld() };
     bool accept{ true };
 
     if ( world.isEmpty() )

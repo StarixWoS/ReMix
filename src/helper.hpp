@@ -30,8 +30,8 @@ class Helper
         static QString stripSerNumHeader(const QString& sernum);
         static QString sanitizeSerNum(const QString& value);
         static QString serNumToHexStr(QString sernum, int fillAmt = 8);
-        static QString serNumToIntStr(const QString& sernum);
-        static qint32 serNumtoInt(const QString& sernum);
+        static QString serNumToIntStr(const QString& sernum, const bool& isHex = false);
+        static qint32 serNumtoInt(const QString& sernum, const bool& isHex = false);
 
         static bool isBlueCodedSerNum(const qint32& sernum);
 

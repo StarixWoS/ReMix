@@ -91,7 +91,7 @@ Logger::~Logger()
     //Disable Logging Signals.
     this->disconnect();
 
-    QThread* thread = writeThread->thread();
+    QThread* thread{ writeThread->thread() };
     if ( thread != nullptr )
         thread->exit();
 
@@ -135,13 +135,13 @@ void Logger::scrollToBottom()
 
 void Logger::insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine)
 {
-    QAbstractItemModel* tblModel = ui->logView->model();
-    QString time = Helper::getTimeAsString();
+    QAbstractItemModel* tblModel{ ui->logView->model() };
+    QString time{ Helper::getTimeAsString() };
 
     if ( tblModel != nullptr
       && ( type != LogTypes::CHAT ) ) //Prevent Chat from appearing within the Logger UI.
     {
-        qint32 row = tblModel->rowCount();
+        qint32 row{ tblModel->rowCount() };
         tblModel->insertRow( row );
         ui->logView->setRowHeight( row, 20 );
 
@@ -160,7 +160,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
 
 void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
 {
-    QModelIndex index = tblModel->index( row, col );
+    QModelIndex index{ tblModel->index( row, col ) };
     if ( index.isValid() )
     {
         if ( col == static_cast<int>( LogCols::Date ) )

@@ -29,14 +29,14 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
         return false;
     }
 
-    auto* mouseEvent = dynamic_cast<QMouseEvent*>( event );
+    QMouseEvent* mouseEvent{ dynamic_cast<QMouseEvent*>( event ) };
     if ( mouseEvent != nullptr )
     {
         if (( mouseEvent->type() == QEvent::MouseButtonPress
            || mouseEvent->type() == QEvent::MouseButtonDblClick )
           && mouseEvent->buttons() == Qt::LeftButton )
         {
-            QModelIndex menuIndex = tableView->indexAt( mouseEvent->pos() );
+            QModelIndex menuIndex{ tableView->indexAt( mouseEvent->pos() ) };
             if ( menuIndex.isValid() )
             {
                 if ( prevIndex != menuIndex )

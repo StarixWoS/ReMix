@@ -21,6 +21,7 @@ class CmdTable
             QString cmdSyntax;
             GMRanks cmdRank;
             bool cmdIsActive;
+            GMCmds index;
         };
         using CmdStruct = CmdStructure;
         static const QVector<CmdStruct> cmdTable;

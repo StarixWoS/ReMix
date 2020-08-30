@@ -140,7 +140,7 @@ ServerInfo::ServerInfo()
 
 ServerInfo::~ServerInfo()
 {
-    QThread* thread = udpThread->thread();
+    QThread* thread{ udpThread->thread() };
     emit this->closeUdpSocketSignal();
     if ( thread != nullptr )
         thread->exit();
@@ -188,7 +188,7 @@ void ServerInfo::setMasterInfoHost(const QString& value)
     QRegExp isUrl( "http[s]?|ftp", Qt::CaseInsensitive );
 
     QString url{ value };
-    QString scheme = QUrl( url ).scheme();
+    QString scheme{ QUrl( url ).scheme() };
 
     QFile synRealIni( "synreal.ini" );
     if ( masterInfoHost != value
@@ -386,7 +386,7 @@ void ServerInfo::deletePlayer(Player* plr)
     if ( plr == nullptr )
         return;
 
-    int slot = plr->getSlotPos();
+    int slot{ plr->getSlotPos() };
     QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
             logMsg = logMsg.arg( plr->peerAddress().toString() )
                            .arg( Helper::getTimeIntFormat( plr->getConnTime(), TimeFormat::Minutes ) )
@@ -407,7 +407,7 @@ void ServerInfo::deletePlayer(Player* plr)
 Player* ServerInfo::getLastPlayerInStorage(Player* plr)
 {
     Player* tmpPlayer{ nullptr };
-    for ( auto* tmpPlr : this->getPlayerVector() )
+    for ( Player* tmpPlr : this->getPlayerVector() )
     {
         if ( tmpPlr == nullptr )
             break;
@@ -421,7 +421,7 @@ Player* ServerInfo::getLastPlayerInStorage(Player* plr)
 int ServerInfo::getEmptySlot()
 {
     int slot{ -1 };
-    for ( auto* plr : this->getPlayerVector() )
+    for ( Player* plr : this->getPlayerVector() )
     {
         ++slot;
         if ( plr == nullptr )
@@ -433,7 +433,7 @@ int ServerInfo::getEmptySlot()
 int ServerInfo::getSocketSlot(qintptr socketDescriptor)
 {
     int slot{ -1 };
-    for ( auto* plr : this->getPlayerVector() )
+    for ( Player* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
           && plr->socketDescriptor() == socketDescriptor )
@@ -448,7 +448,7 @@ int ServerInfo::getSocketSlot(qintptr socketDescriptor)
 int ServerInfo::getQItemSlot(QStandardItem* index)
 {
     int slot{ -1 };
-    for ( auto* plr : this->getPlayerVector() )
+    for ( Player* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
           && plr->getTableRow() == index )
@@ -467,7 +467,7 @@ void ServerInfo::sendPlayerSocketInfo()
 
     QHostAddress ipAddr;
 
-    for ( auto* plr : this->getPlayerVector() )
+    for ( Player* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr && plr->getHasSernum() )
         {
@@ -480,7 +480,7 @@ void ServerInfo::sendPlayerSocketInfo()
     response = response.append( "\r\n" );
 
     qint64 bOut{ 0 };
-    for ( auto* plr : this->getPlayerVector() )
+    for ( Player* plr : this->getPlayerVector() )
     {
         if ( plr != nullptr )
         {
@@ -914,7 +914,7 @@ void ServerInfo::setBytesOut(const quint64& value)
 
 void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
 {
-    auto time = static_cast<quint64>( baudTime.elapsed() );
+    quint64 time{ static_cast<quint64>( baudTime.elapsed() ) };
     if ( bytes > 0 && time > 0 )
         baud = 10000 * bytes / time;
 }
@@ -1130,12 +1130,12 @@ void ServerInfo::setUpnpPortAdded(bool value)
 
 qint64 ServerInfo::getMaxIdleTime()
 {
-    auto val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() );
+    QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() ) };
     qint64 maxIdle{ static_cast<qint64>( MAX_IDLE_TIME ) };
     if ( val.isValid() && val.toBool() )
     {
         maxIdle = val.toUInt() * static_cast<qint64>( MultiplyTime::Seconds )
-                              * static_cast<qint64>( MultiplyTime::Miliseconds );
+                               * static_cast<qint64>( MultiplyTime::Miliseconds );
     }
     return maxIdle;
 }

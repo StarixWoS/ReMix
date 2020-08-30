@@ -95,12 +95,13 @@ void UPNP::makeTunnel()
 {
     QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot, Qt::QueuedConnection );
 
-    QString discover = QString( "M-SEARCH * HTTP/1.1\r\n"
-                                "HOST:239.255.255.250:1900\r\n"
-                                "ST:ssdp:all\r\n"
-                                //"GatewayDevice:1\r\n"/*upnp:rootdevice*/
-                                "Man:\"ssdp:discover\"\r\n"
-                                "MX:3\r\n\r\n" );
+    QString discover{ "M-SEARCH * HTTP/1.1\r\n"
+                         "HOST:239.255.255.250:1900\r\n"
+                         "ST:ssdp:all\r\n"
+                         //"GatewayDevice:1\r\n"/*upnp:rootdevice*/
+                         "Man:\"ssdp:discover\"\r\n"
+                         "MX:3\r\n\r\n"
+    };
 
     udpSocket->writeDatagram( discover.toLatin1(),
                               discover.size(),
@@ -143,7 +144,7 @@ void UPNP::getUdpSlot()
                 emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true);
             }
 
-            int index = Helper::getStrIndex( vs, "Location" );
+            int index{ Helper::getStrIndex( vs, "Location" ) };
             if ( index != -1 )
             {
                 vs.remove( 0, index + 10 );
@@ -177,10 +178,10 @@ void UPNP::getUdpSlot()
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished, httpSocket,
                 [=](QNetworkReply* reply)
                 {
-                    QString response = reply->readAll();
+                    QString response{ reply->readAll() };
                     QString logMsg{ "" };
 
-                    int i = 0;
+                    int i{ 0 };
                     while ( i < response.size() )
                     {
                         if ( !response[ i ].isPrint() )
@@ -198,7 +199,7 @@ void UPNP::getUdpSlot()
                         {
                             rtrSchema = reader.readElementText();
                             bool validSchema{ false };
-                            for ( const auto& schema : schemas )
+                            for ( const QString& schema : schemas )
                             {
                                 logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
                                 logMsg = logMsg.arg( rtrSchema )
@@ -297,11 +298,11 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
                     req.setRawHeader( QByteArray( "SOAPAction" ), soap.toLatin1() );
                     req.setRawHeader( QByteArray( "Host" ), host.toLatin1() );
 
-    QNetworkReply* httpReply = httpSocket->post( req, message.toLatin1() );
+    QNetworkReply* httpReply{ httpSocket->post( req, message.toLatin1() ) };
     QObject::connect( httpReply, &QNetworkReply::readyRead, httpReply,
     [=]()
     {
-        QString reply = httpReply->readAll();
+        QString reply{ httpReply->readAll() };
         if ( !Helper::strContainsStr( reply, "UPnPError" ) )
         {
             if ( Helper::strContainsStr( reply, "NewExternalIPAddress" ) )

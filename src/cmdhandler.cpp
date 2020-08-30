@@ -114,7 +114,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
     }
 
     qint32 colIndex{ Helper::getStrIndex( packet, ": " ) };
-    QString alias = packet.left( colIndex ).mid( 10 );
+    QString alias{ packet.left( colIndex ).mid( 10 ) };
 
     QString msg{ packet.mid( colIndex + 2 ) };
             msg = msg.left( msg.length() - 2 );
@@ -242,7 +242,7 @@ bool CmdHandler::parseCommandImpl(Player* plr, QString& packet)
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
-            if ( !( arg1.toInt( nullptr, 16 ) & MIN_HEX_SERNUM ) )
+            if ( !( Helper::serNumtoInt( arg1, true ) & MIN_HEX_SERNUM ) )
                 arg1.prepend( "SOUL " );
         }
         else if ( Helper::cmpStrings( subCmd, "change" ) )
@@ -522,7 +522,7 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target, const QString& ar
     }
 
     //The target matches the Remote-Administrators conditions.
-    QString sernum = Helper::serNumToHexStr( arg1 );
+    QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( this->isTarget( target, arg1, all ) )
         return true;
 
@@ -545,7 +545,7 @@ void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1, const GMC
 
 bool CmdHandler::isTarget(Player* target, const QString& arg1, const bool isAll)
 {
-    QString sernum = Helper::serNumToHexStr( arg1 );
+    QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( ( target->peerAddress().toString() == arg1 )
       || ( target->getSernumHex_s() == sernum )
       || isAll )
@@ -572,7 +572,7 @@ void CmdHandler::motdHandler(Player* plr, const QString& subCmd, const QString& 
     if ( !subCmd.isEmpty()
       && cmdTable->isSubCommand( GMCmds::MotD, subCmd ) )
     {
-        MOTDWidget* motdWidget = MOTDWidget::getWidget( server );
+        MOTDWidget* motdWidget{ MOTDWidget::getWidget( server ) };
         if ( motdWidget != nullptr )
         {
             QString message{ "Admin [ %1 ] has changed the Message of the Day to: [ %2 ]" };
@@ -676,7 +676,7 @@ void CmdHandler::banHandler(Player* plr, const QString& arg1, const QString& dur
 
 void CmdHandler::unBanHandler(const QString& subCmd, const QString& arg1)
 {
-    QString sernum = Helper::serNumToHexStr( arg1 );
+    QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( Helper::cmpStrings( subCmd, "ip" ) )
         User::removePunishment( arg1, PunishTypes::Ban, PunishTypes::IP );
     else
@@ -687,7 +687,7 @@ void CmdHandler::kickHandler(Player* plr, const QString& arg1, const GMCmds& arg
 {
     QString reason{ "Remote-Admin [ %1 ] has [ Kicked ] you. Reason: [ %2 ]." };
 
-    QString msg = message;
+    QString msg{ message };
     if ( msg.isEmpty() )
         msg = "No Reason!";
 
@@ -787,7 +787,7 @@ void CmdHandler::muteHandler(Player* plr, const QString& arg1, const QString& du
 
 void CmdHandler::unMuteHandler(const QString& subCmd, const QString& arg1)
 {
-    QString sernum = Helper::serNumToHexStr( arg1 );
+    QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( Helper::cmpStrings( subCmd, "ip" ) )
         User::removePunishment( arg1, PunishTypes::Mute, PunishTypes::IP );
     else
@@ -1001,7 +1001,7 @@ void CmdHandler::shutDownHandler(Player* plr, const QString& duration, const QSt
 
     if ( !stop )
     {
-        ServerInfo* plrServer = plr->getServerInfo();
+        ServerInfo* plrServer{ plr->getServerInfo() };
         if ( shutdownTimer == nullptr )
             shutdownTimer = new QTimer();
 
@@ -1282,9 +1282,9 @@ qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
     qint32 duration{ 0 };
     qint32 time{ 0 };
     QString pStr;
-            pStr.reserve( 10 );
+            pStr.reserve( str.length() );
 
-    QString::const_iterator itr = str.constBegin();
+    QString::const_iterator itr{ str.constBegin() };
 
     while ( itr != nullptr )
     {

@@ -63,7 +63,7 @@ void CreateInstance::updateServerList(const bool& firstRun)
     for ( int i = 0; i < servers.count(); ++i )
     {
         name = servers.at( i );
-        for ( const auto& key : Settings::pKeys )
+        for ( const QString& key : Settings::pKeys )
         {
             if ( Helper::cmpStrings( name, key ) )
                 skip = true;
@@ -122,7 +122,7 @@ void CreateInstance::on_initializeServer_clicked()
             {
                 if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
                 {
-                    auto* server = new ServerInfo();
+                    ServerInfo* server = new ServerInfo();
                     if ( server == nullptr ) //Failed to create the ServerInfo instance.
                         return;
 
@@ -197,7 +197,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
     {
         if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
         {
-            auto* server = new ServerInfo();
+            ServerInfo* server{ new ServerInfo() };
 
             //Failed to create the ServerInfo instance.
             if ( server == nullptr )
@@ -251,8 +251,8 @@ void CreateInstance::closeEvent(QCloseEvent* event)
 
     if ( event->type() == QEvent::Close )
     {
-        QString title = QString( "Close ReMix:" );
-        QString prompt = QString( "You are about to shut down your ReMix game server!\r\n\r\nAre you certain?" );
+        QString title{ "Close ReMix:" };
+        QString prompt{ "You are about to shut down your ReMix game server!\r\n\r\nAre you certain?" };
 
         if ( ReMixTabWidget::getInstanceCount() == 0 )
         {
@@ -291,7 +291,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         if ( !gameName.isEmpty() )
         {
             bool notFound{ true };
-            for ( const auto& el : gameNames )
+            for ( const QString& el : gameNames )
             {
                 if ( Helper::cmpStrings( el, gameName ) )
                 {

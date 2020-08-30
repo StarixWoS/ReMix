@@ -11,8 +11,6 @@ class Server : public QTcpServer
 {
     Q_OBJECT
 
-    QWidget* mother{ nullptr };
-
     public:
         Server(QWidget* parent = nullptr);
         ~Server() override;

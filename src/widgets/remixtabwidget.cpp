@@ -122,7 +122,7 @@ ReMixTabWidget::~ReMixTabWidget()
     nightModeButton->deleteLater();
     newTabButton->deleteLater();
 
-    for ( auto* server : serverMap )
+    for ( ReMixWidget* server : serverMap )
     {
         if ( server != nullptr )
         {
@@ -135,7 +135,7 @@ ReMixTabWidget::~ReMixTabWidget()
 
 void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 {
-    for ( auto* server : serverMap )
+    for ( ReMixWidget* server : serverMap )
     {
         if ( server != nullptr )
             server->sendServerMessage( msg );
@@ -145,7 +145,7 @@ void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 quint32 ReMixTabWidget::getPlayerCount() const
 {
     quint32 playerCount{ 0 };
-    for ( auto* server : serverMap )
+    for ( ReMixWidget* server : serverMap )
     {
         if ( server != nullptr )
             playerCount += server->getPlayerCount();
@@ -156,7 +156,7 @@ quint32 ReMixTabWidget::getPlayerCount() const
 quint32 ReMixTabWidget::getServerCount() const
 {
     quint32 serverCount{ 0 };
-    for ( auto* server : serverMap )
+    for ( ReMixWidget* server : serverMap )
     {
         if ( server != nullptr )
             ++serverCount;
@@ -241,7 +241,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     if ( tabWidget == nullptr )
         return;
 
-    ReMixWidget* instance = serverMap.value( index );
+    ReMixWidget* instance{ serverMap.value( index ) };
     if ( instance == nullptr )
         return;
 
@@ -309,7 +309,7 @@ void ReMixTabWidget::repositionServerIndices()
 {
     //Reposition the server instance's ServerID when Tabs are removed.
     QMap<int, ReMixWidget*> tempMap;
-    for (  auto server : serverMap )
+    for ( ReMixWidget* server : serverMap )
     {
         if ( server != nullptr )
             tempMap.insert( this->indexOf( server ), server );
@@ -376,7 +376,7 @@ void ReMixTabWidget::createServer()
 
 void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
 {
-    QWidget* widget = this->widget( index );
+    QWidget* widget{ this->widget( index ) };
     if ( widget != nullptr )
     {
         ReMixWidget* instance{ nullptr };

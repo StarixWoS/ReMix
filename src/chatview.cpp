@@ -341,10 +341,9 @@ bool ChatView::parseChatEffect(const QString& packet)
 {
     bool retn{ true };
     bool log{ true };
-    QString srcSerNum = packet.left( 12 ).mid( 4 );
-            srcSerNum = Helper::serNumToIntStr( srcSerNum );
+    QString srcSerNum{ Helper::serNumToIntStr( packet.left( 12 ).mid( 4 ), true ) };
+    QString fltrCode{ packet.mid( 13 ).left( 2 ) };
 
-    QString fltrCode = packet.mid( 13 ).left( 2 );
     qint32 code{ (fltrCode.at( 0 ).toLatin1() - 'A') & 0xFF };
     if ( code == 3 || code == 5 || code == 6 || code == 10 )
     {
@@ -416,7 +415,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             break;
             case '`': //Custom command input.
                 {
-                    auto* cHandle{ this->getCmdHandle() };
+                    CmdHandler* cHandle{ this->getCmdHandle() };
                     if ( cHandle != nullptr
                       && plr != nullptr )
                     {
@@ -445,7 +444,7 @@ bool ChatView::parseChatEffect(const QString& packet)
 
 void ChatView::bleepChat(QString& message)
 {
-    for ( const auto& el : bleepList )
+    for ( const QString& el : bleepList )
     {
         message = message.replace( el, "bleep", Qt::CaseInsensitive );
     }
@@ -454,9 +453,9 @@ void ChatView::bleepChat(QString& message)
 void ChatView::insertChat(const QString& msg, const Colors& color, const bool& newLine)
 {
     QTextEdit* obj{ ui->chatView };
-    int curScrlPosMax = obj->verticalScrollBar()->maximum();
-    int selStart = 0;
-    int selEnd = 0;
+    int curScrlPosMax{ obj->verticalScrollBar()->maximum() };
+    int selStart{ 0 };
+    int selEnd{ 0 };
 
     QTextCursor cursor( obj->textCursor() );
     if ( cursor.hasSelection() )

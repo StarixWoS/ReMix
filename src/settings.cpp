@@ -324,7 +324,7 @@ QVariant Settings::getSetting(const SKeys& key, const QString& subKey)
 //Retain function for ease of use.
 QString Settings::getServerID(const QString& svrID)
 {
-    qint32 id = getSetting( SKeys::Setting, SSubKeys::Extension, svrID ).toInt();
+    qint32 id{ getSetting( SKeys::Setting, SSubKeys::Extension, svrID ).toInt() };
     if ( id <= 0 )
     {
         RandDev* randDev{ RandDev::getDevice() };

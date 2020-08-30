@@ -58,7 +58,7 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    QTableWidgetItem* item = ui->settingsView->item( static_cast<int>( option ), 0 );
+    QTableWidgetItem* item{ ui->settingsView->item( static_cast<int>( option ), 0 ) };
     if ( item != nullptr )
         ui->settingsView->item( static_cast<int>( option ), 0 )->setCheckState( state );
 }
@@ -82,14 +82,14 @@ void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
 
 void SettingsWidget::on_settingsView_doubleClicked(const QModelIndex& index)
 {
-    int row = index.row();
+    int row{ index.row() };
     this->toggleSettingsModel( row );
 
 }
 
 void SettingsWidget::toggleSettingsModel(const qint32 &row)
 {
-    Qt::CheckState val = ui->settingsView->item( row, 0 )->checkState();
+    Qt::CheckState val{ ui->settingsView->item( row, 0 )->checkState() };
     ui->settingsView->item( row, 0 )->setCheckState( val == Qt::Checked ? Qt::Unchecked : Qt::Checked );
 
     val = ui->settingsView->item( row, 0 )->checkState();
@@ -98,7 +98,7 @@ void SettingsWidget::toggleSettingsModel(const qint32 &row)
 
 void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
 {
-    bool state = value == Qt::Checked;
+    bool state{ value == Qt::Checked };
 
     QString title{ "" };
     QString prompt{ "" };

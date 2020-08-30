@@ -43,7 +43,7 @@ bool RunGuard::tryToRun()
         return false;
 
     memLock->acquire();
-    const bool result = sharedMem->create( sizeof( quint64 ) );
+    const bool result{ sharedMem->create( sizeof( quint64 ) ) };
     memLock->release();
 
     if ( !result )

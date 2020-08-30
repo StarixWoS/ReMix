@@ -44,7 +44,7 @@ void Comments::setTitle(const QString& name)
 
 void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message)
 {
-    QTextEdit* obj = ui->msgView;
+    QTextEdit* obj{ ui->msgView };
     if ( obj == nullptr )
         return;
 

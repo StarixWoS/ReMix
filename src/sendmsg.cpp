@@ -66,7 +66,7 @@ bool SendMsg::eventFilter(QObject* obj, QEvent* event)
     if ( obj == nullptr || event == nullptr )
         return false;
 
-    auto* key = dynamic_cast<QKeyEvent*>( event );
+    QKeyEvent* key{ dynamic_cast<QKeyEvent*>( event ) };
     bool accept{ false };
 
     if ( key != nullptr

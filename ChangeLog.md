@@ -4,6 +4,20 @@ TODO:
 
 
 
+Version 2.6.4:
+    Change:
+      * Convert variable initializers to be C++11 brace initializers to be more consitent with newer code.
+      * Reduced the usage of auto casted variables when the type is known within source.
+      * Removed a few unused source files from the repository.
+
+
+
+      Bugfixes:
+        * Finalized fixes related to the improper conversion of SerNums from hex to dec.
+
+
+
+
 Version 2.6.3:
     Change:
       * ReMix now checks the 'K' and 's' packet for Pet and Player levels. We also parse the Player's AFK status, but it is not meaningfully used.

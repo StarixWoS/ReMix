@@ -245,7 +245,7 @@ void ReMixWidget::initUIUpdate()
 
 void ReMixWidget::on_openUserInfo_clicked()
 {
-    User* user = User::getInstance();
+    User* user{ User::getInstance() };
     if ( user != nullptr )
     {
         if ( user->isVisible() )
@@ -257,7 +257,7 @@ void ReMixWidget::on_openUserInfo_clicked()
 
 void ReMixWidget::on_openSettings_clicked()
 {
-    Settings* settings = Settings::getInstance();
+    Settings* settings{ Settings::getInstance() };
     if ( settings->isVisible() )
         settings->hide();
     else
@@ -348,7 +348,7 @@ void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
 void ReMixWidget::on_logButton_clicked()
 {
     //Show the Logger Dialog.
-    Logger* logUi = Logger::getInstance();
+    Logger* logUi{ Logger::getInstance() };
     if (logUi != nullptr )
     {
         if ( logUi->isVisible() )
@@ -374,7 +374,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     Player* plr{ nullptr };
 
     server->setUserCalls( server->getUserCalls() + 1 );
-    int slot = server->getSocketSlot( socketDescriptor );
+    int slot{ server->getSocketSlot( socketDescriptor ) };
     if ( slot < 0 )
         plr = server->createPlayer( server->getEmptySlot(), socketDescriptor );
     else
@@ -407,7 +407,7 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr)
     QString ip{ plr->peerAddress().toString() % ":%1" };
             ip = ip.arg( plr->peerPort() );
 
-    QStandardItem* item = plrTableItems.take( ip );
+    QStandardItem* item{ plrTableItems.take( ip ) };
     if ( item != nullptr )
     {
         if ( item == plr->getTableRow() )
@@ -457,7 +457,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
 
 QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert)
 {
-    QString bio = QString( data );
+    QString bio{ QString( data ) };
     int row{ -1 };
 
     QStandardItem* item;
@@ -475,9 +475,9 @@ QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const Q
     plrViewModel->setData( plrViewModel->index( row, 0 ), peerIP, Qt::DisplayRole );
     if ( !bio.isEmpty() )
     {
-        QString sernum = Helper::getStrStr( bio, "sernum", "=", "," );
-        QString alias = Helper::getStrStr( bio, "alias", "=", "," );
-        QString age = Helper::getStrStr( bio, "HHMM", "=", "," );
+        QString sernum{ Helper::getStrStr( bio, "sernum", "=", "," ) };
+        QString alias{ Helper::getStrStr( bio, "alias", "=", "," ) };
+        QString age{ Helper::getStrStr( bio, "HHMM", "=", "," ) };
 
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
         plr->setPlayTime( age );

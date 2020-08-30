@@ -121,7 +121,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
     this->initContextMenu();
     if ( menuIndex.row() >= 0 )
     {
-        Player* plr = server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) );
+        Player* plr{ server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) ) };
         if ( plr != nullptr )
             menuTarget = plr;
 
@@ -202,7 +202,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         QString title{ "Create Admin:" };
         prompt =  "Are you certain you want to MAKE [ %1 ] a Remote Admin? \r\n\r\nPlease make sure you trust [ %1 ] as this will "
                   "allow the them to utilize Admin commands that can remove the ability for other users to connect to the Server.";
-        prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
+        prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {
@@ -217,7 +217,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     {
         QString title{ "Revoke Admin:" };
         prompt = "Are you certain you want to REVOKE [ %1 ]'s powers?";
-        prompt = prompt.arg( Helper::serNumToIntStr( sernum ) );
+        prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
         if ( Helper::confirmAction( this, title, prompt ) )
         {

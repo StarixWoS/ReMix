@@ -16,11 +16,11 @@ UserSortProxyModel::~UserSortProxyModel() = default;
 
 bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
-    int column = sortColumn();
+    int column{ sortColumn() };
     if ( column >= 0 )
     {
-        QVariant vL = sourceModel()->data( left );
-        QVariant vR = sourceModel()->data( right );
+        QVariant vL{ sourceModel()->data( left ) };
+        QVariant vR{ sourceModel()->data( right ) };
 
         if ( !( vL.isValid() && vR.isValid() ))
             return QSortFilterProxyModel::lessThan( left, right );
@@ -59,7 +59,7 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
             vrStr = Helper::intSToStr( vrStr, 10 );
         }
 
-        bool res = false;
+        bool res{ false };
         if ( Helper::naturalSort( vlStr, vrStr, res ) )
             return res;
     }

@@ -49,7 +49,7 @@ Player::Player(qintptr socketDescriptor)
     {
         ++connTime;
 
-        QStandardItem* row = this->getTableRow();
+        QStandardItem* row{ this->getTableRow() };
         QString baudIn{ "%1Bd, %2B, %3 Pkts" };
         QString baudOut{ "%1Bd, %2B, %3 Pkts" };
         if ( row != nullptr )
@@ -261,15 +261,15 @@ void Player::setSernum_i(qint32 value)
     if ( value != this->getSernum_i() )
     {
         sernum_i = value;
-        QString sernum_s{ Helper::serNumToIntStr( Helper::intToStr( value, 16, 8 ) ) };
+        QString sernum_s{ Helper::serNumToIntStr( Helper::intToStr( value, 16, 8 ), true ) };
         QString sernumHex_s{ Helper::serNumToHexStr( sernum_s ) };
 
         if ( !sernum_s.isEmpty() )
         {
-            QStandardItem* row = this->getTableRow();
+            QStandardItem* row{ this->getTableRow() };
             if ( row != nullptr )
             {
-                QStandardItemModel* model = row->model();
+                QStandardItemModel* model{ row->model() };
                 if ( model != nullptr )
                 {
                     model->setData( model->index( row->row(), 1 ), sernum_s, Qt::DisplayRole );
@@ -429,10 +429,10 @@ void Player::setSentCampPacket(bool value)
 
 void Player::forceSendCampPacket()
 {
-    auto* svr{ this->getServerInfo() };
+    ServerInfo* svr{ this->getServerInfo() };
     if ( svr != nullptr )
     {
-        auto* pktHandle{ svr->getPktHandle() };
+        PacketHandler* pktHandle{ svr->getPktHandle() };
         if ( pktHandle != nullptr )
             emit this->parsePacketSignal( this->getCampPacket(), this );
     }
@@ -561,7 +561,7 @@ quint64 Player::getAvgBaud(const bool& out) const
 
 void Player::setAvgBaud(const quint64& bytes, const bool& out)
 {
-    quint64 time = this->getConnTime();
+    quint64 time{ this->getConnTime() };
     quint64 baud{ 0 };
 
     if ( bytes > 0 && time > 0 )
@@ -682,7 +682,7 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     isDisconnected = value;
     if ( isDisconnected )
     {
-        auto* server = this->getServerInfo();
+        ServerInfo* server{ this->getServerInfo() };
         if ( server != nullptr )
         {
             //Increment the disconnect count for the specific type.
@@ -867,6 +867,7 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
           || ( isBlueCoded
             && Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() ) )
         {
+            QString sernum{ Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ), true ) };
             message = "";
             reason = "";
             if ( serNumChanged )
@@ -875,7 +876,7 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                 reason = "%1: [ %2 ] to [ %3 ], [ %4 ]";
                 reason = reason.arg( message )
                                .arg( this->getSernum_s() )
-                               .arg( Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( sernum )
                                .arg( this->getBioData() );
             }
             else if ( zeroSerNum )
@@ -883,7 +884,7 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                 message = "Auto-Disconnect; Invalid SerNum";
                 reason = "%1: [ %2 ], [ %3 ]";
                 reason = reason.arg( message )
-                               .arg( Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( sernum )
                                .arg( this->getBioData() );
             }
             else if ( isBlueCoded )
@@ -891,7 +892,7 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                 message = "Auto-Disconnect; BlueCoded SerNum";
                 reason = "%1: [ %2 ], [ %3 ]";
                 reason = reason.arg( message )
-                               .arg( Helper::serNumToIntStr( Helper::intToStr( id, 16, 8 ) ) )
+                               .arg( sernum )
                                .arg( this->getBioData() );
             }
 
@@ -1008,7 +1009,7 @@ void Player::readyReadSlot()
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
     {
-        int bytes = data.indexOf( "\r\n" );
+        int bytes{ data.indexOf( "\r\n" ) };
         if ( bytes <= 0 )
             bytes = data.indexOf( "\n" );
         if ( bytes <= 0 )
@@ -1016,7 +1017,7 @@ void Player::readyReadSlot()
 
         if ( bytes > 0 )
         {
-            QByteArray packet = data.left( bytes + 1 );
+            QByteArray packet{ data.left( bytes + 1 ) };
                        packet = packet.left( packet.length() - 1 );
 
             data = data.mid( bytes + 1 ).data();

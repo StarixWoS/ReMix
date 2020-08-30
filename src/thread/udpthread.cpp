@@ -79,7 +79,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 }
 
                 bool reqSernum{ Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() };
-                if (( reqSernum && Helper::serNumtoInt( sernum ) )
+                if (( reqSernum && Helper::serNumtoInt( sernum, true ) )
                   || !reqSernum )
                 {
                     QString sGameInfo{ worldInfo };
@@ -136,7 +136,7 @@ void UdpThread::readyReadUDPSlot()
         return;
 
     QByteArray data;
-    QHostAddress senderAddr{};
+    QHostAddress senderAddr{ };
     quint16 senderPort{ 0 };
 
     data.resize( static_cast<int>( socket->pendingDatagramSize() ) );
