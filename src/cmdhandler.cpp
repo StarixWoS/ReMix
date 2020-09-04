@@ -1181,8 +1181,7 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
         if ( idx >= 0 )
             msg = lockMsg;
 
-        if ( soulSubCmd
-          && tmpPlr == nullptr )
+        if ( soulSubCmd && tmpPlr == nullptr )
         {
             return;
         }
@@ -1239,16 +1238,22 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
             break;
             case GMSubCmds::Four: //Allow. Only online Players may be exempted for storage.
                 {
-                    override = false;
-
-                    msg = allowExempt;
-                    msg = msg.arg( tmpPlr->getSernum_s() );
-                    if ( !CampExemption::getInstance()->setPlayerExemption( admin->getSernumHex_s(), tmpPlr->getSernumHex_s() ) )
+                    if ( soulSubCmd
+                      && tmpPlr != nullptr )
                     {
-                        msg = msg.arg( removed );
+                        override = false;
+
+                        msg = allowExempt;
+                        msg = msg.arg( tmpPlr->getSernum_s() );
+                        if ( !CampExemption::getInstance()->setPlayerExemption( admin->getSernumHex_s(), tmpPlr->getSernumHex_s() ) )
+                        {
+                            msg = msg.arg( removed );
+                        }
+                        else
+                            msg = msg.arg( added );
                     }
                     else
-                        msg = msg.arg( added );
+                        return;
                 }
             break;
             case GMSubCmds::Five:
