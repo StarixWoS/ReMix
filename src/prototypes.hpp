@@ -54,6 +54,7 @@
     class QFileInfo;
     class QSettings;
     class QTextEdit;
+    class QPalette;
     class QLibrary;
     class QToolTip;
     class QVariant;
@@ -300,10 +301,10 @@
                                  BytesIn, BytesOut, BioData = 7, ColCount = 9 };
 
         //Valid columns within the User Dialog.
-        enum class UserCols: int{ SerNum = 0, Pings, Calls, LastSeen, IPAddr,
+        enum class UserCols: int{ SerNum = 0, /*Pings,*/ Calls, LastSeen, IPAddr,
                                   Rank, Muted, MuteDate, MuteDuration,
                                   MuteReason, Banned, BanDate, BanDuration,
-                                  BanReason = 13, ColCount = 14 };
+                                  BanReason = 12, ColCount = 13 };
 
         //Valid columns within the Logger Dialog.
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3, ColCount = 4 };

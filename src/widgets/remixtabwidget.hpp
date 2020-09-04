@@ -16,6 +16,7 @@ class ReMixTabWidget : public QTabWidget
     static QMap<int, ReMixWidget*> serverMap;
     static CreateInstance* createDialog;
     static ReMixTabWidget* tabInstance;
+
     static qint32 instanceCount;
 
     QToolButton* nightModeButton{ nullptr };
@@ -52,6 +53,12 @@ class ReMixTabWidget : public QTabWidget
         void tabCloseRequestedSlot(const qint32& index);
         void currentChangedSlot(const qint32& newTab);
         void createServerAcceptedSlot(ServerInfo* server = nullptr);
+
+    public slots:
+        void crossServerCommentSlot(ServerInfo* server, const QString& comment);
+
+    signals:
+        void crossServerCommentSignal(ServerInfo* server, const QString& comment);
 };
 
 #endif // REMIXTABWIDGET_H

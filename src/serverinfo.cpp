@@ -260,6 +260,8 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
     //Sends the User's IP address within field(%2) 2; we are sending the User's
     //position within the players[] array instead to prevent IP leakage.
 
+    //Hide any Userlist pings from the LogView if no Player's are found.
+    bool emptyResponse{ true };
     for ( int i = 0; i < MAX_PLAYERS && response.length() < 800; ++i )
     {
         plr = this->getPlayer( i );
@@ -279,10 +281,12 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
                                         .arg( Helper::intToStr( plr->getSlotPos(), 16, 8 ) );
                 }
             }
+            emptyResponse = false;
         }
     }
 
-    if ( !response.isEmpty() )
+    if ( !response.isEmpty()
+      && !emptyResponse )
     {
         emit this->sendUdpDataSignal( addr, port, response );
         QString msg{ "Sending User List to [ %1:%2 ]; %3" };
@@ -383,20 +387,21 @@ Player* ServerInfo::getPlayer(const int& slot)
 
 void ServerInfo::deletePlayer(Player* plr)
 {
-    if ( plr == nullptr )
+    Player* player{ plr };
+    if ( player == nullptr )
         return;
 
-    int slot{ plr->getSlotPos() };
+    int slot{ player->getSlotPos() };
     QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
-            logMsg = logMsg.arg( plr->peerAddress().toString() )
-                           .arg( Helper::getTimeIntFormat( plr->getConnTime(), TimeFormat::Minutes ) )
-                           .arg( plr->getBytesIn() )
-                           .arg( plr->getPacketsIn() )
-                           .arg( plr->getAvgBaud( false ) )
-                           .arg( plr->getBioData() );
-    plr->disconnect();
-    plr->deleteLater();
-    plr = nullptr;
+            logMsg = logMsg.arg( player->peerAddress().toString() )
+                           .arg( Helper::getTimeIntFormat( player->getConnTime(), TimeFormat::Minutes ) )
+                           .arg( player->getBytesIn() )
+                           .arg( player->getPacketsIn() )
+                           .arg( player->getAvgBaud( false ) )
+                           .arg( player->getBioData() );
+    player->disconnect();
+    player->deleteLater();
+    player = nullptr;
 
     players[ slot ] = nullptr;
 
@@ -553,6 +558,22 @@ void ServerInfo::sendMasterMessage(const QString& packet, Player* plr, const boo
             msg = msg.arg( packet );
 
     emit this->sendMasterMsgToPlayerSignal( plr, toAll, msg.toLatin1() );
+}
+
+void ServerInfo::sendMasterMessageToAdmins(const QString& message, Player* srcPlayer)
+{
+    QString msg{ ":SR@M%1\r\n" };
+            msg = msg.arg( message );
+
+    for ( Player* plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && plr != srcPlayer
+          && plr->getAdminPwdReceived() )
+        {
+            emit this->sendMasterMsgToPlayerSignal( plr, false, msg.toLatin1() );
+        }
+    }
 }
 
 quint64 ServerInfo::getUpTime() const

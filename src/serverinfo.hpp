@@ -125,6 +125,7 @@ class ServerInfo : public QObject
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);
+        void sendMasterMessageToAdmins(const QString& message, Player* srcPlayer = nullptr);
 
         quint64 getUpTime() const;
         QTimer* getUpTimer();

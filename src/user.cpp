@@ -96,7 +96,7 @@ User::User(QWidget* parent) :
     tblModel->setHeaderData( static_cast<int>( UserCols::Banned ), Qt::Horizontal, "Banned" );
     tblModel->setHeaderData( static_cast<int>( UserCols::SerNum ), Qt::Horizontal, "SerNum" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Muted ), Qt::Horizontal, "Muted" );
-    tblModel->setHeaderData( static_cast<int>( UserCols::Pings ), Qt::Horizontal, "Pings" );
+    //tblModel->setHeaderData( static_cast<int>( UserCols::Pings ), Qt::Horizontal, "Pings" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Calls ), Qt::Horizontal, "Calls" );
     tblModel->setHeaderData( static_cast<int>( UserCols::Rank ), Qt::Horizontal, "Rank" );
 
@@ -506,12 +506,12 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
     if ( Helper::strContainsStr( sernum, "SOUL" ) )
         sernum = Helper::serNumToHexStr( serNum, 8 );
 
-    quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
+    //quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
     quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
     QString ip_s{ ip.toString() };
 
     setData( sernum, keys[ UserKeys::kBIO ], bio.mid( 1 ) );
-    setData( sernum, keys[ UserKeys::kPINGS ], pings );
+    //setData( sernum, keys[ UserKeys::kPINGS ], pings );
     setData( sernum, keys[ UserKeys::kIP ], ip_s );
     setData( sernum, keys[ UserKeys::kSEEN ], date );
 
@@ -527,7 +527,7 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
     {
         user->updateRowData( index.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum, true ) );
         user->updateRowData( index.row(), static_cast<int>( UserCols::IPAddr ), ip_s );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
+        //user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
         user->updateRowData( index.row(), static_cast<int>( UserCols::LastSeen ), date );
     }
 }
@@ -588,7 +588,7 @@ void User::loadUserInfo()
         quint64 banDate_i{ 0 };
         quint64 banDuration_i{ 0 };
         quint64 seen_i{ 0 };
-        quint32 pings_i{ 0 };
+        //quint32 pings_i{ 0 };
         quint32 calls_i{ 0 };
 
         quint32 rank{ 0 };
@@ -605,7 +605,7 @@ void User::loadUserInfo()
             banReason = getData( sernum, keys[ UserKeys::kBANREASON ] ).toString();
             muteDate_i = getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt();
             banDate_i = getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt();
-            pings_i = getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt();
+            //pings_i = getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt();
             calls_i = getData( sernum, keys[ UserKeys::kCALLS ] ).toUInt();
             seen_i = getData( sernum, keys[ UserKeys::kSEEN ] ).toUInt();
             rank = getData( sernum, keys[ UserKeys::kRANK ] ).toUInt();
@@ -628,7 +628,7 @@ void User::loadUserInfo()
             this->updateRowData( row, static_cast<int>( UserCols::BanDate ), banDate_i );
             this->updateRowData( row, static_cast<int>( UserCols::LastSeen ), seen_i );
             this->updateRowData( row, static_cast<int>( UserCols::Banned ), banned );
-            this->updateRowData( row, static_cast<int>( UserCols::Pings ), pings_i );
+            //this->updateRowData( row, static_cast<int>( UserCols::Pings ), pings_i );
             this->updateRowData( row, static_cast<int>( UserCols::Calls ), calls_i );
             this->updateRowData( row, static_cast<int>( UserCols::Muted ), muted );
             this->updateRowData( row, static_cast<int>( UserCols::IPAddr ), ip );
@@ -824,7 +824,6 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 QString reason{ "" };
 
                 bool muted{ tblModel->data( index ).toBool() };
-
                 if ( muted )
                 {
                     reason = getData( sernum, keys[ UserKeys::kMUTEREASON ] ).toString();

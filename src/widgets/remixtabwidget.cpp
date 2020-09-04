@@ -18,6 +18,7 @@
 
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance{ nullptr };
+
 QMap<int, ReMixWidget*> ReMixTabWidget::serverMap;
 qint32 ReMixTabWidget::instanceCount;
 
@@ -462,6 +463,13 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
         serverMap.insert( serverID, new ReMixWidget( this, server ) );
         this->insertTab( serverMap.size() - 1, serverMap.value( serverID ), serverName );
         this->setCurrentIndex( serverID );
+
+        QObject::connect( serverMap.value( serverID ), &ReMixWidget::crossServerCommentSignal, this, &ReMixTabWidget::crossServerCommentSlot );
         Settings::setSetting( server->getIsPublic(), SKeys::Setting, SSubKeys::IsRunning, serverName );
     }
+}
+
+void ReMixTabWidget::crossServerCommentSlot(ServerInfo* server, const QString& comment)
+{
+    emit this->crossServerCommentSignal( server, comment);
 }

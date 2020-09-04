@@ -70,6 +70,26 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     //Connect Object Signals to Slots.
     QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot, Qt::QueuedConnection );
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot, Qt::QueuedConnection );
+    QObject::connect( serverComments, &Comments::newUserCommentSignal, this,
+    [=](const QString& comment)
+    {
+        emit this->crossServerCommentSignal( server, comment );
+    });
+
+    QObject::connect( ReMixTabWidget::getTabInstance(), &ReMixTabWidget::crossServerCommentSignal, this,
+    [=](ServerInfo* serverInfo, const QString& comment)
+    {
+        if ( server != serverInfo
+          && Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
+        {
+            QString message{ "Comment from Server [ %1 ]: %2" };
+                    message = message.arg( serverInfo->getServerName() )
+                                     .arg( comment );
+            server->sendMasterMessageToAdmins( message, nullptr );
+        }
+    });
+
+
     QObject::connect( server, &ServerInfo::initializeServerSignal, this, &ReMixWidget::initializeServerSlot, Qt::QueuedConnection );
 
     QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,

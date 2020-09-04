@@ -252,7 +252,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             qint32 petLevel{ Helper::strToInt( pkt.mid( 19 ).left( 4 ) ) };
 
                             if ( plr->getPlrLevel() >= 1
-                              && petLevel > plr->getPlrLevel() )
+                              && petLevel >= plr->getPlrLevel() )
                             {
                                 server->sendMasterMessage( msg, plr, false );
                                 retn = false;

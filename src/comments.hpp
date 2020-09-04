@@ -17,8 +17,7 @@ class Comments : public QDialog
         ServerInfo* server{ nullptr };
 
     public:
-        explicit Comments(QWidget* parent = nullptr,
-                          ServerInfo* serverInfo = nullptr);
+        explicit Comments(QWidget* parent = nullptr, ServerInfo* serverInfo = nullptr);
         ~Comments() override;
 
         void setTitle(const QString& name);
@@ -28,6 +27,7 @@ class Comments : public QDialog
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void newUserCommentSignal(const QString& message);
 
     private:
         Ui::Comments* ui;

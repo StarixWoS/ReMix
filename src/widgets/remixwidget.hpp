@@ -71,6 +71,7 @@ class ReMixWidget : public QWidget
 
     signals:
         void reValidateServerIPSignal();
+        void crossServerCommentSignal(ServerInfo* server, const QString& comment);
 
     private:
         Ui::ReMixWidget* ui;

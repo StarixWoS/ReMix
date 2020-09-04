@@ -20,6 +20,8 @@ class Helper
         {
             QString str{ "%1" };
                     str = str.arg( val, fill, base, filler ).toUpper();
+            if ( str.length() > 8 )
+                str = str.mid( str.length() - 8 );
             return str;
         }
         static qint32 strToInt(const QString& str, const int& base = 16);

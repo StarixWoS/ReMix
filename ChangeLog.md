@@ -4,6 +4,26 @@ TODO:
 
 
 
+Version 2.6.5:
+    Change:
+      * Comments to a Server Instance will now be echoed to all admins on all initialized Server Instances.
+        * The setting "Echo Comments to Admins" must be enabled.
+      * ReMix no longer tracks a User's Ping count.
+      * User-list request responses are now omitted from the Log View if the Server has no connected Users.
+      * The command "/info" will now only count Users as Admins if the Admin has logged in with a password.
+        * Previously all Admins were counted regardless of login state.
+
+
+
+      Bugfixes:
+        * Negative SerNums are now correctly handled.
+        * The commands: "/kick", "/ban", and "/mute" can now be used with the "all" sub-command if no message has been provided. e.g. "/ban all"
+        * Commands using the sub-command "all" will no-longer spam the command isser with failures due to tank or User statuses.
+        * Pets of the same level as a Player can no longer be called within another Player's camp (scene).
+
+
+
+
 Version 2.6.4:
     Change:
       * Convert variable initializers to be C++11 brace initializers to be more consitent with newer code.

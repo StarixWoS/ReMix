@@ -51,7 +51,7 @@ qint32 Helper::strToInt(const QString& str, const int& base)
     bool base16{ base != 10 };
     bool ok{ false };
 
-    qint32 val{ str.toInt( &ok, base ) };
+    qint32 val{ static_cast<qint32>( str.toUInt( &ok, base ) ) };
     if ( !ok && !base16 )
         val = str.toInt( &ok, 16 );
 
@@ -173,7 +173,7 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 {
     sernum = stripSerNumHeader( sernum );
 
-    qint32 sernum_i{ sernum.toInt( nullptr, 16 ) };
+    qint32 sernum_i{ static_cast<qint32>( sernum.toUInt( nullptr, 16 ) ) };
     QString result{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) )
@@ -205,7 +205,14 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 
 QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 {
-    qint32 sernum_i{ serNumtoInt( sernum, isHex ) };
+    QString serNum{ sernum };
+    if ( isHex )
+    {
+        if ( serNum.length() > 8 )
+            serNum = serNum.mid( serNum.length() - 8 );
+    }
+
+    qint32 sernum_i{ serNumtoInt( serNum, isHex ) };
     QString retn{ "" };
 
     if ( !( sernum_i & MIN_HEX_SERNUM ) || !isHex )
@@ -223,11 +230,12 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 
 qint32 Helper::serNumtoInt(const QString& sernum, const bool& isHex)
 {
+
     QString serNum{ sernum };
             serNum = stripSerNumHeader( sernum );
 
     bool ok{ false };
-    qint32 sernum_i{ serNum.toInt( &ok, 16 ) };
+    qint32 sernum_i{ static_cast<qint32>( serNum.toUInt( &ok, 16 ) ) };
     if ( !ok )
     {
         if ( isHex )

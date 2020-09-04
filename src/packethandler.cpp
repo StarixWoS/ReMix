@@ -40,15 +40,16 @@ PacketHandler::~PacketHandler()
 
 void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 {
-    //Do not parse packets from Muted Users.
-    if ( plr->getIsMuted() )
+    //Do not parse packets from Muted or Null Users.
+    if ( plr == nullptr
+      || plr->getIsMuted() )
+    {
         return;
+    }
 
     QByteArray pkt{ packet };
     QChar opCode{ pkt.at( 4 ) };
     QString data{ pkt };
-    if ( plr == nullptr )
-        return;
 
     this->detectFlooding( plr );
 

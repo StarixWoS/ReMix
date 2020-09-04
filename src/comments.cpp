@@ -54,6 +54,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
             comment = comment.arg( alias )
                              .arg( sernum )
                              .arg( message );
+    QString time{ "[ " % Helper::getTimeAsString( date ) % " ] " };
 
     int curScrlPosMax = obj->verticalScrollBar()->maximum();
     int selStart{ 0 };
@@ -66,7 +67,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
         selEnd = cursor.selectionEnd();
     }
     cursor.movePosition( QTextCursor::End );
-    cursor.insertText( "[ " % Helper::getTimeAsString( date ) % " ] " % comment );
+    cursor.insertText( time % comment );
 
     if ( selStart && selEnd )
     {
@@ -83,6 +84,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
     if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
         emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, false );
 
+    emit this->newUserCommentSignal( comment.simplified() );
     //Show the Dialog when a new comment is received.
     if ( !this->isVisible() )
         this->show();
