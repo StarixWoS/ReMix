@@ -36,7 +36,7 @@ UPNP::UPNP(QObject* parent )
     : QObject( parent )
 {
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &UPNP::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &UPNP::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
     localIP = QHostAddress( Helper::getPrivateIP() );
 
     //We have a broadcast IP address. We are unable to port forward.
@@ -93,7 +93,7 @@ void UPNP::setTunneled(bool value)
 
 void UPNP::makeTunnel()
 {
-    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot, Qt::QueuedConnection );
+    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot );
 
     QString discover{ "M-SEARCH * HTTP/1.1\r\n"
                          "HOST:239.255.255.250:1900\r\n"
@@ -249,7 +249,7 @@ void UPNP::getUdpSlot()
                     //this->getExternalIP();
 
                     httpSocket->disconnect();
-                }, Qt::QueuedConnection );
+                } );
 
                 logMsg = "Requesting Service Information from [ %1 ].";
                 logMsg = logMsg.arg( vs );
@@ -337,7 +337,7 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
         }
         httpReply->disconnect();
         httpReply->deleteLater();
-    }, Qt::QueuedConnection );
+    } );
 }
 
 void UPNP::extractError(const QString& message, const quint16& port, const QString& protocol )

@@ -27,10 +27,10 @@ PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
 
     cmdHandle = new CmdHandler( this, server );
     chatView->setCmdHandle( cmdHandle );
-    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal, Qt::QueuedConnection );
+    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 }
 
 PacketHandler::~PacketHandler()
@@ -272,7 +272,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                                  .arg( port )
                                  .arg( Helper::serNumToIntStr( sernum, true ) )
                                  .arg( data );
-                emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
+                emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PING, true, true );
 
                 Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
                 User::logBIO( sernum, ipAddr, data );
@@ -458,10 +458,10 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
     QString recvSlotPos{ pkt.mid( 4 ).left( 2 ) };
     qint32 plrPktSlot{ plr->getPktHeaderSlot() };
-    if ( plrPktSlot != Helper::strToInt( recvSlotPos, 16 ) )
+    if ( plrPktSlot != Helper::strToInt( recvSlotPos, static_cast<int>( IntBase::HEX ) ) )
     {
         msg = msg.arg( recvSlotPos )
-                 .arg( Helper::intToStr( plrPktSlot, 16, 2 ) );
+                 .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) );
     }
     else //Slot Matched. Return true;
         return true;
@@ -473,7 +473,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
             logMsg = logMsg.arg( plr->getSernum_s() )
                            .arg( recvSlotPos )
                            .arg( QString( pkt ) )
-                           .arg( Helper::intToStr( plrPktSlot, 16, 2 ) );
+                           .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) );
     emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
     plr->setDisconnected( true, DCTypes::PktDC );

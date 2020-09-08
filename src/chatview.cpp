@@ -101,7 +101,7 @@ ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
     server = svr;
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
     pktForge = PacketForge::getInstance();
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )

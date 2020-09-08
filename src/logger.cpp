@@ -33,6 +33,7 @@ const QStringList Logger::logType =
     "ChatLog",
     "QuestLog",
     "PktForge",
+    "PingLog",
 };
 
 Logger::Logger(QWidget *parent) :
@@ -46,8 +47,8 @@ Logger::Logger(QWidget *parent) :
     writeThread->moveToThread( thread );
 
     //Connect Objects to Slots.
-    QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot, Qt::QueuedConnection );
-    QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot, Qt::QueuedConnection );
+    QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot );
+    QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot );
 
     tblModel = new QStandardItemModel( 0, 4, nullptr );
     tblModel->setHeaderData( static_cast<int>( LogCols::Message ), Qt::Horizontal, "Message" );

@@ -68,8 +68,8 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     server->setTcpServer( tcpServer );
 
     //Connect Object Signals to Slots.
-    QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot, Qt::QueuedConnection );
-    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot, Qt::QueuedConnection );
+    QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
+    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
     QObject::connect( serverComments, &Comments::newUserCommentSignal, this,
     [=](const QString& comment)
     {
@@ -89,8 +89,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
         }
     });
 
-
-    QObject::connect( server, &ServerInfo::initializeServerSignal, this, &ReMixWidget::initializeServerSlot, Qt::QueuedConnection );
+    QObject::connect( server, &ServerInfo::initializeServerSignal, this, &ReMixWidget::initializeServerSlot );
 
     QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,
     [=]()
@@ -99,20 +98,20 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
             server->setIsSetUp( false );
 
         server->setIsPublic( true );
-    }, Qt::QueuedConnection );
+    } );
 
     QObject::connect( chatView, &ChatView::sendChatSignal, chatView,
     [=](QString msg)
     {
         if ( !msg.isEmpty() )
             server->sendMasterMessage( msg, nullptr, true );
-    }, Qt::QueuedConnection );
+    } );
 
     QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, this,
     [=](const QString& gameInfo)
     {
         server->setGameInfo( gameInfo );
-    }, Qt::QueuedConnection );
+    } );
 
     //Initialize the TCP Server if we're starting as a public instance.
     if ( server->getIsPublic() )
@@ -260,7 +259,7 @@ void ReMixWidget::initUIUpdate()
             plrWidget->resizeColumns();
         }
         ui->networkStatus->setText( msg );
-    }, Qt::QueuedConnection );
+    } );
 }
 
 void ReMixWidget::on_openUserInfo_clicked()
@@ -412,7 +411,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
         this->plrDisconnectedSlot( plr );
     });
 
-    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::QueuedConnection );
+    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot );
 
     server->sendServerGreeting( plr );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );

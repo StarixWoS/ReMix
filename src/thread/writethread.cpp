@@ -35,6 +35,7 @@ void WriteThread::run()
     upnpLog.moveToThread( this->thread() );
     miscLog.moveToThread( this->thread() );
     chatLog.moveToThread( this->thread() );
+    pingLog.moveToThread( this->thread() );
 
     this->exec();
 }
@@ -86,6 +87,7 @@ bool WriteThread::isLogOpen(const LogTypes& type)
         case LogTypes::UPNP: return upnpLog.isOpen();
         case LogTypes::MISC: return miscLog.isOpen();
         case LogTypes::CHAT: return chatLog.isOpen();
+        case LogTypes::PING: return pingLog.isOpen();
     }
     return false;
 }
@@ -104,6 +106,7 @@ QFile& WriteThread::getLogFile(const LogTypes& type)
         case LogTypes::UPNP: return upnpLog;
         case LogTypes::MISC: return miscLog;
         case LogTypes::CHAT: return chatLog;
+        case LogTypes::PING: return pingLog;
     }
     return miscLog; //Use Misc log as fallthrough.
 }
@@ -111,8 +114,8 @@ QFile& WriteThread::getLogFile(const LogTypes& type)
 void WriteThread::openLogFile(const LogTypes& type)
 {
     QString log{ "logs/%1/%2.txt" };
-    log = log.arg( logDate )
-             .arg( logType.at( static_cast<int>( type ) ) );
+            log = log.arg( logDate )
+                     .arg( logType.at( static_cast<int>( type ) ) );
 
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )
@@ -174,6 +177,12 @@ void WriteThread::openLogFile(const LogTypes& type)
             chatLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
+        case LogTypes::PING:
+        {
+            pingLog.setFileName( log );
+            pingLog.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
     }
 }
 
@@ -197,6 +206,7 @@ void WriteThread::closeAllLogFiles()
     this->closeLogFile( upnpLog );
     this->closeLogFile( miscLog );
     this->closeLogFile( chatLog );
+    this->closeLogFile( pingLog );
 }
 
 //Slots

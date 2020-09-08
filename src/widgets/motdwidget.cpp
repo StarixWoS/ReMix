@@ -30,7 +30,7 @@ MOTDWidget::MOTDWidget(const QString& name) :
         Helper::stripNewlines( strVar );
 
         Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
-    }, Qt::QueuedConnection );
+    } );
 }
 
 MOTDWidget::~MOTDWidget()

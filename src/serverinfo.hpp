@@ -6,6 +6,7 @@
 
 //Required Qt Includes.
 #include <QElapsedTimer>
+#include <QDateTime>
 #include <QHostInfo>
 #include <QVariant>
 #include <QObject>
@@ -23,9 +24,9 @@ class ServerInfo : public QObject
     UPNP* upnp{ nullptr };
 
     QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
+    qint64 initializeDate{ 0 };
 
     QTimer upTimer;
-    QVariant upTime{ 0.0 };
 
     bool isSetUp{ false };
     QString serverName{ "AHitB ReMix Server" };
@@ -127,7 +128,7 @@ class ServerInfo : public QObject
         void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);
         void sendMasterMessageToAdmins(const QString& message, Player* srcPlayer = nullptr);
 
-        quint64 getUpTime() const;
+        qint64 getUpTime() const;
         QTimer* getUpTimer();
 
         QString getInfo() const;
@@ -268,6 +269,9 @@ class ServerInfo : public QObject
 
         qint64 getMaxIdleTime();
 
+        qint64 getInitializeDate() const;
+        void setInitializeDate(const qint64& value);
+
     private:
         const inline QVector<Player*> getPlayerVector(){ return players; }
 
@@ -288,6 +292,7 @@ class ServerInfo : public QObject
         void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
 
         void upnpPortForwardSignal(const quint16& port, const bool& insert);
+        void connectionTimeUpdateSignal();
 
     public slots:
         void setMaxIdleTimeSlot();

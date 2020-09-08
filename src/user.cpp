@@ -72,7 +72,7 @@ User::User(QWidget* parent) :
     ui->setupUi(this);
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &User::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &User::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
     if ( instance == nullptr )
         this->setInstance( this );
@@ -113,7 +113,7 @@ User::User(QWidget* parent) :
     //Load Information.
     this->loadUserInfo();
 
-    QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValueSlot, Qt::QueuedConnection );
+    QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValueSlot );
 }
 
 User::~User()

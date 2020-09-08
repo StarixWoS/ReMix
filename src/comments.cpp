@@ -22,7 +22,7 @@ Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
     server = serverInfo;
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );

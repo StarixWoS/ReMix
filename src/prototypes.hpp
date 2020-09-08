@@ -310,7 +310,7 @@
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3, ColCount = 4 };
 
         //Valid Log types available to the Logger Class.
-        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PKTFORGE = 8, MAX = 8 };
+        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PKTFORGE, PING = 9, MAX = 9 };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes = 1, Seconds = 2, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
@@ -343,6 +343,9 @@
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, HasSvrPassword,
                                   SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
                                   NoMigrate, NoModding, NoPets, NoPK, ArenaPK, KeyCount };
+
+        //Valid bases for use in converting strings to integers.
+        enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };
 
     #endif  // REMIX_GLOBALS
 

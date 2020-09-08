@@ -30,7 +30,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
     user = User::getInstance();
     createDialog = new CreateInstance( this );
-    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot, Qt::QueuedConnection );
+    QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -38,10 +38,10 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     //Initalize the First Server.
     this->createServer();
 
-    QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot, Qt::QueuedConnection );
+    QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot );
 
     //Hide Tab-specific UI dialog windows when the tabs change.
-    QObject::connect( this, &QTabWidget::currentChanged, this, &ReMixTabWidget::currentChangedSlot, Qt::QueuedConnection );
+    QObject::connect( this, &QTabWidget::currentChanged, this, &ReMixTabWidget::currentChangedSlot );
 
     QObject::connect( this, &QTabWidget::tabBarDoubleClicked, this,
     [=](int index)
@@ -95,7 +95,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
                     Helper::warningMessage( this, "Error:", message );
             }
         }
-    }, Qt::QueuedConnection );
+    } );
 
     //Refresh the server instance's ServerID when the Tabs are moved.
     QObject::connect( this->tabBar(), &QTabBar::tabMoved, this->tabBar(),
@@ -109,7 +109,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
         if ( tabB != nullptr )
             serverMap.insert( from, tabB );
-    }, Qt::QueuedConnection );
+    } );
 }
 
 ReMixTabWidget::~ReMixTabWidget()
@@ -328,7 +328,7 @@ void ReMixTabWidget::createTabButtons()
     newTabButton->setAutoRaise( true );
 
     this->setCornerWidget( newTabButton, Qt::TopLeftCorner );
-    QObject::connect( newTabButton, &QToolButton::clicked, this, &ReMixTabWidget::createServer, Qt::QueuedConnection );
+    QObject::connect( newTabButton, &QToolButton::clicked, this, &ReMixTabWidget::createServer );
 
     nightModeButton = new QToolButton( this );
     nightModeButton->setCursor( Qt::ArrowCursor );
@@ -361,7 +361,7 @@ void ReMixTabWidget::createTabButtons()
         Settings::setSetting( type, SKeys::Setting, SSubKeys::DarkMode );
 
         nightMode = !nightMode;
-    }, Qt::QueuedConnection );
+    } );
 }
 
 void ReMixTabWidget::createServer()

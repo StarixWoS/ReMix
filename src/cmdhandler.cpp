@@ -25,7 +25,7 @@ CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
     server = svr;
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &CmdHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &CmdHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 }
 
 CmdHandler::~CmdHandler() = default;
@@ -1045,7 +1045,7 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
                 shutdownTimer->deleteLater();
 
                 shutdownTimer = nullptr;
-            }, Qt::QueuedConnection );
+            } );
         }
 
         message = message.arg( admin->getSernum_s() )
@@ -1379,7 +1379,7 @@ qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
             timeTxt = "seconds";
             time = 1;
         }
-        duration = time * Helper::strToInt( pStr, 10 );
+        duration = time * Helper::strToInt( pStr, static_cast<int>( IntBase::DEC ) );
     }
     return duration;
 }

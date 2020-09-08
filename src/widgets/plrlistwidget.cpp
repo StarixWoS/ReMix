@@ -30,7 +30,7 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     ui->setupUi(this);
 
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
     server = svr;
 
@@ -176,7 +176,7 @@ void PlrListWidget::on_actionSendMessage_triggered()
                 messageDialog->deleteLater();
                 messageDialog = nullptr;
                 menuTarget = nullptr;
-            }, Qt::QueuedConnection );
+            } );
         }
 
         if ( !messageDialog->isVisible() )

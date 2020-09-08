@@ -129,8 +129,8 @@ void ReMix::initSysTray()
         QAction* restoreAction{ new QAction( "Restore", this ) };
         QAction* quitAction{ new QAction( "Quit", this ) };
 
-        QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal, Qt::QueuedConnection );
-        QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide, Qt::QueuedConnection );
+        QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal );
+        QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide );
 
         QObject::connect( quitAction, &QAction::triggered, quitAction,
         [=]()
@@ -138,7 +138,7 @@ void ReMix::initSysTray()
             //Allow Rejection of a Global CloseEvent.
             if ( !this->rejectCloseEvent() )
                 qApp->quit();
-        }, Qt::QueuedConnection );
+        } );
 
         trayMenu = new QMenu( this );
         trayMenu->addSeparator();

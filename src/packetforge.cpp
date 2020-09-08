@@ -19,7 +19,7 @@ PacketForge::~PacketForge() = default;
 PacketForge::PacketForge()
 {
     //Connect LogFile Signals to the Logger Class.
-    QObject::connect( this, &PacketForge::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::QueuedConnection );
+    QObject::connect( this, &PacketForge::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 }
 
 PacketForge* PacketForge::getInstance()

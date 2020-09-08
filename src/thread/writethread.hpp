@@ -25,6 +25,7 @@ class WriteThread : public QThread
     QFile upnpLog;
     QFile miscLog;
     QFile chatLog;
+    QFile pingLog;
 
     public:
         WriteThread(const QStringList& types, QObject *parent = nullptr);

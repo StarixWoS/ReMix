@@ -274,8 +274,7 @@ bool CmdTable::cmdIsActive(const GMCmds& index)
     return cmdTable.at( static_cast<int>( index ) ).cmdIsActive;
 }
 
-bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd,
-                            const bool& time)
+bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool& time)
 {
     qint32 idx{ static_cast<int>( index ) };
     const CmdTable::CmdStruct& cmdAt{ cmdTable.at( idx ) };

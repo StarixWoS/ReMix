@@ -334,7 +334,7 @@ QString Settings::getServerID(const QString& svrID)
         setSetting( id, SKeys::Setting, SSubKeys::Extension, svrID );
         randDev = nullptr;
     }
-    return Helper::intToStr( id, 16, 8 );
+    return Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 );
 }
 
 QString Settings::getRuleSet(const QString& svrID)

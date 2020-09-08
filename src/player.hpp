@@ -45,7 +45,6 @@ class Player : public QTcpSocket
     quint64 muteDuration{ 0 };
     quint64 avgBaudOut{ 0 };
     quint64 avgBaudIn{ 0 };
-    quint64 connTime{ 0 };
     quint64 bytesOut{ 0 };
     quint64 bytesIn{ 0 };
 
@@ -58,6 +57,7 @@ class Player : public QTcpSocket
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
     qint64 maxIdleTime{ 0 };
+    qint64 connTime{ 0 };
 
     qint32 pktHeaderSlot{ 0 };
     qint32 cmdAttempts{ 0 };
@@ -71,7 +71,6 @@ class Player : public QTcpSocket
     QElapsedTimer floodTimer;
     QElapsedTimer idleTime;
 
-    QTimer connTimer;
     QTimer killTimer;
     QTimer afkTimer;
 
@@ -83,7 +82,7 @@ class Player : public QTcpSocket
         explicit Player(qintptr socketDescriptor);
         ~Player() override;
 
-        quint64 getConnTime() const;
+        qint64 getConnTime() const;
         void startConnTimer();
 
         QStandardItem* getTableRow() const;
@@ -234,6 +233,7 @@ class Player : public QTcpSocket
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
         void setMaxIdleTimeSlot(const qint64& maxAFK);
+        void connectionTimeUpdateSlot();
 
     private slots:
         void readyReadSlot();
