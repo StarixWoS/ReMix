@@ -4,6 +4,25 @@ TODO:
 
 
 
+Version 2.6.6:
+    Change:
+      * Added a new Log File "PingLog" which will now log pings from Users.
+        * Previously these were written to the "UsageLog".
+        * TODO: Implement a method to hide certain log types from the Log Viewer.
+      * Reduced usages of "magic" numbers in relation to converting strings to integers.
+        * An enum encompassing the various valid formats within Qt has been added.
+
+
+
+    Bugfixes:
+      * Fixed an issue where ReMix could show Users as having connected for longer than the a Server Instance has been online.
+      * Fixed an issue where a ping response was listed within the Log Viewer before the actual ping itself.
+      * Fixed an issue where Players could connect using negative sernums.
+        * Players connecting with a negative sernum will be disconnected as though they were a BlueCoded SerNum, regardless if the Host has enabled the setting.
+
+
+
+
 Version 2.6.5:
     Change:
       * Comments to a Server Instance will now be echoed to all admins on all initialized Server Instances.
@@ -15,13 +34,13 @@ Version 2.6.5:
 
 
 
-      Bugfixes:
-        * Negative SerNums are now correctly handled.
-        * The commands: "/kick", "/ban", and "/mute" can now be used with the "all" sub-command if no message has been provided. e.g. "/ban all"
-        * Commands using the sub-command "all" will no-longer spam the command isser with failures due to tank or User statuses.
-        * Pets of the same level as a Player can no longer be called within another Player's camp (scene).
-        * Fixed a crash related to the "/camp allow" sub-command.
-          * If a User were to omit the soul-targeting (/camp allow soul 4000) command the command would fallthrough and access an invalid nullptr.
+    Bugfixes:
+      * Negative SerNums are now correctly handled.
+      * The commands: "/kick", "/ban", and "/mute" can now be used with the "all" sub-command if no message has been provided. e.g. "/ban all"
+      * Commands using the sub-command "all" will no-longer spam the command isser with failures due to tank or User statuses.
+      * Pets of the same level as a Player can no longer be called within another Player's camp (scene).
+      * Fixed a crash related to the "/camp allow" sub-command.
+        * If a User were to omit the soul-targeting (/camp allow soul 4000) command the command would fallthrough and access an invalid nullptr.
 
 
 
@@ -34,8 +53,8 @@ Version 2.6.4:
 
 
 
-      Bugfixes:
-        * Finalized fixes related to the improper conversion of SerNums from hex to dec.
+    Bugfixes:
+      * Finalized fixes related to the improper conversion of SerNums from hex to dec.
 
 
 
@@ -48,9 +67,9 @@ Version 2.6.3:
 
 
 
-      Bugfixes:
-        * Fixed an issue where GS sernums were being read as white souls.
-        * Properly clean up the CampExemption object when closing ReMix.
+    Bugfixes:
+      * Fixed an issue where GS sernums were being read as white souls.
+      * Properly clean up the CampExemption object when closing ReMix.
 
 
 

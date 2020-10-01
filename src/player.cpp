@@ -708,6 +708,12 @@ void Player::setAfkIcon(const QString& value)
 
 void Player::validateSerNum(ServerInfo* server, const qint32& id)
 {
+    if ( server == nullptr )
+        return;
+
+    QString masterIP{ server->getMasterIP() };
+    QString socketIP{ this->peerAddress().toString() };
+
     QString message{ "" };
     QString reason{ "" };
 
@@ -732,6 +738,11 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                     zeroSerNum = true;
                     disconnect = true;
                 }
+                else if ( id < 0 ) //The Player is connecting with a negative Sernum, disconnect them as a BlueCode.
+                {
+                    disconnect = true;
+                    isBlueCoded = true;
+                }
                 this->setSernum_i( id );
             }
             else if (( id > 0 && this->getSernum_i() != id )
@@ -748,8 +759,6 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
             && Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() ) )
         {
             QString sernum{ Helper::serNumToIntStr( Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 ), true ) };
-            message = "";
-            reason = "";
             if ( serNumChanged )
             {
                 message = "Auto-Disconnect; SerNum Changed";
@@ -786,8 +795,6 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
 
     if ( id == 1 || this->getSernum_i() == 1 )
     {
-        QString masterIP{ server->getMasterIP() };
-        QString socketIP{ this->peerAddress().toString() };
         if ( !Helper::cmpStrings( masterIP, socketIP ) )
         {
             //Ban IP?
