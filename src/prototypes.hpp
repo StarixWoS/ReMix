@@ -342,7 +342,7 @@
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, HasSvrPassword,
                                   SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
-                                  NoMigrate, NoModding, NoPets, NoPK, ArenaPK, KeyCount };
+                                  NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
 
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };

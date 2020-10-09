@@ -28,9 +28,12 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     //Allow ServerInstance Tabs to be swapped and moved.
     this->setMovable( true );
 
-    user = User::getInstance();
-    createDialog = new CreateInstance( this );
+    tabInstance = this;
+    createDialog = CreateInstance::getInstance( this );
+
+    QObject::connect( createDialog, &CreateInstance::restartServerListSignal, this, &ReMixTabWidget::restartServerListSlot );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot );
+    createDialog->updateServerList( true );
 
     this->setTabsClosable( true );
     this->createTabButtons();
@@ -127,7 +130,10 @@ ReMixTabWidget::~ReMixTabWidget()
     {
         if ( server != nullptr )
         {
-            Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, server->getServerName() );
+            //Only Mark Servers as inactive when closing if they aren't tagged for auto-restart.
+            if ( !Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, server->getServerName() ).toBool() )
+                Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, server->getServerName() );
+
             server->close();
             server->deleteLater();
         }
@@ -258,7 +264,9 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     bool isPublic{ server->getIsPublic() };
     bool useUPNP{ server->getUseUPNP() };
 
-    Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, instance->getServerName() );
+    //Only Mark Servers as inactive when closing if they aren't tagged for auto-restart.
+    if ( !Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, server->getServerName() ).toBool() )
+        Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, server->getServerName() );
 
     serverMap.remove( index );
     tabWidget->removeTab( index );
@@ -366,9 +374,6 @@ void ReMixTabWidget::createTabButtons()
 
 void ReMixTabWidget::createServer()
 {
-    if ( user == nullptr )
-        return;
-
     if ( createDialog->isVisible() )
         createDialog->hide();
     else
@@ -466,6 +471,23 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 
         QObject::connect( serverMap.value( serverID ), &ReMixWidget::crossServerCommentSignal, this, &ReMixTabWidget::crossServerCommentSlot );
         Settings::setSetting( server->getIsPublic(), SKeys::Setting, SSubKeys::IsRunning, serverName );
+    }
+}
+
+void ReMixTabWidget::restartServerListSlot(const QStringList& restartList)
+{
+    if ( !restartList.isEmpty() )
+    {
+        ServerInfo* server{ nullptr };
+        for ( const QString& name : restartList )
+        {
+            //Only Restart the server if it is enabled for the selected server.
+            if ( Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool() )
+            {
+                server = createDialog->loadOldServer( name );
+                this->createServerAcceptedSlot( server );
+            }
+        }
     }
 }
 

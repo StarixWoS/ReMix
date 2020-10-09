@@ -150,6 +150,11 @@
        <string>15</string>
       </property>
      </row>
+     <row>
+      <property name="text">
+       <string>16</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>Settings</string>
@@ -165,6 +170,14 @@
      </item>
      <item row="1" column="0">
       <property name="text">
+       <string>Auto Restart</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="2" column="0">
+      <property name="text">
        <string>World Name</string>
       </property>
       <property name="toolTip">
@@ -174,7 +187,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <property name="text">
        <string>Server Home</string>
       </property>
@@ -185,7 +198,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <property name="text">
        <string>All PKing</string>
       </property>
@@ -196,7 +209,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="0">
       <property name="text">
        <string>Max Players</string>
       </property>
@@ -207,7 +220,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="5" column="0">
+     <item row="6" column="0">
       <property name="text">
        <string>Max AFK</string>
       </property>
@@ -218,7 +231,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="6" column="0">
+     <item row="7" column="0">
       <property name="text">
        <string>Min Version</string>
       </property>
@@ -229,7 +242,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="7" column="0">
+     <item row="8" column="0">
       <property name="text">
        <string>Report to Ladder</string>
       </property>
@@ -240,7 +253,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="8" column="0">
+     <item row="9" column="0">
       <property name="text">
        <string>No Cursing</string>
       </property>
@@ -251,7 +264,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="9" column="0">
+     <item row="10" column="0">
       <property name="text">
        <string>No Cheating</string>
       </property>
@@ -262,7 +275,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="10" column="0">
+     <item row="11" column="0">
       <property name="text">
        <string>No Eavesdropping</string>
       </property>
@@ -273,7 +286,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="11" column="0">
+     <item row="12" column="0">
       <property name="text">
        <string>No Migrating</string>
       </property>
@@ -284,7 +297,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="12" column="0">
+     <item row="13" column="0">
       <property name="text">
        <string>No Modders</string>
       </property>
@@ -295,7 +308,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="13" column="0">
+     <item row="14" column="0">
       <property name="text">
        <string>No Pets</string>
       </property>
@@ -306,7 +319,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="14" column="0">
+     <item row="15" column="0">
       <property name="text">
        <string>No PKing</string>
       </property>
@@ -317,7 +330,7 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="15" column="0">
+     <item row="16" column="0">
       <property name="text">
        <string>Arena PKing</string>
       </property>

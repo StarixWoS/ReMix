@@ -15,10 +15,10 @@ class RulesWidget : public QWidget
 {
     Q_OBJECT
 
-    enum Toggles{ svrPassword = 0, world = 1, url = 2, allPK = 3, maxP = 4, maxIdle = 5,
-                  minV = 6, ladder = 7, noBleep = 8, noCheat = 9,
-                  noEavesdrop = 10, noMigrate = 11, noMod = 12, noPets = 13,
-                  noPK = 14, arenaPK = 15 };
+    enum Toggles{ svrPassword = 0, autoRestart = 1, world = 2, url = 3, allPK = 4, maxP = 5, maxIdle = 6,
+                  minV = 7, ladder = 8, noBleep = 9, noCheat = 10,
+                  noEavesdrop = 11, noMigrate = 12, noMod = 13, noPets = 14,
+                  noPK = 15, arenaPK = 16 };
 
     static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
 

@@ -17,17 +17,23 @@ class CreateInstance : public QDialog
         Q_OBJECT
 
         static const QStringList gameNames;
+        static QStringList restartServerList;
+        static CreateInstance* instance;
         QCollator collator;
 
     public:
         explicit CreateInstance(QWidget* parent = nullptr);
         ~CreateInstance() override;
 
+        static CreateInstance* getInstance(QWidget* parent = nullptr);
+
         void updateServerList(const bool& firstRun);
         bool testPort(const quint16& port);
         quint16 genPort();
 
         void restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic);
+        ServerInfo* loadOldServer(const QString& name);
+        ServerInfo* initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic);
 
     private slots:
         void on_servers_currentTextChanged(const QString& arg1);
@@ -43,6 +49,7 @@ class CreateInstance : public QDialog
     signals:
         void createServerAcceptedSignal(ServerInfo* server);
         void closeServerSignal();
+        void restartServerListSignal(const QStringList& restartList);
 
     private:
         Ui::CreateInstance* ui;

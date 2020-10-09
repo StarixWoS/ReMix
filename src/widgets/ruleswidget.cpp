@@ -104,6 +104,7 @@ void RulesWidget::setServerName(const QString& name)
     maxIdleCheckState = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name ).toUInt() != 0;
     this->setCheckedState( Toggles::maxIdle, maxIdleCheckState );
 
+    this->setCheckedState( Toggles::autoRestart, Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool() );
     this->setCheckedState( Toggles::noEavesdrop, Settings::getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, name ).toBool() );
     this->setCheckedState( Toggles::noMigrate, Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, name ).toBool() );
     this->setCheckedState( Toggles::arenaPK, Settings::getSetting( SKeys::Rules, SSubKeys::ArenaPK, name ).toBool() );
@@ -260,6 +261,9 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 pwdCheckState = state;
                 pwd.clear();
             }
+        break;
+        case Toggles::autoRestart:
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::AutoRestart, serverName );
         break;
         case Toggles::world:
             {

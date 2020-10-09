@@ -79,6 +79,7 @@ const QStringList Settings::sKeys =
     "noPets",
     "noPK",
     "arenaPK",
+    "autoRestart",
 };
 
 //The BIO Hash is accessible via any ReMix Server Instance.
@@ -174,6 +175,8 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
               setSetting( val, SKeys::Rules, SSubKeys::NoEavesdrop, newName );
         val = getSetting( SKeys::Rules, SSubKeys::SvrPassword, oldName );
               setSetting( val, SKeys::Rules, SSubKeys::SvrPassword, newName );
+        val = getSetting( SKeys::Rules, SSubKeys::AutoRestart, oldName );
+              setSetting( val, SKeys::Rules, SSubKeys::AutoRestart, newName );
         val = getSetting( SKeys::Rules, SSubKeys::MinVersion, oldName );
               setSetting( val, SKeys::Rules, SSubKeys::MinVersion, newName );
         val = getSetting( SKeys::Rules, SSubKeys::MaxPlayers, oldName );

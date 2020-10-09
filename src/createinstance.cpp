@@ -26,6 +26,12 @@ const QStringList CreateInstance::gameNames =
     "W97"
 };
 
+//Storage for restarting improperly shut-down servers.
+QStringList CreateInstance::restartServerList;
+
+//Storage For the Dialog's instance.
+CreateInstance* CreateInstance::instance{ nullptr };
+
 CreateInstance::CreateInstance(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::CreateInstance)
@@ -33,8 +39,6 @@ CreateInstance::CreateInstance(QWidget* parent) :
     ui->setupUi(this);
     collator.setNumericMode( true );
     collator.setCaseSensitivity( Qt::CaseInsensitive );
-
-    this->updateServerList( true );
 }
 
 CreateInstance::~CreateInstance()
@@ -46,9 +50,22 @@ CreateInstance::~CreateInstance()
         delete ui;
 }
 
+CreateInstance* CreateInstance::getInstance(QWidget* parent)
+{
+    if ( instance == nullptr )
+    {
+        if ( parent != nullptr )
+            instance = new CreateInstance( parent );
+        else
+            instance = new CreateInstance();
+    }
+    return instance;
+}
+
 void CreateInstance::updateServerList(const bool& firstRun)
 {
     QMutexLocker locker( &mutex );
+
     ui->servers->clear();
     ui->servers->addItem( "" );  //First item will always be blank.
 
@@ -71,11 +88,13 @@ void CreateInstance::updateServerList(const bool& firstRun)
 
         if ( !skip )
         {
-            running = false;
+            running = Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool();
             if ( firstRun )
+            {
                 Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
-            else
-                running = Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool();
+                if ( running ) //Initial Startup of ReMix, and a server is found as being 'online'.
+                    restartServerList.append( name );  //Store Server Name.
+            }
         }
 
         if ( !skip && !running )
@@ -101,10 +120,14 @@ void CreateInstance::updateServerList(const bool& firstRun)
     }
     else
         ui->servers->setEnabled( true );
+
+    if ( firstRun )
+        emit this->restartServerListSignal( restartServerList );
 }
 
 void CreateInstance::on_initializeServer_clicked()
 {
+    ServerInfo* server{ nullptr };
     QString svrName{ ui->servers->currentText() };
     QString title{ "Error:" };
     QString message{ "Servers cannot be initialized without a name!" };
@@ -120,38 +143,18 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
-                {
-                    ServerInfo* server = new ServerInfo();
-                    if ( server == nullptr ) //Failed to create the ServerInfo instance.
-                        return;
+                server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
+                                                 ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
 
-                    server->setServerName( svrName );
-                    server->setGameName( gameNames[ ui->gameName->currentIndex() ] );
-                    Helper::getSynRealData( server );
-                    server->setPrivatePort( ui->portNumber->text( ).toUShort() );
-                    server->setServerID( Settings::getServerID( svrName ) );
-                    server->setUseUPNP( ui->useUPNP->isChecked() );
-                    server->setIsPublic( ui->isPublic->isChecked() );
-
-                    emit this->createServerAcceptedSignal( server );
-                    emit this->accept();
-                }
-                else
-                {
-                    title = "Unable to Initialize Server:";
-                    message = "You have reached the limit of [ %1 ] concurrently running Server Instances.!";
-                    message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
-
-                   Helper::warningMessage( this, title, message );
-                }
+                emit this->createServerAcceptedSignal( server );
+                emit this->accept();
             }
             else //Warn the Server Host.
             {
                 title = "Unable to Initialize Server:";
                 message = "You are unable to initialize two servers with the same name!";
 
-               Helper::warningMessage( this, title, message );
+                Helper::warningMessage( this, title, message );
             }
         }
     }
@@ -193,36 +196,71 @@ quint16 CreateInstance::genPort()
 
 void CreateInstance::restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
 {
+    ServerInfo* server{ nullptr };
     if ( !name.isEmpty() )
     {
-        if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
+        //Verify that the server hasn't been initialized previously.
+        if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            ServerInfo* server{ new ServerInfo() };
-
-            //Failed to create the ServerInfo instance.
-            if ( server == nullptr )
-                return;
-
-            server->setServerName( name );
-            server->setGameName( gameName );
-            Helper::getSynRealData( server );
-            server->setPrivatePort( port );
-            server->setServerID( Settings::getServerID( name ) );
-            server->setUseUPNP( useUPNP );
-            server->setIsPublic( isPublic );
+            server = this->initializeServer( name, gameName, port, useUPNP, isPublic );
 
             emit this->createServerAcceptedSignal( server );
             emit this->accept();
         }
-        else
+        else //Warn the Server Host.
         {
             QString title{ "Unable to Initialize Server:" };
-            QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
-                    message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
+            QString message{ "You are unable to initialize two servers with the same name!" };
 
-           Helper::warningMessage( this, title, message );
+            Helper::warningMessage( this, title, message );
         }
     }
+}
+
+ServerInfo* CreateInstance::loadOldServer(const QString& name)
+{
+    ServerInfo* server{ nullptr };
+    if ( !name.isEmpty() )
+    {
+        QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, name ).toString() };
+        QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, name ).toString() };
+        bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
+        bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
+
+        server = this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic );
+        return server;
+    }
+    return nullptr;
+}
+
+ServerInfo* CreateInstance::initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
+{
+    ServerInfo* server{ nullptr };
+
+    //Verify Instance Count isn't above the maximum.
+    if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
+    {
+        server = new ServerInfo();
+        if ( server == nullptr )
+            return nullptr;
+
+        server->setServerName( name );
+        server->setGameName( gameName );
+        Helper::getSynRealData( server );
+        server->setPrivatePort( port );
+        server->setServerID( Settings::getServerID( name ) );
+        server->setUseUPNP( useUPNP );
+        server->setIsPublic( isPublic );
+    }
+    else
+    {
+        QString title{ "Unable to Initialize Server:" };
+        QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
+        message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
+
+        Helper::warningMessage( this, title, message );
+    }
+    return server;
 }
 
 bool CreateInstance::testPort(const quint16& port)
