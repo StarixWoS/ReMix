@@ -122,7 +122,15 @@ void CreateInstance::updateServerList(const bool& firstRun)
         ui->servers->setEnabled( true );
 
     if ( firstRun )
-        emit this->restartServerListSignal( restartServerList );
+    {
+        if ( !restartServerList.isEmpty() )
+        {
+            this->setLoadingOldServers( true );
+            emit this->restartServerListSignal( restartServerList );
+        }
+        else
+            this->setLoadingOldServers( false );
+    }
 }
 
 void CreateInstance::on_initializeServer_clicked()
@@ -261,6 +269,16 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
         Helper::warningMessage( this, title, message );
     }
     return server;
+}
+
+bool CreateInstance::getLoadingOldServers() const
+{
+    return loadingOldServers;
+}
+
+void CreateInstance::setLoadingOldServers(bool value)
+{
+    loadingOldServers = value;
 }
 
 bool CreateInstance::testPort(const quint16& port)

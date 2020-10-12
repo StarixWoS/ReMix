@@ -347,6 +347,9 @@
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };
 
+        //Valid MessageBox types.
+        enum class MessageBox: int{ SingleLine = 0, MultiLine = 1, Invalid = -1 };
+
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

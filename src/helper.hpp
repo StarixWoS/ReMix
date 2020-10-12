@@ -39,7 +39,8 @@ class Helper
 
         static bool confirmAction(QWidget* parent, QString& title, QString& prompt);
         static qint32 warningMessage(QWidget* parent, const QString& title, const QString& prompt);
-        static QString getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok, int type = 0);
+        static QString getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok,
+                                       const MessageBox& type);
 
         static QString getDisconnectReason(QWidget* parent = nullptr);
 

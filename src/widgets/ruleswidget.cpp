@@ -225,7 +225,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             title = "Server Password:";
                             prompt = "Password:";
-                            pwd = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
+                            pwd = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                             pwd = Helper::hashPassword( pwd );
                         }
 
@@ -303,7 +303,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                             {
                                 title = "Server World:";
                                 prompt = "World:";
-                                world = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
+                                world = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                             }
 
                             if ( !world.isEmpty() && !ok )
@@ -347,7 +347,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             title = "Server URL:";
                             prompt = "URL:";
-                            url = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
+                            url = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                         }
 
                         if ( url.isEmpty() && !ok )
@@ -406,7 +406,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             title = "Max-Players:";
                             prompt = "Value:";
-                            maxPlrs = Helper::getTextResponse( this, title, prompt, "", &ok, 0 ).toUInt();
+                            maxPlrs = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine ).toUInt();
                         }
 
                         if ( maxPlrs == 0 && !ok )
@@ -454,7 +454,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             title = "Max-Idle:";
                             prompt = "Value:";
-                            maxIdle = Helper::getTextResponse( this, title, prompt, "", &ok, 0 ).toUInt();
+                            maxIdle = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine ).toUInt();
                         }
 
                         if ( maxIdle == 0 && !ok )
@@ -509,7 +509,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         {
                             title = "Minimum Game Version:";
                             prompt = "Version:";
-                            version = Helper::getTextResponse( this, title, prompt, "", &ok, 0 );
+                            version = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                         }
 
                         if ( version.isEmpty() && !ok )

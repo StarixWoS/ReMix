@@ -3,6 +3,18 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.8:
+    Change:
+      * 
+
+
+
+    Bugfixes:
+      * Fixed the issue of having the Create Instance dialog remaining open when auto-restarting server instances.
+
+
+
+
 Version 2.6.7:
     Change:
       * Added a new Rule within the Settings/Rules dialog "Auto Restart" to enable ReMix to automatically restart a server when re-opening ReMix.

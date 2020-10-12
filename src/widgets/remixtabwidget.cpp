@@ -29,17 +29,18 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     this->setMovable( true );
 
     tabInstance = this;
+    this->setTabsClosable( true );
+    this->createTabButtons();
+
     createDialog = CreateInstance::getInstance( this );
 
     QObject::connect( createDialog, &CreateInstance::restartServerListSignal, this, &ReMixTabWidget::restartServerListSlot );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot );
     createDialog->updateServerList( true );
 
-    this->setTabsClosable( true );
-    this->createTabButtons();
-
-    //Initalize the First Server.
-    this->createServer();
+    //Initalize the First Server. --Only if no stored servers are marked as "AutoRestart"
+    if ( !createDialog->getLoadingOldServers() )
+        this->createServer();
 
     QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot );
 
@@ -57,7 +58,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
             QString message{ "Please enter the new name you wish to use for this server!" };
 
             bool accepted{ false };
-            QString response{ Helper::getTextResponse( this, title, message, tabA->getServerName(), &accepted, 0 ) };
+            QString response{ Helper::getTextResponse( this, title, message, tabA->getServerName(), &accepted, MessageBox::SingleLine ) };
 
             //The User clicked OK. Do nothing if the User clicked Cancel.
             if ( accepted )

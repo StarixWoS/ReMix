@@ -206,10 +206,10 @@ QString Helper::serNumToHexStr(QString sernum, int fillAmt)
 QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 {
     QString serNum{ sernum };
-    if ( isHex )
+    if ( isHex
+      && ( serNum.length() > 8 ) )
     {
-        if ( serNum.length() > 8 )
-            serNum = serNum.mid( serNum.length() - 8 );
+        serNum = serNum.mid( serNum.length() - 8 );
     }
 
     qint32 sernum_i{ serNumtoInt( serNum, isHex ) };
@@ -262,12 +262,12 @@ qint32 Helper::warningMessage(QWidget* parent, const QString& title, const QStri
     return QMessageBox::warning( parent, title, prompt, QMessageBox::NoButton, QMessageBox::Ok );
 }
 
-QString Helper::getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok, int type)
+QString Helper::getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok, const MessageBox& type)
 {
     QString response{ "" };
-    if ( type == 0 )    //Single-line message.
+    if ( type == MessageBox::SingleLine )    //Single-line message.
         response = QInputDialog::getText( parent, title, prompt, QLineEdit::Normal, defaultInput, ok );
-    else if ( type == 1 )   //Multi-line message.
+    else if ( type == MessageBox::MultiLine )   //Multi-line message.
         response = QInputDialog::getMultiLineText( parent, title, prompt, defaultInput, ok );
 
     return response;
