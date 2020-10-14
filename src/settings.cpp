@@ -60,6 +60,7 @@ const QStringList Settings::sKeys =
     "checkForUpdates",
     "dcBlueCodedSerNums",
     "loggerAutoScroll",
+    "overrideMasterIP",
 
     //Rules.
     "hasSvrPassword",

@@ -15,10 +15,10 @@ class RulesWidget : public QWidget
 {
     Q_OBJECT
 
-    enum Toggles{ svrPassword = 0, autoRestart = 1, world = 2, url = 3, allPK = 4, maxP = 5, maxIdle = 6,
-                  minV = 7, ladder = 8, noBleep = 9, noCheat = 10,
-                  noEavesdrop = 11, noMigrate = 12, noMod = 13, noPets = 14,
-                  noPK = 15, arenaPK = 16 };
+//    enum Toggles{ svrPassword = 0, autoRestart = 1, world = 2, url = 3, allPK = 4, maxP = 5, maxIdle = 6,
+//                  minV = 7, ladder = 8, noBleep = 9, noCheat = 10,
+//                  noEavesdrop = 11, noMigrate = 12, noMod = 13, noPets = 14,
+//                  noPK = 15, arenaPK = 16 };
 
     static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
 
@@ -41,8 +41,8 @@ class RulesWidget : public QWidget
         static void deleteWidget(ServerInfo* server);
 
         void setServerName(const QString& name);
-        void setCheckedState(const Toggles& option, const bool& val);
-        bool getCheckedState(const Toggles& option);
+        void setCheckedState(const RToggles& option, const bool& val);
+        bool getCheckedState(const RToggles& option);
 
         void setSelectedWorld(const QString& worldName, const bool& state);
 
@@ -50,7 +50,7 @@ class RulesWidget : public QWidget
         const QString& getGameInfo() const;
 
     private:
-        void toggleRulesModel(const qint32& row);
+        void toggleRulesModel(const RToggles& row);
         void toggleRules(const qint32& row, const Qt::CheckState& value);
 
     private slots:

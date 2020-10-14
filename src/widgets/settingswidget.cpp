@@ -20,19 +20,19 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     ui->setupUi(this);
 
     //Load Settings from file.
-    this->setCheckedState( Toggles::SAVEWINDOWPOSITIONS, Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() );
-    this->setCheckedState( Toggles::DCBLUECODEDSERNUMS, Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() );
-    this->setCheckedState( Toggles::INFORMADMINLOGIN, Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() );
-    this->setCheckedState( Toggles::MINIMIZETOTRAY, Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool() );
-    this->setCheckedState( Toggles::DISCONNECTIDLES, Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() );
-    this->setCheckedState( Toggles::ECHOCOMMENTS, Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() );
-    this->setCheckedState( Toggles::FWDCOMMENTS, Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() );
-    this->setCheckedState( Toggles::ALLOWDUPEDIP, Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() );
-    this->setCheckedState( Toggles::LOGCOMMENTS, Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() );
-    this->setCheckedState( Toggles::BANDUPEDIP, Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() );
-    this->setCheckedState( Toggles::REQSERNUM, Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() );
-    this->setCheckedState( Toggles::ALLOWSSV, Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() );
-    this->setCheckedState( Toggles::LOGFILES, Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() );
+    this->setCheckedState( SToggles::SaveWindowPositions, Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() );
+    this->setCheckedState( SToggles::InformAdminLogin, Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() );
+    this->setCheckedState( SToggles::DCBlueCode, Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() );
+    this->setCheckedState( SToggles::MinimizeToTray, Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool() );
+    this->setCheckedState( SToggles::EchoComments, Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() );
+    this->setCheckedState( SToggles::FwdComments, Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() );
+    this->setCheckedState( SToggles::LogComments, Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() );
+    this->setCheckedState( SToggles::AllowDupeIP, Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() );
+    this->setCheckedState( SToggles::ReqSerNum, Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() );
+    this->setCheckedState( SToggles::BanDupeIP, Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() );
+    this->setCheckedState( SToggles::AllowSSV, Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() );
+    this->setCheckedState( SToggles::DCIdles, Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() );
+    this->setCheckedState( SToggles::LogFiles, Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() );
 
     QString dir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
     QString rowText{ "World Dir: [ %1 ]" };
@@ -41,8 +41,21 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     else
         rowText = rowText.arg( "" );
 
-    ui->settingsView->item( Toggles::WORLDDIR, 0 )->setText( rowText );
-    this->setCheckedState( Toggles::WORLDDIR, !dir.isEmpty() );
+    worldCheckState = !Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString().isEmpty();
+    ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setText( rowText );
+    this->setCheckedState( SToggles::WorldDir, !dir.isEmpty() );
+
+    QString masterOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+    rowText = "Master Address: [ %1 ]";
+
+    if ( !masterOverride.isEmpty() )
+        rowText = rowText.arg( masterOverride );
+    else
+        rowText = rowText.arg( "" );
+
+    masterAddrCheckState = !Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString().isEmpty();
+    ui->settingsView->item( static_cast<int>( SToggles::OverrideMaster ), 0 )->setText( rowText );
+    this->setCheckedState( SToggles::OverrideMaster, masterAddrCheckState );
 }
 
 SettingsWidget::~SettingsWidget()
@@ -50,7 +63,7 @@ SettingsWidget::~SettingsWidget()
     delete ui;
 }
 
-void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
+void SettingsWidget::setCheckedState(const SToggles& option, const bool& val)
 {
     Qt::CheckState state;
     if ( val )
@@ -63,9 +76,9 @@ void SettingsWidget::setCheckedState(const Toggles& option, const bool& val)
         ui->settingsView->item( static_cast<int>( option ), 0 )->setCheckState( state );
 }
 
-bool SettingsWidget::getCheckedState(const Toggles& option)
+bool SettingsWidget::getCheckedState(const SToggles& option)
 {
-    return ui->settingsView->item( option, 0 )->checkState() == Qt::Checked;
+    return ui->settingsView->item( static_cast<int>( option ), 0 )->checkState() == Qt::Checked;
 }
 
 void SettingsWidget::on_settingsView_itemClicked(QTableWidgetItem* item)
@@ -102,59 +115,62 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
 
     QString title{ "" };
     QString prompt{ "" };
+    QString rowText{ "" };
+    QString newMasterIP{ "" };
 
-    switch ( static_cast<Toggles>( row ) )
+
+    switch ( static_cast<SToggles>( row ) )
     {
-        case Toggles::ALLOWDUPEDIP: //0
+        case SToggles::AllowDupeIP: //0
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowDupe );
             if ( state )
             {
-                if ( this->getCheckedState( Toggles::BANDUPEDIP ) )
-                    this->toggleSettingsModel( Toggles::BANDUPEDIP );
+                if ( this->getCheckedState( SToggles::BanDupeIP ) )
+                    this->toggleSettingsModel( static_cast<int>( SToggles::BanDupeIP ) );
             }
         break;
-        case Toggles::BANDUPEDIP: //1
+        case SToggles::BanDupeIP: //1
             Settings::setSetting( state, SKeys::Setting, SSubKeys::BanDupes );
             if ( state )
             {
-                if ( this->getCheckedState( Toggles::ALLOWDUPEDIP ) )
-                    this->toggleSettingsModel( Toggles::ALLOWDUPEDIP );
+                if ( this->getCheckedState( SToggles::AllowDupeIP ) )
+                    this->toggleSettingsModel( static_cast<int>( SToggles::AllowDupeIP ) );
             }
         break;
-        case Toggles::REQSERNUM: //2
+        case SToggles::ReqSerNum: //2
             Settings::setSetting( state, SKeys::Setting, SSubKeys::ReqSerNum );
         break;
-        case Toggles::DCBLUECODEDSERNUMS: //3
+        case SToggles::DCBlueCode: //3
             Settings::setSetting( state, SKeys::Setting, SSubKeys::DCBlueCodedSerNums );
         break;
-        case Toggles::DISCONNECTIDLES: //4
+        case SToggles::DCIdles: //4
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowIdle );
         break;
-        case Toggles::ALLOWSSV: //5
+        case SToggles::AllowSSV: //5
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowSSV );
         break;
-        case Toggles::LOGCOMMENTS: //6
+        case SToggles::LogComments: //6
             Settings::setSetting( state, SKeys::Logger, SSubKeys::LogComments );
         break;
-        case Toggles::FWDCOMMENTS: //7
+        case SToggles::FwdComments: //7
             Settings::setSetting( state, SKeys::Setting, SSubKeys::FwdComments );
         break;
-        case Toggles::ECHOCOMMENTS: //8
+        case SToggles::EchoComments: //8
             Settings::setSetting( state, SKeys::Setting, SSubKeys::EchoComments );
         break;
-        case Toggles::INFORMADMINLOGIN: //9
+        case SToggles::InformAdminLogin: //9
             Settings::setSetting( state, SKeys::Setting, SSubKeys::InformAdminLogin );
         break;
-        case Toggles::MINIMIZETOTRAY: //10
+        case SToggles::MinimizeToTray: //10
             Settings::setSetting( state, SKeys::Setting, SSubKeys::MinimizeToTray );
         break;
-        case Toggles::SAVEWINDOWPOSITIONS: //11
+        case SToggles::SaveWindowPositions: //11
             Settings::setSetting( state, SKeys::Setting, SSubKeys::SaveWindowPositions );
         break;
-        case Toggles::LOGFILES: //12
+        case SToggles::LogFiles: //12
             Settings::setSetting( state, SKeys::Logger, SSubKeys::LogFiles );
         break;
-        case Toggles::WORLDDIR: //13
+        case SToggles::WorldDir: //13
             {
                 QString directory{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                 QString rowText{ "World Dir: [ %1 ]" };
@@ -179,7 +195,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         if ( directory.endsWith( "/worlds", Qt::CaseInsensitive ) )
                         {
                             state = true;
-                            ui->settingsView->item( Toggles::WORLDDIR, 0 )->setCheckState( Qt::Checked );
+                            ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setCheckState( Qt::Checked );
                         }
                     }
 
@@ -189,14 +205,78 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         title = "Invalid Directory:";
                         prompt = "You have selected an invalid world directory. Please try again.";
 
-                        ui->settingsView->item( Toggles::WORLDDIR, 0 )->setCheckState( Qt::Unchecked );
+                        ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setCheckState( Qt::Unchecked );
 
                         Helper::warningMessage( this, title, prompt );
                     }
                     rowText = rowText.arg( directory );
-                    ui->settingsView->item( Toggles::WORLDDIR, 0 )->setText( rowText );
+                    ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setText( rowText );
 
                     Settings::setSetting( directory, SKeys::Setting, SSubKeys::WorldDir );
+                }
+            }
+        break;
+        case SToggles::OverrideMaster:
+            {
+                QString ipAddress{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+                bool warn{ false };
+                bool ok{ false };
+
+                if ( state != masterAddrCheckState )
+                {
+                    if (( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString().isEmpty()
+                       || !masterAddrCheckState )
+                      && state )
+                    {
+                        if ( ipAddress.isEmpty() )
+                        {
+                            title = "Master Address:";
+                            prompt = "IP:Port:";
+                            ipAddress = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
+                        }
+
+                        if ( ipAddress.isEmpty() && !ok )
+                        {
+                            ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
+                            state = false;
+                        }
+                        else
+                        {
+                            Settings::setSetting( ipAddress, SKeys::Setting, SSubKeys::OverrideMasterIP );
+                            warn = true;
+                        }
+                    }
+                    else if ( !Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString().isEmpty()
+                           && !ipAddress.isEmpty() )
+                    {
+                        title = "Remove Master Address:";
+                        prompt = "Do you wish to erase the stored Master Address?";
+
+                        if ( !Helper::confirmAction( this, title, prompt ) )
+                        {
+                            ui->settingsView->item( row, 0 )->setCheckState( Qt::Checked );
+                            state = true;
+                        }
+                        else
+                        {
+                            ipAddress = "";
+                            Settings::setSetting( ipAddress, SKeys::Setting, SSubKeys::OverrideMasterIP );
+                            warn = true;
+                        }
+                    }
+                }
+                rowText = "Master Address: [ %1 ]";
+                rowText = rowText.arg( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() );
+                ui->settingsView->item( row, 0 )->setText( rowText );
+
+                masterAddrCheckState = state;
+
+                if ( warn )
+                {
+                    QString title{ "Restart Required:" };
+                    QString msg{ "The Master Mix Override will take effect after a full ReMix restart." };
+
+                    Helper::warningMessage( this, title, msg );
                 }
             }
         break;

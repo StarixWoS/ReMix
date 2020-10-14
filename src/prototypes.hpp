@@ -340,9 +340,17 @@
         //Valid Sub-Key values for use within the Settings Class.
         enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
-                                  GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, HasSvrPassword,
-                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
+                                  GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
+                                  HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
                                   NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+
+        //Valid Toggles for the Settings Widget.
+        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
+                                  InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMaster = 14 };
+
+        //Valid Toggles for the Rules Widget.
+        enum class RToggles: int{ ServerPassword = 0, AutoRestart, WorldName, UrlAddr, AllPK, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep, NoCheat,
+                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK = 16 };
 
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };

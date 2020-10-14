@@ -10,6 +10,7 @@
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
+#include "logger.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
@@ -254,7 +255,25 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
 
         server->setServerName( name );
         server->setGameName( gameName );
-        Helper::getSynRealData( server );
+
+        QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+        if ( !overrideIP.isEmpty() )
+        {
+            int index{ overrideIP.indexOf( ":" ) };
+            if ( index > 0 )
+            {
+                server->setMasterIP( overrideIP.left( index ) );
+                server->setMasterPort( static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
+
+                QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
+                        msg = msg.arg( server->getMasterIP() )
+                                 .arg( server->getMasterPort() );
+                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
+            }
+        }
+        else
+            Helper::getSynRealData( server );
+
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );
         server->setUseUPNP( useUPNP );

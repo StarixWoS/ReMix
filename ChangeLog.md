@@ -5,7 +5,13 @@ TODO:
 
 Version 2.6.8:
     Change:
-      * 
+      * Added the ability to override the default Master Mix IP Address.
+        * This override is set via the Settings dialog under the direct Settings Tab.
+        * The format for this override is a String value: <IpAddress>< : ><Port>.
+        * Note: The Colon( : ) is a required delimiter and any address not containing it will be accepted but will not work.
+        * Note: This Override is used across all Server Instances as such only one game *type* may be hosted at once.
+        * Note: When loading a Master Mix Override from file the process of fetching the Normal Master Address is skipped, thus a full ReMix restart is required to resume normal operation.
+      * Converted a few C-Style enums to the new C++ style enum class.
 
 
 
