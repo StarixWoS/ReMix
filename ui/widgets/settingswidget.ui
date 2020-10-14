@@ -179,6 +179,11 @@
        <string>13</string>
       </property>
      </row>
+     <row>
+      <property name="text">
+       <string>14</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>Options: ( Double-click to enable or disable )</string>
@@ -333,6 +338,14 @@
       </property>
       <property name="toolTip">
        <string>Used to select a World directory in in conjunction with the World Name rule.</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="14" column="0">
+      <property name="text">
+       <string>Master MIX IP Address</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
