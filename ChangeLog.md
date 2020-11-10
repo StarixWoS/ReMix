@@ -3,6 +3,24 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.9:
+    Change:
+      * Implemented the TODO from version 2.6.6.
+        * The Log View UI can now be filtered via a dropdown menu placed within the Logger Class UI.
+      * Added a checkbox within the Logger Class UI to allow for automatic clearing of logs.
+        * The interval is 24 hours, and cannot be changed or set to another value.
+      * Added a Button within the Logger Class UI to allow for manual clearing of logs.
+        * There is a confirmation dialog when manually clearing so as to not accidentally clear logs.
+
+
+
+    Bugfixes:
+      * Fixed a malformed versioning packet beign sent to the Master Mix.
+        * The malformed packet functioned correctly, but it's better to be safe and fix it.
+
+
+
+
 Version 2.6.8:
     Change:
       * Added the ability to override the default Master Mix IP Address.

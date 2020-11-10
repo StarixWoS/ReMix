@@ -276,7 +276,7 @@
                                     CmdIsActive = 6 };
 
         //Valid SerNum response codes.
-        enum UserListResponse{ Q_Response = 0, R_Response = 1 };
+        enum class UserListResponse: int{ Q_Response = 0, R_Response = 1 };
 
         //Valid Game ID's that ReMix can call to.
         enum class Games: int{ WoS = 0, ToY = 1, W97 = 2, Invalid = -1 };
@@ -341,8 +341,8 @@
         enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
-                                  HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop,
-                                  NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+                                  LoggerAutoClear, HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep,
+                                  NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
 
         //Valid Toggles for the Settings Widget.
         enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,

@@ -61,6 +61,7 @@ const QStringList Settings::sKeys =
     "dcBlueCodedSerNums",
     "loggerAutoScroll",
     "overrideMasterIP",
+    "loggerAutoClear",
 
     //Rules.
     "hasSvrPassword",

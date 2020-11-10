@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 2.6.8 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 2.6.9 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -25,9 +25,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(SOURCES src/views/usersortproxymodel.cpp
+        src/views/loggerproxymodel.cpp
         src/views/plrsortproxymodel.cpp
         src/widgets/settingswidget.cpp
         src/widgets/remixtabwidget.cpp
+        src/views/loggerproxymodel.cpp
         src/widgets/plrlistwidget.cpp
         src/views/tbleventfilter.cpp
         src/widgets/userdelegate.cpp
@@ -64,6 +66,7 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/views/plrsortproxymodel.hpp
         src/widgets/settingswidget.hpp
         src/widgets/remixtabwidget.hpp
+        src/views/loggerproxymodel.hpp
         src/widgets/plrlistwidget.hpp
         src/views/tbleventfilter.hpp
         src/widgets/userdelegate.hpp

@@ -103,12 +103,12 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
             break;
             case 'Q':   //Send Online User Information.
             {
-                emit this->sendUserListSignal( ipAddr, port, Q_Response );
+                emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
             }
             break;
             case 'R':   //Send Online User Information.
             {
-                emit this->sendUserListSignal( ipAddr, port, R_Response );
+                emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );
             }
             break;
         }

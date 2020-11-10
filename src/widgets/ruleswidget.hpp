@@ -15,11 +15,6 @@ class RulesWidget : public QWidget
 {
     Q_OBJECT
 
-//    enum Toggles{ svrPassword = 0, autoRestart = 1, world = 2, url = 3, allPK = 4, maxP = 5, maxIdle = 6,
-//                  minV = 7, ladder = 8, noBleep = 9, noCheat = 10,
-//                  noEavesdrop = 11, noMigrate = 12, noMod = 13, noPets = 14,
-//                  noPK = 15, arenaPK = 16 };
-
     static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
 
     SelectWorld* selectWorld{ nullptr };

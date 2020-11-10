@@ -36,7 +36,7 @@ class UdpThread : public QThread
         void error(QUdpSocket::SocketError socketError);
         void udpDataSignal(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port);
 
-        void sendUserListSignal(const QHostAddress& addr, const quint16& port, const quint32& type);
+        void sendUserListSignal(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendServerInfoSignal(const QHostAddress& addr, const quint16& port);
         void increaseServerPingsSignal();
 

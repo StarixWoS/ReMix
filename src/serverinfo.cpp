@@ -243,7 +243,7 @@ void ServerInfo::sendServerInfo(const QHostAddress& addr, const quint16& port)
     }
 }
 
-void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, const quint32& type)
+void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
 {
     if ( addr.isNull() )
         return;
@@ -251,7 +251,7 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
     Player* plr{ nullptr };
 
     QString response{ "Q" };
-    if ( type == R_Response )
+    if ( type == UserListResponse::R_Response )
         response = "R";
 
     QString filler_Q{ "%1," };
@@ -272,11 +272,11 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
             //Don't show Invisible Administrators on the User List.
             if ( plr->getIsVisible() )
             {
-                if ( type == Q_Response ) //Standard 'Q' Response.
+                if ( type == UserListResponse::Q_Response ) //Standard 'Q' Response.
                 {
                     response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) );
                 }
-                else if ( type == R_Response ) //Non-Standard 'R' Response
+                else if ( type == UserListResponse::R_Response ) //Non-Standard 'R' Response
                 {
                     response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) )
                                         .arg( Helper::intToStr( plr->getSlotPos(), static_cast<int>( IntBase::HEX ), 8 ) );
@@ -308,7 +308,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
     {
         if ( this->getIsSetUp() )
         {
-            response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6, port=%7,info=%8,name=%9";
+            response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9";
             response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
                                .arg( static_cast<int>( this->getGameId() ) )
@@ -1197,7 +1197,7 @@ void ServerInfo::udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr,
         pktHandle->parseUDPPacket( data, ipAddr, port );
 }
 
-void ServerInfo::sendUserListSlot(const QHostAddress& addr, const quint16& port, const quint32& type)
+void ServerInfo::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
 {
     this->sendUserList( addr, port, type );
 }

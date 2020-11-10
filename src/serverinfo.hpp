@@ -109,7 +109,7 @@ class ServerInfo : public QObject
 
         QString getServerInfoString();
         void sendServerInfo(const QHostAddress& addr, const quint16& port);
-        void sendUserList(const QHostAddress& addr, const quint16& port, const quint32& type = 0);
+        void sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendMasterInfo(const bool& disconnect = false);
 
         Player* createPlayer(const int& slot, qintptr socketDescriptor);
@@ -299,7 +299,7 @@ class ServerInfo : public QObject
 
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
-        void sendUserListSlot(const QHostAddress& addr, const quint16& port, const quint32& type);
+        void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendServerInfoSlot(const QHostAddress& addr, const quint16& port);
         void increaseServerPingSlot();
         void upnpPortAddedSlot(const quint16& port, const QString& protocol);

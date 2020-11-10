@@ -19,6 +19,7 @@
 #include <QtCore>
 
 QStandardItemModel* Logger::tblModel{ nullptr };
+QList<QStandardItem*> Logger::hiddenRows;
 Logger* Logger::logInstance;
 
 const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
@@ -80,6 +81,14 @@ Logger::Logger(QWidget *parent) :
 
     //Restore the AutoLog setting.
     ui->autoScroll->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoScroll ).toBool() );
+
+    //Restore the AutoClear Logs setting.
+    ui->autoClear->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoClear ).toBool() );
+    autoClearTimer.setInterval( 86400 * 1000 );
+    QObject::connect( &autoClearTimer, &QTimer::timeout, this, [=]()
+    {
+        this->clearLogs();
+    });
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
@@ -157,6 +166,8 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
+
+    this->filterLogs();
 }
 
 void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
@@ -169,6 +180,62 @@ void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant&
         else
             tblModel->setData( index, data, Qt::DisplayRole );
     }
+}
+
+void Logger::filterLogs()
+{
+    qint32 rowCount{ tblModel->rowCount() };
+    qint32 index{ ui->filterComboBox->currentIndex() };
+
+    if ( index != 0 ) //Adjust to align the value with the actual LogTypes values.
+    {
+        QString value{ logType.at( --index ) };
+        if ( !value.isEmpty() && !Helper::cmpStrings( value, "All Logs" ) )
+        {
+            QList<QStandardItem*> rows = tblModel->findItems( value, Qt::MatchExactly, static_cast<int>( LogCols::Type ) );
+            for ( int i = 0; i < rowCount; ++i )
+            {
+                if ( !rows.contains( tblModel->item( i, static_cast<int>( LogCols::Type ) ) ) )
+                {
+                    hiddenRows.insert( i, tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
+                    ui->logView->hideRow( i );
+                }
+                else if ( ui->logView->isRowHidden( i ) )
+                {
+                    hiddenRows.removeAll( tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
+                    ui->logView->showRow( i );
+                }
+            }
+        }
+    }
+    else    //Unhide all previously hidden rows
+    {
+        for ( int i = 0; i < rowCount; ++i )
+        {
+            if ( hiddenRows.contains( tblModel->item( i, static_cast<int>( LogCols::Type ) ) ) )
+            {
+                hiddenRows.removeAll( tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
+                ui->logView->showRow( i );
+            }
+        }
+    }
+}
+
+void Logger::clearLogs()
+{
+    QString logMsg{ "The Log View has been cleared!" };
+    hiddenRows.clear();
+    tblModel->setRowCount( 0 );
+
+    this->insertLog( "Logger", logMsg, LogTypes::MISC, false, false );
+}
+
+void Logger::startAutoClearingLogs(const bool& start)
+{
+    if ( start )
+        autoClearTimer.start();
+    else
+        autoClearTimer.stop();
 }
 
 //Slots
@@ -206,4 +273,24 @@ void Logger::resizeColumnsSlot(const LogCols&)
         return;
 
     //ui->logView->resizeColumnToContents( static_cast<int>( column ) );
+}
+
+void Logger::on_filterComboBox_currentIndexChanged(int)
+{
+    this->filterLogs();
+}
+
+void Logger::on_clearLogsButton_clicked()
+{
+    QString title{ "Clear Logs?" };
+    QString prompt{ "Do you wish to erase the current Log View Data?" };
+
+    if ( Helper::confirmAction( this, title, prompt ) )
+        this->clearLogs();
+}
+
+void Logger::on_autoClear_toggled(bool checked)
+{
+    Settings::setSetting( checked, SKeys::Logger, SSubKeys::LoggerAutoClear );
+    this->startAutoClearingLogs( checked );
 }

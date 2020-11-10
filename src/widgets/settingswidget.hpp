@@ -14,13 +14,6 @@ class SettingsWidget : public QWidget
 {
     Q_OBJECT
 
-//    enum Toggles{ /*REQPWD = 0, REQADMINPWD,*/ ALLOWDUPEDIP = 0,
-//                  BANDUPEDIP,/* BANHACKERS,*/ REQSERNUM,
-//                  DCBLUECODEDSERNUMS, DISCONNECTIDLES, ALLOWSSV,
-//                  LOGCOMMENTS, FWDCOMMENTS, ECHOCOMMENTS,
-//                  INFORMADMINLOGIN, MINIMIZETOTRAY,
-//                  SAVEWINDOWPOSITIONS, LOGFILES, WORLDDIR = 13, };
-
     bool masterAddrCheckState{ false };
     bool worldCheckState{ false };
     bool pwdCheckState{ false };
