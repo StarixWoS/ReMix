@@ -25,7 +25,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(SOURCES src/views/usersortproxymodel.cpp
-        src/views/loggerproxymodel.cpp
         src/views/plrsortproxymodel.cpp
         src/widgets/settingswidget.cpp
         src/widgets/remixtabwidget.cpp
