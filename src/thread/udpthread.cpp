@@ -127,7 +127,11 @@ QString UdpThread::getUsageString()
 void UdpThread::sendUdpDataSlot(const QHostAddress& addr, const quint16& port, const QString& data)
 {
     if ( socket != nullptr )
+    {
+        quint64 size{ static_cast<quint64>( data.length() ) };
         socket->writeDatagram( data.toLatin1(), data.size() + 1, addr, port );
+        emit this->dataOutSizeSignal( size );
+    }
 }
 
 void UdpThread::readyReadUDPSlot()

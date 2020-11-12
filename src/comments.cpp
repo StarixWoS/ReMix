@@ -82,7 +82,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
 
     //Log comments only when enabled.
     if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
-        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, false );
+        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
 
     emit this->newUserCommentSignal( comment.simplified() );
     //Show the Dialog when a new comment is received.

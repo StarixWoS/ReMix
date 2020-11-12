@@ -43,8 +43,6 @@ class Player : public QTcpSocket
     QByteArray outBuff;
 
     quint64 muteDuration{ 0 };
-    quint64 avgBaudOut{ 0 };
-    quint64 avgBaudIn{ 0 };
     quint64 bytesOut{ 0 };
     quint64 bytesIn{ 0 };
 
@@ -165,9 +163,6 @@ class Player : public QTcpSocket
 
         quint64 getBytesOut() const;
         void setBytesOut(const quint64 &value);
-
-        quint64 getAvgBaud(const bool& out) const;
-        void setAvgBaud(const quint64 &bytes, const bool& out);
 
         bool getSvrPwdRequested() const;
         void setSvrPwdRequested(bool value);

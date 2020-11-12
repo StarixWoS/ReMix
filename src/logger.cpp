@@ -19,7 +19,8 @@
 #include <QtCore>
 
 QStandardItemModel* Logger::tblModel{ nullptr };
-QList<QStandardItem*> Logger::hiddenRows;
+
+QMap<QModelIndex, LogTypes> Logger::logMap;
 Logger* Logger::logInstance;
 
 const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
@@ -148,11 +149,11 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
     QAbstractItemModel* tblModel{ ui->logView->model() };
     QString time{ Helper::getTimeAsString() };
 
-    if ( tblModel != nullptr
-      && ( type != LogTypes::CHAT ) ) //Prevent Chat from appearing within the Logger UI.
+    if ( tblModel != nullptr ) //Prevent Chat from appearing within the Logger UI.
     {
         qint32 row{ tblModel->rowCount() };
-        tblModel->insertRow( row );
+        //tblModel->insertRow( row );
+        tblModel->insertRows( row, 1 );
         ui->logView->setRowHeight( row, 20 );
 
         this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
@@ -160,8 +161,10 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
         this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
 
-        //ui->logView->resizeColumnsToContents();
-        this->scrollToBottom();
+        //Insert the newly created row into the LoggerMap.
+        //LogType as the value, and the row as the key.
+        //This is to maintain purely unique combinations without overwriting data due to duplicate keys.
+        logMap.insert( tblModel->index( row, 0 ), type );
     }
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
@@ -184,50 +187,46 @@ void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant&
 
 void Logger::filterLogs()
 {
-    qint32 rowCount{ tblModel->rowCount() };
-    qint32 index{ ui->filterComboBox->currentIndex() };
+    //qint32 rowCount{ tblModel->rowCount() };
+    qint32 index{ ui->filterComboBox->currentIndex() - 1 };
 
-    if ( index != 0 ) //Adjust to align the value with the actual LogTypes values.
+    ui->logView->setUpdatesEnabled( false );
+
+    bool filteringLogs{ index >= 0 };
+    for ( const QModelIndex& idx : logMap.keys() )
     {
-        QString value{ logType.at( --index ) };
-        if ( !value.isEmpty() && !Helper::cmpStrings( value, "All Logs" ) )
+        if ( idx.isValid() )
         {
-            QList<QStandardItem*> rows = tblModel->findItems( value, Qt::MatchExactly, static_cast<int>( LogCols::Type ) );
-            for ( int i = 0; i < rowCount; ++i )
+            if ( filteringLogs )
             {
-                if ( !rows.contains( tblModel->item( i, static_cast<int>( LogCols::Type ) ) ) )
-                {
-                    hiddenRows.insert( i, tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
-                    ui->logView->hideRow( i );
-                }
-                else if ( ui->logView->isRowHidden( i ) )
-                {
-                    hiddenRows.removeAll( tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
-                    ui->logView->showRow( i );
-                }
+                LogTypes type{ logMap.value( idx ) };
+                if ( type == static_cast<LogTypes>( index ) )
+                    ui->logView->showRow( idx.row() );
+                else
+                    ui->logView->hideRow( idx.row() );
             }
+            else //Unfilter logs.
+                ui->logView->showRow( idx.row() );
         }
     }
-    else    //Unhide all previously hidden rows
-    {
-        for ( int i = 0; i < rowCount; ++i )
-        {
-            if ( hiddenRows.contains( tblModel->item( i, static_cast<int>( LogCols::Type ) ) ) )
-            {
-                hiddenRows.removeAll( tblModel->item( i, static_cast<int>( LogCols::Type ) ) );
-                ui->logView->showRow( i );
-            }
-        }
-    }
+
+    ui->logView->setUpdatesEnabled( true );
+
+    this->scrollToBottom();
 }
 
 void Logger::clearLogs()
 {
     QString logMsg{ "The Log View has been cleared!" };
-    hiddenRows.clear();
-    tblModel->setRowCount( 0 );
 
-    this->insertLog( "Logger", logMsg, LogTypes::MISC, false, false );
+    ui->logView->setUpdatesEnabled( false );
+
+    tblModel->setRowCount( 0 );
+    logMap.clear();
+
+    ui->logView->setUpdatesEnabled( true );
+
+    this->insertLog( "Logger", logMsg, LogTypes::MISC, true, true );
 }
 
 void Logger::startAutoClearingLogs(const bool& start)
@@ -258,7 +257,7 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
         QString message{ "Opening a local Web Browser to the website [ %1 ] per user request." };
         message = message.arg( website );
 
-        this->insertLog( "Logger", message, LogTypes::MISC, false, false );
+        this->insertLog( "Logger", message, LogTypes::MISC, true, true );
     }
 }
 

@@ -90,12 +90,8 @@ class ServerInfo : public QObject
     quint32 pktDc{ 0 };
     quint32 ipDc{ 0 };
 
-    QElapsedTimer baudTime;
-    quint64 bytesIn{ 0 };
-    quint64 baudIn{ 0 };
-
     quint64 bytesOut{ 0 };
-    quint64 baudOut{ 0 };
+    quint64 bytesIn{ 0 };
 
     QTimer upnpPortRefresh;
     bool upnpPortAdded{ false };
@@ -211,10 +207,6 @@ class ServerInfo : public QObject
         quint64 getBytesOut() const;
         void setBytesOut(const quint64 &value);
 
-        void setBaudIO(const quint64 &bytes, quint64 &baud);
-        quint64 getBaudIn() const;
-        quint64 getBaudOut() const;
-
         QString getMasterInfoHost() const;
         void setMasterInfoHost(const QString& value);
 
@@ -295,6 +287,7 @@ class ServerInfo : public QObject
         void connectionTimeUpdateSignal();
 
     public slots:
+        void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
 
     private slots:

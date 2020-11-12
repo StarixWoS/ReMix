@@ -3,6 +3,21 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.10:
+    Change:
+      * Added code to convert the bytes sent to and from Users into a more user friendly format.
+      * Removed code related to calculating the classic baud (bytes per second) in leiu of simply showing how many bytes have been sent/received in a modern/ user friendly format.
+      * Changed the code used to filter the Log View UI to be less verbose, more efficient, and over-all easier to undertsand what is happening.
+      * When manually closing a server instance; in addition to confirming the instance closure, we now also check if the AutoRestart rule should be disabled.
+
+
+
+    Bugfixes:
+      * Correctly calculate the sizes of packets send/received into the over-all server statistics.
+
+
+
+
 Version 2.6.9:
     Change:
       * Implemented the TODO from version 2.6.6.

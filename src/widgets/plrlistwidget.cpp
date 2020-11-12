@@ -282,7 +282,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
                        .arg( menuTarget->getSernum_s() )
                        .arg( menuTarget->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), logMsg,LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
         server->sendMasterMessage( inform, menuTarget, false );
     }

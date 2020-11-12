@@ -230,14 +230,25 @@ void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
         qint32 index{ serverMap.key( widget ) };
 
         ServerInfo* server{ widget->getServerInfo() };
-        QString toolTip{ "#Calls: %1 #Pings: %2 #Pkt-DC: %3 #Dup-DC: %4 #IP-DC: %5 #IN: %6 Bd #OUT: %7 Bd" };
+
+        QString bytesInUnit{ "" };
+        QString bytesIn{ "" };
+        Helper::sanitizeToFriendlyUnits( server->getBytesIn(), bytesIn, bytesInUnit );
+
+        QString bytesOutUnit{ "" };
+        QString bytesOut{ "" };
+        Helper::sanitizeToFriendlyUnits( server->getBytesOut(), bytesOut, bytesOutUnit );
+
+        QString toolTip{ "#Calls: %1 #Pings: %2 #Pkt-DC: %3 #Dup-DC: %4 #IP-DC: %5 #IN: %6 %7 #OUT: %8 %9" };
                 toolTip = toolTip.arg( server->getUserCalls() )
                                  .arg( server->getUserPings() )
                                  .arg( server->getPktDc() )
                                  .arg( server->getDupDc() )
                                  .arg( server->getIpDc() )
-                                 .arg( server->getBaudIn() )
-                                 .arg( server->getBaudOut() );
+                                 .arg( bytesIn )
+                                 .arg( bytesInUnit )
+                                 .arg( bytesOut )
+                                 .arg( bytesOutUnit );
 
         tabWidget->setTabToolTip( index, toolTip );
     }
@@ -256,6 +267,11 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     ServerInfo* server{ instance->getServerInfo() };
     if ( server == nullptr )
         return;
+
+    QString title{ "Disable AutoRestart?" };
+    QString prompt{ "Do you wish to disable the AutoRestart rule on the closed server?" };
+    if ( Helper::confirmAction( nullptr, title, prompt ) )
+        Settings::setSetting( false, SKeys::Rules, SSubKeys::AutoRestart, server->getServerName() );
 
     quint16 privatePort{ server->getPrivatePort() };
 

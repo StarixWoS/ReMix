@@ -25,13 +25,14 @@ class Logger : public QDialog
 
     static const QStringList logType;
     static const QString website;
-    static QList<QStandardItem*> hiddenRows;
+    static QMap<QModelIndex, LogTypes> logMap;
     static QStandardItemModel* tblModel;
     static Logger* logInstance;
 
     QGraphicsPixmapItem* iconViewerItem{ nullptr };
     QGraphicsScene* iconViewerScene{ nullptr };
     QTimer autoClearTimer;
+
 
     public:
         explicit Logger(QWidget *parent = nullptr);

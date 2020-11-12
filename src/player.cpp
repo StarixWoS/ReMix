@@ -407,7 +407,6 @@ quint64 Player::getBytesIn() const
 void Player::setBytesIn(const quint64& value)
 {
     bytesIn = value;
-    this->setAvgBaud( bytesIn, false );
 }
 
 int Player::getPacketsOut() const
@@ -428,32 +427,6 @@ quint64 Player::getBytesOut() const
 void Player::setBytesOut(const quint64& value)
 {
     bytesOut = value;
-    this->setAvgBaud( bytesOut, true );
-}
-
-quint64 Player::getAvgBaud(const bool& out) const
-{
-    if ( out )
-        return avgBaudOut;
-
-    return avgBaudIn;
-}
-
-void Player::setAvgBaud(const quint64& bytes, const bool& out)
-{
-    qint64 time{ this->getConnTime() };
-    quint64 baud{ 0 };
-
-    if ( bytes > 0 && time > 0 )
-        baud = 10 * bytes / static_cast<quint64>( time );
-
-    if ( baud > 0 )
-    {
-        if ( out )
-            avgBaudOut = baud;
-        else
-            avgBaudIn = baud;
-    }
 }
 
 bool Player::getSvrPwdRequested() const
@@ -890,24 +863,29 @@ void Player::connectionTimeUpdateSlot()
     ++connTime;
 
     QStandardItem* row{ this->getTableRow() };
-    QString baudIn{ "%1Bd, %2B, %3 Pkts" };
-    QString baudOut{ "%1Bd, %2B, %3 Pkts" };
+    QString baudIn{ "%1 %2, %3 Pkts" };
+    QString baudOut{ "%1 %2, %3 Pkts" };
     if ( row != nullptr )
     {
-        this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
+        QString bytesOutUnit{ "" };
+        QString bytesOut{ "" };
 
-        this->setAvgBaud( this->getBytesIn(), false );
-        baudIn = baudIn.arg( this->getAvgBaud( false ) )
-                       .arg( this->getBytesIn() )
+        QString bytesInUnit{ "" };
+        QString bytesIn{ "" };
+
+        Helper::sanitizeToFriendlyUnits( this->getBytesOut(), bytesOut, bytesOutUnit );
+        Helper::sanitizeToFriendlyUnits( this->getBytesIn(), bytesIn, bytesInUnit );
+
+        baudIn = baudIn.arg( bytesIn )
+                       .arg( bytesInUnit )
                        .arg( this->getPacketsIn() );
 
-        this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
-
-        this->setAvgBaud( this->getBytesOut(), true );
-
-        baudOut = baudOut.arg( this->getAvgBaud( true ) )
-                         .arg( this->getBytesOut() )
+        baudOut = baudOut.arg( bytesOut )
+                         .arg( bytesOutUnit )
                          .arg( this->getPacketsOut() );
+
+        this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
+        this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
         this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
 
         //Color the User's IP address Green if the Admin is authed Otherwise, color as Red.

@@ -161,6 +161,8 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
     qint32 index{ 0 };
     if ( !data.isEmpty() )
     {
+        server->setBytesIn( server->getBytesIn() + static_cast<quint64>( data.size() ) );
+
         QChar opCode{ data.at( 0 ).toLatin1() };
         bool isMaster{ false };
         if ( opCode == 'M' )

@@ -230,10 +230,6 @@
             //Count of currently accepted UPNP Schemas
             UPNP_SCHEMA_COUNT = 6,
 
-            //Maximum time before the Baud information
-            //must be displayed to the User. 5 seconds in milliseconds.
-            BAUD_UPDATE_TIME = 5000,
-
             //Maximum wait time before the Server's UI is updated.
             //0.5 seconds in milliseconds.
             UI_UPDATE_TIME = 500,
@@ -358,6 +354,15 @@
         //Valid MessageBox types.
         enum class MessageBox: int{ SingleLine = 0, MultiLine = 1, Invalid = -1 };
 
+        //Valid Units for conversion within the function Helper::sanitizeToFriendlyUnits
+        enum class ByteUnits: int{ Byte,       // 1024^0,
+                                   KibiByte,   // 1024^1,
+                                   MebiByte,   // 1024^2,
+                                   GibiByte,   // 1024^3,
+                                   TebiByte,   // 1024^4,
+                                   PebiByte,   // 1024^5,
+                                   ExbiByte,    // 1024^6
+                                 };
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

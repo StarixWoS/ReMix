@@ -38,6 +38,8 @@ class UdpThread : public QThread
 
         void sendUserListSignal(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendServerInfoSignal(const QHostAddress& addr, const quint16& port);
+        void dataOutSizeSignal(const quint64& size);
+        void dataInSizeSignal(const quint64& size);
         void increaseServerPingsSignal();
 
     public slots:

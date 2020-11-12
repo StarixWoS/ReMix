@@ -40,6 +40,7 @@ ServerInfo::ServerInfo()
     QObject::connect( udpThread, &UdpThread::sendServerInfoSignal, this, &ServerInfo::sendServerInfoSlot );
     QObject::connect( udpThread, &UdpThread::sendUserListSignal, this, &ServerInfo::sendUserListSlot );
     QObject::connect( udpThread, &UdpThread::udpDataSignal, this, &ServerInfo::udpDataSlot );
+    QObject::connect( udpThread, &UdpThread::dataOutSizeSignal, this, &ServerInfo::dataOutSizeSlot );
 
     //Connect signals from the ServerInfo class to the slots within the UdpThread class.
     QObject::connect( this, &ServerInfo::serverWorldChangedSignal, udpThread, &UdpThread::serverWorldChangedSlot );
@@ -65,22 +66,11 @@ ServerInfo::ServerInfo()
     players.resize( static_cast<int>( MAX_PLAYERS ) );
     players.fill( nullptr );
 
-    baudTime.start();
     upTimer.start( UI_UPDATE_TIME );
 
     QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
     [=]()
     {
-        if ( baudTime.elapsed() > BAUD_UPDATE_TIME )
-        {
-            this->setBaudIO( this->getBytesIn(), baudIn );
-            this->setBytesIn( 0 );
-
-            this->setBaudIO( this->getBytesOut(), baudOut );
-            this->setBytesOut( 0 );
-
-            baudTime.restart();
-        }
         emit this->connectionTimeUpdateSignal();
     } );
 
@@ -394,12 +384,17 @@ void ServerInfo::deletePlayer(Player* plr)
         return;
 
     int slot{ player->getSlotPos() };
-    QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 bytes in %4 packets, averaging %5 baud [ %6 ]" };
+
+    QString bytesUnit{ "" };
+    QString bytesSec{ "" };
+    Helper::sanitizeToFriendlyUnits( player->getBytesIn(), bytesSec, bytesUnit );
+
+    QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 %4 in %5 packets, [ %6 ]" };
             logMsg = logMsg.arg( player->peerAddress().toString() )
                            .arg( Helper::getTimeIntFormat( player->getConnTime(), TimeFormat::Minutes ) )
-                           .arg( player->getBytesIn() )
+                           .arg( bytesSec )
+                           .arg( bytesUnit )
                            .arg( player->getPacketsIn() )
-                           .arg( player->getAvgBaud( false ) )
                            .arg( player->getBioData() );
     player->disconnect();
     player->deleteLater();
@@ -936,23 +931,6 @@ void ServerInfo::setBytesOut(const quint64& value)
     bytesOut = value;
 }
 
-void ServerInfo::setBaudIO(const quint64& bytes, quint64& baud)
-{
-    quint64 time{ static_cast<quint64>( baudTime.elapsed() ) };
-    if ( bytes > 0 && time > 0 )
-        baud = 10000 * bytes / time;
-}
-
-quint64 ServerInfo::getBaudIn() const
-{
-    return baudIn;
-}
-
-quint64 ServerInfo::getBaudOut() const
-{
-    return baudOut;
-}
-
 bool ServerInfo::getSentUDPCheckin() const
 {
     return sentUDPCheckin;
@@ -1185,6 +1163,11 @@ void ServerInfo::setTcpServer(Server* value)
 }
 
 //Slots
+void ServerInfo::dataOutSizeSlot(const quint64& size)
+{
+    this->setBytesOut( this->getBytesOut() + size );
+}
+
 void ServerInfo::setMaxIdleTimeSlot()
 {
     emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );

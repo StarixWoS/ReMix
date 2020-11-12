@@ -37,7 +37,18 @@ const QList<qint32> Helper::blueCodedList =
     3191, 3149, 3,
 };
 
-QInputDialog* Helper::createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, int height)
+const QStringList Helper::byteUnits
+{
+    "B",    // Bytes 1024^0
+    "KiB",  // KibiBytes 1024^1
+    "MiB",  // MebiBytes 1024^2
+    "GiB",  // GibiBytes 1024^3
+    "TiB",  // TebiBytes 1024^4
+    "PiB",  // PebiBytes 1024^5
+    "EiB",  // ExbiBytes 1024^6
+};
+
+QInputDialog* Helper::createInputDialog(QWidget* parent, const QString& label, const QInputDialog::InputMode& mode, const int& width, const int& height)
 {
     QInputDialog* dialog{ new QInputDialog( parent ) };
                   dialog->setInputMode( mode );
@@ -61,7 +72,7 @@ qint32 Helper::strToInt(const QString& str, const int& base)
     return val;
 }
 
-QString Helper::intSToStr(QString& val, int base, int fill, QChar filler)
+QString Helper::intSToStr(const QString& val, const int& base, const int& fill, QChar filler)
 {
     /* base --- What numeric format the string will be in.
      * fill --- How much padding will be prepended to the string.
@@ -169,7 +180,7 @@ QString Helper::sanitizeSerNum(const QString& value)
     return serNumToHexStr( sernum, 8 );
 }
 
-QString Helper::serNumToHexStr(QString sernum, int fillAmt)
+QString Helper::serNumToHexStr(QString sernum, const int& fillAmt)
 {
     sernum = stripSerNumHeader( sernum );
 
@@ -251,7 +262,7 @@ bool Helper::isBlueCodedSerNum(const qint32& sernum)
     return blueCodedList.contains( sernum );
 }
 
-bool Helper::confirmAction(QWidget* parent, QString& title, QString& prompt)
+bool Helper::confirmAction(QWidget* parent, const QString& title, const QString& prompt)
 {
     qint32 value{ QMessageBox::question( parent, title, prompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) };
     return value == QMessageBox::Yes;
@@ -284,7 +295,7 @@ QString Helper::getDisconnectReason(QWidget* parent)
     return dialog->textValue();
 }
 
-QString Helper::hashPassword(QString& password)
+QString Helper::hashPassword(const QString& password)
 {
     QCryptographicHash hash( QCryptographicHash::Sha3_512 );
                        hash.addData( password.toLatin1() );
@@ -316,7 +327,7 @@ QString Helper::genPwdSalt(const qint32& length)
     return salt;
 }
 
-bool Helper::validateSalt(QString& salt)
+bool Helper::validateSalt(const QString& salt)
 {
     QSettings* userData{ User::getUserData() };
     QStringList groups{ userData->childGroups() };
@@ -576,4 +587,46 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
         break;
     }
     return retn;
+}
+
+qint32 Helper::sanitizeToFriendlyUnits(const quint64& bytes, QString &retVal, QString& unit)
+{
+    qreal val{ static_cast<qreal>( bytes ) };
+    qint32 iter{ 0 };
+
+    if ( bytes <= 0 )
+        return false;
+
+    while ( ( val >= 1024 ) && ( iter <= static_cast<int>( ByteUnits::ExbiByte ) ) )
+    {
+        val /= 1024;
+        ++iter;
+    }
+
+    retVal = QString::number( val, 'f', sanitizeFriendlyPrecision( static_cast<ByteUnits>( iter ) ) );
+    unit = byteUnits.at( iter );
+    return true;
+}
+
+qint32 Helper::sanitizeFriendlyPrecision(const ByteUnits& unit)
+{
+    //Return the value of precision required for the ByteUnit passed in.
+    switch ( unit )
+    {
+        case ByteUnits::Byte:
+        {
+            return 0;
+        }
+        case ByteUnits::KibiByte:
+        case ByteUnits::MebiByte:
+        {
+            return 1;
+        }
+        case ByteUnits::GibiByte:
+        {
+            return 2;
+        }
+        default:
+            return 3;
+    }
 }

@@ -11,9 +11,10 @@
 class Helper
 {
     static const QList<qint32> blueCodedList;
+    static const QStringList byteUnits;
 
     public:
-        static QInputDialog* createInputDialog(QWidget* parent, QString& label, QInputDialog::InputMode mode, int width, int height);
+        static QInputDialog* createInputDialog(QWidget* parent, const QString& label, const QInputDialog::InputMode& mode, const int& width, const int& height);
 
         template<typename T>
         static QString intToStr(const T& val, const int& base = 10, const int& fill = 0, const QChar& filler = '0')
@@ -25,29 +26,29 @@ class Helper
             return str;
         }
         static qint32 strToInt(const QString& str, const int& base = 16);
-        static QString intSToStr(QString& val, int base = 16, int fill = 0, QChar filler = '0');
+        static QString intSToStr(const QString& val, const int& base = 16, const int& fill = 0, QChar filler = '0');
         static QString getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left);
 
         static void stripNewlines(QString& string);
         static QString stripSerNumHeader(const QString& sernum);
         static QString sanitizeSerNum(const QString& value);
-        static QString serNumToHexStr(QString sernum, int fillAmt = 8);
+        static QString serNumToHexStr(QString sernum, const int& fillAmt = 8);
         static QString serNumToIntStr(const QString& sernum, const bool& isHex = false);
         static qint32 serNumtoInt(const QString& sernum, const bool& isHex = false);
 
         static bool isBlueCodedSerNum(const qint32& sernum);
 
-        static bool confirmAction(QWidget* parent, QString& title, QString& prompt);
+        static bool confirmAction(QWidget* parent, const QString& title, const QString& prompt);
         static qint32 warningMessage(QWidget* parent, const QString& title, const QString& prompt);
         static QString getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok,
                                        const MessageBox& type);
 
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
-        static QString hashPassword(QString& password);
+        static QString hashPassword(const QString& password);
         static QString genPwdSalt(const qint32& length = SALT_LENGTH);
 
-        static bool validateSalt(QString& salt);
+        static bool validateSalt(const QString& salt);
 
         static bool naturalSort(QString& left, QString& right, bool& result);
         static void delay(const qint32& time);
@@ -62,6 +63,9 @@ class Helper
         static QString getTimeAsString(const quint64& time = 0);
         static QString getTimeFormat(const qint64& time);
         static qint64 getTimeIntFormat(const qint64& time, const TimeFormat& format);
+
+        static qint32 sanitizeToFriendlyUnits(const quint64& bytes, QString& retVal, QString& unit);
+        static qint32 sanitizeFriendlyPrecision(const ByteUnits& unit);
 };
 
 #endif // PREFERENCES_HPP
