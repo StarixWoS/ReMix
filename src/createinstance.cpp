@@ -67,6 +67,9 @@ void CreateInstance::updateServerList(const bool& firstRun)
 {
     QMutexLocker locker( &mutex );
 
+    if ( !firstRun ) //Remove any servers previously flagged as auto restart.
+        restartServerList.clear();
+
     ui->servers->clear();
     ui->servers->addItem( "" );  //First item will always be blank.
 

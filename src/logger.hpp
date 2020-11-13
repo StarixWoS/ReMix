@@ -33,7 +33,6 @@ class Logger : public QDialog
     QGraphicsScene* iconViewerScene{ nullptr };
     QTimer autoClearTimer;
 
-
     public:
         explicit Logger(QWidget *parent = nullptr);
         ~Logger() override;

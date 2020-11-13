@@ -3,6 +3,19 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.11:
+    Change:
+      * 
+
+
+
+    Bugfixes:
+      * Fixed an issue where closing a Server instance tagged with the rule "AutoRestart" would not appear within the Create Instance Dialog list.
+      * Fixed an issue where closing a Server instance would prompt to remove the rule "AutoRestart" whether or not the rule was even enabled.
+
+
+
+
 Version 2.6.10:
     Change:
       * Added code to convert the bytes sent to and from Users into a more user friendly format.

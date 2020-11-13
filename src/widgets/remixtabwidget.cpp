@@ -270,26 +270,20 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
 
     QString title{ "Disable AutoRestart?" };
     QString prompt{ "Do you wish to disable the AutoRestart rule on the closed server?" };
-    if ( Helper::confirmAction( nullptr, title, prompt ) )
-        Settings::setSetting( false, SKeys::Rules, SSubKeys::AutoRestart, server->getServerName() );
 
     quint16 privatePort{ server->getPrivatePort() };
-
     QString gameName{ server->getGameName() };
     QString name{ server->getServerName() };
 
     bool isPublic{ server->getIsPublic() };
     bool useUPNP{ server->getUseUPNP() };
 
-    //Only Mark Servers as inactive when closing if they aren't tagged for auto-restart.
-    if ( !Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, server->getServerName() ).toBool() )
-        Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, server->getServerName() );
-
     serverMap.remove( index );
     tabWidget->removeTab( index );
 
     instance->disconnect();
-    delete instance;
+    instance->deleteLater();
+    instance = nullptr;
 
     instanceCount -= 1;
     if ( !restart ) //The server was designated to not restart.
@@ -319,6 +313,14 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
             else
                 qApp->quit();
         }
+
+        if ( Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool()
+          && !remote )
+        {
+            if ( Helper::confirmAction( nullptr, title, prompt ) )
+                Settings::setSetting( false, SKeys::Rules, SSubKeys::AutoRestart, name );
+        }
+        Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
     }
     else    //The server is set to restart. Use the previous server's information.
         createDialog->restartServer( name, gameName, privatePort, useUPNP, isPublic );

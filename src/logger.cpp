@@ -149,7 +149,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
     QAbstractItemModel* tblModel{ ui->logView->model() };
     QString time{ Helper::getTimeAsString() };
 
-    if ( tblModel != nullptr ) //Prevent Chat from appearing within the Logger UI.
+    if ( tblModel != nullptr )
     {
         qint32 row{ tblModel->rowCount() };
         //tblModel->insertRow( row );
