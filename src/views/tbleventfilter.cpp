@@ -7,9 +7,8 @@
 #include <QMouseEvent>
 #include <QTableView>
 
-TblEventFilter::TblEventFilter(QTableView* tbl, QSortFilterProxyModel* tblProxy)
+TblEventFilter::TblEventFilter(QTableView* tbl)
 {
-    tableProxy = tblProxy;
     tableView = tbl;
 }
 
@@ -23,11 +22,8 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
     if ( obj == nullptr || event == nullptr )
         return false;
 
-    if ( tableView == nullptr
-      || tableProxy == nullptr )
-    {
+    if ( tableView == nullptr )
         return false;
-    }
 
     QMouseEvent* mouseEvent{ dynamic_cast<QMouseEvent*>( event ) };
     if ( mouseEvent != nullptr )

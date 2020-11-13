@@ -59,15 +59,7 @@ Logger::Logger(QWidget *parent) :
     tblModel->setHeaderData( static_cast<int>( LogCols::Source ), Qt::Horizontal, "Source" );
     tblModel->setHeaderData( static_cast<int>( LogCols::Date ), Qt::Horizontal, "Date" );
     tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
-
     ui->logView->setModel( tblModel );
-    ui->logView->setColumnWidth( static_cast<int>( LogCols::Source ), 150 );
-    ui->logView->setColumnWidth( static_cast<int>( LogCols::Date ), 150 );
-    ui->logView->setColumnWidth( static_cast<int>( LogCols::Type ), 100 );
-
-    ui->logView->horizontalHeader()->setStretchLastSection( true );
-    ui->logView->horizontalHeader()->setVisible( true );
-    ui->logView->verticalHeader()->setVisible( false );
 
     //Load the application Icon into the top left of the dialog.
     iconViewerItem = new QGraphicsPixmapItem( QPixmap::fromImage( QImage( ":/icon/ReMix.png" ) ) );
@@ -140,7 +132,7 @@ void Logger::scrollToBottom()
 {
     if ( ui->autoScroll->isChecked() )
     {
-        QTableView* obj{ ui->logView };
+        QListView* obj{ ui->logView };
 
         //Detect when the user is scrolling upwards. And prevent scrolling.
         if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum() )
@@ -157,37 +149,22 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
       && type != LogTypes::CHAT ) //Hide the Chat from the Log View.
     {
         qint32 row{ tblModel->rowCount() };
-        //tblModel->insertRow( row );
         tblModel->insertRows( row, 1 );
-        ui->logView->setRowHeight( row, 20 );
 
-        this->updateRowData( row, static_cast<int>( LogCols::Type ), logType.at( static_cast<int>( type ) ) );
-        this->updateRowData( row, static_cast<int>( LogCols::Message ), message.simplified() );
-        this->updateRowData( row, static_cast<int>( LogCols::Source ), source );
-        this->updateRowData( row, static_cast<int>( LogCols::Date ), time );
+        auto idx{ tblModel->index( row, 0 ) };
+        QString data{ time + " - " + logType.at( static_cast<int>( type ) ) + " - " + source +  " - " + message.simplified() };
+        tblModel->setData( idx, data, Qt::DisplayRole );
 
         //Insert the newly created row into the LoggerMap.
         //LogType as the value, and the row as the key.
         //This is to maintain purely unique combinations without overwriting data due to duplicate keys.
-        logMap.insert( tblModel->index( row, 0 ), type );
+        logMap.insert( idx, type );
     }
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
 
     this->filterLogs();
-}
-
-void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant& data)
-{
-    QModelIndex index{ tblModel->index( row, col ) };
-    if ( index.isValid() )
-    {
-        if ( col == static_cast<int>( LogCols::Date ) )
-            tblModel->setData( index, data.toString(), Qt::DisplayRole );
-        else
-            tblModel->setData( index, data, Qt::DisplayRole );
-    }
 }
 
 void Logger::filterLogs()
@@ -208,12 +185,12 @@ void Logger::filterLogs()
             {
                 LogTypes type{ logMap.value( idx ) };
                 if ( type == static_cast<LogTypes>( index ) )
-                    ui->logView->showRow( idx.row() );
+                    ui->logView->setRowHidden( idx.row(), false );
                 else
-                    ui->logView->hideRow( idx.row() );
+                    ui->logView->setRowHidden( idx.row(), true );
             }
             else //Unfilter logs.
-                ui->logView->showRow( idx.row() );
+                ui->logView->setRowHidden( idx.row(), false );
         }
     }
 
@@ -277,8 +254,6 @@ void Logger::resizeColumnsSlot(const LogCols&)
 {
     if ( ui == nullptr )
         return;
-
-    //ui->logView->resizeColumnToContents( static_cast<int>( column ) );
 }
 
 void Logger::on_filterComboBox_currentIndexChanged(int)
@@ -299,4 +274,9 @@ void Logger::on_autoClear_toggled(bool checked)
 {
     Settings::setSetting( checked, SKeys::Logger, SSubKeys::LoggerAutoClear );
     this->startAutoClearingLogs( checked );
+}
+
+void Logger::on_logView_customContextMenuRequested(const QPoint& pos)
+{
+    qDebug() << pos;
 }

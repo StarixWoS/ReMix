@@ -3,6 +3,21 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.12:
+    Change:
+      * Converted the Logger View to a simple List View. This allows the information it more easily be read without adjusting the column height of a Table View.
+        * Over-all functionality and information provided remains the same.
+          * This change is in preparation for allowing a context menu to copy a complete row from the log view.
+
+
+
+    Bugfixes:
+      * Fixed an issue preventing ReMix from sending the Server List when requested from a user with a Golden Soul.
+      * Fixed an issue when manually un-muting a User via the User Information Viewer would not update the User's status correctly.
+
+
+
+
 Version 2.6.11:
     Change:
       * Added a new Log type "MasterMixLog".

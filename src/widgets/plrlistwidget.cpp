@@ -66,7 +66,8 @@ PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
     ui->playerView->horizontalHeader()->setStretchLastSection( true );
 
     //Install Event Filter to enable Row-Deslection.
-    ui->playerView->viewport()->installEventFilter( new TblEventFilter( ui->playerView, plrProxy ) );
+    tblEvFilter = new TblEventFilter( ui->playerView );
+    ui->playerView->viewport()->installEventFilter( tblEvFilter );
 }
 
 PlrListWidget::~PlrListWidget()
@@ -83,6 +84,7 @@ PlrListWidget::~PlrListWidget()
 
     contextMenu->deleteLater();
 
+    tblEvFilter->deleteLater();
     plrModel->deleteLater();
     plrProxy->deleteLater();
 
@@ -353,4 +355,10 @@ void PlrListWidget::on_actionBANISHUser_triggered()
             menuTarget->setDisconnected( true, DCTypes::IPDC );
     }
     menuTarget = nullptr;
+}
+
+void PlrListWidget::selectRowSlot(const qint32& row)
+{
+    if ( row >= 0 )
+        ui->playerView->selectRow( row );
 }

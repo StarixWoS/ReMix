@@ -17,6 +17,7 @@ class PlrListWidget : public QWidget
 
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
+    TblEventFilter* tblEvFilter{ nullptr };
 
     QModelIndex prevIndex;
 
@@ -38,12 +39,13 @@ class PlrListWidget : public QWidget
 
     private slots:
         void on_playerView_customContextMenuRequested(const QPoint& pos);
-
         void on_actionSendMessage_triggered();
         void on_actionMakeAdmin_triggered();
         void on_actionMuteNetwork_triggered();
         void on_actionDisconnectUser_triggered();
         void on_actionBANISHUser_triggered();
+
+        void selectRowSlot(const qint32& row);
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;

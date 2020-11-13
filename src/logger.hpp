@@ -43,7 +43,6 @@ class Logger : public QDialog
 
         void scrollToBottom();
         void insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
-        void updateRowData(const qint32& row, const qint32& col, const QVariant& data);
 
     private:
         void filterLogs();
@@ -60,6 +59,8 @@ class Logger : public QDialog
         void on_filterComboBox_currentIndexChanged(int index);
         void on_clearLogsButton_clicked();
         void on_autoClear_toggled(bool checked);
+
+        void on_logView_customContextMenuRequested(const QPoint &pos);
 
     signals:
         void insertLogSignal(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine);

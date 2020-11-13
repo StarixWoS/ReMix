@@ -848,21 +848,16 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 {
                     setReason = true;
                     reason.clear();
-                    value = 0;
 
-                    setData( sernum, keys[ UserKeys::kMUTED ], value );
-                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), value );
-
-                    setData( sernum, keys[ UserKeys::kMUTEDURATION ], value );
-                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), value );
+                    removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
+                    emit this->mutedSerNumDurationSignal( sernum, static_cast<int>( PunishDurations::Invalid ) );
                 }
 
                 if ( setReason )
                 {
-                    value = reason;
                     setData( sernum, keys[ UserKeys::kMUTEREASON ], value );
 
-                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), value );
+                    this->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), reason );
                 }
             }
         break;
