@@ -28,6 +28,7 @@ void WriteThread::run()
 {
     punishmentLog.moveToThread( this->thread() );
     commentLog.moveToThread( this->thread() );
+    masterMix.moveToThread( this->thread() );
     usageLog.moveToThread( this->thread() );
     questLog.moveToThread( this->thread() );
     adminLog.moveToThread( this->thread() );
@@ -79,15 +80,17 @@ bool WriteThread::isLogOpen(const LogTypes& type)
     switch ( type )
     {
         case LogTypes::PUNISHMENT: return punishmentLog.isOpen();
+        case LogTypes::MASTERMIX: return masterMix.isOpen();
         case LogTypes::COMMENT: return commentLog.isOpen();
         case LogTypes::PKTFORGE: return pktForge.isOpen();
-        case LogTypes::USAGE: return usageLog.isOpen();
+        case LogTypes::CLIENT: return usageLog.isOpen();
         case LogTypes::QUEST: return questLog.isOpen();
         case LogTypes::ADMIN: return adminLog.isOpen();
         case LogTypes::UPNP: return upnpLog.isOpen();
         case LogTypes::MISC: return miscLog.isOpen();
         case LogTypes::CHAT: return chatLog.isOpen();
         case LogTypes::PING: return pingLog.isOpen();
+        case LogTypes::ALL: break;
     }
     return false;
 }
@@ -98,15 +101,17 @@ QFile& WriteThread::getLogFile(const LogTypes& type)
     switch ( type )
     {
         case LogTypes::PUNISHMENT: return punishmentLog;
+        case LogTypes::MASTERMIX: return masterMix;
         case LogTypes::COMMENT: return commentLog;
         case LogTypes::PKTFORGE: return pktForge;
-        case LogTypes::USAGE: return usageLog;
+        case LogTypes::CLIENT: return usageLog;
         case LogTypes::QUEST: return questLog;
         case LogTypes::ADMIN: return adminLog;
         case LogTypes::UPNP: return upnpLog;
         case LogTypes::MISC: return miscLog;
         case LogTypes::CHAT: return chatLog;
         case LogTypes::PING: return pingLog;
+        case LogTypes::ALL: break;
     }
     return miscLog; //Use Misc log as fallthrough.
 }
@@ -141,7 +146,13 @@ void WriteThread::openLogFile(const LogTypes& type)
             pktForge.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::USAGE:
+        case LogTypes::MASTERMIX:
+        {
+            masterMix.setFileName( log );
+            masterMix.open( QFile::WriteOnly | QFile::Append );
+        }
+        break;
+        case LogTypes::CLIENT:
         {
             usageLog.setFileName( log );
             usageLog.open( QFile::WriteOnly | QFile::Append );
@@ -183,6 +194,7 @@ void WriteThread::openLogFile(const LogTypes& type)
             pingLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
+        case LogTypes::ALL: break;
     }
 }
 

@@ -18,6 +18,7 @@ class WriteThread : public QThread
     QString logDate{ "" };
     QFile punishmentLog;
     QFile commentLog;
+    QFile masterMix;
     QFile usageLog;
     QFile questLog;
     QFile adminLog;

@@ -184,7 +184,12 @@
           </item>
           <item>
            <property name="text">
-            <string>Usage Log</string>
+            <string>Client Log</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MasterMix Log</string>
            </property>
           </item>
           <item>
@@ -200,11 +205,6 @@
           <item>
            <property name="text">
             <string>Misc Log</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Chat Log</string>
            </property>
           </item>
           <item>

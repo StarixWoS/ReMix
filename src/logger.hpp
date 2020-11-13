@@ -21,6 +21,7 @@ class Logger : public QDialog
     Q_OBJECT
 
     WriteThread* writeThread{ nullptr };
+    QThread* logThread{ nullptr };
     QThread* thread{ nullptr };
 
     static const QStringList logType;

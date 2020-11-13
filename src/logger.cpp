@@ -21,20 +21,22 @@
 QStandardItemModel* Logger::tblModel{ nullptr };
 
 QMap<QModelIndex, LogTypes> Logger::logMap;
-Logger* Logger::logInstance;
+Logger* Logger::logInstance{ nullptr };
 
 const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
 const QStringList Logger::logType =
 {
-    "AdminUsage",
-    "Comments",
-    "UsageLog",
+    "AllLogs", //Unused, placeholder.
+    "AdminUsageLog",
+    "CommentLog",
+    "ClientLog",
+    "MasterMixLog",
     "UPNPLog",
     "PunishmentLog",
-    "Misc",
+    "MiscLog",
     "ChatLog",
     "QuestLog",
-    "PktForge",
+    "PktForgeLog",
     "PingLog",
 };
 
@@ -44,9 +46,9 @@ Logger::Logger(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QThread* thread{ new QThread() };
+    logThread = new QThread();
     writeThread = WriteThread::getNewWriteThread( logType, nullptr );
-    writeThread->moveToThread( thread );
+    writeThread->moveToThread( logThread );
 
     //Connect Objects to Slots.
     QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot );
@@ -94,7 +96,7 @@ Logger::Logger(QWidget *parent) :
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
-    thread->start();
+    logThread->start();
 }
 
 Logger::~Logger()
@@ -102,9 +104,11 @@ Logger::~Logger()
     //Disable Logging Signals.
     this->disconnect();
 
-    QThread* thread{ writeThread->thread() };
-    if ( thread != nullptr )
-        thread->exit();
+    if ( logThread != nullptr )
+    {
+        logThread->exit();
+        writeThread->deleteLater();
+    }
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
@@ -149,7 +153,8 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
     QAbstractItemModel* tblModel{ ui->logView->model() };
     QString time{ Helper::getTimeAsString() };
 
-    if ( tblModel != nullptr )
+    if ( tblModel != nullptr
+      && type != LogTypes::CHAT ) //Hide the Chat from the Log View.
     {
         qint32 row{ tblModel->rowCount() };
         //tblModel->insertRow( row );
@@ -188,11 +193,13 @@ void Logger::updateRowData(const qint32& row, const qint32& col, const QVariant&
 void Logger::filterLogs()
 {
     //qint32 rowCount{ tblModel->rowCount() };
-    qint32 index{ ui->filterComboBox->currentIndex() - 1 };
+    qint32 index{ ui->filterComboBox->currentIndex() };
+    if ( static_cast<LogTypes>( index ) >= LogTypes::CHAT ) //This log type is not valid for filtering.
+        ++index;                                            //Adjust the index to the next valid log type.
 
     ui->logView->setUpdatesEnabled( false );
 
-    bool filteringLogs{ index >= 0 };
+    bool filteringLogs{ index != static_cast<int>( LogTypes::ALL ) };
     for ( const QModelIndex& idx : logMap.keys() )
     {
         if ( idx.isValid() )

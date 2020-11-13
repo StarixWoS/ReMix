@@ -306,7 +306,7 @@
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3, ColCount = 4 };
 
         //Valid Log types available to the Logger Class.
-        enum class LogTypes: int{ ADMIN = 0, COMMENT, USAGE, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PKTFORGE, PING = 9, MAX = 9 };
+        enum class LogTypes: int{ ALL = 0, ADMIN, COMMENT, CLIENT, MASTERMIX, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PKTFORGE, PING };
 
         //Used for converting time in seconds to a human readable format.
         enum class TimeFormat{ Hours = 0, Minutes = 1, Seconds = 2, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };

@@ -250,7 +250,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                              .arg( server->getMasterPingTrend() )
                              .arg( server->getMasterPingFailCount() );
 
-                    emit this->insertLogSignal( server->getServerName(), msg, LogTypes::USAGE, true, true );
+                    emit this->insertLogSignal( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
                 }
             }
             break;

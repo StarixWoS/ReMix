@@ -327,7 +327,7 @@ void ServerInfo::sendMasterInfo(const bool& disconnect)
         else
             msg.append( " [ Disconnect ]." );
 
-        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::USAGE, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
         emit this->sendUdpDataSignal( addr, port, response );
     }
     else
@@ -403,7 +403,7 @@ void ServerInfo::deletePlayer(Player* plr)
     players[ slot ] = nullptr;
 
     this->setPlayerCount( this->getPlayerCount() - 1 );
-    emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::USAGE, true, true );
+    emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
 }
 
 Player* ServerInfo::getLastPlayerInStorage(Player* plr)

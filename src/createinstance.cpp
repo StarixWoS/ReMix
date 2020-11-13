@@ -271,7 +271,7 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
                 QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
                         msg = msg.arg( server->getMasterIP() )
                                  .arg( server->getMasterPort() );
-                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::USAGE, true, true );
+                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
             }
         }
         else

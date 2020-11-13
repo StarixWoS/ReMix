@@ -5,13 +5,23 @@ TODO:
 
 Version 2.6.11:
     Change:
-      * 
+      * Added a new Log type "MasterMixLog".
+        * Note: This log file will contain any information related to communicating with the Master Mix, or obtaining information about it.
+          * With the new addition to the Logger Class, and being able to filter logs it should now be easier to diagnose a Master Mix issue.
+      * Re-Named the "UsageLog" to "ClientLog".
+		* Note: The changes to the "UsageLog" is a long overdue change in an effort to make the information contained more easily found.
+      * Renamed a few other log files to follow the naming of the other log types.
+        * The logs affected are: Comments, AdminUsage, and PktForge.
+        * The are now (as you can guess): CommentLog, AdminUsageLog, and PktForgeLog.
 
 
 
     Bugfixes:
       * Fixed an issue where closing a Server instance tagged with the rule "AutoRestart" would not appear within the Create Instance Dialog list.
       * Fixed an issue where closing a Server instance would prompt to remove the rule "AutoRestart" whether or not the rule was even enabled.
+      * Fixed an issue where the Logger Class would not properly clean up the WriteThread object when closing ReMix.
+        * This is to prevent ReMix from retaining a "lock" on the log files, and possibly prevent a proper closure of the application.
+      * Fixed an issue where "Chat" would appear within the LogView UI.
 
 
 
