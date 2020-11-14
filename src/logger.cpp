@@ -128,15 +128,18 @@ void Logger::setInstance(Logger* logger)
     logInstance = logger;
 }
 
-void Logger::scrollToBottom()
+void Logger::scrollToBottom(const bool& forceScroll)
 {
     if ( ui->autoScroll->isChecked() )
     {
         QListView* obj{ ui->logView };
 
         //Detect when the user is scrolling upwards. And prevent scrolling.
-        if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum() )
+        if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum()
+          || forceScroll )
+        {
             obj->scrollToBottom();
+        }
     }
 }
 
@@ -196,7 +199,7 @@ void Logger::filterLogs()
 
     ui->logView->setUpdatesEnabled( true );
 
-    this->scrollToBottom();
+    this->scrollToBottom( true );
 }
 
 void Logger::clearLogs()

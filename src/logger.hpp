@@ -41,7 +41,7 @@ class Logger : public QDialog
         static Logger* getInstance();
         static void setInstance(Logger* logger = nullptr);
 
-        void scrollToBottom();
+        void scrollToBottom(const bool& forceScroll = false);
         void insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
 
     private:
