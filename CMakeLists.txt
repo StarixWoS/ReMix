@@ -28,6 +28,7 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/views/plrsortproxymodel.cpp
         src/widgets/settingswidget.cpp
         src/widgets/remixtabwidget.cpp
+        src/thread/mastermixthread.cpp
         src/widgets/plrlistwidget.cpp
         src/views/tbleventfilter.cpp
         src/widgets/userdelegate.cpp
@@ -64,6 +65,7 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/views/plrsortproxymodel.hpp
         src/widgets/settingswidget.hpp
         src/widgets/remixtabwidget.hpp
+        src/thread/mastermixthread.hpp
         src/widgets/plrlistwidget.hpp
         src/views/tbleventfilter.hpp
         src/widgets/userdelegate.hpp
