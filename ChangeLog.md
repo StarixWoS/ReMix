@@ -3,7 +3,7 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
-Version 2.6.13:
+Version 2.7.0:
     Change:
       * Implemented a MasterMixThread Object.
         * This Object is used to automatically download and update the MasterMix information for all currently running ReMix instances.
