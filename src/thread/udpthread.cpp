@@ -20,6 +20,7 @@
 UdpThread::UdpThread(QObject *parent)
     : QThread(parent)
 {
+    QObject::connect( this, &UdpThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 }
 
 UdpThread::~UdpThread()
@@ -96,7 +97,17 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                                .arg( QString( REMIX_VERSION ) );
 
                     this->sendUdpDataSlot( ipAddr, port, response );
-                    emit this->sendServerInfoSignal( ipAddr, port );
+
+                    QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
+                            msg = msg.arg( ipAddr.toString() )
+                                  .arg( port )
+                                  .arg( Helper::serNumToIntStr( sernum, true ) )
+                                  .arg( data );
+
+                    Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
+                    User::logBIO( sernum, ipAddr, data );
+
+                    emit this->insertLogSignal( serverName, msg, LogTypes::PING, true, true );
                 }
                 emit this->increaseServerPingsSignal();
             }

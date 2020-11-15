@@ -3,6 +3,30 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.6.13:
+    Change:
+      * Implemented a MasterMixThread Object.
+        * This Object is used to automatically download and update the MasterMix information for all currently running ReMix instances.
+        * Note: The old method of obtaining the MasterMix Host information ( while unused ) will remain within the code base for the time being.
+      * Added the ability to override the Master Mix Host Addresss via the Settings dialog.
+        * Note: This override can be used in conjunction with a manual IP address override ( Also provided via the Settings Dialog ).
+          * When both overrides are enabled, ReMix will default to the IP Address Override while also obtaining the information from the overriden Host Address.
+      * Removed an unused Log type: "PacketForge".
+      * The UdpThread Object now handles User Pings on it's own instead of forwarding certain requests to the PacketHandler Object.
+        * This reduces the need to parse the information twice, and allows the Log to appear in cronological oder.
+
+
+
+    Bugfixes:
+      * Fixed an issue related to downloading the MasterMix Information ( synreal.ini ).
+        * The Old behavior would continuously append the newly downloaded information to the file.
+        * This is an undesirable behavior as it reduces the chances of actually obtaining the proper MasterMix address.
+      * Fixed an issue where it could be possible for a ReMix instance to attempt communication with the Master Mix without having the valid Port set.
+        * Note: This did not pose an issue before now, as overriding the MasterMix Host Information was not possible.
+
+
+
+
 Version 2.6.12:
     Change:
       * Converted the Logger View to a simple List View. This allows the information it more easily be read without adjusting the column height of a Table View.

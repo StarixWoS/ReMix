@@ -45,17 +45,36 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setText( rowText );
     this->setCheckedState( SToggles::WorldDir, !dir.isEmpty() );
 
-    QString masterOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+    QString masterIPOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
     rowText = "Master Address: [ %1 ]";
 
-    if ( !masterOverride.isEmpty() )
-        rowText = rowText.arg( masterOverride );
+    if ( !masterIPOverride.isEmpty() )
+        rowText = rowText.arg( masterIPOverride );
     else
         rowText = rowText.arg( "" );
 
-    masterAddrCheckState = !Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString().isEmpty();
+    masterIPCheckState = !masterIPOverride.isEmpty();
     ui->settingsView->item( static_cast<int>( SToggles::OverrideMaster ), 0 )->setText( rowText );
-    this->setCheckedState( SToggles::OverrideMaster, masterAddrCheckState );
+    this->setCheckedState( SToggles::OverrideMaster, masterIPCheckState );
+
+    QString masterAddressOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() };
+    rowText = "Master Host Address: [ %1 ]";
+
+    if ( !masterAddressOverride.isEmpty() )
+    {
+        rowText = rowText.arg( masterAddressOverride );
+    }
+    else
+    {
+        masterAddressOverride = "http://synthetic-reality.com/synreal.ini";
+        Settings::setSetting( masterAddressOverride, SKeys::Setting, SSubKeys::OverrideMasterHost );
+
+        rowText = rowText.arg( masterAddressOverride );
+    }
+
+    masterAddrCheckState = !masterAddressOverride.isEmpty();
+    ui->settingsView->item( static_cast<int>( SToggles::OverrideMasterHost ), 0 )->setText( rowText );
+    this->setCheckedState( SToggles::OverrideMasterHost, masterAddrCheckState );
 }
 
 SettingsWidget::~SettingsWidget()
@@ -117,7 +136,6 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
     QString prompt{ "" };
     QString rowText{ "" };
     QString newMasterIP{ "" };
-
 
     switch ( static_cast<SToggles>( row ) )
     {
@@ -216,22 +234,74 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 }
             }
         break;
+        case SToggles::OverrideMasterHost:
+            {
+                QString ipAddress{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() };
+                bool ok{ false };
+
+                if ( state != masterAddrCheckState )
+                {
+                    if (( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString().isEmpty()
+                      || !masterAddrCheckState )
+                      && state )
+                    {
+                        if ( ipAddress.isEmpty() )
+                        {
+                            title = "Master Host Address:";
+                            prompt = "URL Address:";
+
+                            ipAddress = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
+                        }
+
+                        if ( ipAddress.isEmpty() && !ok )
+                        {
+                            ui->settingsView->item( row, 0 )->setCheckState( Qt::Unchecked );
+                            state = false;
+                        }
+                        else
+                            Settings::setSetting( ipAddress, SKeys::Setting, SSubKeys::OverrideMasterHost );
+                    }
+                    else if ( !Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString().isEmpty()
+                           && !ipAddress.isEmpty() )
+                    {
+                        title = "Remove Master Host Address:";
+                        prompt = "Do you wish to erase the stored Master Address?";
+
+                        if ( !Helper::confirmAction( this, title, prompt ) )
+                        {
+                            ui->settingsView->item( row, 0 )->setCheckState( Qt::Checked );
+                            state = true;
+                        }
+                        else
+                        {
+                            ipAddress = "http://synthetic-reality.com/synreal.ini"; //Set the Default Syn-Mix address..
+                            Settings::setSetting( ipAddress, SKeys::Setting, SSubKeys::OverrideMasterHost );
+                        }
+                    }
+                }
+                rowText = "Master Host Address: [ %1 ]";
+                rowText = rowText.arg( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() );
+                ui->settingsView->item( row, 0 )->setText( rowText );
+                masterAddrCheckState = state;
+            }
+        break;
         case SToggles::OverrideMaster:
             {
                 QString ipAddress{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
                 bool warn{ false };
                 bool ok{ false };
 
-                if ( state != masterAddrCheckState )
+                if ( state != masterIPCheckState )
                 {
                     if (( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString().isEmpty()
-                       || !masterAddrCheckState )
+                      || !masterIPCheckState )
                       && state )
                     {
                         if ( ipAddress.isEmpty() )
                         {
                             title = "Master Address:";
-                            prompt = "IP:Port:";
+                                prompt = "IP:Port:";
+
                             ipAddress = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                         }
 
@@ -269,8 +339,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 rowText = rowText.arg( Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() );
                 ui->settingsView->item( row, 0 )->setText( rowText );
 
-                masterAddrCheckState = state;
-
+                masterIPCheckState = state;
                 if ( warn )
                 {
                     QString title{ "Restart Required:" };

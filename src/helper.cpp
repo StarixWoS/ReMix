@@ -485,8 +485,7 @@ void Helper::getSynRealData(ServerInfo* svr)
             int index{ str.indexOf( ":" ) };
             if ( index > 0 )
             {
-                svr->setMasterIP( str.left( index ) );
-                svr->setMasterPort( static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
+                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
 
                 QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
                         msg = msg.arg( svr->getMasterIP() )
@@ -506,10 +505,7 @@ void Helper::getSynRealData(ServerInfo* svr)
             int index = str.indexOf( ":" );
             if ( index > 0 )
             {
-                svr->setMasterIP( str.left( index ) );
-                svr->setMasterPort(
-                            static_cast<quint16>(
-                                str.midRef( index + 1 ).toInt() ) );
+                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
 
                 message = "Got Master Server [ %1:%2 ] for Game [ %3 ].";
                 message = message.arg( svr->getMasterIP() )

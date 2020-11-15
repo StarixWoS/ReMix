@@ -148,7 +148,7 @@ class ServerInfo : public QObject
         void setMasterPort(const quint16& value);
 
         QString getMasterIP() const;
-        void setMasterIP(const QString& value);
+        void setMasterIP(const QString& value, const quint16& port);
 
         bool getIsPublic() const;
         void setIsPublic(const bool& value);

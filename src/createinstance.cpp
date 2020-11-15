@@ -7,6 +7,7 @@
 #include "widgets/remixtabwidget.hpp"
 
 //ReMix includes.
+#include "thread/mastermixthread.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
@@ -265,9 +266,7 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
             int index{ overrideIP.indexOf( ":" ) };
             if ( index > 0 )
             {
-                server->setMasterIP( overrideIP.left( index ) );
-                server->setMasterPort( static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
-
+                server->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
                 QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
                         msg = msg.arg( server->getMasterIP() )
                                  .arg( server->getMasterPort() );
@@ -275,7 +274,10 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
             }
         }
         else
-            Helper::getSynRealData( server );
+        {
+            MasterMixThread::getInstance()->getMasterMixInfo( server );
+            //Helper::getSynRealData( server );
+        }
 
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );

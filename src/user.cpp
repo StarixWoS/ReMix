@@ -64,6 +64,7 @@ QSortFilterProxyModel* User::tblProxy{ nullptr };
 QStandardItemModel* User::tblModel{ nullptr };
 QSettings* User::userData{ nullptr };
 User* User::instance{ nullptr };
+QMutex User::mutex;
 
 User::User(QWidget* parent) :
     QDialog(parent),
@@ -501,6 +502,8 @@ void User::updateCallCount(const QString& serNum)
 
 void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio)
 {
+    QMutexLocker locker( &mutex );
+
     User* user{ User::getInstance() };
     QString sernum{ serNum };
     if ( Helper::strContainsStr( sernum, "SOUL" ) )

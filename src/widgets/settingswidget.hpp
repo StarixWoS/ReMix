@@ -15,6 +15,7 @@ class SettingsWidget : public QWidget
     Q_OBJECT
 
     bool masterAddrCheckState{ false };
+    bool masterIPCheckState{ false };
     bool worldCheckState{ false };
     bool pwdCheckState{ false };
 

@@ -62,6 +62,7 @@ const QStringList Settings::sKeys =
     "loggerAutoScroll",
     "overrideMasterIP",
     "loggerAutoClear",
+    "overrideMasterHost",
 
     //Rules.
     "hasSvrPassword",
@@ -392,15 +393,18 @@ bool Settings::cmpServerPassword(const QString& serverName, const QString& value
 
 void Settings::insertBioHash(const QHostAddress& addr, const QByteArray& value)
 {
+    QMutexLocker locker( &mutex );
     bioHash.insert( addr, value );
 }
 
 QByteArray Settings::getBioHashValue(const QHostAddress& addr)
 {
+    QMutexLocker locker( &mutex );
     return bioHash.value( addr );
 }
 
 QHostAddress Settings::getBioHashKey(const QByteArray& bio)
 {
+    QMutexLocker locker( &mutex );
     return bioHash.key( bio );
 }

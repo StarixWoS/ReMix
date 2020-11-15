@@ -1,5 +1,6 @@
 
 //ReMix includes.
+#include "thread/mastermixthread.hpp"
 #include "appeventfilter.hpp"
 #include "runguard.hpp"
 #include "settings.hpp"
@@ -10,6 +11,7 @@
 //Qt Includes.
 #include <QNetworkAccessManager>
 #include <QApplication>
+#include <QThread>
 #include <QUrl>
 
 int main(int argc, char* [])

@@ -669,8 +669,11 @@ QString ServerInfo::getMasterIP() const
     return masterIP;
 }
 
-void ServerInfo::setMasterIP(const QString& value)
+void ServerInfo::setMasterIP(const QString& value, const quint16& port)
 {
+    //Port should be set before the IP Address.
+    this->setMasterPort( port );
+
     masterIP = value;
     this->setIsPublic( this->getIsPublic() );
 }

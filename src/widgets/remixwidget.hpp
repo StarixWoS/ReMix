@@ -21,6 +21,7 @@ class ReMixWidget : public QWidget
     MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
+    QThread* masterMixThread{ nullptr };
     PlrListWidget* plrWidget{ nullptr };
     ServerInfo* server{ nullptr };
     Server* tcpServer{ nullptr };

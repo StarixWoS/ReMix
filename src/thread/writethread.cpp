@@ -32,7 +32,6 @@ void WriteThread::run()
     usageLog.moveToThread( this->thread() );
     questLog.moveToThread( this->thread() );
     adminLog.moveToThread( this->thread() );
-    pktForge.moveToThread( this->thread() );
     upnpLog.moveToThread( this->thread() );
     miscLog.moveToThread( this->thread() );
     chatLog.moveToThread( this->thread() );
@@ -82,7 +81,6 @@ bool WriteThread::isLogOpen(const LogTypes& type)
         case LogTypes::PUNISHMENT: return punishmentLog.isOpen();
         case LogTypes::MASTERMIX: return masterMix.isOpen();
         case LogTypes::COMMENT: return commentLog.isOpen();
-        case LogTypes::PKTFORGE: return pktForge.isOpen();
         case LogTypes::CLIENT: return usageLog.isOpen();
         case LogTypes::QUEST: return questLog.isOpen();
         case LogTypes::ADMIN: return adminLog.isOpen();
@@ -103,7 +101,6 @@ QFile& WriteThread::getLogFile(const LogTypes& type)
         case LogTypes::PUNISHMENT: return punishmentLog;
         case LogTypes::MASTERMIX: return masterMix;
         case LogTypes::COMMENT: return commentLog;
-        case LogTypes::PKTFORGE: return pktForge;
         case LogTypes::CLIENT: return usageLog;
         case LogTypes::QUEST: return questLog;
         case LogTypes::ADMIN: return adminLog;
@@ -138,12 +135,6 @@ void WriteThread::openLogFile(const LogTypes& type)
         {
             commentLog.setFileName( log );
             commentLog.open( QFile::WriteOnly | QFile::Append );
-        }
-        break;
-        case LogTypes::PKTFORGE:
-        {
-            pktForge.setFileName( log );
-            pktForge.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LogTypes::MASTERMIX:
@@ -214,7 +205,6 @@ void WriteThread::closeAllLogFiles()
     this->closeLogFile( usageLog );
     this->closeLogFile( questLog );
     this->closeLogFile( adminLog );
-    this->closeLogFile( pktForge );
     this->closeLogFile( upnpLog );
     this->closeLogFile( miscLog );
     this->closeLogFile( chatLog );

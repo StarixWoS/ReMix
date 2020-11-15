@@ -4,6 +4,7 @@
 #include "ui_remixwidget.h"
 
 //Required ReMix Widget includes.
+#include "thread/mastermixthread.hpp"
 #include "widgets/plrlistwidget.hpp"
 #include "widgets/ruleswidget.hpp"
 #include "widgets/motdwidget.hpp"
@@ -33,6 +34,10 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 {
     ui->setupUi( this );
     server = svrInfo;
+
+    //Initialize the MasterMixThread Object.
+    masterMixThread = new QThread();
+    masterMixThread->moveToThread( MasterMixThread::getInstance() );
 
     //Initialize the ChatView Dialog.
     chatView = new ChatView( parent, server );
@@ -122,6 +127,9 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
+
+    //Start the MasterMix Thread.
+    masterMixThread->start();
 }
 
 ReMixWidget::~ReMixWidget()

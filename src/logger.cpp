@@ -1,3 +1,5 @@
+
+//Class includes.
 #include "logger.hpp"
 #include "ui_logger.h"
 
@@ -147,6 +149,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
 {
     QAbstractItemModel* tblModel{ ui->logView->model() };
     QString time{ Helper::getTimeAsString() };
+    QString format{ "%1 - %2 - %3 - %4" }; //Format string. - Easier to modify.
 
     if ( tblModel != nullptr
       && type != LogTypes::CHAT ) //Hide the Chat from the Log View.
@@ -155,8 +158,11 @@ void Logger::insertLog(const QString& source, const QString& message, const LogT
         tblModel->insertRows( row, 1 );
 
         auto idx{ tblModel->index( row, 0 ) };
-        QString data{ time + " - " + logType.at( static_cast<int>( type ) ) + " - " + source +  " - " + message.simplified() };
-        tblModel->setData( idx, data, Qt::DisplayRole );
+        format = format.arg( time )
+                       .arg( logType.at( static_cast<int>( type ) ) )
+                       .arg( source )
+                       .arg( message.simplified() );
+        tblModel->setData( idx, format, Qt::DisplayRole );
 
         //Insert the newly created row into the LoggerMap.
         //LogType as the value, and the row as the key.

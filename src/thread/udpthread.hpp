@@ -41,6 +41,7 @@ class UdpThread : public QThread
         void dataOutSizeSignal(const quint64& size);
         void dataInSizeSignal(const quint64& size);
         void increaseServerPingsSignal();
+        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
 
     public slots:
         void sendUdpDataSlot(const QHostAddress& addr, const quint16& port, const QString& data);

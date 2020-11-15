@@ -22,7 +22,6 @@ class WriteThread : public QThread
     QFile usageLog;
     QFile questLog;
     QFile adminLog;
-    QFile pktForge;
     QFile upnpLog;
     QFile miscLog;
     QFile chatLog;

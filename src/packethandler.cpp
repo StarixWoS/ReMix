@@ -158,7 +158,6 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
     QString dVar{ "" };
     QString wVar{ "" };
 
-    qint32 index{ 0 };
     if ( !data.isEmpty() )
     {
         server->setBytesIn( server->getBytesIn() + static_cast<quint64>( data.size() ) );
@@ -212,13 +211,13 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                 }
             }
             break;
-            case 'M':   //Parse the Master Server's response.
+            case 'M':   //Master Response - Parse information.
             {
                 if ( !isMaster )   //Prevent Spoofing a MasterMix response.
                     break;
 
                 QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. "
-                            "( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
+                             "( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
 
                 msg = msg.arg( ipAddr.toString() )
                          .arg( port );
@@ -254,32 +253,7 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                 }
             }
             break;
-            case 'P':   //Store the Player information into a struct.
-            {
-                index = Helper::getStrIndex( data, "sernum=" );
-                if ( index >= 0 )
-                {
-                    sernum = data.mid( index + 7 );
-                    index = Helper::getStrIndex( sernum, "," );
-                    if ( index >= 0 )
-                    {
-                        sernum = sernum.left( index );
-                        if ( !sernum.isEmpty() )
-                            sernum = Helper::serNumToHexStr( sernum );
-                    }
-                }
-
-                QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
-                        msg = msg.arg( ipAddr.toString() )
-                                 .arg( port )
-                                 .arg( Helper::serNumToIntStr( sernum, true ) )
-                                 .arg( data );
-                emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PING, true, true );
-
-                Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
-                User::logBIO( sernum, ipAddr, data );
-            }
-            break;      //Q and R packet types are handled within the UdpThread class.
+            case 'P':   //User Ping - Send Server Information.
             case 'Q':   //Send Online User Information.
             case 'R':   //Send Online User Information.
             break;

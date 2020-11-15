@@ -5,6 +5,7 @@
 
 //Required Qt Includes.
 #include <QDialog>
+#include <QMutex>
 
 namespace Ui {
     class User;
@@ -18,6 +19,7 @@ class User : public QDialog
     static QStandardItemModel* tblModel;
     static QSettings* userData;
     static User* instance;
+    static QMutex mutex;
 
     static const QStringList keys;
     static const QVector<PunishDurations> punishDurations;
