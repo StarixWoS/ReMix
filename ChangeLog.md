@@ -3,6 +3,20 @@ TODO:
   * Implement other remote administrator commands and sub-commands.
 
 
+Version 2.7.01:
+    Change:
+      * Added an additional Log message within the MasterMixThread to show if/ and how much data has been downloaded from the Master Mix Host.
+
+
+
+    Bugfixes:
+      * The process for automatically downloading the MasterMix information is now properly started.
+        * Note: This only happens every 24 hours.
+      * Fixed an issue where starting a new ReMix Instance would cause the MasterMixThread to completely re-download the MasterMix information.
+
+
+
+
 Version 2.7.0:
     Change:
       * Implemented a MasterMixThread Object.

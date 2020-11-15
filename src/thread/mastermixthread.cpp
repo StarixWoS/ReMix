@@ -27,7 +27,7 @@ QMutex MasterMixThread::mutex;
 
 MasterMixThread::MasterMixThread()
 {
-    updateInfoTimer.setInterval( 86400 * 1000 );
+    updateInfoTimer.setInterval( 86400 * 1000 ); //Default of 24 hours.
 
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=]()
     {
@@ -38,6 +38,8 @@ MasterMixThread::MasterMixThread()
     } );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
+
+    updateInfoTimer.start();
 }
 
 MasterMixThread::~MasterMixThread()
@@ -96,6 +98,18 @@ void MasterMixThread::updateMasterMixInfoSlot()
         synreal.flush();
         synreal.close();
 
+
+        QString bytesUnit{ "" };
+        QString bytes{ "" };
+        Helper::sanitizeToFriendlyUnits( static_cast<quint64>( synreal.size() ), bytes, bytesUnit );
+
+        QString msg{ "Obtained Master Info from [ %1 ] with a file size of [ %2 %3 ]." };
+                msg = msg.arg( host )
+                         .arg( bytes )
+                         .arg( bytesUnit );
+
+        downloaded = true;
+        emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
         emit this->masterMixInfoSignal(); //Inform Listening Objects of a completed download.
     } );
     QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater );
