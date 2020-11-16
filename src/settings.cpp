@@ -90,7 +90,6 @@ QHash<QHostAddress, QByteArray> Settings::bioHash;
 
 //Initialize our QSettings Object globally to make things more responsive.
 QSettings* Settings::prefs{ new QSettings( "preferences.ini", QSettings::IniFormat ) };
-SettingsWidget* Settings::settings;
 QTabWidget* Settings::tabWidget;
 Settings* Settings::instance;
 QMutex Settings::mutex;
@@ -105,9 +104,7 @@ Settings::Settings(QWidget* parent) :
     tabWidget = new QTabWidget( this );
     if ( tabWidget != nullptr )
     {
-        settings = new SettingsWidget( this );
-        if ( settings != nullptr )
-            tabWidget->insertTab( 0, settings, "Settings" );
+        tabWidget->insertTab( 0, SettingsWidget::getInstance( this ), "Settings" );
 
         ui->widget->setLayout( new QGridLayout( ui->widget ) );
         ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
@@ -124,7 +121,6 @@ Settings::~Settings()
         setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     tabWidget->deleteLater();
-    settings->deleteLater();
 
     instance->close();
     instance->deleteLater();
@@ -153,11 +149,9 @@ void Settings::updateTabBar(ServerInfo* server)
     qint32 index{ tabWidget->currentIndex() };
 
     tabWidget->clear();
-    if ( settings == nullptr )
-        settings = new SettingsWidget( nullptr );
 
     getInstance()->setWindowTitle( "[ " % server->getServerName() % " ] Settings:");
-    tabWidget->insertTab( 0, settings, "Settings" );
+    tabWidget->insertTab( 0, SettingsWidget::getInstance(), "Settings" );
     tabWidget->insertTab( 1, RulesWidget::getWidget( server ), "Rules" );
     tabWidget->insertTab( 2, MOTDWidget::getWidget( server ), "MotD" );
 
@@ -234,6 +228,8 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 void Settings::setSettingFromPath(const QString& path, const QVariant& value)
 {
     QMutexLocker locker( &mutex );
+
+    prefs->sync();
     if ( !canRemoveSetting( value ) )
         prefs->setValue( path, value );
     else
@@ -295,6 +291,7 @@ void Settings::removeSetting(const QString& path)
 {
     prefs->sync();
     prefs->remove( path );
+    prefs->sync();
 }
 
 void Settings::setSetting(const QVariant& value, const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey)

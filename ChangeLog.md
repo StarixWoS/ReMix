@@ -1,6 +1,35 @@
 TODO:
   * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
+  * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
+    * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
+
+
+Version 2.7.02:
+    Change:
+      * Implemented code within the SettingsView Class to allow signaling to both the ServerInfo and the MasterMixThread Classes for when the MasterMix Host Address or IP Addresses have changed.
+        * In addition to these signals/slots, the act of signaling for a MasterMix IP Address override will add a message to the Log Viewer to show that an override has indeed occured..
+      * Reduced the auto refresh rate of the MasterMix Info from 24 hours to 6 hours.
+        * For the time being we are using hardcoded values inline. This value will be named, and placed within the prototypes header when finalized.
+      * There has been a partial revamp of how the Settings and Rules toggles are handled.
+        * Previously ReMix would prompt the User on whether or not certain Setting/ Rule toggles should remove data.
+          * If the User selected no, the rule or setting would remain active.
+          * This is an undesired behavior as some Users may think the Setting/ Rule has been disabled when it in fact had not.
+        * This process has also made it somewhat easier to read and understand what is happening within the code.
+        * An added benefit of these changes is that we no longer need to manually keep track of the toggle states and the UI models can do that for us.
+      * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
+        * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
+
+
+
+
+    Bugfixes:
+      * Fixed an issue related to the "AutoRestart" rule that would cause the Settings Dialog to not show the "Rules" or "MotD" tabs.
+      * Fixed an issue related to the "AutoRestart" rule that when closing an affected server instance would cause the rule removal dialog to prompt after the CreateInstance dialog had already shown.
+        * A side effect of this issue is the server would no longer appear on the list provided by the CreateInstance dialog.
+      * Fixed an issue when clicking ( not toggling/ enabling/ disabling ) certain Settings or Rules would bring up the data input prompts.
+
+
 
 
 Version 2.7.01:

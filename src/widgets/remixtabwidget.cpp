@@ -273,7 +273,9 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
 
     quint16 privatePort{ server->getPrivatePort() };
     QString gameName{ server->getGameName() };
+
     QString name{ server->getServerName() };
+    Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
 
     bool isPublic{ server->getIsPublic() };
     bool useUPNP{ server->getUseUPNP() };
@@ -288,6 +290,13 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     instanceCount -= 1;
     if ( !restart ) //The server was designated to not restart.
     {
+        if ( Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool()
+          && !remote )
+        {
+            if ( Helper::confirmAction( nullptr, title, prompt ) )
+                Settings::setSetting( false, SKeys::Rules, SSubKeys::AutoRestart, name );
+        }
+
         //Server instance was the last, check if it was a remote shutdown and if so, ignore the creation dialog and gracefully close.
         if ( instanceCount == 0 )
         {
@@ -313,14 +322,6 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
             else
                 qApp->quit();
         }
-
-        if ( Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool()
-          && !remote )
-        {
-            if ( Helper::confirmAction( nullptr, title, prompt ) )
-                Settings::setSetting( false, SKeys::Rules, SSubKeys::AutoRestart, name );
-        }
-        Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
     }
     else    //The server is set to restart. Use the previous server's information.
         createDialog->restartServer( name, gameName, privatePort, useUPNP, isPublic );
@@ -483,10 +484,16 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 
     if ( serverID <= MAX_SERVER_COUNT )
     {
+
+
         instanceCount += 1;
         serverMap.insert( serverID, new ReMixWidget( this, server ) );
         this->insertTab( serverMap.size() - 1, serverMap.value( serverID ), serverName );
-        this->setCurrentIndex( serverID );
+
+        if ( serverID == 0 )
+            currentChangedSlot( serverID );
+        else
+            this->setCurrentIndex( serverID );
 
         QObject::connect( serverMap.value( serverID ), &ReMixWidget::crossServerCommentSignal, this, &ReMixTabWidget::crossServerCommentSlot );
         Settings::setSetting( server->getIsPublic(), SKeys::Setting, SSubKeys::IsRunning, serverName );

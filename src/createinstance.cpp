@@ -354,10 +354,11 @@ void CreateInstance::showEvent(QShowEvent* event)
 
     if ( event->type() == QEvent::Show )
     {
+        this->updateServerList( false );
+
         ui->gameName->setCurrentIndex( 0 );
         ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
         ui->isPublic->setChecked( false );
-        this->updateServerList( false );
     }
     event->accept();
 }

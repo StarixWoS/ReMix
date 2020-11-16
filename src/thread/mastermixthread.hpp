@@ -16,6 +16,7 @@ class MasterMixThread : public QThread
     Q_OBJECT
 
     QTimer updateInfoTimer;
+
     static QSettings* masterMixPref;
     static bool downloaded;
     static QMutex mutex;
@@ -30,8 +31,10 @@ class MasterMixThread : public QThread
         void startUpdateInfoTimer(const bool& start);
 
     private slots:
-        void updateMasterMixInfoSlot();
         void obtainMasterData(ServerInfo* server);
+
+    public slots:
+        void masterMixInfoChangedSlot();
 
     public:
         static UdpThread* getNewUdpThread(QObject* parent = nullptr);
@@ -40,6 +43,7 @@ class MasterMixThread : public QThread
         static MasterMixThread* getInstance();
         static void setInstance(MasterMixThread* value);
         void getMasterMixInfo(ServerInfo* server);
+        void updateMasterMixInfo();
 
     signals:
         void masterMixInfoSignal();

@@ -6,6 +6,7 @@
 //Required Qt Includes..
 #include <QWidget>
 #include <QMutex>
+#include <QMap>
 
 namespace Ui {
     class RulesWidget;
@@ -16,14 +17,9 @@ class RulesWidget : public QWidget
     Q_OBJECT
 
     static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
+    QMap<QTableWidgetItem*, Qt::CheckState> stateMap;
 
     SelectWorld* selectWorld{ nullptr };
-    bool maxPlayersCheckState{ false };
-    bool minVersionCheckState{ false };
-    bool maxIdleCheckState{ false };
-    bool worldCheckState{ false };
-    bool urlCheckState{ false };
-    bool pwdCheckState{ false };
 
     QString serverName{ "" };
     QString gameInfo{ "" };
@@ -38,8 +34,6 @@ class RulesWidget : public QWidget
         void setServerName(const QString& name);
         void setCheckedState(const RToggles& option, const bool& val);
         bool getCheckedState(const RToggles& option);
-
-        void setSelectedWorld(const QString& worldName, const bool& state);
 
         void setGameInfo(const QString& gInfo);
         const QString& getGameInfo() const;

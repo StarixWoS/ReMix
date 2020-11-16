@@ -16,7 +16,6 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
-    static SettingsWidget* settings;
     static QTabWidget* tabWidget;
     static Settings* instance;
 

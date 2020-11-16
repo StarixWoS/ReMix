@@ -33,6 +33,8 @@ ReMix::ReMix(QWidget* parent) :
     qRegisterMetaType<QHostAddress>("QHostAddress");
     //Register the UserListResponse type for use within signals and slots.
     qRegisterMetaType<UserListResponse>("UserListResponse");
+    //Register the type for use within signals and slots.
+    qRegisterMetaType<QVector<int>>("QVector<int>");
 
     ui->setupUi(this);
 

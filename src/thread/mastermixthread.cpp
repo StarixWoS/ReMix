@@ -3,6 +3,7 @@
 #include "mastermixthread.hpp"
 
 //ReMix includes.
+#include "widgets/settingswidget.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
@@ -27,17 +28,18 @@ QMutex MasterMixThread::mutex;
 
 MasterMixThread::MasterMixThread()
 {
-    updateInfoTimer.setInterval( 86400 * 1000 ); //Default of 24 hours.
+    updateInfoTimer.setInterval( 21600 * 1000 ); //Default of 24 hours.
 
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=]()
     {
         QString msg{ "Automatically refreshing the Master Mix Information." };
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
 
-        this->updateMasterMixInfoSlot();
+        this->updateMasterMixInfo();
     } );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
+    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixInfoChangedSignal, this, &MasterMixThread::masterMixInfoChangedSlot );
 
     updateInfoTimer.start();
 }
@@ -48,6 +50,7 @@ MasterMixThread::~MasterMixThread()
     masterMixPref->deleteLater();
 
     this->disconnect();
+    this->deleteLater();
 }
 
 void MasterMixThread::startUpdateInfoTimer(const bool& start)
@@ -58,31 +61,33 @@ void MasterMixThread::startUpdateInfoTimer(const bool& start)
         updateInfoTimer.stop();
 }
 
-void MasterMixThread::updateMasterMixInfoSlot()
+void MasterMixThread::updateMasterMixInfo()
 {
     downloaded = false;
 
+    QString defaultHost{ "http://synthetic-reality.com/synreal.ini" };
+    QFileInfo synRealFile( "synReal.ini" );
+
     QString host{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() };
+    if ( host.isEmpty() )
+        host = defaultHost;
 
     QString message{ "Fetching Master Info from [ %1 ]." };
             message = message.arg( host );
 
     emit this->insertLogSignal( "MasterMixThread", message, LogTypes::MASTERMIX, true, true );
 
-    QFileInfo synRealFile( "synReal.ini" );
-
-    //The file was older than 48 hours or did not exist. Request a fresh copy.
-
-    QTcpSocket* socket{ new QTcpSocket() };
     QUrl url{ host };
 
-    socket->connectToHost( url.host(), 80 );
+    QTcpSocket* socket{ new QTcpSocket() };
+                socket->connectToHost( url.host(), 80 );
+
     QObject::connect( socket, &QTcpSocket::connected, socket,
     [=]()
     {
         socket->write( QString( "GET %1\r\n" )
                         .arg( host ).toLatin1() );
-    } );
+    }, Qt::UniqueConnection );
 
     QObject::connect( socket, &QTcpSocket::readyRead, socket,
     [=]()
@@ -98,7 +103,6 @@ void MasterMixThread::updateMasterMixInfoSlot()
         synreal.flush();
         synreal.close();
 
-
         QString bytesUnit{ "" };
         QString bytes{ "" };
         Helper::sanitizeToFriendlyUnits( static_cast<quint64>( synreal.size() ), bytes, bytesUnit );
@@ -111,8 +115,9 @@ void MasterMixThread::updateMasterMixInfoSlot()
         downloaded = true;
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
         emit this->masterMixInfoSignal(); //Inform Listening Objects of a completed download.
-    } );
-    QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater );
+    }, Qt::UniqueConnection );
+
+    QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater, Qt::UniqueConnection );
 }
 
 void MasterMixThread::obtainMasterData(ServerInfo* server)
@@ -135,6 +140,11 @@ void MasterMixThread::obtainMasterData(ServerInfo* server)
     }
 }
 
+void MasterMixThread::masterMixInfoChangedSlot()
+{
+    this->updateMasterMixInfo();
+}
+
 void MasterMixThread::run()
 {
     masterMixPref->moveToThread( this );
@@ -149,16 +159,13 @@ void MasterMixThread::getMasterMixInfo(ServerInfo* server)
     {
         QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=]()
         {
-            qDebug() << server;
             this->obtainMasterData( server );
         }, Qt::ConnectionType::UniqueConnection );
 
-        this->updateMasterMixInfoSlot();
+        this->updateMasterMixInfo();
     }
     else
-    {
         this->obtainMasterData( server );
-    }
 }
 
 MasterMixThread* MasterMixThread::getInstance()

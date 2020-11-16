@@ -3,6 +3,7 @@
 #include "serverinfo.hpp"
 
 //ReMix Widget includes.
+#include "widgets/settingswidget.hpp"
 #include "widgets/userdelegate.hpp"
 
 //ReMix Threaded Includes.
@@ -50,6 +51,9 @@ ServerInfo::ServerInfo()
     QObject::connect( this, &ServerInfo::closeUdpSocketSignal, udpThread, &UdpThread::closeUdpSocketSlot, Qt::BlockingQueuedConnection );
     QObject::connect( this, &ServerInfo::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot );
     QObject::connect( this, &ServerInfo::bindSocketSignal, udpThread, &UdpThread::bindSocketSlot );
+
+    //Connect the MasterMixThread signals to the ServerInfo Slots.
+    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixIPChangedSignal, this, &ServerInfo::masterMixIPChangedSlot );
 
     //Connect the ServerInfo Class Signals to the UPNP Class Slots.
     upnp = UPNP::getInstance();
@@ -1174,6 +1178,24 @@ void ServerInfo::dataOutSizeSlot(const quint64& size)
 void ServerInfo::setMaxIdleTimeSlot()
 {
     emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );
+}
+
+void ServerInfo::masterMixIPChangedSlot()
+{
+    qDebug() << "IP Changed";
+    QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+    if ( !overrideIP.isEmpty() )
+    {
+        int index{ overrideIP.indexOf( ":" ) };
+        if ( index > 0 )
+        {
+            this->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
+            QString msg{ "Loading Master Server Override [ %1:%2 ]." };
+                    msg = msg.arg( this->getMasterIP() )
+                             .arg( this->getMasterPort() );
+            emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+        }
+    }
 }
 
 void ServerInfo::udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port)
