@@ -18,7 +18,8 @@ class MasterMixThread : public QThread
     QTimer updateInfoTimer;
 
     static QSettings* masterMixPref;
-    static bool downloaded;
+    static QTcpSocket* tcpSocket;
+    static bool download;
     static QMutex mutex;
 
     private:
@@ -43,7 +44,7 @@ class MasterMixThread : public QThread
         static MasterMixThread* getInstance();
         static void setInstance(MasterMixThread* value);
         void getMasterMixInfo(ServerInfo* server);
-        void updateMasterMixInfo();
+        void updateMasterMixInfo(const bool& forceDownload = false);
 
     signals:
         void masterMixInfoSignal();

@@ -15,6 +15,7 @@ Version 2.7.1:
     Bugfixes:
       * Fixed an issue where manually muting a User via the PlayerList UI Elements would not properly mute the selected user.
       * Fixed an issue where ReMix could close improperly due to an incorrect cleanup of the MasterMixThread object.
+      * Fixed an issue when starting ReMix with instances using the "AutoRestart" toggle that would allow multiple consecutive downloads of the synreal.ini from the MasterInfoHost.
 
 
 

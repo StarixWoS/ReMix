@@ -60,6 +60,7 @@ class User : public QDialog
                            const PunishDurations duration);
         static bool addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute,
                             const PunishDurations duration);
+        static QString getMuteReason(const QString& serNum);
 
         static void updateCallCount(const QString& serNum);
 

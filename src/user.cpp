@@ -152,9 +152,8 @@ QString User::requestReason(QWidget* parent)
 
 PunishDurations User::requestDuration(QWidget* parent)
 {
-    QStringList items;
-                items << "No Duration" << "30 Seconds" << "1 Minute" << "10 Minutes" << "30 Minutes" << "1 Hour"
-                      << "24 Hours" << "7 Days" << "30 Days" << "6 Months" << "1 Year" << "Permanent";
+    const static QStringList items{ "No Duration", "30 Seconds", "1 Minute", "10 Minutes", "30 Minutes", "1 Hour",
+                                    "24 Hours", "7 Days", "30 Days", "6 Months", "1 Year", "Permanent" };
 
     bool ok;
     QString item{ QInputDialog::getItem( parent, "ReMix", "Punishment Duration:", items, 0, false, &ok) };
@@ -486,6 +485,11 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), muteDuration );
     }
     return true;
+}
+
+QString User::getMuteReason(const QString& serNum)
+{
+    return getData( keys[ UserKeys::kMUTEREASON ], serNum ).toString();
 }
 
 void User::updateCallCount(const QString& serNum)

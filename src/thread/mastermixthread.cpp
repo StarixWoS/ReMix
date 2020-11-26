@@ -23,11 +23,13 @@
 //Initialize our QSettings Object globally to make things more responsive.
 //Should be Thread safe.
 QSettings* MasterMixThread::masterMixPref{ new QSettings( "synreal.ini", QSettings::IniFormat ) };
-bool MasterMixThread::downloaded;
+QTcpSocket* MasterMixThread::tcpSocket{ nullptr };
+bool MasterMixThread::download;
 QMutex MasterMixThread::mutex;
 
 MasterMixThread::MasterMixThread()
 {
+    tcpSocket = new QTcpSocket( this );
     updateInfoTimer.setInterval( 21600 * 1000 ); //Default of 24 hours.
 
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=]()
@@ -35,7 +37,7 @@ MasterMixThread::MasterMixThread()
         QString msg{ "Automatically refreshing the Master Mix Information." };
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
 
-        this->updateMasterMixInfo();
+        this->updateMasterMixInfo( true );
     } );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -49,6 +51,9 @@ MasterMixThread::~MasterMixThread()
     updateInfoTimer.stop();
     masterMixPref->deleteLater();
 
+    tcpSocket->disconnect();
+    tcpSocket->deleteLater();
+
     this->disconnect();
     this->deleteLater();
 }
@@ -61,10 +66,8 @@ void MasterMixThread::startUpdateInfoTimer(const bool& start)
         updateInfoTimer.stop();
 }
 
-void MasterMixThread::updateMasterMixInfo()
+void MasterMixThread::updateMasterMixInfo(const bool& forceDownload)
 {
-    downloaded = false;
-
     QString defaultHost{ "http://synthetic-reality.com/synreal.ini" };
     QFileInfo synRealFile( "synReal.ini" );
 
@@ -79,25 +82,33 @@ void MasterMixThread::updateMasterMixInfo()
 
     QUrl url{ host };
 
-    QTcpSocket* socket{ new QTcpSocket() };
-                socket->connectToHost( url.host(), 80 );
+    if ( tcpSocket == nullptr )
+        new QTcpSocket( this );
 
-    QObject::connect( socket, &QTcpSocket::connected, socket,
+    if ( !download || forceDownload )
+    {
+        download = true;
+        tcpSocket->connectToHost( url.host(), 80 );
+    }
+
+    QObject::connect( tcpSocket, &QTcpSocket::connected, tcpSocket,
     [=]()
     {
-        socket->write( QString( "GET %1\r\n" )
-                        .arg( host ).toLatin1() );
+        tcpSocket->write( QString( "GET %1\r\n" )
+                           .arg( host ).toLatin1() );
     }, Qt::UniqueConnection );
 
-    QObject::connect( socket, &QTcpSocket::readyRead, socket,
+    QObject::connect( tcpSocket, &QTcpSocket::readyRead, tcpSocket,
     [=]()
     {
+        download = true;
         QFile synreal( "synReal.ini" );
         if ( synreal.open( QIODevice::WriteOnly | QIODevice::Append ) )
         {
             synreal.seek( 0 ); //Erase the file by overwriting previous data.
-            socket->waitForReadyRead();
-            synreal.write( socket->readAll() );
+            tcpSocket->waitForReadyRead();
+
+            synreal.write( tcpSocket->readAll() );
         }
 
         synreal.flush();
@@ -112,12 +123,9 @@ void MasterMixThread::updateMasterMixInfo()
                          .arg( bytes )
                          .arg( bytesUnit );
 
-        downloaded = true;
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
         emit this->masterMixInfoSignal(); //Inform Listening Objects of a completed download.
     }, Qt::UniqueConnection );
-
-    QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater, Qt::UniqueConnection );
 }
 
 void MasterMixThread::obtainMasterData(ServerInfo* server)
@@ -142,7 +150,7 @@ void MasterMixThread::obtainMasterData(ServerInfo* server)
 
 void MasterMixThread::masterMixInfoChangedSlot()
 {
-    this->updateMasterMixInfo();
+    this->updateMasterMixInfo( true );
 }
 
 void MasterMixThread::run()
@@ -155,15 +163,13 @@ void MasterMixThread::run()
 void MasterMixThread::getMasterMixInfo(ServerInfo* server)
 {
     QMutexLocker locker( &mutex ); //Ensure thread safety.
-    if ( !downloaded )
+    QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=]()
     {
-        QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=]()
-        {
-            this->obtainMasterData( server );
-        }, Qt::ConnectionType::UniqueConnection );
+        this->obtainMasterData( server );
+    }, Qt::ConnectionType::UniqueConnection );
 
-        this->updateMasterMixInfo();
-    }
+    if ( !download )
+        this->updateMasterMixInfo( false );
     else
         this->obtainMasterData( server );
 }
