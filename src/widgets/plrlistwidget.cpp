@@ -277,8 +277,6 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         else
             User::removePunishment( menuTarget->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
 
-        menuTarget->setMuteDuration( static_cast<quint64>( muteDuration ) );
-
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
         logMsg = logMsg.arg( reason )
                        .arg( menuTarget->getSernum_s() )
@@ -340,9 +338,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         reason = reason.arg( User::requestReason( this ) );
         inform = inform.arg( reason );
 
-        PunishDurations banDuration{ User::requestDuration() };
-        User::addBan( nullptr, menuTarget, reason, false, banDuration );
-
+        User::addBan( nullptr, menuTarget, reason, false, User::requestDuration() );
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
                          .arg( menuTarget->getSernum_s() )

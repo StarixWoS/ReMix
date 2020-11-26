@@ -142,6 +142,9 @@ ReMixWidget::~ReMixWidget()
     //Disconnect and Delete Objects.
     serverComments->disconnect();
     serverComments->deleteLater();
+    masterMixThread->exit();
+    masterMixThread->disconnect();
+    masterMixThread->deleteLater();
     pktHandle->disconnect();
     pktHandle->deleteLater();
     tcpServer->disconnect();

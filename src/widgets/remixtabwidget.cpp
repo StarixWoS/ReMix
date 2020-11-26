@@ -484,8 +484,6 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
 
     if ( serverID <= MAX_SERVER_COUNT )
     {
-
-
         instanceCount += 1;
         serverMap.insert( serverID, new ReMixWidget( this, server ) );
         this->insertTab( serverMap.size() - 1, serverMap.value( serverID ), serverName );

@@ -38,7 +38,6 @@ const QStringList Logger::logType =
     "MiscLog",
     "ChatLog",
     "QuestLog",
-    "PktForgeLog",
     "PingLog",
 };
 
