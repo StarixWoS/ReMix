@@ -4,6 +4,28 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.2:
+    Change:
+      * 
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where the MasterMixLog file was not being closed when the date changed.
+        * This lead to the Logger Class writing to a single file in the wrong date directory.
+      * Attempted fix of the Packet Slot assignment.
+        * Previously a Player's Packet Slot was based on their position within the Player Storage Vector.
+          * This method of doing things has a somewhat large possibility of leading to a "Slot Collision".
+          * The new way of doing this assignment should reduce the possibility of collisions as we're now actively checking that the Slot has not been assigned to another User.
+        * I cannot verify that this code will work as intended.
+      * Fixed an issue where a User flagged for an Idle-Disconnect ( Default 10 minutes ) would continuously be flagged for a disconnect.
+        * This led to: A) The User would remain connected for a longer period of time than would otherwise be possible..
+        * B) The User would be sent numerous messages detailing their disconnect.
+        * NOTE: A User is only flagged for auto-disconnect if ReMix has not received a Packet from the User within the default period of "10 Minutes" or the period of time set within the Rules Dialog by the Host.
+
+
+
 
 Version 2.7.1:
     Change:

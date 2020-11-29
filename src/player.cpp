@@ -351,7 +351,6 @@ int Player::getSlotPos() const
 void Player::setSlotPos(const int& value)
 {
     slotPos = value;
-    this->setPktHeaderSlot( slotPos + 1 );
 }
 
 qint32 Player::getPktHeaderSlot() const
@@ -924,14 +923,17 @@ void Player::connectionTimeUpdateSlot()
         this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
     }
 
-    if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() )
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
+      && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously aisconnected user.
     {
-        bool defaultAFKTime{ false };
-        if ( this->getMaxIdleTime() == static_cast<qint64>( MAX_IDLE_TIME ) )
-            defaultAFKTime = true;
+        bool defaultIdleTime{ false };
+        qint64 maxIdle{ this->getMaxIdleTime() };
+        if ( maxIdle == static_cast<qint64>( MAX_IDLE_TIME ) )
+            defaultIdleTime = true;
 
-        if ( ( idleTime.elapsed() >= static_cast<qint64>( MAX_IDLE_TIME ) && defaultAFKTime )
-          || ( idleTime.elapsed() >= this->getMaxIdleTime() ) )
+        if ((( idleTime.elapsed() >= static_cast<qint64>( MAX_IDLE_TIME ) )
+            && defaultIdleTime )
+          || ( idleTime.elapsed() >= maxIdle ) )
         {
             QString reason{ "Auto-Disconnect; Idle timeout: [ %1 ], [ %2 ]" };
                     reason = reason.arg( this->getSernum_s() )

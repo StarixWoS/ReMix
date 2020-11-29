@@ -40,9 +40,10 @@ PacketHandler::~PacketHandler()
 
 void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 {
-    //Do not parse packets from Muted or Null Users.
+    //Do not parse packets from Muted, Disconnected, or Null Users.
     if ( plr == nullptr
-      || plr->getIsMuted() )
+      || plr->getIsMuted()
+      || plr->getIsDisconnected() )
     {
         return;
     }

@@ -202,6 +202,7 @@ void WriteThread::closeAllLogFiles()
 {
     this->closeLogFile( punishmentLog );
     this->closeLogFile( commentLog );
+    this->closeLogFile( masterMix );
     this->closeLogFile( usageLog );
     this->closeLogFile( questLog );
     this->closeLogFile( adminLog );

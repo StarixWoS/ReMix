@@ -82,6 +82,7 @@ class ServerInfo : public QObject
     QString info{ "" };
 
     QVector<Player*> players;
+    QMap<qint32, Player*> plrSlotMap;
 
     quint32 userCalls{ 0 };
     quint32 userPings{ 0 };

@@ -400,6 +400,8 @@ void ServerInfo::deletePlayer(Player* plr)
                            .arg( bytesUnit )
                            .arg( player->getPacketsIn() )
                            .arg( player->getBioData() );
+
+    plrSlotMap.remove( player->getPktHeaderSlot() );
     player->disconnect();
     player->deleteLater();
     player = nullptr;
@@ -502,26 +504,37 @@ void ServerInfo::sendPlayerSocketPosition(Player* plr)
     if ( plr == nullptr )
         return;
 
+    //The player is already assigned a Slot, do nothing.
+    if ( plrSlotMap.key( plr, 0 ) > 0 )
+        return;
+
     Player* lastPlr{ this->getLastPlayerInStorage( plr ) };
-    qint32 slotPos{ 0 };
+    Player* tmpPlr{ nullptr };
 
-    if ( lastPlr != nullptr )
+    qint32 slot{ 1 }; //Slot must be above 1 to be valid.
+    for ( int i = 1; i < MAX_PLAYERS; ++i )
     {
-        //Increase all slot numbers by 1. This slot information is irrelevant to ReMix, but is to WoS.
-        //WoS uses this Slot number within the :SR1## header of packets.
-        //We want to prevent any Users from Obtaining Slot#0, and ignore any clients ( ReBreather ) that send packets with Slot#0.
-        slotPos = lastPlr->getPktHeaderSlot();
-        if ( slotPos == 0 )
-            ++slotPos;  //Fallthrough. Ensure Slot is at least 1.
-
-        QString slotResponse{ ":SR!%1%2%3\r\n" };
-                slotResponse = slotResponse.arg( plr->getSernumHex_s() )
-                                           .arg( Helper::intToStr( slotPos, static_cast<int>( IntBase::HEX ), 2 ) )
-                                           .arg( lastPlr->getSernumHex_s() );
-
-        qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };
-        this->updateBytesOut( plr, bOut );
+        tmpPlr = plrSlotMap.value( i, nullptr );
+        if ( tmpPlr == nullptr )
+        {
+            slot = i;
+            break;
+        }
+        tmpPlr = nullptr;
     }
+
+    if ( lastPlr == nullptr )
+        lastPlr = plr;
+
+    plr->setPktHeaderSlot( slot );
+    plrSlotMap.insert( slot, plr );
+    QString slotResponse{ ":SR!%1%2%3\r\n" };
+    slotResponse = slotResponse.arg( plr->getSernumHex_s() )
+                               .arg( Helper::intToStr( slot, static_cast<int>( IntBase::HEX ), 2 ) )
+                               .arg( lastPlr->getSernumHex_s() );
+
+    qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };
+    this->updateBytesOut( plr, bOut );
 }
 
 void ServerInfo::sendServerRules(Player* plr)
