@@ -65,7 +65,7 @@ class ReMixWidget : public QWidget
         void initializeServerSlot();
 
         void plrConnectedSlot(qintptr socketDescriptor);
-        void plrDisconnectedSlot(Player* plr);
+        void plrDisconnectedSlot(Player* plr, const bool& timedOut = false);
 
         void updatePlayerTable(Player* plr);
         QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert);

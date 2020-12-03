@@ -248,6 +248,9 @@
 
             //Count of Ban durations available to use when banning a player.
             PUNISH_DURATION_COUNT = 7,
+
+            //Maximum Count that ReMix will allow a User to send a packet with the incorrect Packet ID.
+            MAX_PKT_HEADER_EXEMPT = 5,
         };
 
         //Valid Password types.

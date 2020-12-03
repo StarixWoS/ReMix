@@ -419,17 +419,26 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     QObject::connect( plr, &Player::disconnected, plr,
     [=]()
     {
-        this->plrDisconnectedSlot( plr );
-    });
+        this->plrDisconnectedSlot( plr, false );
+    }, Qt::UniqueConnection );
 
-    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot );
+    QObject::connect( plr, &Player::errorOccurred, this, [=](QAbstractSocket::SocketError socketError)
+    {
+        if ( QAbstractSocket::RemoteHostClosedError == socketError )
+            this->plrDisconnectedSlot( plr, false );
+        else if ( QAbstractSocket::SocketTimeoutError == socketError )
+            this->plrDisconnectedSlot( plr, true );
+
+    }, Qt::UniqueConnection );
+
+    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
 
     server->sendServerGreeting( plr );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
     this->updatePlayerTable( plr );
 }
 
-void ReMixWidget::plrDisconnectedSlot(Player* plr)
+void ReMixWidget::plrDisconnectedSlot(Player* plr, const bool& timedOut)
 {
     if ( plr == nullptr )
         return;
@@ -450,7 +459,7 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr)
     }
 
     plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
-    server->deletePlayer( plr );
+    server->deletePlayer( plr, timedOut );
     server->sendMasterInfo();
 }
 

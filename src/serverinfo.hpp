@@ -111,7 +111,7 @@ class ServerInfo : public QObject
 
         Player* createPlayer(const int& slot, qintptr socketDescriptor);
         Player* getPlayer(const int& slot);
-        void deletePlayer(Player* plr);
+        void deletePlayer(Player* plr, const bool& timedOut = false);
 
         Player* getLastPlayerInStorage(Player* plr);
         int getEmptySlot();
@@ -119,7 +119,7 @@ class ServerInfo : public QObject
         int getQItemSlot(QStandardItem* index);
 
         void sendPlayerSocketInfo();
-        void sendPlayerSocketPosition(Player* plr);
+        void sendPlayerSocketPosition(Player* plr, const bool& forceIssue);
         void sendServerRules(Player* plr);
         void sendServerGreeting(Player* plr);
         void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);

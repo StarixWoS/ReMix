@@ -353,6 +353,16 @@ void Player::setSlotPos(const int& value)
     slotPos = value;
 }
 
+qint32 Player::getPktHeaderExemptCount() const
+{
+    return pktHeaderExemptCount;
+}
+
+void Player::setPktHeaderExemptCount(const qint32& value)
+{
+    pktHeaderExemptCount = value;
+}
+
 qint32 Player::getPktHeaderSlot() const
 {
     return pktHeaderSlot;

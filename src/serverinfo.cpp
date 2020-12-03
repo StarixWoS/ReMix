@@ -381,7 +381,7 @@ Player* ServerInfo::getPlayer(const int& slot)
     return plr;
 }
 
-void ServerInfo::deletePlayer(Player* plr)
+void ServerInfo::deletePlayer(Player* plr, const bool& timedOut)
 {
     Player* player{ plr };
     if ( player == nullptr )
@@ -389,12 +389,17 @@ void ServerInfo::deletePlayer(Player* plr)
 
     int slot{ player->getSlotPos() };
 
+    QString timeOut{ "" };
+    if ( timedOut == true )
+        timeOut = " Timed Out";
+
     QString bytesUnit{ "" };
     QString bytesSec{ "" };
     Helper::sanitizeToFriendlyUnits( player->getBytesIn(), bytesSec, bytesUnit );
 
-    QString logMsg{ "Client: [ %1 ] was on for %2 minutes and sent %3 %4 in %5 packets, [ %6 ]" };
-            logMsg = logMsg.arg( player->peerAddress().toString() )
+    QString logMsg{ "Client%1: [ %2 ] was on for %3 minutes and sent %4 %5 in %6 packets, [ %7 ]" };
+            logMsg = logMsg.arg( timeOut )
+                           .arg( player->peerAddress().toString() )
                            .arg( Helper::getTimeIntFormat( player->getConnTime(), TimeFormat::Minutes ) )
                            .arg( bytesSec )
                            .arg( bytesUnit )
@@ -499,14 +504,25 @@ void ServerInfo::sendPlayerSocketInfo()
     }
 }
 
-void ServerInfo::sendPlayerSocketPosition(Player* plr)
+void ServerInfo::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
 {
     if ( plr == nullptr )
         return;
 
-    //The player is already assigned a Slot, do nothing.
-    if ( plrSlotMap.key( plr, 0 ) > 0 )
+    qint32 plrKey{ plrSlotMap.key( plr, 0 ) };
+    bool isValidKey{ plrKey > 0 };
+    if ( forceIssue
+      && isValidKey )
+    {
+        //The player is already assigned a Slot however we are forcefully re-issuing a new Slot.
+        //Remove this Player Object from the storage.
+        plrSlotMap.remove( plr->getPktHeaderSlot() );
+    }
+    else if ( isValidKey )
+    {
+        //The player is already assigned a Slot, do nothing.
         return;
+    }
 
     Player* lastPlr{ this->getLastPlayerInStorage( plr ) };
     Player* tmpPlr{ nullptr };

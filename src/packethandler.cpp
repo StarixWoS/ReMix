@@ -106,7 +106,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
             QString sernum{ packet.mid( 4 ).left( 8 ) };
 
             plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
-            server->sendPlayerSocketPosition( plr );
+            server->sendPlayerSocketPosition( plr, false );
             return; //No need to continue parsing. Return now.
         }
 
@@ -431,29 +431,55 @@ void PacketHandler::detectFlooding(Player* plr)
 
 bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 {
-    QString msg{ "Auto-Disconnect; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]." };
+    bool disconnect{ false };
+    QString message{ "" };
+    QString reason{ "" };
+
+    //Increment the Packet Header Exemption by 1 and ignore the packet.
 
     QString recvSlotPos{ pkt.mid( 4 ).left( 2 ) };
     qint32 plrPktSlot{ plr->getPktHeaderSlot() };
     if ( plrPktSlot != Helper::strToInt( recvSlotPos, static_cast<int>( IntBase::HEX ) ) )
     {
-        msg = msg.arg( recvSlotPos )
-                 .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) );
+        qint32 exemptCount{ plr->getPktHeaderExemptCount() + 1 };
+        if ( exemptCount >= static_cast<int>( MAX_PKT_HEADER_EXEMPT ) )
+        {
+            disconnect = true;
+
+            message = "Auto-Disconnect; Maximum alowed < 5 > Packet Header Exemptions exceeded.";
+            server->sendMasterMessage( message, plr, false );
+
+            reason = "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User exceeded the maximum allowed < %4 > Packet Header Exemptions.";
+            reason = reason.arg( plr->getSernum_s() )
+                           .arg( plr->peerAddress().toString() )
+                           .arg( plr->getBioData() )
+                           .arg( Helper::intToStr( static_cast<int>( MAX_PKT_HEADER_EXEMPT ) ) );
+
+            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+        }
+        else
+        {
+            plr->setPktHeaderExemptCount( exemptCount );
+
+            message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
+            message = message.arg( recvSlotPos )
+                             .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
+                             .arg( static_cast<int>( MAX_PKT_HEADER_EXEMPT ) - exemptCount );
+
+            //Attempt to re-issue the User a valid Packet Slot ID.
+            //I'm not sure if WoS will allow this.
+            server->sendPlayerSocketPosition( plr, true );
+        }
     }
     else //Slot Matched. Return true;
         return true;
 
-    if ( !msg.isEmpty() )
-        server->sendMasterMessage( msg, plr, false );
+    if ( !message.isEmpty() )
+        server->sendMasterMessage( message, plr, false );
 
-    QString logMsg{ "Auto-Disconnect of [ %1 ] due to an Invalid Packet Header [ :SR1%2 ]< %3 > while assigned [ :SR1%4 ]." };
-            logMsg = logMsg.arg( plr->getSernum_s() )
-                           .arg( recvSlotPos )
-                           .arg( QString( pkt ) )
-                           .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) );
-    emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+    if ( disconnect )
+        plr->setDisconnected( true, DCTypes::PktDC );
 
-    plr->setDisconnected( true, DCTypes::PktDC );
     return false;
 }
 

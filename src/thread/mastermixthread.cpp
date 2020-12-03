@@ -114,6 +114,8 @@ void MasterMixThread::updateMasterMixInfo(const bool& forceDownload)
         synreal.flush();
         synreal.close();
 
+        this->startUpdateInfoTimer( true );
+
         QString bytesUnit{ "" };
         QString bytes{ "" };
         Helper::sanitizeToFriendlyUnits( static_cast<quint64>( synreal.size() ), bytes, bytesUnit );

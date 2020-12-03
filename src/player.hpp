@@ -57,6 +57,7 @@ class Player : public QTcpSocket
     qint64 maxIdleTime{ 0 };
     qint64 connTime{ 0 };
 
+    qint32 pktHeaderExemptCount{ 0 };
     qint32 pktHeaderSlot{ 0 };
     qint32 cmdAttempts{ 0 };
     qint32 adminRank{ -1 };
@@ -223,6 +224,9 @@ class Player : public QTcpSocket
 
         qint32 getPlrLevel() const;
         void setPlrLevel(const qint32& value);
+
+        qint32 getPktHeaderExemptCount() const;
+        void setPktHeaderExemptCount(const qint32& value);
 
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
