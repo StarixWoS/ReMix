@@ -492,6 +492,12 @@ void ReMixWidget::updatePlayerTable(Player* plr)
         server->sendMasterInfo();
     }
     pktHandle->checkBannedInfo( plr );
+
+    QString logMsg{ "Client: [ %1: ] connected with BIO [ %2 ]" };
+            logMsg = logMsg.arg( plr->peerAddress().toString() )
+                           .arg( plr->getBioData() );
+
+    Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
 }
 
 QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert)

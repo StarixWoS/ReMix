@@ -101,13 +101,13 @@ bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QS
     return retn;
 }
 
-void CmdHandler::parseMix5Command(Player* admin, const QString& packet)
+void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
 {
-    if ( admin == nullptr )
+    if ( plr == nullptr )
         return;
 
     //Do not accept comments from Users without a SerNum.
-    if ( admin->getSernum_s().isEmpty()
+    if ( plr->getSernum_s().isEmpty()
       || packet.isEmpty() )
     {
         return;
@@ -130,32 +130,25 @@ void CmdHandler::parseMix5Command(Player* admin, const QString& packet)
                 msg = msg.mid( Helper::getStrIndex( msg, "/" ) + 1 );
 
             if ( !msg.isEmpty() )
-                this->parseCommandImpl( admin, msg );
+                this->parseCommandImpl( plr, msg );
         }
         else
         {
             if ( !msg.trimmed().isEmpty() )
             {
                 //Echo the chat back to the User.
-                if ( Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
-                {
-                    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool()
-                      && !admin->getAdminPwdReceived() )
-                    {
-                        server->sendMasterMessage( "Echo: " % msg, admin, false );
-                    }
-                }
-
-                if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
+                if ( plr->getIsAdmin()
+                  && Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
                 {
                     Player* tmpPlr{ nullptr };
                     QString message{ "Server comment from %1 [ %2 ]: %3" };
                     QString user{ "User" };
-                    if ( this->getAdminRank( admin ) >= GMRanks::GMaster )
+
+                    if ( this->getAdminRank( plr ) >= GMRanks::GMaster )
                         user = "Admin";
 
                     message = message.arg( user )
-                                     .arg( admin->getSernum_s() )
+                                     .arg( plr->getSernum_s() )
                                      .arg( msg );
                     for ( int i = 0; i < MAX_PLAYERS; ++i )
                     {
@@ -163,25 +156,32 @@ void CmdHandler::parseMix5Command(Player* admin, const QString& packet)
                         if ( tmpPlr != nullptr )
                         {
                             if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
-                              && tmpPlr->getAdminPwdReceived() )
+                                 && tmpPlr->getAdminPwdReceived() )
                             {
                                 server->sendMasterMessage( message, tmpPlr, false );
                             }
                         }
                     }
                 }
-                QString sernum{ admin->getSernum_s() };
-                emit newUserCommentSignal( sernum, alias, msg );
             }
+
+            if ( !plr->getIsAdmin()
+              && Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
+            {
+                server->sendMasterMessage( "Echo: " % msg, plr, false );
+            }
+
+            QString sernum{ plr->getSernum_s() };
+            emit newUserCommentSignal( sernum, alias, msg );
         }
     }
 }
 
-void CmdHandler::parseMix6Command(Player* admin, const QString& packet)
+void CmdHandler::parseMix6Command(Player* plr, const QString& packet)
 {
     QString cmd{ packet };
 
-    if ( admin != nullptr
+    if ( plr != nullptr
       && !packet.isEmpty() )
     {
         qint32 colIndex{ Helper::getStrIndex( packet, ": /cmd " ) };
@@ -192,7 +192,7 @@ void CmdHandler::parseMix6Command(Player* admin, const QString& packet)
 
         cmd = cmd.left( cmd.length() - 2 );
         if ( !cmd.isEmpty() )
-            this->parseCommandImpl( admin, cmd );
+            this->parseCommandImpl( plr, cmd );
     }
 }
 

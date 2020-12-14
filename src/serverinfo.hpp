@@ -291,6 +291,7 @@ class ServerInfo : public QObject
         void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
         void masterMixIPChangedSlot();
+        void masterInfoSlot();
 
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);

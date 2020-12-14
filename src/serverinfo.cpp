@@ -348,17 +348,20 @@ Player* ServerInfo::createPlayer(const int& slot, qintptr socketDescriptor)
 {
     if ( slot >= 0 && slot < MAX_PLAYERS )
     {
-        players[ slot ] = new Player( socketDescriptor );
-        players[ slot ]->setSlotPos( slot );
+        Player* plr{ new Player( socketDescriptor ) };
+
+        players[ slot ] = plr;
+        plr->setSlotPos( slot );
+        plr->setMaxIdleTimeSlot( this->getMaxIdleTime() );
+
         this->setPlayerCount( this->getPlayerCount() + 1 );
 
         QObject::connect( pktHandle, &PacketHandler::sendPacketToPlayerSignal, players[ slot ], &Player::sendPacketToPlayerSlot );
         QObject::connect( this, &ServerInfo::setMaxIdleTimeSignal, players[ slot ], &Player::setMaxIdleTimeSlot );
         QObject::connect( this, &ServerInfo::sendMasterMsgToPlayerSignal, players[ slot ], &Player::sendMasterMsgToPlayerSlot );
         QObject::connect( this, &ServerInfo::connectionTimeUpdateSignal, players[ slot ], &Player::connectionTimeUpdateSlot );
-        emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );
 
-        return players[ slot ];
+        return plr;
     }
     return nullptr;
 }
@@ -1225,6 +1228,11 @@ void ServerInfo::masterMixIPChangedSlot()
             emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
         }
     }
+}
+
+void ServerInfo::masterInfoSlot()
+{
+
 }
 
 void ServerInfo::udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port)

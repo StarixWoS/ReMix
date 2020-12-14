@@ -1,12 +1,11 @@
 #ifndef MASTERMIXTHREAD_HPP
 #define MASTERMIXTHREAD_HPP
 
-#include <QObject>
-
 #include "prototypes.hpp"
 
 //Required QT Includes.
 #include <QUdpSocket>
+#include <QObject>
 #include <QThread>
 #include <QMutex>
 #include <QTimer>
@@ -15,6 +14,7 @@ class MasterMixThread : public QThread
 {
     Q_OBJECT
 
+    QString defaultHost{ "http://synthetic-reality.com/synreal.ini" };
     QTimer updateInfoTimer;
 
     static QSettings* masterMixPref;
@@ -29,6 +29,7 @@ class MasterMixThread : public QThread
         MasterMixThread(const MasterMixThread*) = delete;
         void operator=(const MasterMixThread* x) = delete;
 
+        void connectSlots();
         void startUpdateInfoTimer(const bool& start);
 
     private slots:
@@ -45,6 +46,9 @@ class MasterMixThread : public QThread
         static void setInstance(MasterMixThread* value);
         void getMasterMixInfo(ServerInfo* server);
         void updateMasterMixInfo(const bool& forceDownload = false);
+
+        QString getDefaultHost() const;
+        QString getModdedHost();
 
     signals:
         void masterMixInfoSignal();

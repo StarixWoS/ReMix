@@ -4,6 +4,37 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.4:
+    Change:
+      * Added a log message to signify that a User has connected to a Server Instance.
+
+
+
+    Bugfixes:
+      * Fixed an issue where Server Comments would not be forwarded( Echoed ) to the originating user when the setting is enabled.
+      * Fixed an issue where ReMix would infinitely connect to a slot ( Function ) during the MasterMix Information Update process.
+        * This issue caused Remix to request the MasterMix Info numerous times in succession and with each iteration the request count would increase.
+          * This bug is ultimately a Qt issue as the connected slots were designated at unique. We have however worked around this issue.
+
+
+
+
+Version 2.7.3:
+    Change:
+      * The Packet Header validation now allows up to 5 exemptions for failing validation.
+        * On each validation failure ReMix will attempt to re-issue a valid Packet Slot to the offending User.
+          * It is unvalidated if Syn-Real Game Clients will accept or use the new Slot; however we can try it.
+      * Attempt to catch half-open connections caused by an improperly disconnected User.
+        * We are attempting to catch these connection failures before the Idle Disconnect ( If Toggled On ) would otherwise catch them.
+        * The specific errors we're looking at are "RemoteHostClosedError" and "SocketTimeoutError".
+
+
+
+    Bugfixes:
+
+
+
+
 Version 2.7.2:
     Change:
       * 

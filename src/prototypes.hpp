@@ -251,6 +251,10 @@
 
             //Maximum Count that ReMix will allow a User to send a packet with the incorrect Packet ID.
             MAX_PKT_HEADER_EXEMPT = 5,
+
+            //Maximum interval for ReMix to refresh the MasterMix Information.
+            //3 Hours in milliseconds. 3 * 60 * 60 * 1000
+            MASTER_MIX_UPDATE_INTERVAL = 10800000,
         };
 
         //Valid Password types.

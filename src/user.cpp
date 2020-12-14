@@ -666,7 +666,7 @@ void User::loadUserInfo()
                                      .arg( Helper::getTimeAsString( punishDate ) )
                                      .arg( Helper::getTimeAsString( punishDuration ) )
                                      .arg( punishReason );
-                    Logger::getInstance()->insertLog( "User", message, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( "User", message, LogTypes::PUNISHMENT, true, true );
                 }
             };
 
