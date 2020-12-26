@@ -4,6 +4,18 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.5:
+    Change:
+      * 
+
+
+
+    Bugfixes:
+      * ReMix now properly sends an empty User List when requested. 
+
+
+
+
 Version 2.7.4:
     Change:
       * Added a log message to signify that a User has connected to a Server Instance.

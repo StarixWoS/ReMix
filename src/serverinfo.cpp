@@ -280,10 +280,9 @@ void ServerInfo::sendUserList(const QHostAddress& addr, const quint16& port, con
         }
     }
 
-    if ( !response.isEmpty()
-      && !emptyResponse )
+    emit this->sendUdpDataSignal( addr, port, response );
+    if ( !emptyResponse )
     {
-        emit this->sendUdpDataSignal( addr, port, response );
         QString msg{ "Sending User List to [ %1:%2 ]; %3" };
                 msg = msg.arg( addr.toString() )
                          .arg( port )
