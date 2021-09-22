@@ -15,9 +15,12 @@
 
 int main(int argc, char* [])
 {
+//This RunGuard implementation does not function on Linux. Presumably it also does not work on OSX.
+#if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
     RunGuard guard( "ReMix_Game_Server" );
     if ( !guard.tryToRun() )
         return 0;
+#endif
 
     QApplication a(argc, nullptr);
                  a.setApplicationName( "ReMix" );

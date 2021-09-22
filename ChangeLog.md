@@ -16,6 +16,8 @@ Version 2.7.5:
         * The file was created as "synReal.ini" and was being accessed as "synReal.ini".
       * Fixed an issue on linux where the MasterMix for the WoS GameType would return no data.
         * This was another issue related to case sensitivity. e.g. "WoS" and "WOS" are treated differently.
+      * Fixed an issue where ReMix would crash when starting on Linux.
+        * The issue is related to the RunGuard implementation used. It is disabled on linux until a better solution is found.
 
 
 

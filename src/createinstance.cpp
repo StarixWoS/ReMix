@@ -23,7 +23,7 @@
 //Initialize our accepted Command List.
 const QStringList CreateInstance::gameNames =
 {
-    "WOS",
+    "WoS",
     "TOY",
     "W97"
 };
