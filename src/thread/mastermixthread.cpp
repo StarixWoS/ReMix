@@ -22,7 +22,7 @@
 
 //Initialize our QSettings Object globally to make things more responsive.
 //Should be Thread safe.
-QSettings* MasterMixThread::masterMixPref{ new QSettings( "synreal.ini", QSettings::IniFormat ) };
+QSettings* MasterMixThread::masterMixPref{ new QSettings( "synReal.ini", QSettings::IniFormat ) };
 QTcpSocket* MasterMixThread::tcpSocket{ nullptr };
 bool MasterMixThread::download;
 QMutex MasterMixThread::mutex;
@@ -34,7 +34,7 @@ MasterMixThread::MasterMixThread()
 
     updateInfoTimer.setInterval( static_cast<qint32>( MASTER_MIX_UPDATE_INTERVAL ) ); //Default of 6 hours in Milliseconds..
 
-    QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=]()
+    QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
         QString msg{ "Automatically refreshing the Master Mix Information." };
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
@@ -63,18 +63,18 @@ MasterMixThread::~MasterMixThread()
 void MasterMixThread::connectSlots()
 {
     QObject::connect( tcpSocket, &QTcpSocket::connected, tcpSocket,
-    [=]()
+    [=, this]()
     {
         tcpSocket->write( QString( "GET %1\r\n" ).arg( this->getModdedHost() ).toLatin1() );
     }, Qt::UniqueConnection );
 
     QObject::connect( tcpSocket, &QTcpSocket::readyRead, tcpSocket,
-    [=]()
+    [=, this]()
     {
         QFile synreal( "synReal.ini" );
         if ( synreal.open( QIODevice::WriteOnly | QIODevice::Append ) )
         {
-            synreal.seek( 0 ); //Erase the file by overwriting previous data.
+            synreal.resize( 0 ); //Erase the file by overwriting previous data.
             tcpSocket->waitForReadyRead();
 
             synreal.write( tcpSocket->readAll() );
@@ -151,11 +151,11 @@ void MasterMixThread::obtainMasterData(ServerInfo* server)
 {
     QString str{ masterMixPref->value( server->getGameName() % "/master" ).toString() };
 
-    int index{ str.indexOf( ":" ) };
+    int index{ static_cast<int>( str.indexOf( ":" ) ) };
     if ( index > 0 )
     {
         QString ip{ str.left( index ) };
-        quint16 port{ static_cast<quint16>( str.midRef( index + 1 ).toInt() ) };
+        quint16 port{ static_cast<quint16>( str.mid( index + 1 ).toInt() ) };
 
         QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
                 msg = msg.arg( ip )
@@ -183,7 +183,7 @@ void MasterMixThread::getMasterMixInfo(ServerInfo* server)
 {
     QMutexLocker locker( &mutex ); //Ensure thread safety.
 
-    QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=]()
+    QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=, this]()
     {
         this->obtainMasterData( server );
     }, Qt::ConnectionType::UniqueConnection );

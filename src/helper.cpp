@@ -10,6 +10,7 @@
 #include "user.hpp"
 
 //Qt Includes.
+#include <QRegularExpression>
 #include <QNetworkInterface>
 #include <QInputDialog>
 #include <QHostAddress>
@@ -317,7 +318,7 @@ QString Helper::genPwdSalt(const qint32& length)
     qint32 chrPos{ -1 };
     while ( salt.length() < length )
     {
-        chrPos = randGen->genRandNum( 0, charList.length() - 1 );
+        chrPos = randGen->genRandNum( 0, static_cast<int>( charList.length() - 1 ) );
         salt.append( charList.at( chrPos ) );
     }
 
@@ -345,10 +346,20 @@ bool Helper::validateSalt(const QString& salt)
 
 bool Helper::naturalSort(QString& left, QString& right, bool& result)
 {
+    QRegularExpression regEx{ "[0-9]" };
+    QRegularExpressionMatch matchL;
+    QRegularExpressionMatch matchR;
     do
     {
-        int posL{ left.indexOf( QRegExp( "[0-9]" ) ) };
-        int posR{ right.indexOf( QRegExp( "[0-9]" ) ) };
+        qDebug() << left << right;
+        if ( left.isEmpty() && right.isEmpty() )
+            break;
+
+        matchL = regEx.match( left );
+        matchR = regEx.match( right );
+
+        int posL{ static_cast<int>( left.indexOf( matchL.captured( 0 ) ) ) };
+        int posR{ static_cast<int>( right.indexOf( matchR.captured( 0 ) ) ) };
         if ( posL == -1 || posR == -1 )
             break;
 
@@ -445,8 +456,8 @@ void Helper::getSynRealData(ServerInfo* svr)
     {
         if ( synRealFile.size() != 0 ) //File exists and contains data.
         {
-            qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000 );
-            qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toMSecsSinceEpoch() / 1000 );
+            qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toSecsSinceEpoch() );
+            qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toSecsSinceEpoch() );
 
             //Check if the file is 24 hours old and set our bool.
             downloadFile = ( curTime - modTime >= 86400 );
@@ -482,10 +493,10 @@ void Helper::getSynRealData(ServerInfo* svr)
             QSettings settings( "synReal.ini", QSettings::IniFormat );
             QString str{ settings.value( svr->getGameName() % "/master" ).toString() };
 
-            int index{ str.indexOf( ":" ) };
+            int index{ static_cast<int>( str.indexOf( ":" ) ) };
             if ( index > 0 )
             {
-                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
+                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.mid( index + 1 ).toInt() ) );
 
                 QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
                         msg = msg.arg( svr->getMasterIP() )
@@ -502,10 +513,10 @@ void Helper::getSynRealData(ServerInfo* svr)
         QString str = settings.value( svr->getGameName() % "/master" ).toString();
         if ( !str.isEmpty() )
         {
-            int index = str.indexOf( ":" );
+            int index = static_cast<int>( str.indexOf( ":" ) );
             if ( index > 0 )
             {
-                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.midRef( index + 1 ).toInt() ) );
+                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.mid( index + 1 ).toInt() ) );
 
                 message = "Got Master Server [ %1:%2 ] for Game [ %3 ].";
                 message = message.arg( svr->getMasterIP() )
@@ -538,16 +549,16 @@ bool Helper::cmpStrings(const QString& strA, const QString& strB)
 qint32 Helper::getStrIndex(const QString& strA, const QString& strB)
 {
     //Returns the position of strB within strA.
-    return strA.indexOf( strB, 0, Qt::CaseInsensitive );
+    return static_cast<qint32>( strA.indexOf( strB, 0, Qt::CaseInsensitive ) );
 }
 
 QString Helper::getTimeAsString(const quint64& time)
 {
     quint64 date{ time };
     if ( date == 0 )
-        date = QDateTime::currentDateTimeUtc().toTime_t();
+        date = static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() );
 
-    return QDateTime::fromTime_t( static_cast<uint>( date ) ).toString( "ddd MMM dd HH:mm:ss yyyy" );
+    return QDateTime::fromSecsSinceEpoch( static_cast<uint>( date ) ).toString( "ddd MMM dd HH:mm:ss yyyy" );
 }
 
 QString Helper::getTimeFormat(const qint64& time)

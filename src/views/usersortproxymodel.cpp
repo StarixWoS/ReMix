@@ -37,11 +37,10 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
           || column == static_cast<int>( UserCols::MuteDate )
           || column == static_cast<int>( UserCols::MuteDuration ) )
         {
-            vlStr = QString::number( QDateTime::fromString( vlStr, "ddd MMM dd HH:mm:ss yyyy" )
-                                                    .toTime_t() );
+            vlStr = QString::number( QDateTime::fromString( vlStr, "ddd MMM dd HH:mm:ss yyyy" ).toSecsSinceEpoch() );
 
             vrStr = QString::number( QDateTime::fromString( vrStr, "ddd MMM dd HH:mm:ss yyyy" )
-                                                    .toTime_t() );
+                                                    .toSecsSinceEpoch() );
         }
         else if ( column == static_cast<int>( UserCols::SerNum ) )
         {

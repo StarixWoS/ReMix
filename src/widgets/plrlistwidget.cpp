@@ -161,7 +161,7 @@ void PlrListWidget::on_actionSendMessage_triggered()
         {
             messageDialog = new SendMsg( menuTarget->getSernum_s() );
             QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
-            [=](QString message)
+            [=, this](QString message)
             {
                 if ( !message.isEmpty() )
                 {

@@ -302,7 +302,7 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
 
     quint64 punishDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] ).toUInt() };
     quint64 punishDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     if ( punishType == PunishTypes::Mute )
     {
         punishDuration = getData( sernum, keys[ UserKeys::kMUTEDURATION ] ).toUInt();
@@ -411,7 +411,7 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
         }
     }
 
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     quint64 banDuration{ date + static_cast<quint64>( duration ) };
     QString serNum{ target->getSernumHex_s() };
 
@@ -464,7 +464,7 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
         }
     }
 
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     quint64 muteDuration{ date + static_cast<quint64>( duration ) };
 
     QString serNum{ target->getSernumHex_s() };
@@ -514,7 +514,7 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
         sernum = Helper::serNumToHexStr( serNum, 8 );
 
     //quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     QString ip_s{ ip.toString() };
 
     setData( sernum, keys[ UserKeys::kBIO ], bio.mid( 1 ) );
@@ -643,10 +643,10 @@ void User::loadUserInfo()
 
             ui->userTable->resizeColumnToContents( static_cast<int>( UserCols::BanReason ) );
 
-            auto informRemoval = [=](const QString& sernum, const quint64& punishDate, const quint64& punishDuration, const QString& punishReason,
+            auto informRemoval = [=,this](const QString& sernum, const quint64& punishDate, const quint64& punishDuration, const QString& punishReason,
                                      const bool& isBan)
             {
-                quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+                quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
                 if ( ( punishDuration <= punishDate )
                   || ( punishDuration == 0 )
                   || ( punishDuration <= date ) )
@@ -799,7 +799,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                     reason = getData( sernum, keys[ UserKeys::kBANREASON ] ).toString();
                     if ( reason.isEmpty() )
                     {
-                        banDate = QDateTime::currentDateTimeUtc().toTime_t();
+                        banDate = static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() );
                         setData( sernum, keys[ UserKeys::kBANNED ], banDate );
                         this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), banDate );
 
@@ -849,7 +849,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                         setReason = true;
                         reason = "Manual Mute; " % requestReason( this );
 
-                        muteDate = QDateTime::currentDateTimeUtc().toTime_t();
+                        muteDate = static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() );
                         muteDuration = muteDate + static_cast<uint>( requestDuration( this ) );
 
                         emit this->mutedSerNumDurationSignal( sernum, muteDuration );

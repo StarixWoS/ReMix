@@ -116,7 +116,7 @@ void CreateInstance::updateServerList(const bool& firstRun)
     {
         //Sort the server list before inserting them into the dropdown menu.
         std::sort( validServers.begin(), validServers.end(),
-        [=](const QString &str1, const QString &str2)
+        [=, this](const QString &str1, const QString &str2)
         {
             return ( collator.compare( str1, str2 ) < 0 );
         });
@@ -263,10 +263,10 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
         QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
         if ( !overrideIP.isEmpty() )
         {
-            int index{ overrideIP.indexOf( ":" ) };
+            qint32 index{ static_cast<int>( overrideIP.indexOf( ":" ) ) };
             if ( index > 0 )
             {
-                server->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
+                server->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) );
                 QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
                         msg = msg.arg( server->getMasterIP() )
                                  .arg( server->getMasterPort() );

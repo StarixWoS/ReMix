@@ -43,7 +43,7 @@ Player::Player(qintptr socketDescriptor)
 
     //Connect the Player Object to a User UI signal.
     QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this,
-    [=](const QString& sernum, const quint64& duration)
+    [=, this](const QString& sernum, const quint64& duration)
     {
         if ( !sernum.isEmpty() || duration > 0 )
         {
@@ -640,7 +640,7 @@ void Player::setMaxIdleTime(const qint64& value)
 
 bool Player::getIsMuted()
 {
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     if ( this->getMuteDuration() <= date
       && this->getMuteDuration() >= 1 )
     {
@@ -999,11 +999,11 @@ void Player::readyReadSlot()
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
     {
-        int bytes{ data.indexOf( "\r\n" ) };
+        int bytes{ static_cast<int>( data.indexOf( "\r\n" ) ) };
         if ( bytes <= 0 )
-            bytes = data.indexOf( "\n" );
+            bytes = static_cast<int>( data.indexOf( "\r\n" ) );
         if ( bytes <= 0 )
-            bytes = data.indexOf( "\r" );
+            bytes = static_cast<int>( data.indexOf( "\r\n" ) );
 
         if ( bytes > 0 )
         {

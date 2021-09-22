@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.21.1)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
@@ -118,17 +119,17 @@ set(UI ui/widgets/settingswidget.ui
 set(RC resources/icons.qrc
     resources/ReMix.rc)
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI} ${RC})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI} ${RC})
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES
         SUFFIX _${BUILD_VERSION}.exe
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+target_link_libraries(${PROJECT_NAME} Qt::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt::Network)
+target_link_libraries(${PROJECT_NAME} Qt::Core)
+target_link_libraries(${PROJECT_NAME} Qt::Gui)
+target_link_libraries(${PROJECT_NAME} Qt::Concurrent)
 
-target_link_libraries(ReMix Qt5::Widgets)
-target_link_libraries(ReMix Qt5::Network)
-target_link_libraries(ReMix Qt5::Core)
-target_link_libraries(ReMix Qt5::Gui)
-target_link_libraries(ReMix Qt5::Concurrent)
+target_include_directories(${PROJECT_NAME} PUBLIC src)

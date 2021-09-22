@@ -97,7 +97,7 @@ void UPNP::makeTunnel()
 
     QString discover{ "M-SEARCH * HTTP/1.1\r\n"
                          "HOST:239.255.255.250:1900\r\n"
-                         "ST:ssdp:all\r\n"
+                         "ST: upnp:rootdevice\r\n"
                          //"GatewayDevice:1\r\n"/*upnp:rootdevice*/
                          "Man:\"ssdp:discover\"\r\n"
                          "MX:3\r\n\r\n"
@@ -176,7 +176,7 @@ void UPNP::getUdpSlot()
 
                 ctrlPort = sport;
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished, httpSocket,
-                [=](QNetworkReply* reply)
+                [=, this](QNetworkReply* reply)
                 {
                     QString response{ reply->readAll() };
                     QString logMsg{ "" };
@@ -300,7 +300,7 @@ void UPNP::postSOAP(const QString& action, const QString& message, const QString
 
     QNetworkReply* httpReply{ httpSocket->post( req, message.toLatin1() ) };
     QObject::connect( httpReply, &QNetworkReply::readyRead, httpReply,
-    [=]()
+    [=, this]()
     {
         QString reply{ httpReply->readAll() };
         if ( !Helper::strContainsStr( reply, "UPnPError" ) )
@@ -396,7 +396,7 @@ void UPNP::upnpPortForwardSlot(const quint16& port, const bool& insert)
         {
             this->makeTunnel();
             QObject::connect( this, &UPNP::upnpTunnelSuccessSignal, this,
-            [=]()
+            [=, this]()
             {
                 this->portForwardAdd( "TCP", port );
                 this->portForwardAdd( "UDP", port );

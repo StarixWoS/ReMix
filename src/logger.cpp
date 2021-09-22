@@ -81,7 +81,7 @@ Logger::Logger(QWidget *parent) :
     //Restore the AutoClear Logs setting.
     ui->autoClear->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoClear ).toBool() );
     autoClearTimer.setInterval( 86400 * 1000 );
-    QObject::connect( &autoClearTimer, &QTimer::timeout, this, [=]()
+    QObject::connect( &autoClearTimer, &QTimer::timeout, this, [=, this]()
     {
         this->clearLogs();
     });

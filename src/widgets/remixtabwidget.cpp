@@ -48,7 +48,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( this, &QTabWidget::currentChanged, this, &ReMixTabWidget::currentChangedSlot );
 
     QObject::connect( this, &QTabWidget::tabBarDoubleClicked, this,
-    [=](int index)
+    [=, this](int index)
     {
         ReMixWidget* tabA{ serverMap.value( index ) };
         if ( tabA != nullptr )
@@ -371,7 +371,7 @@ void ReMixTabWidget::createTabButtons()
 
     this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
     QObject::connect( nightModeButton, &QToolButton::clicked, nightModeButton,
-    [=]()
+    [=, this]()
     {
         bool type{ false };
         if ( !nightMode )
@@ -430,7 +430,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
                         //Correctly switch the tab to a valid server instance before closing the current instance.
                         if ( i == 0 )
                         {
-                            qint32 servercount{ serverMap.size() };
+                            qint32 servercount{ static_cast<qint32>( serverMap.size() ) };
                             if ( servercount >= 1 )
                                 this->setCurrentIndex( i + 1 );
                         }

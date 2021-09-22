@@ -309,7 +309,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 if ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString()
                   && !plr->getIsDisconnected() )
                 {
-                    auto disconnect = [=]( Player* plr, const QString& logMsg,
+                    auto disconnect = [=, this]( Player* plr, const QString& logMsg,
                                            QString& plrMessage )
                     {
                         QString reason{ logMsg };

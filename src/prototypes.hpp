@@ -38,7 +38,6 @@
     class QMainWindow;  //Requires Include within Class Headers.
     class QMessageBox;
     class QCloseEvent;
-    class QStringList;
     class QTextCursor;
     class QGridLayout;
     class QByteArray;

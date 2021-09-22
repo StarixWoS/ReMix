@@ -23,7 +23,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
                       model->setReadOnly( true );
 
     QObject::connect( model, &QFileSystemModel::directoryLoaded, model,
-    [=]()
+    [=, this]()
     {
         ui->worldViewer->setModel( model );
         for (int i = 1; i < model->columnCount(); ++i)

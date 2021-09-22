@@ -48,7 +48,7 @@ void Comments::newUserCommentSlot(const QString& sernum, const QString& alias, c
     if ( obj == nullptr )
         return;
 
-    quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
 
     QString comment{ "%1 [ %2 ]: %3\r\n" };
             comment = comment.arg( alias )

@@ -20,7 +20,8 @@ class Helper
         static QString intToStr(const T& val, const int& base = 10, const int& fill = 0, const QChar& filler = '0')
         {
             QString str{ "%1" };
-                    str = str.arg( val, fill, base, filler ).toUpper();
+                    str = str.arg( val & ( 0xffffffff >> (32 - 4 * fill ) ), fill, base, filler ).toUpper();
+
             if ( str.length() > 8 )
                 str = str.mid( str.length() - 8 );
             return str;

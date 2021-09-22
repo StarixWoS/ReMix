@@ -4,6 +4,7 @@
 #include "prototypes.hpp"
 
 //Required QT Includes.
+#include <QStringList>
 #include <QUdpSocket>
 #include <QThread>
 #include <QString>
@@ -13,7 +14,7 @@ class WriteThread : public QThread
 {
     Q_OBJECT
 
-    QStringList logType;
+    QStringList logType{};
 
     QString logDate{ "" };
     QFile punishmentLog;

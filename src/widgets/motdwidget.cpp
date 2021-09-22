@@ -24,7 +24,7 @@ MOTDWidget::MOTDWidget(const QString& name) :
     motdUpdate.setSingleShot( true );
 
     QObject::connect( &motdUpdate, &QTimer::timeout, &motdUpdate,
-    [=]()
+    [=, this]()
     {
         QString strVar{ ui->motdEdit->toPlainText() };
         Helper::stripNewlines( strVar );

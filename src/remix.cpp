@@ -137,7 +137,7 @@ void ReMix::initSysTray()
         QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide );
 
         QObject::connect( quitAction, &QAction::triggered, quitAction,
-        [=]()
+        [=, this]()
         {
             //Allow Rejection of a Global CloseEvent.
             if ( !this->rejectCloseEvent() )
@@ -151,7 +151,7 @@ void ReMix::initSysTray()
         trayMenu->addAction( quitAction );
 
         QObject::connect( trayObject, &QSystemTrayIcon::activated, trayObject,
-        [=]( QSystemTrayIcon::ActivationReason reason )
+        [=, this]( QSystemTrayIcon::ActivationReason reason )
         {
             if ( reason == QSystemTrayIcon::Trigger )
             {

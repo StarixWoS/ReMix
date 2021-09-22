@@ -21,6 +21,7 @@
 #include "upnp.hpp"
 
 //Qt Includes.
+#include <QRegularExpression>
 #include <QHostAddress>
 #include <QtConcurrent>
 #include <QUdpSocket>
@@ -62,7 +63,7 @@ ServerInfo::ServerInfo()
 
     upnpPortRefresh.setInterval( UPNP_TIME_OUT_MS );
     QObject::connect( &upnpPortRefresh, &QTimer::timeout, &upnpPortRefresh,
-    [=]()
+    [=,this]()
     {
         emit this->upnpPortForwardSignal( this->getPrivatePort(), this->getUseUPNP() );
     } );
@@ -73,7 +74,7 @@ ServerInfo::ServerInfo()
     upTimer.start( UI_UPDATE_TIME );
 
     QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
-    [=]()
+    [=,this]()
     {
         emit this->connectionTimeUpdateSignal();
     } );
@@ -81,13 +82,13 @@ ServerInfo::ServerInfo()
     masterTimeOut.setInterval( MAX_MASTER_RESPONSE_TIME );
     masterTimeOut.setSingleShot( true );
     QObject::connect( &masterTimeOut, &QTimer::timeout, &masterTimeOut,
-    [=]()
+    [=,this]()
     {
         this->setMasterTimedOut( true );
     } );
 
     QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
-    [=]()
+    [=,this]()
     {
         this->sendMasterInfo();
         if ( !masterTimeOut.isActive() )
@@ -97,7 +98,7 @@ ServerInfo::ServerInfo()
     //Updates the Server's Server Usage array every 10 minutes.
     usageUpdate.start( SERVER_USAGE_UPDATE );
     QObject::connect( &usageUpdate, &QTimer::timeout, &usageUpdate,
-    [=]()
+    [=,this]()
     {
         usageArray[ usageCounter ] = this->getPlayerCount();
 
@@ -128,7 +129,7 @@ ServerInfo::ServerInfo()
         usageCounter %= SERVER_USAGE_48_HOURS;
     } );
 
-    this->setInitializeDate( QDateTime::currentDateTime().currentMSecsSinceEpoch() );
+    this->setInitializeDate( QDateTime::currentDateTime().currentSecsSinceEpoch() );
     udpThread->start();
     thread->start();
 }
@@ -138,7 +139,10 @@ ServerInfo::~ServerInfo()
     QThread* thread{ udpThread->thread() };
     emit this->closeUdpSocketSignal();
     if ( thread != nullptr )
+    {
+        thread->deleteLater();
         thread->exit();
+    }
 
     for ( Player* plr : this->getPlayerVector() )
     {
@@ -148,7 +152,6 @@ ServerInfo::~ServerInfo()
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
 
-    thread->deleteLater();
     thread = nullptr;
 }
 
@@ -180,14 +183,15 @@ QString ServerInfo::getMasterInfoHost() const
 void ServerInfo::setMasterInfoHost(const QString& value)
 {
     //Try to validate a URL.
-    QRegExp isUrl( "http[s]?|ftp", Qt::CaseInsensitive );
+    QRegularExpression isUrl( "http[s]?|ftp", QRegularExpression::CaseInsensitiveOption );
 
     QString url{ value };
     QString scheme{ QUrl( url ).scheme() };
+    QRegularExpressionMatch match = isUrl.match( scheme );
 
     QFile synRealIni( "synreal.ini" );
     if ( masterInfoHost != value
-      && isUrl.exactMatch( scheme ) )
+      && match.hasMatch() )
     {
         synRealIni.remove();
     }
@@ -210,7 +214,7 @@ QString ServerInfo::getServerInfoString()
                        .arg( sGameInfo )
                        .arg( Settings::getRuleSet( serverName ) )
                        .arg( this->getServerID() )
-                       .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toTime_t(), static_cast<int>( IntBase::HEX ), 8 ) )
+                       .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toSecsSinceEpoch(), static_cast<int>( IntBase::HEX ), 8 ) )
                        .arg( this->getUsageString() )
                        .arg( QString( REMIX_VERSION ) );
 
@@ -611,7 +615,7 @@ void ServerInfo::sendMasterMessageToAdmins(const QString& message, Player* srcPl
 
 qint64 ServerInfo::getUpTime() const
 {
-    return (( QDateTime::currentDateTime().toMSecsSinceEpoch() - this->getInitializeDate() ) / 1000 );
+    return (( QDateTime::currentDateTime().toSecsSinceEpoch() - this->getInitializeDate() ) );
 }
 
 QTimer* ServerInfo::getUpTimer()
@@ -762,7 +766,7 @@ void ServerInfo::setUseUPNP(const bool& value)
         {
             //Catch a possible race condition with a signal connection.
             QObject::connect( this, &ServerInfo::serverIsSetupSignal, this,
-            [=]()
+            [=,this]()
             {
                 this->setupUPNP( value );
             } );
@@ -1217,10 +1221,10 @@ void ServerInfo::masterMixIPChangedSlot()
     QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
     if ( !overrideIP.isEmpty() )
     {
-        int index{ overrideIP.indexOf( ":" ) };
+        int index{ static_cast<int>( overrideIP.indexOf( ":" ) ) };
         if ( index > 0 )
         {
-            this->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.midRef( index + 1 ).toInt() ) );
+            this->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) );
             QString msg{ "Loading Master Server Override [ %1:%2 ]." };
                     msg = msg.arg( this->getMasterIP() )
                              .arg( this->getMasterPort() );

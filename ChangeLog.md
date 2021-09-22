@@ -6,12 +6,16 @@ TODO:
 
 Version 2.7.5:
     Change:
-      * 
+      * Prepared the code for use with C++ 20 and Qt6.
 
 
 
     Bugfixes:
       * ReMix now properly sends an empty User List when requested. 
+      * Fixed an issue on Linux where the synreal.ini file was being incorrectly accessed.
+        * The file was created as "synReal.ini" and was being accessed as "synReal.ini".
+      * Fixed an issue on linux where the MasterMix for the WoS GameType would return no data.
+        * This was another issue related to case sensitivity. e.g. "WoS" and "WOS" are treated differently.
 
 
 

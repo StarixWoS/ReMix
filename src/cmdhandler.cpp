@@ -644,7 +644,7 @@ void CmdHandler::banHandler(Player* admin, const QString& arg1, const QString& d
     if ( ban )
     {
         QString dateString{ "" };
-        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+        quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
         qint32 banDuration{ static_cast<qint32>( PunishDurations::SEVEN_DAYS ) };
 
         if ( !duration.isEmpty() )
@@ -757,7 +757,7 @@ void CmdHandler::muteHandler(Player* admin, const QString& arg1, const QString& 
     if ( mute )
     {
         QString dateString{ "" };
-        quint64 date{ QDateTime::currentDateTimeUtc().toTime_t() };
+        quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
         qint32 muteDuration{ static_cast<qint32>( PunishDurations::TEN_MINUTES ) };
 
         if ( !duration.isEmpty() )
@@ -1037,7 +1037,7 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
         if ( plrServer != nullptr )
         {
             QObject::connect( shutdownTimer, &QTimer::timeout, shutdownTimer,
-            [=]()
+            [=, this]()
             {
                 ReMixTabWidget::remoteCloseServer( plrServer, restart );
 

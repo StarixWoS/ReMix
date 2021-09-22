@@ -76,13 +76,13 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
     QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
     QObject::connect( serverComments, &Comments::newUserCommentSignal, this,
-    [=](const QString& comment)
+    [=, this](const QString& comment)
     {
         emit this->crossServerCommentSignal( server, comment );
     });
 
     QObject::connect( ReMixTabWidget::getTabInstance(), &ReMixTabWidget::crossServerCommentSignal, this,
-    [=](ServerInfo* serverInfo, const QString& comment)
+    [=, this](ServerInfo* serverInfo, const QString& comment)
     {
         if ( server != serverInfo
           && Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
@@ -97,7 +97,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     QObject::connect( server, &ServerInfo::initializeServerSignal, this, &ReMixWidget::initializeServerSlot );
 
     QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,
-    [=]()
+    [=, this]()
     {
         if ( server->getIsSetUp() )
             server->setIsSetUp( false );
@@ -106,14 +106,14 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
     } );
 
     QObject::connect( chatView, &ChatView::sendChatSignal, chatView,
-    [=](QString msg)
+    [=, this](QString msg)
     {
         if ( !msg.isEmpty() )
             server->sendMasterMessage( msg, nullptr, true );
     } );
 
     QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, this,
-    [=](const QString& gameInfo)
+    [=, this](const QString& gameInfo)
     {
         server->setGameInfo( gameInfo );
     } );
@@ -216,7 +216,7 @@ void ReMixWidget::initUIUpdate()
 {
     //Create and Connect Lamda Objects
     QObject::connect( server->getUpTimer(), &QTimer::timeout, server->getUpTimer(),
-    [=]()
+    [=, this]()
     {
         ui->onlineTime->setText( Helper::getTimeFormat( server->getUpTime() ) );
         ReMixTabWidget::setToolTipString( this );
@@ -412,17 +412,17 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
 
     //Set the Player's reference to the ServerInfo class.
     plr->setServerInfo( server );
-    plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
+    plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
 
     //Connect the pending Connection to a Disconnected lambda.
     //Using a lambda to safely access the Plr Object within the Slot.
     QObject::connect( plr, &Player::disconnected, plr,
-    [=]()
+    [=, this]()
     {
         this->plrDisconnectedSlot( plr, false );
     }, Qt::UniqueConnection );
 
-    QObject::connect( plr, &Player::errorOccurred, this, [=](QAbstractSocket::SocketError socketError)
+    QObject::connect( plr, &Player::errorOccurred, this, [=, this](QAbstractSocket::SocketError socketError)
     {
         if ( QAbstractSocket::RemoteHostClosedError == socketError )
             this->plrDisconnectedSlot( plr, false );
@@ -434,7 +434,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
 
     server->sendServerGreeting( plr );
-    plr->setPlrConnectedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
+    plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
     this->updatePlayerTable( plr );
 }
 

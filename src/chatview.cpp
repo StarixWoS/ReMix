@@ -226,7 +226,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                                 if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
                                 {
                                     plr->setCampPacket( packet );
-                                    plr->setCampCreatedTime( QDateTime::currentDateTime().toMSecsSinceEpoch() );
+                                    plr->setCampCreatedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
                                 }
                             }
                         }
