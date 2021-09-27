@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 2.7.5 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 2.7.6 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -119,7 +119,7 @@ set(UI ui/widgets/settingswidget.ui
 set(RC resources/icons.qrc
     resources/ReMix.rc)
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI} ${RC})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI} ${RC})
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES

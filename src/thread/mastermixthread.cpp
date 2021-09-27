@@ -181,7 +181,7 @@ void MasterMixThread::run()
 
 void MasterMixThread::getMasterMixInfo(ServerInfo* server)
 {
-    QMutexLocker locker( &mutex ); //Ensure thread safety.
+    QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
 
     QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=, this]()
     {

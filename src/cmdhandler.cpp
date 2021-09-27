@@ -1186,6 +1186,7 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
             return;
         }
 
+        CampExemption* exemptions{ CampExemption::getInstance() };
         switch ( static_cast<GMSubCmds>( idx ) )
         {
             case GMSubCmds::Zero: //Lock
@@ -1231,13 +1232,24 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
                         msg = msg.prepend( overrideAllowAppend.arg( admin->getSernum_s() ) );
 
                     if ( tmpPlr != nullptr )
+                    {
                         tmpPlr->setIsCampOptOut( false );
+                        tmpPlr->setIsCampLocked( false );
+                    }
                     else
+                    {
                         admin->setIsCampOptOut( false );
+                        admin->setIsCampLocked( false );
+                    }
                 }
             break;
             case GMSubCmds::Four: //Allow. Only online Players may be exempted for storage.
+            case GMSubCmds::Five:
                 {
+                    bool add{ true };
+                    if ( static_cast<GMSubCmds>( idx ) == GMSubCmds::Five )
+                        add = false;
+
                     if ( soulSubCmd
                       && tmpPlr != nullptr )
                     {
@@ -1245,10 +1257,11 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
 
                         msg = allowExempt;
                         msg = msg.arg( tmpPlr->getSernum_s() );
-                        if ( !CampExemption::getInstance()->setPlayerExemption( admin->getSernumHex_s(), tmpPlr->getSernumHex_s() ) )
-                        {
+
+                        exemptions->setIsWhitelisted( admin->getSernumHex_s(), tmpPlr->getSernumHex_s(), add );
+
+                        if ( !add )
                             msg = msg.arg( removed );
-                        }
                         else
                             msg = msg.arg( added );
                     }
@@ -1256,7 +1269,6 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
                         return;
                 }
             break;
-            case GMSubCmds::Five:
             case GMSubCmds::Six:
             case GMSubCmds::Seven:
             case GMSubCmds::Invalid:
@@ -1268,6 +1280,11 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
     }
     else //Send Scene Status.
     {
+        QString hasWhitelisted{ " The following Users are [ Allowed ]: %1" };
+        QString whiteList{ CampExemption::getInstance()->getWhiteListedUsers( admin->getSernumHex_s() ) };
+        if ( !whiteList.isEmpty() )
+            hasWhitelisted = hasWhitelisted.arg( whiteList );
+
         msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
         if ( admin->getIsCampLocked() )
             msg = msg.arg( lock );
@@ -1278,6 +1295,8 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
             msg = msg.arg( "Not Allowed" );
         else
             msg = msg.arg( "Allowed" );
+
+        msg.append( hasWhitelisted );
     }
 
     if ( !msg.isEmpty() )

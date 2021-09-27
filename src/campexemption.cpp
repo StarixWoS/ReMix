@@ -1,14 +1,18 @@
 
 //Class includes.
 #include "campexemption.hpp"
+#include "helper.hpp"
+#include "player.hpp"
 
 //Qt Includes.
 #include <QSettings>
 #include <QObject>
+#include <QMutex>
 #include <QtCore>
 
 QSettings* CampExemption::exemptData{ nullptr };
 CampExemption* CampExemption::instance{ nullptr };
+QMutex CampExemption::mutex;
 
 CampExemption::CampExemption(QObject *parent) : QObject(parent)
 {
@@ -38,31 +42,109 @@ CampExemption* CampExemption::getInstance()
     return instance;
 }
 
-QString CampExemption::makePath(const QString& plrSernum, const QString& exemptSerNum)
+QString CampExemption::makePath(const QString& plrSernum, const QString& key)
 {
     QString path{ "%1/%2" };
             path = path.arg( plrSernum )
+                       .arg( key );
+    return path;
+}
+
+QString CampExemption::makePath(const QString& plrSernum, const QString& key, const QString& exemptSerNum)
+{
+    QString path{ "%1/%2/%3" };
+            path = path.arg( plrSernum )
+                       .arg( key )
                        .arg( exemptSerNum );
     return path;
 }
 
-bool CampExemption::getPlayerExpemption(const QString& plrSernum, const QString& exemptSerNum)
+void CampExemption::setDataFromPath(const QString& path, const QVariant& value)
 {
-    return exemptData->value( makePath( plrSernum, exemptSerNum ) ).toBool();
+    QMutexLocker<QMutex> locker( &mutex );
+    exemptData->setValue( path, value );
+    exemptData->sync();
 }
 
-bool CampExemption::setPlayerExemption(const QString& plrSernum, const QString& exemptSerNum)
+QVariant CampExemption::getDataFromPath(const QString& path)
 {
-    bool ret{ true };
-    if ( getPlayerExpemption( plrSernum, exemptSerNum ) )
-    {
-        //Remove friend. Return false to signal a message to the User.
-        exemptData->remove( makePath( plrSernum, exemptSerNum ) );
-        ret = false;
-    }
+    QMutexLocker<QMutex> locker( &mutex );
+    return exemptData->value( path );
+}
+
+void CampExemption::removeSettingFromPath(const QString& path)
+{
+    QMutexLocker<QMutex> locker( &mutex );
+    exemptData->sync();
+    exemptData->remove( path );
+    exemptData->sync();
+}
+
+void CampExemption::setIsLocked(const QString& sernum, const bool& state)
+{
+    if ( state == true )
+        setDataFromPath( makePath( sernum, "isLocked" ), state );
     else
-        exemptData->setValue( makePath( plrSernum, exemptSerNum ), true );
+        removeSettingFromPath( makePath( sernum, "isLocked" ) );
+}
+
+bool CampExemption::getIsLocked(const QString& targetSerNum)
+{
+    return getDataFromPath( makePath( targetSerNum, "isLocked" ) ).toBool();
+}
+
+void CampExemption::setAllowCurrent(const QString& sernum, const bool& state)
+{
+    if ( state == true )
+        setDataFromPath( makePath( sernum, "allowCurrent" ), state );
+    else
+        removeSettingFromPath( makePath( sernum, "allowCurrent" ) );
+}
+
+bool CampExemption::getAllowCurrent(const QString& targetSerNum)
+{
+    return getDataFromPath( makePath( targetSerNum, "allowCurrent" ) ).toBool();
+}
+
+void CampExemption::setIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum, const bool& state)
+{
+    if ( state == false )
+        removeSettingFromPath( makePath( srcSerNum, "whiteListed", targetSerNum ) );
+    else
+        setDataFromPath( makePath( srcSerNum, "whiteListed", targetSerNum ), state );
+}
+
+bool CampExemption::getIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum)
+{
+    return getDataFromPath( makePath( srcSerNum, "whiteListed", targetSerNum ) ).toBool();
+}
+
+QString CampExemption::getWhiteListedUsers(const QString& srcSerNum)
+{
+    QMutexLocker<QMutex> locker( &mutex );
 
     exemptData->sync();
-    return ret;
+    exemptData->beginGroup( makePath( srcSerNum, "whiteListed" ) );
+
+    QStringList whiteList{ exemptData->allKeys() };
+    QString list{ "" };
+    if ( whiteList.count() > 0 )
+    {
+        for ( const auto& item : whiteList )
+        {
+            list.append( Helper::serNumToIntStr( item ) );
+            list.append( ", " );
+        }
+    }
+    exemptData->endGroup();
+    return list;
+}
+
+void CampExemption::hexSerNumSetSlot(Player* plr)
+{
+    if ( plr != nullptr )
+    {
+        plr->setIsCampLocked( getIsLocked( plr->getSernumHex_s() ) );
+        plr->setIsCampOptOut( getAllowCurrent( plr->getSernumHex_s() ) );
+    }
 }

@@ -5,6 +5,7 @@
 
 //Required Qt Includes.
 #include <QObject>
+#include <QMutex>
 
 class CampExemption : public QObject
 {
@@ -12,6 +13,7 @@ class CampExemption : public QObject
 
     static QSettings* exemptData;
     static CampExemption* instance;
+    static QMutex mutex;
 
     public:
         explicit CampExemption(QObject *parent = nullptr);
@@ -20,12 +22,27 @@ class CampExemption : public QObject
         static void setInstance(CampExemption* value);
         static CampExemption* getInstance();
 
-        static QString makePath(const QString& plrSernum, const QString& exemptSerNum);
-        static bool getPlayerExpemption(const QString& plrSernum, const QString& exemptSerNum);
-        static bool setPlayerExemption(const QString& plrSernum, const QString& exemptSerNum);
+        static QString makePath(const QString& plrSernum, const QString& key);
+        static QString makePath(const QString& plrSernum, const QString& key, const QString& exemptSerNum);
 
-    signals:
+        static void setDataFromPath(const QString& path, const QVariant& value);
+        static QVariant getDataFromPath(const QString& path);
 
+        static void removeSettingFromPath(const QString& path);
+
+        static void setIsLocked(const QString& sernum, const bool& state);
+        static bool getIsLocked(const QString& targetSerNum);
+
+        static void setAllowCurrent(const QString& sernum, const bool& state);
+        static bool getAllowCurrent(const QString& targetSerNum);
+
+        static void setIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum, const bool& state);
+        static bool getIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum);
+
+        static QString getWhiteListedUsers(const QString& srcSerNum);
+
+    public slots:
+        void hexSerNumSetSlot(Player* plr);
 };
 
 #endif // CAMPEXEMPTION_HPP

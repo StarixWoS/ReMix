@@ -66,7 +66,7 @@ CreateInstance* CreateInstance::getInstance(QWidget* parent)
 
 void CreateInstance::updateServerList(const bool& firstRun)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
 
     if ( !firstRun ) //Remove any servers previously flagged as auto restart.
         restartServerList.clear();
@@ -376,7 +376,7 @@ void CreateInstance::on_servers_currentIndexChanged(int)
             {
                 if ( Helper::cmpStrings( el, gameName ) )
                 {
-                    ui->gameName->setCurrentIndex( gameNames.indexOf( el ) );
+                    ui->gameName->setCurrentIndex( static_cast<int>( gameNames.indexOf( el ) ) );
                     notFound = false;
                 }
             }

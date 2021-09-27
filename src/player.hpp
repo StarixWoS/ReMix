@@ -199,7 +199,6 @@ class Player : public QTcpSocket
 
         bool getIsCampOptOut() const;
         void setIsCampOptOut(bool value);
-        void loadCampOptOut();
 
         quint64 getMuteDuration();
         void setMuteDuration(const quint64& value);
@@ -240,6 +239,7 @@ class Player : public QTcpSocket
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void parsePacketSignal(const QByteArray& packet, Player* plr);
+        void hexSerNumSetSignal(Player* plr);
 };
 
 #endif // PLAYER_HPP

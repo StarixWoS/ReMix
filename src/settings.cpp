@@ -227,7 +227,7 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
 //Static-Free Functions.
 void Settings::setSettingFromPath(const QString& path, const QVariant& value)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
 
     prefs->sync();
     if ( !canRemoveSetting( value ) )
@@ -240,14 +240,14 @@ void Settings::setSettingFromPath(const QString& path, const QVariant& value)
 
 QVariant Settings::getSettingFromPath(const QString& path)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     prefs->sync();
     return prefs->value( path );
 }
 
 QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2/%3" };
             path = path.arg( childSubKey.toString() )
                        .arg( Settings::pKeys[ static_cast<int>( key ) ] )
@@ -257,7 +257,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, cons
 
 QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
                        .arg( sKeys[ static_cast<int>( subKey ) ] );
@@ -266,7 +266,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
 
 QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
                        .arg( subKey.toString() );
@@ -342,7 +342,7 @@ QString Settings::getServerID(const QString& svrID)
 
 QString Settings::getRuleSet(const QString& svrID)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     prefs->sync();
     prefs->beginGroup( svrID % "/" % pKeys[ static_cast<int>( SKeys::Rules ) ] );
 
@@ -390,18 +390,18 @@ bool Settings::cmpServerPassword(const QString& serverName, const QString& value
 
 void Settings::insertBioHash(const QHostAddress& addr, const QByteArray& value)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     bioHash.insert( addr, value );
 }
 
 QByteArray Settings::getBioHashValue(const QHostAddress& addr)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     return bioHash.value( addr );
 }
 
 QHostAddress Settings::getBioHashKey(const QByteArray& bio)
 {
-    QMutexLocker locker( &mutex );
+    QMutexLocker<QMutex> locker( &mutex );
     return bioHash.key( bio );
 }

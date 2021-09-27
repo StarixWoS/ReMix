@@ -277,7 +277,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             if ( tmpPlr != nullptr )
                             {
                                 QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
-                                if ( !CampExemption::getInstance()->getPlayerExpemption( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
+                                if ( CampExemption::getInstance()->getIsWhitelisted( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
                                 {   //The Player is not exempted from further checking.
                                     if ( tmpPlr->getIsCampLocked() )
                                     {

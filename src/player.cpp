@@ -4,6 +4,7 @@
 
 //ReMix includes.
 #include "packethandler.hpp"
+#include "campexemption.hpp"
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
@@ -18,7 +19,6 @@
 #include <QDateTime>
 
 Player::Player(qintptr socketDescriptor)
-
 {
     this->setSocketDescriptor( socketDescriptor );
 
@@ -27,6 +27,9 @@ Player::Player(qintptr socketDescriptor)
 
     //Connect the Player to the ReadyRead slot.
     QObject::connect( this, &Player::readyRead, this, &Player::readyReadSlot, Qt::DirectConnection );
+
+    //Connect to the CampExemptions slot.
+    QObject::connect( this, &Player::hexSerNumSetSignal, CampExemption::getInstance(), &CampExemption::hexSerNumSetSlot );
 
     //All connections start as ascive and not AFK.
     this->setIsAFK( false );
@@ -77,7 +80,7 @@ Player::~Player()
 
 qint64 Player::getConnTime() const
 {
-    return (( QDateTime::currentDateTime().currentMSecsSinceEpoch() - this->getPlrConnectedTime() ) / 1000 );
+    return (( QDateTime::currentDateTime().currentSecsSinceEpoch() - this->getPlrConnectedTime() ) );
 }
 
 QStandardItem* Player::getTableRow() const
@@ -180,7 +183,6 @@ void Player::setSernum_i(qint32 value)
 
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
-        this->loadCampOptOut();
 
         quint64 muteDuration{ 0 };
         muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
@@ -213,6 +215,8 @@ QString Player::getSernumHex_s() const
 void Player::setSernumHex_s(const QString& value)
 {
     sernumHex_s = value;
+
+    emit this->hexSerNumSetSignal( this );
 }
 
 qint32 Player::getTargetScene() const
@@ -578,6 +582,8 @@ bool Player::getIsCampLocked() const
 
 void Player::setIsCampLocked(bool value)
 {
+    CampExemption::getInstance()->setIsLocked( this->getSernumHex_s(), value );
+
     isCampLocked = value;
 }
 
@@ -588,14 +594,8 @@ bool Player::getIsCampOptOut() const
 
 void Player::setIsCampOptOut(bool value)
 {
-    User::setCampOptOut( this->getSernumHex_s(), value );
+    CampExemption::getInstance()->setAllowCurrent( this->getSernumHex_s(), value );
     isCampOptOut = value;
-}
-
-void Player::loadCampOptOut()
-{
-    bool optout{ User::getCampOptOut( this->getSernumHex_s() ) };
-    this->setIsCampOptOut( optout );
 }
 
 quint64 Player::getMuteDuration()
@@ -1001,9 +1001,9 @@ void Player::readyReadSlot()
     {
         int bytes{ static_cast<int>( data.indexOf( "\r\n" ) ) };
         if ( bytes <= 0 )
-            bytes = static_cast<int>( data.indexOf( "\r\n" ) );
+            bytes = static_cast<int>( data.indexOf( "\n" ) );
         if ( bytes <= 0 )
-            bytes = static_cast<int>( data.indexOf( "\r\n" ) );
+            bytes = static_cast<int>( data.indexOf( "\r" ) );
 
         if ( bytes > 0 )
         {

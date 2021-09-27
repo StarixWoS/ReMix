@@ -4,6 +4,31 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.6:
+    Change:
+      * Prepared the code for use with C++ 20 and Qt6.
+        * Fixed a few instances where the QMutexLocker class was deducing type. QMutexLocker is now QMutexLocker<QMutex>.
+      * Expanded the remote command "Camp" to allow removal of an allowed SoulID.
+        * The "Camp" command will now provide a list of all allowed SoulID's for the User invoking the command.
+      * Expanded the features of the CampExemptions Class to allow storage of Allowed SoulID's and the User's Camp state.
+        * Users will now have their *FULL* Camp state loaded when they connect to a ReMix server by default.
+        * Note: Previously the User Class stored the Camp Lock State with the key "sceneOptOut". This is now invalid and no longer a compatible setting.
+      
+
+
+
+    Bugfixes:
+      * Fixed an issue where A user would appear as having connected for an absurd amount of time.
+        * Related to the deprecation of "QDateTime::currentDateTimeUtc().toTime_T()" within Qt.
+      * Fixed an issue where incoming TCP packets were being improperly filtered.
+        * Clumsy copy & paste.
+      * Fixed an issue where invoking the Remote Command "/camp allowall" would not disable the setting invoked via "/camp allowcurrent".
+        * Previously the command would only remove the setting invoked via the command "/camp lock".
+      * Fixed an issue where ReMix would be opened alongside a Console/Debug window.
+
+
+
+
 Version 2.7.5:
     Change:
       * Prepared the code for use with C++ 20 and Qt6.

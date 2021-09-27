@@ -3,7 +3,6 @@
 
 #include "prototypes.hpp"
 
-
 //Required Qt Includes.
 #include <QDialog>
 

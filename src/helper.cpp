@@ -346,12 +346,18 @@ bool Helper::validateSalt(const QString& salt)
 
 bool Helper::naturalSort(QString& left, QString& right, bool& result)
 {
+//    QCollator collator;
+//              collator.setNumericMode( true );
+
+//              qDebug() << left << right << collator.compare( left, right );
+//    result = collator.compare( left, right ) == 0;
+//    return result;
+
     QRegularExpression regEx{ "[0-9]" };
     QRegularExpressionMatch matchL;
     QRegularExpressionMatch matchR;
     do
     {
-        qDebug() << left << right;
         if ( left.isEmpty() && right.isEmpty() )
             break;
 

@@ -43,7 +43,7 @@ QString PacketForge::decryptPacket(const QByteArray& packet)
             //Allow decryption outside of the PacketForge library.
             pkt = pkt.left( pkt.length() - 2 ).mid( 6 );
 
-            int chrKey{ 0x82381AC + 0x11 * pkt.length( ) };
+            int chrKey{ static_cast<int>( 0x82381AC + 0x11 * pkt.length( ) ) };
             for ( auto&& chr : pkt )
             {
                 chr = chr ^ ( chrKey & 0x1F );

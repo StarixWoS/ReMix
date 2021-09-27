@@ -1217,7 +1217,6 @@ void ServerInfo::setMaxIdleTimeSlot()
 
 void ServerInfo::masterMixIPChangedSlot()
 {
-    qDebug() << "IP Changed";
     QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
     if ( !overrideIP.isEmpty() )
     {
