@@ -17,7 +17,7 @@ string(REPLACE "." "," RC_VERSION "${ReMix_VERSION},0")
 add_compile_definitions(RC_VERSION_STRING=\"${ReMix_VERSION}\" RC_VERSION=${RC_VERSION})
 add_compile_definitions(REMIX_VERSION=\"${ReMix_VERSION}\")
 
-find_package(Qt5 COMPONENTS Core Widgets Gui Network Network Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent REQUIRED)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ui/ ui/widgets/)
 set(SRC_LIST src/ src/widgets/)
