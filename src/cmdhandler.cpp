@@ -1280,10 +1280,9 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
     }
     else //Send Scene Status.
     {
-        QString hasWhitelisted{ " The following Users are [ Allowed ]: %1" };
         QString whiteList{ CampExemption::getInstance()->getWhiteListedUsers( admin->getSernumHex_s() ) };
-        if ( !whiteList.isEmpty() )
-            hasWhitelisted = hasWhitelisted.arg( whiteList );
+        QString hasWhitelisted{ " The following Users are [ Allowed ]: %1" };
+                hasWhitelisted = hasWhitelisted.arg( whiteList );
 
         msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
         if ( admin->getIsCampLocked() )

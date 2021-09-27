@@ -25,6 +25,8 @@ Version 2.7.6:
       * Fixed an issue where invoking the Remote Command "/camp allowall" would not disable the setting invoked via "/camp allowcurrent".
         * Previously the command would only remove the setting invoked via the command "/camp lock".
       * Fixed an issue where ReMix would be opened alongside a Console/Debug window.
+      * Fixed an issue where the MasterMixThread would download the MasterMix Info "synreal.ini" resulting in ReMix instances not obtaining the MasterMix information.
+        * This was due to the file not being properly synced to the QSettings Object
 
 
 

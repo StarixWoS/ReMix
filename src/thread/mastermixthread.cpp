@@ -39,6 +39,7 @@ MasterMixThread::MasterMixThread()
         QString msg{ "Automatically refreshing the Master Mix Information." };
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
 
+        masterMixPref->sync();
         this->updateMasterMixInfo( true );
     }, Qt::UniqueConnection );
 
@@ -51,6 +52,7 @@ MasterMixThread::MasterMixThread()
 MasterMixThread::~MasterMixThread()
 {
     updateInfoTimer.stop();
+    masterMixPref->sync();
     masterMixPref->deleteLater();
 
     tcpSocket->disconnect();
@@ -90,9 +92,11 @@ void MasterMixThread::connectSlots()
         Helper::sanitizeToFriendlyUnits( static_cast<quint64>( synreal.size() ), bytes, bytesUnit );
 
         QString msg{ "Obtained Master Info from [ %1 ] with a file size of [ %2 %3 ]." };
-        msg = msg.arg( this->getModdedHost() )
-                 .arg( bytes )
-                 .arg( bytesUnit );
+                msg = msg.arg( this->getModdedHost() )
+                         .arg( bytes )
+                         .arg( bytesUnit );
+
+        masterMixPref->sync();
 
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
         emit this->masterMixInfoSignal(); //Inform Listening Objects of a completed download.
@@ -149,6 +153,9 @@ QString MasterMixThread::getModdedHost()
 
 void MasterMixThread::obtainMasterData(ServerInfo* server)
 {
+    QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
+    masterMixPref->sync();
+
     QString str{ masterMixPref->value( server->getGameName() % "/master" ).toString() };
 
     int index{ static_cast<int>( str.indexOf( ":" ) ) };
@@ -175,6 +182,7 @@ void MasterMixThread::masterMixInfoChangedSlot()
 void MasterMixThread::run()
 {
     masterMixPref->moveToThread( this );
+    masterMixPref->sync();
 
     this->exec();
 }
@@ -185,6 +193,7 @@ void MasterMixThread::getMasterMixInfo(ServerInfo* server)
 
     QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=, this]()
     {
+        masterMixPref->sync();
         this->obtainMasterData( server );
     }, Qt::ConnectionType::UniqueConnection );
 
