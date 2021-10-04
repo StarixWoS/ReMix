@@ -32,7 +32,7 @@ MasterMixThread::MasterMixThread()
     tcpSocket = new QTcpSocket( this );
     this->connectSlots();
 
-    updateInfoTimer.setInterval( static_cast<qint32>( MASTER_MIX_UPDATE_INTERVAL ) ); //Default of 6 hours in Milliseconds..
+    updateInfoTimer.setInterval( static_cast<qint32>( Globals::MASTER_MIX_UPDATE_INTERVAL ) ); //Default of 6 hours in Milliseconds..
 
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
@@ -44,7 +44,8 @@ MasterMixThread::MasterMixThread()
     }, Qt::UniqueConnection );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::UniqueConnection );
-    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixInfoChangedSignal, this, &MasterMixThread::masterMixInfoChangedSlot, Qt::UniqueConnection );
+    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixInfoChangedSignal,
+                      this, &MasterMixThread::masterMixInfoChangedSlot, Qt::UniqueConnection );
 
     updateInfoTimer.start();
 }
@@ -189,11 +190,8 @@ void MasterMixThread::run()
 
 void MasterMixThread::getMasterMixInfo(ServerInfo* server)
 {
-    QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
-
     QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=, this]()
     {
-        masterMixPref->sync();
         this->obtainMasterData( server );
     }, Qt::ConnectionType::UniqueConnection );
 

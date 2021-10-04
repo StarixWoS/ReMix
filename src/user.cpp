@@ -170,11 +170,14 @@ QSettings* User::getUserData()
 //Public Functions
 void User::setData(const QString& key, const QString& subKey, const QVariant& value)
 {
+    userData->sync();
     userData->setValue( key % "/" % subKey, value );
 }
 
 QVariant User::getData(const QString& key, const QString& subKey)
 {
+    userData->sync();
+
     if ( subKey == keys[ UserKeys::kRANK ] )
         return userData->value( key % "/" % subKey, 0 );
 
@@ -184,12 +187,11 @@ QVariant User::getData(const QString& key, const QString& subKey)
 bool User::makeAdmin(const QString& sernum, const QString& pwd)
 {
     GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
-    User* user{ User::getInstance() };
 
     if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
     {
-        QString salt{ Helper::genPwdSalt( SALT_LENGTH ) };
+        QString salt{ Helper::genPwdSalt( static_cast<int>( Globals::SALT_LENGTH ) ) };
         QString hash{ salt + pwd };
                 hash = Helper::hashPassword( hash );
 
@@ -197,6 +199,7 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
         {
             setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( GMRanks::GMaster ) );
 
+            User* user{ User::getInstance() };
             QModelIndex index{ user->findModelIndex( Helper::serNumToIntStr( sernum, true ), UserCols::SerNum ) };
             if ( index.isValid() )
                 user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( GMRanks::GMaster ) );
@@ -301,7 +304,6 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
 
     quint64 punishDuration{ getData( sernum, keys[ UserKeys::kBANDURATION ] ).toUInt() };
     quint64 punishDate{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
-    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     if ( punishType == PunishTypes::Mute )
     {
         punishDuration = getData( sernum, keys[ UserKeys::kMUTEDURATION ] ).toUInt();
@@ -310,6 +312,7 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
 
     if ( punishDate > 0 )
     {
+        quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
         if ( ( punishDuration <= punishDate )
           || ( punishDuration == 0 )
           || ( punishDuration <= date ) )
@@ -343,11 +346,15 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
             {
                 sernum = sernums.at( i );
                 if ( type == PunishTypes::IP )
+                {
+                    userData->sync();
                     ip = userData->value( sernum % "/" % value ).toString();
+                }
 
                 if ( Helper::cmpStrings( sernum, value )
                   || Helper::cmpStrings( ip, value ) )
                 {
+                    userData->sync();
                     if ( punishType == PunishTypes::Ban )
                     {
                         userData->remove( sernum % "/" % keys[ UserKeys::kBANNED ] );
@@ -552,7 +559,7 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
 
     QList<QStandardItem*> list{ tblModel->findItems( serNum, Qt::MatchExactly, static_cast<int>( col ) ) };
     QModelIndex index;
-    if ( list.count() )
+    if ( !list.isEmpty() )
     {
         index = list.value( 0 )->index();
         if ( index.isValid() )
@@ -574,43 +581,25 @@ void User::loadUserInfo()
         title = title.append( " [ %1 ] Users" )
                      .arg( sernums.count() );
 
-        QString sernum{ "" };
-        QString muteReason{ "" };
-        QString banReason{ "" };
-        QString ip{ "" };
-
-        quint64 muteDate_i{ 0 };
-        quint64 muteDuration_i{ 0 };
-        quint64 banDate_i{ 0 };
-        quint64 banDuration_i{ 0 };
-        quint64 seen_i{ 0 };
-        //quint32 pings_i{ 0 };
-        quint32 calls_i{ 0 };
-
-        quint32 rank{ 0 };
-        bool banned{ false };
-        bool muted{ false };
-
-        int row{ -1 };
         for ( int i = 0; i < sernums.count(); ++i )
         {
-            sernum = sernums.at( i );
-            muteDuration_i = getData( sernum, keys[ UserKeys::kMUTEDURATION ] ).toUInt();
-            banDuration_i = getData( sernum, keys[ UserKeys::kBANDURATION ] ).toUInt();
-            muteReason = getData( sernum, keys[ UserKeys::kMUTEREASON ] ).toString();
-            banReason = getData( sernum, keys[ UserKeys::kBANREASON ] ).toString();
-            muteDate_i = getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt();
-            banDate_i = getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt();
-            //pings_i = getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt();
-            calls_i = getData( sernum, keys[ UserKeys::kCALLS ] ).toUInt();
-            seen_i = getData( sernum, keys[ UserKeys::kSEEN ] ).toUInt();
-            rank = getData( sernum, keys[ UserKeys::kRANK ] ).toUInt();
-            ip = getData( sernum, keys[ UserKeys::kIP ] ).toString();
+            const QString sernum{ sernums.at( i ) };
+            const QString muteReason{ getData( sernum, keys[ UserKeys::kMUTEREASON ] ).toString() };
+            const QString banReason{ getData( sernum, keys[ UserKeys::kBANREASON ] ).toString() };
+            const QString ip{ getData( sernum, keys[ UserKeys::kIP ] ).toString() };
 
-            banned = banDate_i > 0;
-            muted = muteDate_i > 0;
+            const quint64 muteDuration_i{ getData( sernum, keys[ UserKeys::kMUTEDURATION ] ).toUInt() };
+            const quint64 banDuration_i{ getData( sernum, keys[ UserKeys::kBANDURATION ] ).toUInt() };
+            const quint64 muteDate_i{ getData( sernum, keys[ UserKeys::kMUTED ] ).toUInt() };
+            const quint64 banDate_i{ getData( sernum, keys[ UserKeys::kBANNED ] ).toUInt() };
+            const quint32 calls_i{ getData( sernum, keys[ UserKeys::kCALLS ] ).toUInt() };
+            const quint64 seen_i{ getData( sernum, keys[ UserKeys::kSEEN ] ).toUInt() };
+            const quint32 rank{ getData( sernum, keys[ UserKeys::kRANK ] ).toUInt() };
 
-            row = tblModel->rowCount();
+            bool banned{ banDate_i > 0 };
+            bool muted{ muteDate_i > 0 };
+
+            int row{ tblModel->rowCount() };
             tblModel->insertRow( row );
 
             tblProxy->rowCount();
@@ -826,9 +815,6 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 bool setReason{ false };
                 QString reason{ "" };
 
-                quint64 muteDuration{ 0 };
-                quint64 muteDate{ 0 };
-
                 bool muted{ tblModel->data( index ).toBool() };
                 if ( muted )
                 {
@@ -838,8 +824,8 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                         setReason = true;
                         reason = "Manual Mute; " % requestReason( this );
 
-                        muteDate = static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() );
-                        muteDuration = muteDate + static_cast<uint>( requestDuration( this ) );
+                        quint64 muteDate{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
+                        quint64 muteDuration{ muteDate + static_cast<uint>( requestDuration( this ) ) };
 
                         emit this->mutedSerNumDurationSignal( sernum, muteDuration );
 

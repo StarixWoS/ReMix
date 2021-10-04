@@ -3,6 +3,7 @@
 #include "views/plrsortproxymodel.hpp"
 
 //ReMix includes.
+#include "sortutil.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
@@ -20,11 +21,8 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
         QVariant vL{ sourceModel()->data( left ) };
         QVariant vR{ sourceModel()->data( right ) };
 
-        if ( !( vL.isValid() && vR.isValid() ))
+        if ( !( vL.isValid() || vR.isValid() ) )
             return QSortFilterProxyModel::lessThan( left, right );
-
-        Q_ASSERT( vL.isValid( ) );
-        Q_ASSERT( vR.isValid( ) );
 
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
@@ -50,10 +48,7 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
             vlStr = vlStr.remove( ":" );
             vrStr = vrStr.remove( ":" );
         }
-
-        bool res{ false };
-        if ( Helper::naturalSort( vlStr, vrStr, res ) )
-            return res;
+        return SortUtil::naturalLessThan( vlStr, vrStr, Qt::CaseInsensitive );
     }
     return QSortFilterProxyModel::lessThan( left, right );
 }

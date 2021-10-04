@@ -31,10 +31,10 @@ class CampExemption : public QObject
         static void removeSettingFromPath(const QString& path);
 
         static void setIsLocked(const QString& sernum, const bool& state);
-        static bool getIsLocked(const QString& targetSerNum);
+        static bool getIsLocked(const QString& sernum);
 
         static void setAllowCurrent(const QString& sernum, const bool& state);
-        static bool getAllowCurrent(const QString& targetSerNum);
+        static bool getAllowCurrent(const QString& sernum);
 
         static void setIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum, const bool& state);
         static bool getIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum);

@@ -15,9 +15,10 @@ class SendMsg : public QDialog
     Q_OBJECT
 
     public:
-        explicit SendMsg(const QString& serNum, QWidget* parent = nullptr);
+        explicit SendMsg(QWidget* parent = nullptr);
         ~SendMsg() override;
 
+        void setTitle(const QString& title);
         bool sendToAll() const;
 
     private:

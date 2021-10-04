@@ -62,6 +62,7 @@ QString CampExemption::makePath(const QString& plrSernum, const QString& key, co
 void CampExemption::setDataFromPath(const QString& path, const QVariant& value)
 {
     QMutexLocker<QMutex> locker( &mutex );
+    exemptData->sync();
     exemptData->setValue( path, value );
     exemptData->sync();
 }
@@ -69,6 +70,7 @@ void CampExemption::setDataFromPath(const QString& path, const QVariant& value)
 QVariant CampExemption::getDataFromPath(const QString& path)
 {
     QMutexLocker<QMutex> locker( &mutex );
+    exemptData->sync();
     return exemptData->value( path );
 }
 
@@ -88,9 +90,9 @@ void CampExemption::setIsLocked(const QString& sernum, const bool& state)
         removeSettingFromPath( makePath( sernum, "isLocked" ) );
 }
 
-bool CampExemption::getIsLocked(const QString& targetSerNum)
+bool CampExemption::getIsLocked(const QString& sernum)
 {
-    return getDataFromPath( makePath( targetSerNum, "isLocked" ) ).toBool();
+    return getDataFromPath( makePath( sernum, "isLocked" ) ).toBool();
 }
 
 void CampExemption::setAllowCurrent(const QString& sernum, const bool& state)
@@ -101,9 +103,9 @@ void CampExemption::setAllowCurrent(const QString& sernum, const bool& state)
         removeSettingFromPath( makePath( sernum, "allowCurrent" ) );
 }
 
-bool CampExemption::getAllowCurrent(const QString& targetSerNum)
+bool CampExemption::getAllowCurrent(const QString& sernum)
 {
-    return getDataFromPath( makePath( targetSerNum, "allowCurrent" ) ).toBool();
+    return getDataFromPath( makePath( sernum, "allowCurrent" ) ).toBool();
 }
 
 void CampExemption::setIsWhitelisted(const QString& srcSerNum, const QString& targetSerNum, const bool& state)
@@ -128,11 +130,12 @@ QString CampExemption::getWhiteListedUsers(const QString& srcSerNum)
 
     QStringList whiteList{ exemptData->allKeys() };
     QString list{ "" };
-    if ( whiteList.count() > 0 )
+
+    if ( !whiteList.isEmpty() )
     {
         for ( const auto& item : whiteList )
         {
-            list.append( Helper::serNumToIntStr( item ) );
+            list.append( Helper::serNumToIntStr( item, true ) );
             list.append( ", " );
         }
     }

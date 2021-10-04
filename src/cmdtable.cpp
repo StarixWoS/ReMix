@@ -324,13 +324,12 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
 
 qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
 {
-
     qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };
     qint32 cmdIdx{ static_cast<qint32>( cmdIndex ) };
-    qint32 sCmdIdx{ -1 };
     const CmdTable::CmdStruct& cmdAt{ cmdTable.at( cmdIdx ) };
     if ( !time )
     {
+        qint32 sCmdIdx{ -1 };
         for ( const QString& el : cmdAt.subCmd )
         {
             ++sCmdIdx;

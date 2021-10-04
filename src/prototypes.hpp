@@ -126,7 +126,7 @@
     #ifndef REMIX_GLOBALS
         #define REMIX_GLOBALS
 
-        enum Globals
+        enum class Globals: int
         {
             //Anything above PACKET_FLOOD_LIMIT (1024 packets)
             //will disconnect the User.
@@ -370,6 +370,12 @@
                                    PebiByte,   // 1024^5,
                                    ExbiByte,    // 1024^6
                                  };
+        //Valid SSV Modes. Read/Write.
+        enum class SSVModes: int{ Read = 0, Write = 1, Invalid = -1,  };
+
+        //Valid Player Disconnect Types.
+        enum class PlrDisconnectType{ SerNumChanged = 0, InvalidSerNum, BlueCodeSerNum, SerNumOne, Invalid = -1 };
+
     #endif  // REMIX_GLOBALS
 
 #endif // REMIX_PROTOTYPES_HPP

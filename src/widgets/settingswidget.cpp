@@ -213,7 +213,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case SToggles::WorldDir: //13
             {
                 QString directory{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
-                QString rowText{ "World Dir: [ %1 ]" };
+                rowText = "World Dir: [ %1 ]";
 
                 bool reUse{ false };
                 if ( !directory.isEmpty() )
@@ -226,7 +226,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
 
                 if ( directory.isEmpty() || reUse )
                 {
-                    QString title{ "Select WoS Directory" };
+                    title = "Select WoS Directory";
                     directory = QFileDialog::getExistingDirectory( this, title, "/worlds", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 
                     state = false;

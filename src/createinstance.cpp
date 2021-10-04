@@ -77,19 +77,20 @@ void CreateInstance::updateServerList(const bool& firstRun)
     QStringList servers{ Settings::prefs->childGroups() };
     QStringList validServers;
 
-    QString name{ "" };
-    bool skip{ false };
-
-    bool running{ false };
     quint32 serverCount{ 0 };
+    bool running{ false };
+
     for ( int i = 0; i < servers.count(); ++i )
     {
-        name = servers.at( i );
-        for ( const QString& key : Settings::pKeys )
+        const QString name{ servers.at( i ) };
+        const bool skip =
         {
-            if ( Helper::cmpStrings( name, key ) )
-                skip = true;
-        }
+            std::any_of( Settings::pKeys.begin(), Settings::pKeys.end(),
+            [name]( const QString& key )
+            {
+                return Helper::cmpStrings( name, key );
+            } )
+        };
 
         if ( !skip )
         {
@@ -107,8 +108,6 @@ void CreateInstance::updateServerList(const bool& firstRun)
             validServers.append( name );
             ++serverCount;
         }
-
-        skip = false;
         running = false;
     }
 
@@ -140,7 +139,6 @@ void CreateInstance::updateServerList(const bool& firstRun)
 
 void CreateInstance::on_initializeServer_clicked()
 {
-    ServerInfo* server{ nullptr };
     QString svrName{ ui->servers->currentText() };
     QString title{ "Error:" };
     QString message{ "Servers cannot be initialized without a name!" };
@@ -156,8 +154,8 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
-                                                 ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
+                ServerInfo* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
+                                                             ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
 
                 emit this->createServerAcceptedSignal( server );
                 emit this->accept();
@@ -184,7 +182,6 @@ void CreateInstance::on_close_clicked()
 
 quint16 CreateInstance::genPort()
 {
-    quint16 portMax{ std::numeric_limits<quint16>::max() };
     quint16 portMin{ std::numeric_limits<quint16>::min() };
     quint16 port{ 0 };
 
@@ -195,27 +192,24 @@ quint16 CreateInstance::genPort()
     //Generate a Valid Port Number.
     if ( port == portMin )
     {
-        if ( randDev != nullptr )
-        {
-            do
-            {   //Generate a Possibly Usable Port Number.
-                port = randDev->genRandNum( quint16( 10000 ), portMax );
-            }   //Test our Generated Port Number for usability.
-            while ( !this->testPort( port ) );
-        }
+        do
+        {   //Generate a Possibly Usable Port Number.
+            const quint16 portMax{ std::numeric_limits<quint16>::max() };
+            port = randDev->genRandNum( quint16( 10000 ), portMax );
+        }   //Test our Generated Port Number for usability.
+        while ( !this->testPort( port ) );
     }
     return port;
 }
 
 void CreateInstance::restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
 {
-    ServerInfo* server{ nullptr };
     if ( !name.isEmpty() )
     {
         //Verify that the server hasn't been initialized previously.
         if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            server = this->initializeServer( name, gameName, port, useUPNP, isPublic );
+            ServerInfo* server{ this->initializeServer( name, gameName, port, useUPNP, isPublic ) };
 
             emit this->createServerAcceptedSignal( server );
             emit this->accept();
@@ -232,7 +226,6 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
 
 ServerInfo* CreateInstance::loadOldServer(const QString& name)
 {
-    ServerInfo* server{ nullptr };
     if ( !name.isEmpty() )
     {
         QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, name ).toString() };
@@ -240,7 +233,7 @@ ServerInfo* CreateInstance::loadOldServer(const QString& name)
         bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
         bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
 
-        server = this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic );
+        ServerInfo* server{ this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic ) };
         return server;
     }
     return nullptr;
@@ -251,7 +244,7 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
     ServerInfo* server{ nullptr };
 
     //Verify Instance Count isn't above the maximum.
-    if ( ReMixTabWidget::getInstanceCount() + 1 <= MAX_SERVER_COUNT )
+    if ( ReMixTabWidget::getInstanceCount() + 1 <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
     {
         server = new ServerInfo();
         if ( server == nullptr )
@@ -288,7 +281,7 @@ ServerInfo* CreateInstance::initializeServer(const QString& name, const QString&
     {
         QString title{ "Unable to Initialize Server:" };
         QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
-        message = message.arg( static_cast<int>( MAX_SERVER_COUNT ) );
+        message = message.arg( static_cast<int>( Globals::MAX_SERVER_COUNT ) );
 
         Helper::warningMessage( this, title, message );
     }

@@ -191,10 +191,9 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                     //Send Camp packets to the newly connecting User.
                     if ( this->getGameID() == Games::WoS )
                     {
-                        Player* tmpPlr{ nullptr };
-                        for ( int i = 0; i < MAX_PLAYERS; ++i )
+                        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                         {
-                            tmpPlr = server->getPlayer( i );
+                            Player* tmpPlr{ server->getPlayer( i ) };
                             if ( tmpPlr != nullptr
                               && plr != tmpPlr )
                             {
@@ -263,7 +262,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                         {
                             QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
                             Player* tmpPlr{ nullptr };
-                            for ( int i = 0; i < MAX_PLAYERS; ++i )
+                            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                             {
                                 tmpPlr = server->getPlayer( i );
                                 if ( tmpPlr != nullptr )
@@ -277,7 +276,7 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
                             if ( tmpPlr != nullptr )
                             {
                                 QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
-                                if ( CampExemption::getInstance()->getIsWhitelisted( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
+                                if ( !CampExemption::getInstance()->getIsWhitelisted( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
                                 {   //The Player is not exempted from further checking.
                                     if ( tmpPlr->getIsCampLocked() )
                                     {
@@ -340,7 +339,6 @@ bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
 bool ChatView::parseChatEffect(const QString& packet)
 {
     bool retn{ true };
-    bool log{ true };
     QString srcSerNum{ Helper::serNumToIntStr( packet.left( 12 ).mid( 4 ), true ) };
     QString fltrCode{ packet.mid( 13 ).left( 2 ) };
 
@@ -361,7 +359,7 @@ bool ChatView::parseChatEffect(const QString& packet)
     {
         QString plrName{ "Unincarnated [ %1 ]" };
         Player* plr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             plr = server->getPlayer( i );
             if ( plr != nullptr )
@@ -389,6 +387,8 @@ bool ChatView::parseChatEffect(const QString& packet)
         }
 
         QChar type{ packet.at( 31 ) };
+        bool log{ true };
+
         switch ( type.toLatin1() )
         {
             case '\'': //Gossip Chat Effect.

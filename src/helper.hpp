@@ -20,7 +20,7 @@ class Helper
         static QString intToStr(const T& val, const int& base = 10, const int& fill = 0, const QChar& filler = '0')
         {
             QString str{ "%1" };
-                    str = str.arg( val & ( 0xffffffff >> (32 - 4 * fill ) ), fill, base, filler ).toUpper();
+                    str = str.arg( ( val & 0xffffffff ), fill, base, filler ).toUpper();
 
             if ( str.length() > 8 )
                 str = str.mid( str.length() - 8 );
@@ -47,15 +47,11 @@ class Helper
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(const QString& password);
-        static QString genPwdSalt(const qint32& length = SALT_LENGTH);
+        static QString genPwdSalt(const qint32& length = static_cast<int>( Globals::SALT_LENGTH ));
 
         static bool validateSalt(const QString& salt);
 
-        static bool naturalSort(QString& left, QString& right, bool& result);
-        static void delay(const qint32& time);
-
         static QHostAddress getPrivateIP();
-        static void getSynRealData(ServerInfo* svr);
 
         static bool strStartsWithStr(const QString& strA, const QString& strB);
         static bool strContainsStr(const QString& strA, const QString& strB);

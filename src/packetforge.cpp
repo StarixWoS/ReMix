@@ -75,7 +75,7 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
         return true;
 
     QString message{ "Auto-Mute; SerNum Missmatch; Tried sending a packet as [ %1 ] while connected as [ %2 ]." };
-            message = message.arg( srcSerNum )
+            message = message.arg( Helper::serNumToIntStr( srcSerNum ) )
                              .arg( plr->getSernum_s() );
     plr->getServerInfo()->sendMasterMessage( message, plr, false );
 
@@ -83,8 +83,8 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
             msg = msg.arg( plr->getSernum_s() )
                      .arg( plr->peerAddress().toString() )
                      .arg( pkt )  //Encrypted packet into the log file.
-                     .arg( srcSerNum )
-                     .arg( plr->getSernumHex_s() );
+                     .arg( Helper::serNumToIntStr( srcSerNum ) )
+                     .arg( plr->getSernum_s() );
 
     User::addMute( nullptr, plr, msg, false, true, PunishDurations::THIRTY_MINUTES );
     emit this->insertLogSignal( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );

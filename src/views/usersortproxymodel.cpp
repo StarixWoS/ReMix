@@ -3,6 +3,7 @@
 #include "views/usersortproxymodel.hpp"
 
 //ReMix includes.
+#include "sortutil.hpp"
 #include "helper.hpp"
 #include "user.hpp"
 
@@ -22,11 +23,8 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
         QVariant vL{ sourceModel()->data( left ) };
         QVariant vR{ sourceModel()->data( right ) };
 
-        if ( !( vL.isValid() && vR.isValid() ))
+        if ( !( vL.isValid() || vR.isValid() ) )
             return QSortFilterProxyModel::lessThan( left, right );
-
-        Q_ASSERT( vL.isValid( ) );
-        Q_ASSERT( vR.isValid( ) );
 
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
@@ -57,10 +55,7 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
             vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );
             vrStr = Helper::intSToStr( vrStr, static_cast<int>( IntBase::DEC ) );
         }
-
-        bool res{ false };
-        if ( Helper::naturalSort( vlStr, vrStr, res ) )
-            return res;
+        return SortUtil::naturalLessThan( vlStr, vrStr, Qt::CaseInsensitive );
     }
     return QSortFilterProxyModel::lessThan( left, right );
 }

@@ -10,14 +10,11 @@
 //Qt Includes.
 #include <QKeyEvent>
 
-SendMsg::SendMsg(const QString& serNum, QWidget* parent) :
+SendMsg::SendMsg(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::SendMsg)
 {
     ui->setupUi(this);
-
-    QString title{ "Admin Message: [ %1 ]" };
-    this->setWindowTitle( title.arg( serNum ) );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
@@ -33,6 +30,12 @@ SendMsg::~SendMsg()
         Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     delete ui;
+}
+
+void SendMsg::setTitle(const QString& title)
+{
+    QString msg{ "Admin Message: [ %1 ]" };
+    this->setWindowTitle( msg.arg( title ) );
 }
 
 bool SendMsg::sendToAll() const

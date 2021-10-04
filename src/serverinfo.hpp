@@ -20,10 +20,8 @@ class ServerInfo : public QObject
     UdpThread* udpThread{ nullptr };
 
     PacketHandler* pktHandle{ nullptr };
-    Server* tcpServer{ nullptr };
     UPNP* upnp{ nullptr };
 
-    QString masterInfoHost{ "http://synthetic-reality.com/synreal.ini" };
     qint64 initializeDate{ 0 };
 
     QTimer upTimer;
@@ -37,7 +35,7 @@ class ServerInfo : public QObject
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    quint32 usageArray[ SERVER_USAGE_48_HOURS ]{ 0 };
+    quint32 usageArray[ static_cast<int>( Globals::SERVER_USAGE_48_HOURS ) ]{ 0 };
     quint32 usageCounter{ 0 };
 
     QTimer usageUpdate;
@@ -48,7 +46,6 @@ class ServerInfo : public QObject
     quint32 playerCount{ 0 };
     QString serverID{ "" };
 
-    bool isMaster{ false };
     bool isPublic{ false };
     bool useUPNP{ false };
 
@@ -79,14 +76,12 @@ class ServerInfo : public QObject
     Games gameId{ Games::Invalid };
 
     QString gameInfo{ "" };
-    QString info{ "" };
 
     QVector<Player*> players;
     QMap<qint32, Player*> plrSlotMap;
 
     quint32 userCalls{ 0 };
     quint32 userPings{ 0 };
-    quint32 serNumDc{ 0 };
     quint32 dupDc{ 0 };
     quint32 pktDc{ 0 };
     quint32 ipDc{ 0 };
@@ -104,8 +99,6 @@ class ServerInfo : public QObject
         void setupInfo();
         void setupUPNP(const bool& enable = false);
 
-        QString getServerInfoString();
-        void sendServerInfo(const QHostAddress& addr, const quint16& port);
         void sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendMasterInfo(const bool& disconnect = false);
 
@@ -127,9 +120,6 @@ class ServerInfo : public QObject
 
         qint64 getUpTime() const;
         QTimer* getUpTimer();
-
-        QString getInfo() const;
-        void setInfo(const QString& value);
 
         QString getGameInfo() const;
         void setGameInfo(const QString& value);
@@ -156,9 +146,6 @@ class ServerInfo : public QObject
 
         bool getUseUPNP() const;
         void setUseUPNP(const bool& value);
-
-        bool getIsMaster() const;
-        void setIsMaster(const bool& value);
 
         QString getServerID() const;
         void setServerID(const QString& value);
@@ -189,9 +176,6 @@ class ServerInfo : public QObject
 
         quint32 getUserPings() const;
         void setUserPings(const quint32& value);
-
-        quint32 getSerNumDc() const;
-        void setSerNumDc(const quint32& value);
 
         quint32 getDupDc() const;
         void setDupDc(const quint32& value);
@@ -249,9 +233,6 @@ class ServerInfo : public QObject
         qint32 getUsageDays() const;
         qint32 getUsageMins() const;
 
-        Server* getTcpServer() const;
-        void setTcpServer(Server* value);
-
         PacketHandler* getPktHandle() const;
         void setPktHandle(PacketHandler* value);
 
@@ -291,12 +272,10 @@ class ServerInfo : public QObject
         void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
         void masterMixIPChangedSlot();
-        void masterInfoSlot();
 
     private slots:
         void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
-        void sendServerInfoSlot(const QHostAddress& addr, const quint16& port);
         void increaseServerPingSlot();
         void upnpPortAddedSlot(const quint16& port, const QString& protocol);
 };

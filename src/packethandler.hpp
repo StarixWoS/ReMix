@@ -45,7 +45,7 @@ class PacketHandler : public QObject
         void readMIX7(const QString& packet, Player* plr);
         void readMIX8(const QString& packet, Player* plr);
         void readMIX9(const QString& packet, Player* plr);
-        void handleSSVReadWrite(const QString& packet, Player* plr, const bool write);
+        void handleSSVReadWrite(const QString& packet, Player* plr, const SSVModes mode);
 
     public slots:
         void parsePacketSlot(const QByteArray& packet, Player* plr = nullptr);

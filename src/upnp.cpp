@@ -478,10 +478,10 @@ void UPNP::portForwardAdd(const QString& protocol, const quint16& port, const bo
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
     //Support for routers that only support lifetime leases.
-    qint32 timeout{ UPNP_TIME_OUT_S };
+    qint32 timeout{ static_cast<int>( Globals::UPNP_TIME_OUT_S ) };
     if ( lifetime )
     {
-        timeout = UPNP_TIME_OUT_PERMA;
+        timeout = static_cast<int>( Globals::UPNP_TIME_OUT_PERMA );
         permFwd.insert( port, true );
     }
 

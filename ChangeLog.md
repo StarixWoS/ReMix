@@ -4,6 +4,38 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.7:
+    Change:
+      * Converted all remaining Global variables to use an enum Class type.
+      * Converted an if/else case within ( Player::validateSerNum ) to a switch case.
+      * Converted the use of booleans within ( PacketHandler::handleSSVReadWrite ) to a typed Enum Class.
+      * Removed old/dead/deprecated functions and variables from various Classes.
+      * Correctly notify users using the Game Type "Warpath" [ W97 ] that the Master Mix will not respond to pings.
+      * Normalized User Sernums shown within Message Dialogs when accessing the PlrListWidget context menus.
+        * Previously the dialogs would show either a Hex String, or an integet string. e.g. "00000FA0" or "SOUL 4000".
+      * Added a new implementation ( SortUtil ) for naturally sorting strings with integers.
+        * The previous implementation within the Helper Class ( Helper::naturalSort ) has been removed.
+      
+
+
+
+    Bugfixes:
+      * Fixed an issue where the Test for the rule "Max Players" would show a default of 0.
+        * The default for this rule should have been showing as "256".
+      * Fixed an issue where the Create Instance Dialog would not show when starting ReMix.
+      * Fixed an issue with the Send Message dialog ( Accessed via right-clicking a Player within the PlrListWidget ).
+        * Previously when sending a message to one User, the title would be locked with that Users SerNum.
+        * Any subsequent messages to other Users would incorrectly show the initializing Users SerNum.
+      * Fixed an issue where the GameInfoString would have a null byte appended to the end.
+        * This caused the GameInfoString to be appended to the Server's name within the Server List.
+      * Fixed an issue within the function ( Helper::intToStr ) introduced in version [ 2.7.5 ].
+        * The change made was utilizing undefined logic within C++.
+      * Fixed an issue within the CommandHandler class where the "Camp" command would not detect the targeting of the User initializing the command.
+        * e.g. User [ SOUL 4000 ] could successfully use the command [ /cmd camp allow soul 4000 ].
+
+
+
+
 Version 2.7.6:
     Change:
       * Prepared the code for use with C++ 20 and Qt6.
@@ -26,7 +58,7 @@ Version 2.7.6:
         * Previously the command would only remove the setting invoked via the command "/camp lock".
       * Fixed an issue where ReMix would be opened alongside a Console/Debug window.
       * Fixed an issue where the MasterMixThread would download the MasterMix Info "synreal.ini" resulting in ReMix instances not obtaining the MasterMix information.
-        * This was due to the file not being properly synced to the QSettings Object
+        * This was due to the file not being properly synced to the QSettings Object used to access the data.
 
 
 

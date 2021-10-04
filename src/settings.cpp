@@ -165,6 +165,8 @@ void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
     QVariant val;
     if ( oldName != newName )
     {
+        prefs->sync();
+
         //Copy Rules.
         val = getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, oldName );
               setSetting( val, SKeys::Rules, SSubKeys::HasSvrPassword, newName );
@@ -349,15 +351,12 @@ QString Settings::getRuleSet(const QString& svrID)
     QStringList ruleList{ prefs->allKeys() };
     QString rules{ "" };
 
-    bool valIsBool{ false };
-
     QVariant value;
     for ( const QString& rule : ruleList )
     {
         value = prefs->value( rule );
 
-        valIsBool = false;
-
+        bool valIsBool{ false };
         if ( Helper::cmpStrings( value.toString(), "true" ) )
             valIsBool = true;
 

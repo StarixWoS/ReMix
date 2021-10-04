@@ -7,6 +7,7 @@
 //Required Qt Includes..
 #include <QTabWidget>
 #include <QObject>
+#include <QTimer>
 #include <QMutex>
 #include <QMap>
 
@@ -20,10 +21,11 @@ class ReMixTabWidget : public QTabWidget
 
     static qint32 instanceCount;
 
+    QTimer createInstanceTimer;
+
     QToolButton* nightModeButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
-    qint32 prevTabIndex{ 0 };
     bool nightMode{ false };
 
     public:
@@ -33,9 +35,6 @@ class ReMixTabWidget : public QTabWidget
         void sendMultiServerMessage(const QString& msg);
         quint32 getPlayerCount() const;
         quint32 getServerCount() const;
-
-        qint32 getPrevTabIndex() const;
-        void setPrevTabIndex(const qint32& value);
 
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);

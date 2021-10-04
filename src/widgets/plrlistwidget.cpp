@@ -158,34 +158,32 @@ void PlrListWidget::on_actionSendMessage_triggered()
     if ( menuTarget != nullptr )
     {
         if ( messageDialog == nullptr )
+            messageDialog = new SendMsg();
+
+        messageDialog->setTitle( Helper::serNumToIntStr( menuTarget->getSernumHex_s(), true ) );
+
+        QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
+        [=, this](QString message)
         {
-            messageDialog = new SendMsg( menuTarget->getSernum_s() );
-            QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
-            [=, this](QString message)
+            if ( !message.isEmpty() )
             {
-                if ( !message.isEmpty() )
+                if ( server != nullptr )
                 {
                     bool sendToAll{ messageDialog->sendToAll() };
-                    if ( server != nullptr )
-                    {
-                        if ( sendToAll )
-                            server->sendMasterMessage( message, nullptr, true );
-                        else
-                            server->sendMasterMessage( message, menuTarget, false );
-                    }
-                }
-                messageDialog->disconnect();
-                messageDialog->deleteLater();
-                messageDialog = nullptr;
-                menuTarget = nullptr;
-            } );
-        }
+                    if ( sendToAll )
+                        menuTarget = nullptr;
 
-        if ( !messageDialog->isVisible() )
-            messageDialog->show();
-        else
-            messageDialog->hide();
+                    server->sendMasterMessage( message, menuTarget, sendToAll );
+                }
+            }
+            menuTarget = nullptr;
+        }, Qt::UniqueConnection );
     }
+
+    if ( !messageDialog->isVisible() )
+        messageDialog->exec();
+    else
+        messageDialog->hide();
 }
 
 void PlrListWidget::on_actionMakeAdmin_triggered()
@@ -236,6 +234,8 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
     if ( menuTarget == nullptr )
         return;
 
+    QString sernum{ menuTarget->getSernumHex_s() };
+
     QString inform{ "The Server Host has %1 you. Reason: %2" };
     QString reason{ "Manual %1; %2" };
     QString type{ "" };
@@ -260,7 +260,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         reason = reason.arg( "Mute" );
     }
 
-    prompt = prompt.arg( menuTarget->getSernum_s() );
+    prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
     if ( Helper::confirmAction( this, title, prompt ) )
     {
@@ -275,11 +275,11 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
             User::addMute( nullptr, menuTarget, reason, false, false, muteDuration );
         }
         else
-            User::removePunishment( menuTarget->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
+            User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
         logMsg = logMsg.arg( reason )
-                       .arg( menuTarget->getSernum_s() )
+                       .arg( Helper::serNumToIntStr( sernum, true ) )
                        .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
@@ -295,9 +295,11 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
     if ( menuTarget == nullptr )
         return;
 
+    QString sernum{ menuTarget->getSernumHex_s() };
+
     QString title{ "Disconnect User:" };
     QString prompt{ "Are you certain you want to DISCONNECT [ %1 ]?" };
-            prompt = prompt.arg( menuTarget->getSernum_s() );
+            prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
     QString inform{ "The Server Host has disconnected you from the Server. Reason: %1" };
     QString reason{ "Manual Disconnect; %1" };
@@ -313,7 +315,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
-                         .arg( menuTarget->getSernum_s() )
+                         .arg( Helper::serNumToIntStr( sernum, true ) )
                          .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
@@ -326,9 +328,11 @@ void PlrListWidget::on_actionBANISHUser_triggered()
     if ( menuTarget == nullptr )
         return;
 
+    QString sernum{ menuTarget->getSernumHex_s() };
+
     QString title{ "Ban SerNum:" };
     QString prompt{ "Are you certain you want to BANISH User [ %1 ]?" };
-            prompt = prompt.arg( menuTarget->getSernum_s() );
+            prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
     QString inform{ "The Server Host has BANISHED you. Reason: %1" };
     QString reason{ "Manual Banish; %1" };
@@ -341,7 +345,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         User::addBan( nullptr, menuTarget, reason, false, User::requestDuration() );
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
-                         .arg( menuTarget->getSernum_s() )
+                         .arg( Helper::serNumToIntStr( sernum, true ) )
                          .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );

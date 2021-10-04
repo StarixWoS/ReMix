@@ -24,7 +24,6 @@ class Player : public QTcpSocket
     bool adminPwdRequested{ false };
     bool adminPwdReceived{ false };
     bool svrPwdRequested{ false };
-    bool sentCampPacket{ false };
     bool svrPwdReceived{ false };
     bool isDisconnected{ false };
     bool isCampLocked{ false };
@@ -35,9 +34,7 @@ class Player : public QTcpSocket
     QString plrName{ "Unincarnated" };
     QString sernumHex_s{ "" };
     QString sernum_s{ "" };
-    QString playTime{ "" };
     QString bioData{ "" };
-    QString alias{ "" };
 
     QByteArray campPacket{ "" };
     QByteArray outBuff;
@@ -117,20 +114,11 @@ class Player : public QTcpSocket
         PktTarget getTargetType() const;
         void setTargetType(const PktTarget& value);
 
-        QString getPlayTime() const;
-        void setPlayTime(const QString& value);
-
         QString getPlrName() const;
         void setPlrName(const QString& value);
 
-        QString getAlias() const;
-        void setAlias(const QString& value);
-
         QByteArray getCampPacket() const;
         void setCampPacket(const QByteArray& value);
-
-        bool getSentCampPacket() const;
-        void setSentCampPacket(bool value);
 
         void forceSendCampPacket();
         QString getBioData() const;
@@ -207,7 +195,6 @@ class Player : public QTcpSocket
         QIcon getAfkIcon() const;
         void setAfkIcon(const QString& value);
 
-        bool getIsAFK() const;
         void setIsAFK(bool value);
 
         void validateSerNum(ServerInfo* server, const qint32& id);

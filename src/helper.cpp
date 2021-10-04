@@ -98,13 +98,11 @@ QString Helper::getStrStr(const QString& str, const QString& indStr, const QStri
      */
 
     QString tmp{ "" };
-    int index{ 0 };
-
     if ( !str.isEmpty() )
     {
         if ( !indStr.isEmpty() )
         {
-            index = getStrIndex( str,indStr );
+            const int index( getStrIndex( str, indStr ) );
             if ( index >= 0 )   //-1 if str didn't contain indStr.
             {
                 if ( !mid.isEmpty() )
@@ -122,7 +120,7 @@ QString Helper::getStrStr(const QString& str, const QString& indStr, const QStri
 
             if ( !mid.isEmpty() )
             {
-                index = getStrIndex( tmp, mid );
+                const int index( getStrIndex( tmp, mid ) );
                 if ( index >= 0 )   //-1 if str didn't contain mid.
                 {
                     //Append the lookup string's length if it's greater than 1
@@ -135,7 +133,7 @@ QString Helper::getStrStr(const QString& str, const QString& indStr, const QStri
 
             if ( !left.isEmpty() )
             {
-                index = getStrIndex( tmp, left );
+                const int index( getStrIndex( tmp, left ) );
                 if ( index >= 0 )   //-1 if str didn't contain left.
                     tmp = tmp.left( index );
             }
@@ -175,7 +173,7 @@ QString Helper::sanitizeSerNum(const QString& value)
             sernum = stripSerNumHeader( sernum );
 
     quint32 sernum_i{ sernum.toUInt( nullptr, static_cast<int>( IntBase::HEX ) ) };
-    if ( sernum_i & MIN_HEX_SERNUM )
+    if ( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) )
         return value;
 
     return serNumToHexStr( sernum, 8 );
@@ -188,7 +186,7 @@ QString Helper::serNumToHexStr(QString sernum, const int& fillAmt)
     qint32 sernum_i{ static_cast<qint32>( sernum.toUInt( nullptr, static_cast<int>( IntBase::HEX ) ) ) };
     QString result{ "" };
 
-    if ( !( sernum_i & MIN_HEX_SERNUM ) )
+    if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
     {
         bool ok{ false };
         sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) );
@@ -227,7 +225,7 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
     qint32 sernum_i{ serNumtoInt( serNum, isHex ) };
     QString retn{ "" };
 
-    if ( !( sernum_i & MIN_HEX_SERNUM ) || !isHex )
+    if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) || !isHex )
         retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, static_cast<int>( IntBase::DEC ) ) );
     else
         retn = QString( "%1" ).arg( intToStr( sernum_i, static_cast<int>( IntBase::HEX ) ) );
@@ -315,10 +313,9 @@ QString Helper::genPwdSalt(const qint32& length)
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
     };
 
-    qint32 chrPos{ -1 };
     while ( salt.length() < length )
     {
-        chrPos = randGen->genRandNum( 0, static_cast<int>( charList.length() - 1 ) );
+        qint32 chrPos{ randGen->genRandNum( 0, static_cast<int>( charList.length() - 1 ) ) };
         salt.append( charList.at( chrPos ) );
     }
 
@@ -342,81 +339,6 @@ bool Helper::validateSalt(const QString& salt)
             return false;
     }
     return true;
-}
-
-bool Helper::naturalSort(QString& left, QString& right, bool& result)
-{
-//    QCollator collator;
-//              collator.setNumericMode( true );
-
-//              qDebug() << left << right << collator.compare( left, right );
-//    result = collator.compare( left, right ) == 0;
-//    return result;
-
-    QRegularExpression regEx{ "[0-9]" };
-    QRegularExpressionMatch matchL;
-    QRegularExpressionMatch matchR;
-    do
-    {
-        if ( left.isEmpty() && right.isEmpty() )
-            break;
-
-        matchL = regEx.match( left );
-        matchR = regEx.match( right );
-
-        int posL{ static_cast<int>( left.indexOf( matchL.captured( 0 ) ) ) };
-        int posR{ static_cast<int>( right.indexOf( matchR.captured( 0 ) ) ) };
-        if ( posL == -1 || posR == -1 )
-            break;
-
-        if ( posL != posR )
-            break;
-
-        if ( left.left( posL ) != right.left( posR ) )
-            break;
-
-        QString temp;
-        while ( posL < left.size( ) )
-        {
-            if ( left.at( posL ).isDigit( ) )
-                temp += left.at( posL );
-            else
-                break;
-            posL++;
-        }
-        int numL = temp.toInt( );
-        temp.clear( );
-
-        while ( posR < right.size( ) )
-        {
-            if ( right.at( posR ).isDigit( ) )
-                temp += right.at( posR );
-            else
-                break;
-            posR++;
-        }
-        int numR = temp.toInt( );
-
-        if ( numL != numR )
-        {
-            result = ( numL < numR );
-            return true;
-        }
-        left.remove( 0, posL );
-        right.remove( 0, posR );
-
-    } while ( true );
-    return false;
-}
-
-void Helper::delay(const qint32& time)
-{
-    //Delay the next Port refresh by /time/ seconds.
-    QTime delayedTime{ QTime::currentTime().addSecs( time ) };
-    while ( QTime::currentTime() < delayedTime )
-    {
-        QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
-    }
 }
 
 QHostAddress Helper::getPrivateIP()
@@ -444,94 +366,6 @@ QHostAddress Helper::getPrivateIP()
         ipAddress = QHostAddress::AnyIPv4;
 
     return ipAddress;
-}
-
-void Helper::getSynRealData(ServerInfo* svr)
-{
-    if ( svr == nullptr )
-        return;
-
-    QString message{ "Fetching Master Info from [ %1 ]." };
-            message = message.arg( svr->getMasterInfoHost() );
-    Logger::getInstance()->insertLog( svr->getServerName(), message, LogTypes::MASTERMIX, true, true );
-
-    QFileInfo synRealFile( "synReal.ini" );
-
-    bool downloadFile{ true };
-    if ( synRealFile.exists() )
-    {
-        if ( synRealFile.size() != 0 ) //File exists and contains data.
-        {
-            qint64 curTime = static_cast<qint64>( QDateTime::currentDateTime().toSecsSinceEpoch() );
-            qint64 modTime = static_cast<qint64>( synRealFile.lastModified().toSecsSinceEpoch() );
-
-            //Check if the file is 24 hours old and set our bool.
-            downloadFile = ( curTime - modTime >= 86400 );
-        }
-    }
-
-    //The file was older than 48 hours or did not exist. Request a fresh copy.
-    if ( downloadFile )
-    {
-        QTcpSocket* socket{ new QTcpSocket() };
-        QUrl url{ svr->getMasterInfoHost() };
-
-        socket->connectToHost( url.host(), 80 );
-        QObject::connect( socket, &QTcpSocket::connected, socket,
-        [=]()
-        {
-            socket->write( QString( "GET %1\r\n" ) .arg( svr->getMasterInfoHost() ).toLatin1() );
-        } );
-
-        QObject::connect( socket, &QTcpSocket::readyRead, socket,
-        [=]()
-        {
-            QFile synreal( "synReal.ini" );
-            if ( synreal.open( QIODevice::WriteOnly | QIODevice::Append ) )
-            {
-                socket->waitForReadyRead();
-                synreal.write( socket->readAll() );
-            }
-
-            synreal.flush();
-            synreal.close();
-
-            QSettings settings( "synReal.ini", QSettings::IniFormat );
-            QString str{ settings.value( svr->getGameName() % "/master" ).toString() };
-
-            int index{ static_cast<int>( str.indexOf( ":" ) ) };
-            if ( index > 0 )
-            {
-                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.mid( index + 1 ).toInt() ) );
-
-                QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
-                        msg = msg.arg( svr->getMasterIP() )
-                                 .arg( svr->getMasterPort() )
-                                 .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getServerName(), msg, LogTypes::MASTERMIX, true, true );
-            }
-        } );
-        QObject::connect( socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater );
-    }
-    else
-    {
-        QSettings settings( "synReal.ini", QSettings::IniFormat );
-        QString str = settings.value( svr->getGameName() % "/master" ).toString();
-        if ( !str.isEmpty() )
-        {
-            int index = static_cast<int>( str.indexOf( ":" ) );
-            if ( index > 0 )
-            {
-                svr->setMasterIP( str.left( index ), static_cast<quint16>( str.mid( index + 1 ).toInt() ) );
-
-                message = "Got Master Server [ %1:%2 ] for Game [ %3 ].";
-                message = message.arg( svr->getMasterIP() )
-                                 .arg( svr->getMasterPort() )
-                                 .arg( svr->getGameName() );
-                Logger::getInstance()->insertLog( svr->getServerName(), message, LogTypes::MASTERMIX, true, true );
-            }
-        }
-    }
 }
 
 bool Helper::strStartsWithStr(const QString& strA, const QString& strB)
@@ -607,7 +441,7 @@ qint32 Helper::sanitizeToFriendlyUnits(const quint64& bytes, QString &retVal, QS
     qreal val{ static_cast<qreal>( bytes ) };
     qint32 iter{ 0 };
 
-    if ( bytes <= 0 )
+    if ( bytes == 0 )
         return false;
 
     while ( ( val >= 1024 ) && ( iter <= static_cast<int>( ByteUnits::ExbiByte ) ) )

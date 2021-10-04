@@ -70,7 +70,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, ServerInfo* svrInfo) :
 
     //Setup Networking Objects.
     tcpServer = new Server( this );
-    server->setTcpServer( tcpServer );
 
     //Connect Object Signals to Slots.
     QObject::connect( tcpServer, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
@@ -180,7 +179,7 @@ void ReMixWidget::renameServer(const QString& newName)
     }
 }
 
-void ReMixWidget::sendServerMessage(const QString& msg)
+void ReMixWidget::sendServerMessage(const QString& msg) const
 {
     if ( server != nullptr )
         server->sendMasterMessage( msg, nullptr, true );
@@ -197,11 +196,6 @@ quint32 ReMixWidget::getPlayerCount() const
 QString ReMixWidget::getServerName() const
 {
     return server->getServerName();
-}
-
-Server* ReMixWidget::getTcpServer() const
-{
-    return tcpServer;
 }
 
 quint16 ReMixWidget::getPrivatePort() const
@@ -252,10 +246,14 @@ void ReMixWidget::initUIUpdate()
                 }
                 else
                 {
-                    msg = "Sent UDP check-in to Master using: <a href=\"%1\"><span style=\" text-decoration: underline; color:#007af4;\">%1:%2</span></a>. "
-                          "Waiting for response...";
+                    QString waiting{ "Waiting for response..." };
+                    msg = "Sent UDP check-in to Master using: <a href=\"%1\"><span style=\" text-decoration: underline; color:#007af4;\">%1:%2</span></a>. %3";
+                    if ( server->getGameId() == Games::W97 )
+                        waiting = "This is a Warpath Server; the Master will not respond.";
+
                     msg = msg.arg( server->getPrivateIP() )
-                             .arg( server->getPrivatePort() );
+                             .arg( server->getPrivatePort() )
+                             .arg( waiting );
 
                     if ( server->getMasterTimedOut() )
                         msg = "No UDP response received from master server. Perhaps we are behind a firewall?";
@@ -482,11 +480,11 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     plr->setBioData( data );
     if ( plrTableItems.contains( ip ) )
     {
-        plr->setTableRow( this->updatePlayerTableImpl( ip, data, plr, false ) );
+        plr->setTableRow( this->updatePlayerTableImpl( ip, data, false ) );
     }
     else
     {
-        plrTableItems[ ip ] = this->updatePlayerTableImpl( ip, data, plr, true );
+        plrTableItems[ ip ] = this->updatePlayerTableImpl( ip, data, true );
 
         plr->setTableRow( plrTableItems.value( ip ) );
         server->sendMasterInfo();
@@ -500,7 +498,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
 }
 
-QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert)
+QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, const bool& insert)
 {
     QString bio{ QString( data ) };
     int row{ -1 };
@@ -525,8 +523,6 @@ QStandardItem* ReMixWidget::updatePlayerTableImpl(const QString& peerIP, const Q
         QString age{ Helper::getStrStr( bio, "HHMM", "=", "," ) };
 
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
-        plr->setPlayTime( age );
-        plr->setAlias( alias );
 
         plrViewModel->setData( plrViewModel->index( row, 1 ), sernum, Qt::DisplayRole );
         plrViewModel->setData( plrViewModel->index( row, 2 ), age, Qt::DisplayRole );

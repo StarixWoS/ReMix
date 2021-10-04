@@ -71,9 +71,9 @@ bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QS
 
         admin->setCmdAttempts( admin->getCmdAttempts() + 1 );
         invalid = invalid.arg( cmdStr )
-                         .arg( MAX_CMD_ATTEMPTS - admin->getCmdAttempts() );
+                         .arg( static_cast<int>( Globals::MAX_CMD_ATTEMPTS ) - admin->getCmdAttempts() );
 
-        if ( admin->getCmdAttempts() >= MAX_CMD_ATTEMPTS )
+        if ( admin->getCmdAttempts() >= static_cast<int>( Globals::MAX_CMD_ATTEMPTS ) )
         {
             QString reason = "Auto-Banish; <Unregistered Remote Admin[ %1 ]: [ %2 ] command attempts>";
 
@@ -134,42 +134,35 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
         }
         else
         {
-            if ( !msg.trimmed().isEmpty() )
+            //Echo the chat back to the User.
+            if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
             {
-                //Echo the chat back to the User.
-                if ( plr->getIsAdmin()
-                  && Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
+                QString message{ "Server comment from %1 [ %2 ]: %3" };
+                QString user{ "User" };
+
+                if ( this->getAdminRank( plr ) >= GMRanks::GMaster )
+                    user = "Admin";
+
+                message = message.arg( user )
+                                 .arg( plr->getSernum_s() )
+                                 .arg( msg );
+                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                 {
-                    Player* tmpPlr{ nullptr };
-                    QString message{ "Server comment from %1 [ %2 ]: %3" };
-                    QString user{ "User" };
-
-                    if ( this->getAdminRank( plr ) >= GMRanks::GMaster )
-                        user = "Admin";
-
-                    message = message.arg( user )
-                                     .arg( plr->getSernum_s() )
-                                     .arg( msg );
-                    for ( int i = 0; i < MAX_PLAYERS; ++i )
+                    Player* tmpPlr{ server->getPlayer( i ) };
+                    if ( tmpPlr != nullptr
+                      && tmpPlr != plr )
                     {
-                        tmpPlr = server->getPlayer( i );
-                        if ( tmpPlr != nullptr )
+                        if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
+                          && tmpPlr->getAdminPwdReceived() )
                         {
-                            if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
-                                 && tmpPlr->getAdminPwdReceived() )
-                            {
-                                server->sendMasterMessage( message, tmpPlr, false );
-                            }
+                            server->sendMasterMessage( message, tmpPlr, false );
                         }
                     }
                 }
             }
 
-            if ( !plr->getIsAdmin()
-              && Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
-            {
+            if ( Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
                 server->sendMasterMessage( "Echo: " % msg, plr, false );
-            }
 
             QString sernum{ plr->getSernum_s() };
             emit newUserCommentSignal( sernum, alias, msg );
@@ -198,6 +191,9 @@ void CmdHandler::parseMix6Command(Player* plr, const QString& packet)
 
 bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
 {
+    if ( admin == nullptr )
+        return false;
+
     bool logMsg{ true };
     bool retn{ false };
     bool all{ false };
@@ -242,7 +238,7 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
-            if ( !( Helper::serNumtoInt( arg1, true ) & MIN_HEX_SERNUM ) )
+            if ( !( Helper::serNumtoInt( arg1, true ) & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
                 arg1.prepend( "SOUL " );
         }
         else if ( Helper::cmpStrings( subCmd, "change" ) )
@@ -259,9 +255,7 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
         message = packet.mid( Helper::getStrIndex( packet, cmd ) + cmd.length() ).simplified();
     }
 
-    bool canUseCommands{ false };
     GMCmds index{ argIndex };
-
     switch ( argIndex )
     {
         case GMCmds::Help:
@@ -296,10 +290,9 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                     qint32 adminCount{ 0 };
                     QString tmpMsg{ "Server Info: Up Time[ %1 ], Connected Users[ %2 ], Connected Admins[ %3 ]." };
 
-                    Player* tmpPlr{ nullptr };
-                    for ( int i = 0; i < MAX_PLAYERS; ++i )
+                    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                     {
-                        tmpPlr = server->getPlayer( i );
+                        Player* tmpPlr{ server->getPlayer( i ) };
                         if ( tmpPlr != nullptr )
                         {
                             //Only Track Admins that are logged in and are visible.
@@ -450,8 +443,7 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                 QString version{ "ReMix Version: [ %1 ]" };
                         version = version.arg( QString( REMIX_VERSION ) );
 
-                if ( admin != nullptr )
-                    server->sendMasterMessage( version, admin, false );
+                server->sendMasterMessage( version, admin, false );
 
                 //Version can be used by any User.
                 //Do not log usage to file.
@@ -466,12 +458,9 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                 if ( Helper::cmpStrings( arg1, "soul" )
                   && !arg2.isEmpty() )
                 {
-                    if ( !arg2.isEmpty() )
-                    {
-                        serNum = arg2;
-                        soulSubCmd = true;
-                        logMsg = true;
-                    }
+                    serNum = arg2;
+                    soulSubCmd = true;
+                    logMsg = true;
                 }
                 this->campHandler( admin, serNum, subCmd, index, soulSubCmd );
             }
@@ -491,10 +480,10 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
              .arg( message );
 
     //The command was a Message, do not send command information to online Users.
-    if ( argIndex != GMCmds::Message )
+    if ( argIndex != GMCmds::Message
+      && retn )
     {
-        if ( retn && canUseCommands )
-            server->sendMasterMessage( msg, admin, false );
+        server->sendMasterMessage( msg, admin, false );
     }
 
     if ( logMsg )
@@ -509,9 +498,9 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target, const QString& ar
         return false;
 
     //Remote commands cannot affect the issuer.
-    if ( admin == target )
+    if ( this->isTargetingSelf( admin, target ) )
     {
-        this->cannotIssueAction( admin, arg1, argIndex, all );
+        this->cannotIssueAction( admin, target, argIndex, all );
         return false;
     }
     else if ( target->getIsAdmin() )
@@ -520,7 +509,7 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target, const QString& ar
         if ( admin->getAdminRank() <= target->getAdminRank() )
         {
             //If the Admin's rank was less or equal the command will fail.
-            this->cannotIssueAction( admin, arg1, argIndex, all );
+            this->cannotIssueAction( admin, target, argIndex, all );
             return false;
         }
     }
@@ -534,19 +523,24 @@ bool CmdHandler::canIssueAction(Player* admin, Player* target, const QString& ar
     return false;
 }
 
-void CmdHandler::cannotIssueAction(Player* admin, const QString& arg1, const GMCmds& argIndex, const bool& isAll)
+bool CmdHandler::isTargetingSelf(Player* admin, Player* target)
+{
+    return ( admin == target );
+}
+
+void CmdHandler::cannotIssueAction(Player* admin, Player* target, const GMCmds& argIndex, const bool& isAll)
 {
     //Do not spam the command issuer with failures.
     if ( isAll )
         return;
 
-    if ( admin == nullptr )
+    if ( admin == nullptr || target == nullptr )
         return;
 
     QString message{ "Admin [ %1 ]: Unable to issue the command [ %2 ] on the User [ %3 ]. The User may be offline or another Remote Administrator." };
             message = message.arg( admin->getSernum_s() )
                              .arg( cmdTable->getCmdName( argIndex ) )
-                             .arg( arg1 );
+                             .arg( target->getSernum_s() );
 
     server->sendMasterMessage( message, admin, false );
 }
@@ -625,7 +619,7 @@ void CmdHandler::banHandler(Player* admin, const QString& arg1, const QString& d
     Player* tmpPlr{ nullptr };
     bool ban{ false };
 
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
@@ -702,10 +696,9 @@ void CmdHandler::kickHandler(Player* admin, const QString& arg1, const GMCmds& a
     reason = reason.arg( admin->getSernum_s() )
                    .arg( message );
 
-    Player* tmpPlr{ nullptr };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
-        tmpPlr = server->getPlayer( i );
+        Player* tmpPlr{ server->getPlayer( i ) };
         if ( tmpPlr != nullptr )
         {
             //Check target validity.
@@ -738,7 +731,7 @@ void CmdHandler::muteHandler(Player* admin, const QString& arg1, const QString& 
     Player* tmpPlr{ nullptr };
     bool mute{ false };
 
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
@@ -801,10 +794,10 @@ void CmdHandler::unMuteHandler(Player* admin, const QString& subCmd, const QStri
     QString sernum{ Helper::serNumToHexStr( arg1 ) };
     bool isSernum{ Helper::cmpStrings( subCmd, "soul" ) };
 
-    Player* tmpPlr{ nullptr };
-    for ( int i = 0; i < MAX_PLAYERS; ++i )
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
-        tmpPlr = server->getPlayer( i );
+        Player* tmpPlr{ server->getPlayer( i ) };
+
         if ( tmpPlr != nullptr )
         {
             if ( this->isTarget( tmpPlr, arg1, false ) )
@@ -829,10 +822,9 @@ void CmdHandler::msgHandler(const QString& arg1, const QString& message, const b
     {
         if ( !all )
         {
-            Player* tmpPlr{ nullptr };
-            for ( int i = 0; i < MAX_PLAYERS; ++i )
+            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
             {
-                tmpPlr = server->getPlayer( i );
+                Player* tmpPlr{ server->getPlayer( i ) };
                 if ( tmpPlr != nullptr )
                 {
                     if ( tmpPlr->peerAddress().toString() == arg1
@@ -899,10 +891,9 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
                 QString message{ "Remote Admin [ %1 ] has Authenticated with the server." };
                         message = message.arg( admin->getSernum_s() ) ;
 
-                Player* tmpPlr{ nullptr };
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                 {
-                    tmpPlr = server->getPlayer( i );
+                    Player* tmpPlr{ server->getPlayer( i ) };
                     if ( tmpPlr != nullptr )
                     {
                         if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
@@ -986,10 +977,9 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
         QString message{ "User [ %1 ] has Registered as a Remote Administrator with the server." };
                 message = message.arg( admin->getSernum_s() );
 
-        Player* tmpPlr{ nullptr };
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
-            tmpPlr = server->getPlayer( i );
+            Player* tmpPlr{ server->getPlayer( i ) };
             if ( tmpPlr != nullptr )
             {
                 if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
@@ -1154,7 +1144,7 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
     if ( soulSubCmd
       && !serNum.isEmpty() )
     {
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr )
@@ -1162,11 +1152,16 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
                 //Check target validity.
                 if ( this->isTarget( tmpPlr, serNum, false ) )
                 {
-                    if ( idx != 4 //Allow Soul is exempted from Admin checking.
-                      && this->canUseAdminCommands( admin, GMRanks::Admin, "soul" ) )
+                    if ( static_cast<GMSubCmds>( idx ) != GMSubCmds::Four  //Allow Soul exempted from Admin Checking
+                      || static_cast<GMSubCmds>( idx ) != GMSubCmds::Five )//Remove Soul exempted from admin checking.
                     {
-                        override = this->canIssueAction( admin, tmpPlr, serNum, GMCmds::Camp, false );
-                        if ( override )
+                        if ( this->canUseAdminCommands( admin, GMRanks::Admin, "soul" ) )
+                        {
+                            override = this->canIssueAction( admin, tmpPlr, serNum, GMCmds::Camp, false );
+                            if ( override )
+                                break;
+                        }
+                        else
                             break;
                     }
                     else
@@ -1186,7 +1181,6 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
             return;
         }
 
-        CampExemption* exemptions{ CampExemption::getInstance() };
         switch ( static_cast<GMSubCmds>( idx ) )
         {
             case GMSubCmds::Zero: //Lock
@@ -1246,27 +1240,31 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
             case GMSubCmds::Four: //Allow. Only online Players may be exempted for storage.
             case GMSubCmds::Five:
                 {
-                    bool add{ true };
-                    if ( static_cast<GMSubCmds>( idx ) == GMSubCmds::Five )
-                        add = false;
-
-                    if ( soulSubCmd
-                      && tmpPlr != nullptr )
+                    if ( !this->isTargetingSelf( admin, tmpPlr ) )
                     {
-                        override = false;
+                        bool add{ true };
+                        if ( static_cast<GMSubCmds>( idx ) == GMSubCmds::Five )
+                            add = false;
 
-                        msg = allowExempt;
-                        msg = msg.arg( tmpPlr->getSernum_s() );
+                        if ( soulSubCmd
+                             && tmpPlr != nullptr )
+                        {
+                            override = false;
 
-                        exemptions->setIsWhitelisted( admin->getSernumHex_s(), tmpPlr->getSernumHex_s(), add );
+                            msg = allowExempt;
+                            msg = msg.arg( tmpPlr->getSernum_s() );
 
-                        if ( !add )
-                            msg = msg.arg( removed );
+                            CampExemption* exemptions{ CampExemption::getInstance() };
+                            exemptions->setIsWhitelisted( admin->getSernumHex_s(), tmpPlr->getSernumHex_s(), add );
+
+                            if ( !add )
+                                msg = msg.arg( removed );
+                            else
+                                msg = msg.arg( added );
+                        }
                         else
-                            msg = msg.arg( added );
+                            return;
                     }
-                    else
-                        return;
                 }
             break;
             case GMSubCmds::Six:

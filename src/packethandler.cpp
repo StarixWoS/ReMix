@@ -177,11 +177,10 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
             case 'G':   //Set the Server's gameInfoString.
             {
                 //Check if the IP Address is a properly connected User. Or at least is in the User list...
-                Player* tmpPlr{ nullptr };
                 bool connected{ false };
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                 {
-                    tmpPlr = server->getPlayer( i );
+                    const Player* tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr )
                     {
                         if ( Helper::cmpStrings( tmpPlr->peerAddress().toString(), ipAddr.toString() ) )
@@ -204,11 +203,14 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                     if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
                         usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
 
+                    if ( usrInfo.contains( '\u0000' ) )
+                        usrInfo = usrInfo.remove( '\u0000' );
+
                     //Enforce a 256 character limit on GameNames.
-                    if ( usrInfo.length() > MAX_GAME_NAME_LENGTH )
-                        server->setGameInfo( usrInfo.left( MAX_GAME_NAME_LENGTH ) ); //Truncate the User's GameInfo String to 256.
+                    if ( usrInfo.length() > static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) )
+                        server->setGameInfo( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String to 256.
                     else
-                        server->setGameInfo( usrInfo ); //Length was less than 256, set without issue.
+                        server->setGameInfo( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
                 }
             }
             break;
@@ -229,12 +231,12 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
                 //We've obtained a Master response.
                 server->setMasterUDPResponse( true );
 
-                quint32 pubIP{ 0 };
-                int pubPort{ 0 };
-                int opcode{ 0 };
-
                 if ( !data.isEmpty() )
                 {
+                    quint32 pubIP{ 0 };
+                    int pubPort{ 0 };
+                    int opcode{ 0 };
+
                     QDataStream mDataStream( udp );
                                 mDataStream >> opcode;
                                 mDataStream >> pubIP;
@@ -300,7 +302,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //Disconnect and ban duplicate IP's if required.
     if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() )
     {
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr
@@ -355,7 +357,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //Disconnect only the newly connected Player.
     if ( plr != nullptr )
     {
-        for ( int i = 0; i < MAX_PLAYERS; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( ( tmpPlr != nullptr )
@@ -388,7 +390,7 @@ bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr, co
 {
     quint64 banned{ 0 };
     banned = User::getIsPunished( PunishTypes::Ban, serNum, PunishTypes::SerNum, plrSerNum );
-    if ( banned <= 0 )
+    if ( banned == 0 )
         banned = User::getIsPunished( PunishTypes::Ban, ipAddr, PunishTypes::IP, plrSerNum );
 
     return ( banned >= 1 );
@@ -403,12 +405,12 @@ void PacketHandler::detectFlooding(Player* plr)
     if ( floodCount >= 1 )
     {
         qint64 time{ plr->getFloodTime() };
-        if ( time <= PACKET_FLOOD_TIME )
+        if ( time <= static_cast<int>( Globals::PACKET_FLOOD_TIME ) )
         {
-            if ( floodCount >= PACKET_FLOOD_LIMIT
+            if ( floodCount >= static_cast<int>( Globals::PACKET_FLOOD_LIMIT )
               && !plr->getIsDisconnected() )
             {
-                QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are disconnected: [ %4 ]" };
+                QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
                         logMsg = logMsg.arg( plr->peerAddress().toString() )
                                        .arg( floodCount )
                                        .arg( time )
@@ -421,7 +423,7 @@ void PacketHandler::detectFlooding(Player* plr)
                 server->sendMasterMessage( plrMessage, plr, false );
             }
         }
-        else if ( time >= PACKET_FLOOD_TIME )
+        else if ( time >= static_cast<int>( Globals::PACKET_FLOOD_TIME ) )
         {
             plr->restartFloodTimer();
             plr->setPacketFloodCount( 0 );
@@ -442,7 +444,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
     if ( plrPktSlot != Helper::strToInt( recvSlotPos, static_cast<int>( IntBase::HEX ) ) )
     {
         qint32 exemptCount{ plr->getPktHeaderExemptCount() + 1 };
-        if ( exemptCount >= static_cast<int>( MAX_PKT_HEADER_EXEMPT ) )
+        if ( exemptCount >= static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) )
         {
             disconnect = true;
 
@@ -453,7 +455,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
             reason = reason.arg( plr->getSernum_s() )
                            .arg( plr->peerAddress().toString() )
                            .arg( plr->getBioData() )
-                           .arg( Helper::intToStr( static_cast<int>( MAX_PKT_HEADER_EXEMPT ) ) );
+                           .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 
             emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
@@ -464,7 +466,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
                              .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
-                             .arg( static_cast<int>( MAX_PKT_HEADER_EXEMPT ) - exemptCount );
+                             .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.
             //I'm not sure if WoS will allow this.
@@ -564,20 +566,18 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
 
 void PacketHandler::readMIX8(const QString& packet, Player* plr)
 {
-    this->handleSSVReadWrite( packet, plr, false );
+    this->handleSSVReadWrite( packet, plr, SSVModes::Read );
 }
 
 void PacketHandler::readMIX9(const QString& packet, Player* plr)
 {
-    this->handleSSVReadWrite( packet, plr, true );
+    this->handleSSVReadWrite( packet, plr, SSVModes::Write );
 }
 
-void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const bool write)
+void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const SSVModes mode)
 {
     if ( plr == nullptr || packet.isEmpty() )
         return;
-
-    qint64 bOut{ 0 };
 
     QString accessType{ "Read" };
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() )
@@ -592,7 +592,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
 
         QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
         QDir ssvDir( "mixVariableCache" );
-        if ( write )
+        if ( mode == SSVModes::Write )
         {
             accessType = "Write";
             if ( !ssvDir.exists() )
@@ -609,25 +609,22 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
                      .arg( vars.value( 2 ) ) //variable
                      .arg( ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString() ); //value
 
-            if ( write )
+            if ( mode == SSVModes::Write )
             {
-                Player* tmpPlr{ nullptr };
-                for ( int i = 0; i < MAX_PLAYERS; ++i )
+                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                 {
-                    tmpPlr = server->getPlayer( i );
+                    Player* tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr
                       && plr != tmpPlr )
                     {
-                        bOut = tmpPlr->write( val.toLatin1(), val.length() );
-                        server->updateBytesOut( tmpPlr, bOut );
+                        server->updateBytesOut( tmpPlr, tmpPlr->write( val.toLatin1(), val.length() ) );
                     }
                 }
             }
             else if ( !val.isEmpty()
-                   && !write )
+                   && ( mode == SSVModes::Read ) )
             {
-                bOut = plr->write( val.toLatin1(), val.length() );
-                server->updateBytesOut( plr, bOut );
+                server->updateBytesOut( plr, plr->write( val.toLatin1(), val.length() ) );
             }
         }
 

@@ -58,7 +58,6 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
     QString data{ udp };
     QString sernum{ "" };
 
-    qint32 index{ 0 };
     if ( !data.isEmpty() )
     {
         QChar opCode{ data.at( 0 ).toLatin1() };
@@ -66,7 +65,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
         {
             case 'P':   //Store the Player information into a struct.
             {
-                index = Helper::getStrIndex( data, "sernum=" );
+                qint32 index{ Helper::getStrIndex( data, "sernum=" ) };
                 if ( index >= 0 )
                 {
                     sernum = data.mid( index + 7 );
@@ -83,9 +82,11 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 if (( reqSernum && Helper::serNumtoInt( sernum, true ) )
                   || !reqSernum )
                 {
-                    QString sGameInfo{ worldInfo };
-                    if ( !sGameInfo.isEmpty() )
-                        sGameInfo = " [world=" % worldInfo % "]";
+                    QString sGameInfo{ " [world=%1]" };
+                    if ( !worldInfo.isEmpty() )
+                        sGameInfo = sGameInfo.arg( worldInfo );
+                    else
+                        sGameInfo.clear();
 
                     QString response{ "#name=%1%2 //Rules: %3 //ID:%4 //TM:%5 //US:%6 //ReMix[ %7 ]" };
                             response = response.arg( serverName )

@@ -68,7 +68,7 @@ class UPNP : public QObject
     signals:
         void upnpPortRemovedSignal(const quint16& port, const QString& protocol);
         void upnpPortAddedSignal(const quint16& port, const QString& protocol);
-        void upnpPortCheckedSignal(const QString protocol);
+        void upnpPortCheckedSignal(const QString& protocol);
         void upnpTunnelSuccessSignal();
         void upnpErrorSignal(const QString& message);
 

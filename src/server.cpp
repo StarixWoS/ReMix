@@ -11,7 +11,7 @@ Server::Server(QWidget* parent)
     : QTcpServer(parent)
 {
     //Ensure all possible User slots are fillable.
-    this->setMaxPendingConnections( MAX_PLAYERS );
+    this->setMaxPendingConnections( static_cast<int>( Globals::MAX_PLAYERS ) );
 }
 
 Server::~Server()

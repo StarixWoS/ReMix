@@ -42,6 +42,14 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     if ( !createDialog->getLoadingOldServers() )
         this->createServer();
 
+    createInstanceTimer.start( static_cast<int>( Globals::UI_UPDATE_TIME ) );
+    QObject::connect( &createInstanceTimer, &QTimer::timeout, &createInstanceTimer,
+    [=]()
+    {
+        if ( serverMap.isEmpty() && !createDialog->isVisible() )
+            createDialog->show();
+    } );
+
     QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot );
 
     //Hide Tab-specific UI dialog windows when the tabs change.
@@ -152,34 +160,17 @@ void ReMixTabWidget::sendMultiServerMessage(const QString& msg)
 
 quint32 ReMixTabWidget::getPlayerCount() const
 {
-    quint32 playerCount{ 0 };
-    for ( ReMixWidget* server : serverMap )
-    {
-        if ( server != nullptr )
-            playerCount += server->getPlayerCount();
-    }
-    return playerCount;
+    auto lambda = [&](int a, ReMixWidget* b){ return static_cast<int>( b->getPlayerCount() ) + a; };
+    return static_cast<quint32>( std::accumulate( serverMap.begin(), serverMap.end(), 0, lambda ) );
 }
 
 quint32 ReMixTabWidget::getServerCount() const
 {
-    quint32 serverCount{ 0 };
-    for ( ReMixWidget* server : serverMap )
-    {
-        if ( server != nullptr )
-            ++serverCount;
-    }
-    return serverCount;
-}
-
-qint32 ReMixTabWidget::getPrevTabIndex() const
-{
-    return prevTabIndex;
-}
-
-void ReMixTabWidget::setPrevTabIndex(const qint32& value)
-{
-    prevTabIndex = value;
+    return static_cast<quint32>( std::count_if( serverMap.begin(), serverMap.end(),
+                                 [](ReMixWidget* i)
+                                 {
+                                     return i != nullptr ;
+                                 } ) );
 }
 
 qint32 ReMixTabWidget::getInstanceCount()
@@ -205,10 +196,9 @@ void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)
     if ( tabWidget != nullptr
       && server != nullptr )
     {
-        ReMixWidget* instance{ nullptr };
-        for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+        for ( int i = 0; i < static_cast<int>( Globals::MAX_SERVER_COUNT ); ++i )
         {
-            instance = serverMap.value( i );
+            const ReMixWidget* instance{ serverMap.value( i ) };
             if ( instance != nullptr )
             {
                 if ( instance->getServerInfo()->getServerName() == server->getServerName() )
@@ -271,14 +261,10 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     QString title{ "Disable AutoRestart?" };
     QString prompt{ "Do you wish to disable the AutoRestart rule on the closed server?" };
 
-    quint16 privatePort{ server->getPrivatePort() };
     QString gameName{ server->getGameName() };
-
     QString name{ server->getServerName() };
-    Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
 
-    bool isPublic{ server->getIsPublic() };
-    bool useUPNP{ server->getUseUPNP() };
+    Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
 
     serverMap.remove( index );
     tabWidget->removeTab( index );
@@ -324,7 +310,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
         }
     }
     else    //The server is set to restart. Use the previous server's information.
-        createDialog->restartServer( name, gameName, privatePort, useUPNP, isPublic );
+        createDialog->restartServer( name, gameName, server->getPrivatePort(), server->getUseUPNP(), server->getIsPublic() );
 
     if ( instanceCount == 1 )
         tabWidget->setCurrentIndex( 0 );
@@ -405,16 +391,14 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
     QWidget* widget{ this->widget( index ) };
     if ( widget != nullptr )
     {
-        ReMixWidget* instance{ nullptr };
-
         QString title{ "Close [ %1 ]:" };
         QString prompt{ "You are about to shut down your ReMix game server!\r\nThis will affect [ %1 ] "
                         "User(s) connected to it.\r\n\r\nAre you certain?" };
 
-        for ( int i = 0; ( i < MAX_SERVER_COUNT )
+        for ( int i = 0; ( i < static_cast<int>( Globals::MAX_SERVER_COUNT ) )
            || ( i < serverMap.size() ); ++i )
         {
-            instance = serverMap.value( i );
+            const ReMixWidget* instance = serverMap.value( i );
             if ( instance != nullptr )
             {
                 if ( widget == instance )
@@ -455,10 +439,7 @@ void ReMixTabWidget::currentChangedSlot(const qint32& newTab)
 
     ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
-    {
         ReMix::updateTitleBars( server->getServerInfo() );
-    }
-    this->setPrevTabIndex( newTab );
 }
 
 void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
@@ -469,12 +450,12 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
     QString serverName{ server->getServerName() };
 
     qint32 serverID{ 0 };
-    ReMixWidget* instance{ nullptr };
 
-    for ( int i = 0; i < MAX_SERVER_COUNT; ++i )
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_SERVER_COUNT ); ++i )
     {
-        serverID = MAX_SERVER_COUNT + 1;
-        instance = serverMap.value( i );
+        const ReMixWidget* instance{ serverMap.value( i ) };
+        serverID = static_cast<int>( Globals::MAX_SERVER_COUNT ) + 1;
+
         if ( instance == nullptr )
         {
             serverID = i;
@@ -482,11 +463,11 @@ void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
         }
     }
 
-    if ( serverID <= MAX_SERVER_COUNT )
+    if ( serverID <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
     {
         instanceCount += 1;
         serverMap.insert( serverID, new ReMixWidget( this, server ) );
-        this->insertTab( serverMap.size() - 1, serverMap.value( serverID ), serverName );
+        this->insertTab( static_cast<int>( serverMap.size() - 1 ), serverMap.value( serverID ), serverName );
 
         if ( serverID == 0 )
             currentChangedSlot( serverID );

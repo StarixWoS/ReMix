@@ -25,7 +25,9 @@ class CmdHandler : public QObject
         bool parseCommandImpl(Player* admin, QString& packet);
 
         bool canIssueAction(Player* admin, Player* target, const QString& arg1, const GMCmds& argIndex, const bool& all);
-        void cannotIssueAction(Player* admin, const QString& arg1, const GMCmds& argIndex, const bool& isAll = false);
+        bool isTargetingSelf(Player* admin, Player* target);
+
+        void cannotIssueAction(Player* admin, Player* target, const GMCmds& argIndex, const bool& isAll = false);
 
         bool isTarget(Player* target, const QString& arg1, const bool isAll = false);
 

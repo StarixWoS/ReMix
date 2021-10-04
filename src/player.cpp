@@ -42,7 +42,7 @@ Player::Player(qintptr socketDescriptor)
     } );
 
     //Start the AFK timer.
-    afkTimer.start( MAX_AFK_TIME );
+    afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
 
     //Connect the Player Object to a User UI signal.
     QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this,
@@ -99,7 +99,7 @@ void Player::setTableRowData(QStandardItem* model, const qint32& row, const qint
     if ( model != nullptr )
     {
         QStandardItemModel* sModel = model->model();
-        if ( model != nullptr )
+        if ( sModel != nullptr )
         {
             if ( isColor )
                 sModel->setData( model->model()->index( row, column ), Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ), role );
@@ -187,7 +187,7 @@ void Player::setSernum_i(qint32 value)
         quint64 muteDuration{ 0 };
         muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
 
-        if ( muteDuration <= 0 )
+        if ( muteDuration == 0 )
             muteDuration = User::getIsPunished( PunishTypes::Mute, this->peerAddress().toString(), PunishTypes::IP, sernumHex_s );
 
         if ( muteDuration >= 1 )
@@ -259,16 +259,6 @@ void Player::setTargetType(const PktTarget& value)
     targetType = value;
 }
 
-QString Player::getPlayTime() const
-{
-    return playTime;
-}
-
-void Player::setPlayTime(const QString& value)
-{
-    playTime = value;
-}
-
 QString Player::getPlrName() const
 {
     if ( plrName.isEmpty() )
@@ -281,16 +271,6 @@ void Player::setPlrName(const QString& value)
     plrName = value;
 }
 
-QString Player::getAlias() const
-{
-    return alias;
-}
-
-void Player::setAlias(const QString& value)
-{
-    alias = value;
-}
-
 QByteArray Player::getCampPacket() const
 {
     return campPacket;
@@ -299,16 +279,6 @@ QByteArray Player::getCampPacket() const
 void Player::setCampPacket(const QByteArray& value)
 {
     campPacket = value;
-}
-
-bool Player::getSentCampPacket() const
-{
-    return sentCampPacket;
-}
-
-void Player::setSentCampPacket(bool value)
-{
-    sentCampPacket = value;
 }
 
 void Player::forceSendCampPacket()
@@ -571,7 +541,7 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
                 break;
             }
         }
-        killTimer.start( MAX_DISCONNECT_TTL );
+        killTimer.start( static_cast<int>( Globals::MAX_DISCONNECT_TTL ) );
     }
 }
 
@@ -660,11 +630,6 @@ void Player::setPlrLevel(const qint32& value)
     plrLevel = value;
 }
 
-bool Player::getIsAFK() const
-{
-    return isAFK;
-}
-
 void Player::setIsAFK(bool value)
 {
     isAFK = value;
@@ -673,7 +638,7 @@ void Player::setIsAFK(bool value)
         this->setAfkIcon( "AFK" );
     else
     {
-        afkTimer.start( MAX_AFK_TIME );
+        afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
         this->setAfkIcon( "NPK" );
     }
 }
@@ -693,16 +658,10 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
     if ( server == nullptr )
         return;
 
-    QString masterIP{ server->getMasterIP() };
-    QString socketIP{ this->peerAddress().toString() };
-
-    QString message{ "" };
-    QString reason{ "" };
-
+    PlrDisconnectType type{ PlrDisconnectType::Invalid };
     bool isBlueCoded{ Helper::isBlueCodedSerNum( id ) };
-    bool serNumChanged{ false };
-    bool zeroSerNum{ false };
-    bool disconnect{ false };
+    if ( isBlueCoded == true )
+        type = PlrDisconnectType::BlueCodeSerNum;
 
     if (( this->getSernum_i() != id
       && id > 0 )
@@ -717,13 +676,11 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                 if ( Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool()
                   && id == 0 )
                 {
-                    zeroSerNum = true;
-                    disconnect = true;
+                    type = PlrDisconnectType::InvalidSerNum;
                 }
                 else if ( id < 0 ) //The Player is connecting with a negative Sernum, disconnect them as a BlueCode.
                 {
-                    disconnect = true;
-                    isBlueCoded = true;
+                    type = PlrDisconnectType::BlueCodeSerNum;
                 }
                 this->setSernum_i( id );
             }
@@ -731,66 +688,86 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                    && this->getSernum_i() > 0 )
             {
                 //User's sernum has somehow changed. Disconnect them.
-                serNumChanged = true;
-                disconnect = true;
+                type = PlrDisconnectType::SerNumChanged;
             }
         }
 
-        if ( disconnect
-          || ( isBlueCoded
-            && Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() ) )
+        if ( id == 1 || this->getSernum_i() == 1 )
+            type = PlrDisconnectType::SerNumOne;
+
+        if ( type != PlrDisconnectType::InvalidSerNum )
         {
             QString sernum{ Helper::serNumToIntStr( Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 ), true ) };
-            if ( serNumChanged )
+            QString reason{ "Auto-Disconnect; %1: [ %2 ]" };
+
+            bool disconnect{ false };
+            switch ( type )
             {
-                message = "Auto-Disconnect; SerNum Changed";
-                reason = "%1: [ %2 ] to [ %3 ], [ %4 ]";
-                reason = reason.arg( message )
-                               .arg( this->getSernum_s() )
-                               .arg( sernum )
-                               .arg( this->getBioData() );
+                case PlrDisconnectType::SerNumChanged:
+                    {
+                        disconnect = true;
+
+                        QString msg{ "%1 to %2" };
+                                msg = msg.arg( this->getSernum_s() )
+                                         .arg( sernum );
+
+                        reason = reason.arg( "SerNum Changed" )
+                                       .arg( msg );
+                    }
+                break;
+                case PlrDisconnectType::InvalidSerNum:
+                    {
+                        disconnect = true;
+                        reason = reason.arg( "Invalid SerNum" )
+                                       .arg( sernum );
+                    }
+                break;
+                case PlrDisconnectType::BlueCodeSerNum:
+                    {
+                        disconnect = false;
+                        if ( Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() )
+                            disconnect = true;
+
+                        reason = reason.arg( "BlueCoded SerNum" )
+                                       .arg( sernum );
+                    }
+                break;
+                case PlrDisconnectType::SerNumOne:
+                    {
+                        QString masterIP{ server->getMasterIP() };
+                        QString socketIP{ this->peerAddress().toString() };
+
+                        QString message{ "" };
+                        if ( !Helper::cmpStrings( masterIP, socketIP ) )
+                        {
+                            //Ban IP?
+                            reason = "Auto-Disconnect; Unauthorized use of <SOUL 1>: Using IP [ %1 ] expected [ %2 ]";
+                            reason = reason.arg( socketIP )
+                                           .arg( masterIP );
+
+                            disconnect = true;
+                        }
+                    }
+                break;
+                case PlrDisconnectType::Invalid:
+                    {
+                        disconnect = false;
+                        break;
+                    }
+                break;
             }
-            else if ( zeroSerNum )
+
+            if ( disconnect == true )
             {
-                message = "Auto-Disconnect; Invalid SerNum";
-                reason = "%1: [ %2 ], [ %3 ]";
-                reason = reason.arg( message )
-                               .arg( sernum )
-                               .arg( this->getBioData() );
+                server->sendMasterMessage( reason, this, false );
+
+                reason.append( ", [ %1 ]" );
+                reason = reason.arg( this->getBioData() );
+
+                emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+
+                this->setDisconnected( true, DCTypes::IPDC );
             }
-            else if ( isBlueCoded )
-            {
-                message = "Auto-Disconnect; BlueCoded SerNum";
-                reason = "%1: [ %2 ], [ %3 ]";
-                reason = reason.arg( message )
-                               .arg( sernum )
-                               .arg( this->getBioData() );
-            }
-
-            server->sendMasterMessage( message, this, false );
-
-            emit this->insertLogSignal( serverInfo->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
-
-            this->setDisconnected( true, DCTypes::IPDC );
-        }
-    }
-
-    if ( id == 1 || this->getSernum_i() == 1 )
-    {
-        if ( !Helper::cmpStrings( masterIP, socketIP ) )
-        {
-            //Ban IP?
-            message = "Auto-Mute; Attempting to use SerNum 1 with the incorrect IP address. Be warned that this may become a ban within future ReMix versions.";
-            server->sendMasterMessage( message, this, false );
-
-            reason = "Automatic Network Mute of <[ %1 ][ %2 ]> due to the usage of <[ Soul 1 ][ %3 ]> while connecting from an improper IP Address.";
-            reason = reason.arg( this->getSernum_s() )
-                           .arg( socketIP )
-                           .arg( masterIP );
-
-            User::addMute( nullptr, this, reason, false, true, PunishDurations::THIRTY_MINUTES );
-
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
     }
 }
@@ -802,7 +779,6 @@ void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSe
     if ( plr == this )
         return;
 
-    qint64 bOut{ 0 };
     bool isAuth{ false };
     bool send{ false };
 
@@ -838,10 +814,8 @@ void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSe
     }
 
     if ( send && isAuth )
-    {
-        bOut = this->write( packet, packet.length() );
-        serverInfo->updateBytesOut( this, bOut );
-    }
+        serverInfo->updateBytesOut( this, this->write( packet, packet.length() ) );
+
     return;
 }
 
@@ -909,14 +883,13 @@ void Player::connectionTimeUpdateSlot()
         else
         {
             color = Colors::Default;
-            if ( !( this->getSernum_i() & MIN_HEX_SERNUM ) )
+            if ( !( this->getSernum_i() & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
                 color = Colors::GoldenSoul;
         }
 
         this->setTableRowData( row, row->row(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
         //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
-        color = Colors::Default;
         if ( !this->getIsMuted() )
         {
             if ( !this->getIsVisible() )
@@ -938,10 +911,10 @@ void Player::connectionTimeUpdateSlot()
     {
         bool defaultIdleTime{ false };
         qint64 maxIdle{ this->getMaxIdleTime() };
-        if ( maxIdle == static_cast<qint64>( MAX_IDLE_TIME ) )
+        if ( maxIdle == static_cast<qint64>( Globals::MAX_IDLE_TIME ) )
             defaultIdleTime = true;
 
-        if ((( idleTime.elapsed() >= static_cast<qint64>( MAX_IDLE_TIME ) )
+        if ((( idleTime.elapsed() >= static_cast<qint64>( Globals::MAX_IDLE_TIME ) )
             && defaultIdleTime )
           || ( idleTime.elapsed() >= maxIdle ) )
         {

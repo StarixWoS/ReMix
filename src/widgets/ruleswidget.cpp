@@ -71,7 +71,7 @@ void RulesWidget::setServerName(const QString& name)
     rowText = "Max Idle: [ %1 ] Minutes";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name );
     if ( !val.isValid() )
-        val = static_cast<qint64>( MAX_IDLE_TIME ) / 1000 / 60;
+        val = static_cast<qint64>( Globals::MAX_IDLE_TIME ) / 1000 / 60;
 
     ui->rulesView->item( static_cast<int>( RToggles::MaxIdle ), 0 )->setText( rowText.arg( val.toUInt() ) );
 
@@ -85,12 +85,11 @@ void RulesWidget::setServerName(const QString& name)
 
     rowText = "Max Players: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name );
-    if ( val.toUInt() > 0 )
-        rowText = rowText.arg( Helper::intToStr( val.toUInt() ) );
-    else
-        rowText = rowText.arg( Helper::intToStr( MAX_PLAYERS ) );
 
-    ui->rulesView->item( static_cast<int>( RToggles::MaxPlayers ), 0 )->setText( rowText );
+    if ( !val.isValid() )
+        val = static_cast<quint32>( Globals::MAX_PLAYERS );
+
+    ui->rulesView->item( static_cast<int>( RToggles::MaxPlayers ), 0 )->setText( rowText.arg( Helper::intToStr( val.toUInt() ) ) );
 
     this->setCheckedState( RToggles::MinVersion, !Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name ).toString().isEmpty() );
     this->setCheckedState( RToggles::ServerPassword, Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, name ).toBool() );
@@ -277,7 +276,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     }
                 }
 
-                QString rowText{ "World Name: [ %1 ]" };
+                rowText = "World Name: [ %1 ]";
                 if ( world.isEmpty() )
                     rowText = rowText.arg( "Not Selected" );
                 else
@@ -353,7 +352,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 
                     Settings::setSetting( maxPlrs, SKeys::Rules, SSubKeys::MaxPlayers, serverName );
                 }
-                else if ( maxPlrs != 0 )
+                else if ( maxPlrs > 0 )
                 {
                     maxPlrs = 0;
                     ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
@@ -364,7 +363,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 if ( maxPlrs > 0 )
                     rowText = rowText.arg( maxPlrs );
                 else
-                    rowText = rowText.arg( MAX_PLAYERS );
+                    rowText = rowText.arg( static_cast<int>( Globals::MAX_PLAYERS ) );
 
                 ui->rulesView->item( row, 0 )->setText( rowText );
             }
@@ -398,7 +397,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 rowText = "Max Idle: [ %1 ] Minutes";
                 QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
                 if ( !val.isValid() )
-                    val = static_cast<qint64>( MAX_IDLE_TIME ) / 1000 / 60;
+                    val = static_cast<qint64>( static_cast<int>( Globals::MAX_IDLE_TIME ) ) / 1000 / 60;
 
                 rowText = rowText.arg( val.toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );

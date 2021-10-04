@@ -40,11 +40,10 @@ class ReMixWidget : public QWidget
         ServerInfo* getServerInfo() const;
         void renameServer(const QString& newName);
 
-        void sendServerMessage(const QString& msg);
+        void sendServerMessage(const QString& msg) const;
         quint32 getPlayerCount() const;
         QString getServerName() const;
 
-        Server* getTcpServer() const;
         quint16 getPrivatePort() const;
 
     private:
@@ -68,7 +67,7 @@ class ReMixWidget : public QWidget
         void plrDisconnectedSlot(Player* plr, const bool& timedOut = false);
 
         void updatePlayerTable(Player* plr);
-        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, Player* plr, const bool& insert);
+        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, const bool& insert);
 
     signals:
         void reValidateServerIPSignal();
