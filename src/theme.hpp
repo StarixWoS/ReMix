@@ -7,17 +7,27 @@
 //Qt Includes
 #include <QStringList>
 #include <QVector>
+#include <QStyle>
 
-class Theme
+class Theme : public QObject
 {
-    static Themes themeType;
+    Q_OBJECT
+
     static QVector<QStringList> themeColors;
+    static QStyle* themeStyle;
+    static Themes themeType;
+    static Theme* instance;
 
     public:
+        explicit Theme(QWidget* = nullptr);
+        ~Theme() override;
+
         static void applyTheme(const Themes& type = Themes::Light);
         static Themes getThemeType();
         static void setThemeType(const Themes& value);
         static QBrush getThemeColor(const Colors& color);
+
+        static Theme* getInstance();
 };
 
 #endif // THEMECHANGE_HPP

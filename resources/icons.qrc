@@ -5,5 +5,7 @@
         <file>newtab.png</file>
         <file>AFK.png</file>
         <file>NPK.png</file>
+        <file>newtabdark.png</file>
+        <file>newtablight.png</file>
     </qresource>
 </RCC>

@@ -5,6 +5,7 @@
 //Required Qt Includes.
 #include <QStyleFactory>
 #include <QApplication>
+#include <QPixmapCache>
 #include <QPalette>
 #include <QObject>
 #include <QBrush>
@@ -41,7 +42,22 @@ QVector<QStringList> Theme::themeColors =
     }
 };
 
+QStyle* Theme::themeStyle{ QStyleFactory::create( "Fusion" ) };
 Themes Theme::themeType{ Themes::Light };
+Theme* Theme::instance{ nullptr };
+
+Theme::Theme(QWidget*)
+{
+}
+
+Theme::~Theme()
+{
+    if ( themeStyle != nullptr )
+    {
+        themeStyle->deleteLater();
+        themeStyle = nullptr;
+    }
+}
 
 void Theme::applyTheme(const Themes& type)
 {
@@ -54,7 +70,12 @@ void Theme::applyTheme(const Themes& type)
 #endif
 
     qApp->font().setFixedPitch( true );
-    qApp->setStyle( QStyleFactory::create( "Fusion" ) );
+
+    if ( themeStyle == nullptr )
+        themeStyle = QStyleFactory::create( "Fusion" );
+
+    qApp->setStyle( themeStyle );
+    qApp->setStyleSheet( "" );
 
     if ( type == Themes::Dark )
     {
@@ -88,7 +109,10 @@ void Theme::applyTheme(const Themes& type)
 
         qApp->setPalette( customPalette );
     }
-    //Light theme, keep standard palette.
+    else
+        qApp->setPalette( themeStyle->standardPalette() );
+
+    QPixmapCache::clear();
 }
 
 Themes Theme::getThemeType()
@@ -105,8 +129,16 @@ void Theme::setThemeType(const Themes& value)
 QBrush Theme::getThemeColor(const Colors& color)
 {
     //Return the default palette text color.
-    if ( color == Colors::Default)
+    if ( color == Colors::Default )
         return qApp->palette().windowText();
 
     return QBrush( QColor( themeColors[ static_cast<int>( getThemeType() ) ][ static_cast<int>( color ) ] ) );
+}
+
+Theme* Theme::getInstance()
+{
+    if ( instance == nullptr )
+        instance = new Theme( nullptr );
+
+    return instance;
 }

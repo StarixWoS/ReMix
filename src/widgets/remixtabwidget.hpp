@@ -18,6 +18,7 @@ class ReMixTabWidget : public QTabWidget
     static QMap<int, ReMixWidget*> serverMap;
     static CreateInstance* createDialog;
     static ReMixTabWidget* tabInstance;
+    static Theme* themeInstance;
 
     static qint32 instanceCount;
 
@@ -26,7 +27,7 @@ class ReMixTabWidget : public QTabWidget
     QToolButton* nightModeButton{ nullptr };
     QToolButton* newTabButton{ nullptr };
 
-    bool nightMode{ false };
+    Themes themeType{ Themes::Light };
 
     public:
         explicit ReMixTabWidget(QWidget* parent = nullptr);
@@ -41,6 +42,18 @@ class ReMixTabWidget : public QTabWidget
         static void remoteCloseServer(ServerInfo* server, const bool restart = false);
         static void setToolTipString(ReMixWidget* widget);
 
+        Theme* getThemeInstance() const;
+        void setThemeInstance(Theme* newThemeInstance);
+
+        QToolButton* getNewTabButton();
+        void setNewTabButton(QToolButton* button);
+
+        Themes getThemeType() const;
+        void setThemeType(Themes newThemeType);
+
+        QToolButton* getNightModeButton();
+        void setNightModeButton(QToolButton* newNightModeButton);
+
     private:
         mutable QMutex mutex;
         static void removeServer(const qint32& index, const bool& remote = false, const bool& restart = false);
@@ -49,8 +62,12 @@ class ReMixTabWidget : public QTabWidget
         void createServer();
 
     private slots:
+        void customContextMenuRequestedSlot(const QPoint& point);
         void tabCloseRequestedSlot(const qint32& index);
         void currentChangedSlot(const qint32& newTab);
+        void renameServerTabSlot(int index);
+        void nightModeButtonClickedSlot();
+        void themeChangedSlot(const Themes& theme);
 
     public slots:
         void crossServerCommentSlot(ServerInfo* server, const QString& comment);
@@ -59,6 +76,7 @@ class ReMixTabWidget : public QTabWidget
 
     signals:
         void crossServerCommentSignal(ServerInfo* server, const QString& comment);
+        void themeChangedSignal(const Themes& theme);
 };
 
 #endif // REMIXTABWIDGET_H

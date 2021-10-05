@@ -139,7 +139,6 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
             else
                 ui->actionMakeAdmin->setText( "Make Admin" );
         }
-
         contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
     }
     else
@@ -150,7 +149,6 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
         contextMenu->removeAction( ui->actionBANISHUser );
         contextMenu->removeAction( ui->actionMakeAdmin );
     }
-    contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
 }
 
 void PlrListWidget::on_actionSendMessage_triggered()

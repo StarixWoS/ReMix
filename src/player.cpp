@@ -734,8 +734,8 @@ void Player::validateSerNum(ServerInfo* server, const qint32& id)
                 break;
                 case PlrDisconnectType::SerNumOne:
                     {
-                        QString masterIP{ server->getMasterIP() };
-                        QString socketIP{ this->peerAddress().toString() };
+                        const QString masterIP{ server->getMasterIP() };
+                        const QString socketIP{ this->peerAddress().toString() };
 
                         QString message{ "" };
                         if ( !Helper::cmpStrings( masterIP, socketIP ) )
@@ -946,9 +946,8 @@ void Player::connectionTimeUpdateSlot()
             {
                 if ( !this->getAdminPwdReceived() )
                 {
-                    QString msg{ "The server Admin requires all Remote Administrators to authenticate themselves "
-                                 "with their password. Please enter your password with the command (/login *PASS) "
-                                 "or be denied access to Remote Administrator privelages. Thank you!" };
+                    const QString msg{ "Remote Administrators are required to authenticate themselves before using commands. "
+                                       "Please enter your password with the command (/login *PASS). Thank you!" };
 
                     if ( this->getIsAdmin() )
                     {

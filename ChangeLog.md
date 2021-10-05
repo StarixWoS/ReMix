@@ -4,6 +4,23 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.8:
+    Change:
+      * Enabled changing the Light/Dark theme without requiring the User to restart ReMix.
+      * The New Tab button is now themed more appropriately with the selected Theme type.
+      * Added a context menu to the ReMixTabWidget.
+        * When right-clicking a Tab the User will be given the option to Rename or Close a server instance.
+        * Double-clicking a tab will no longer prompt the User to rename the Tab.
+      
+
+
+
+    Bugfixes:
+      * Fixed an issue where an empty Context Menu could appear when right-clicking the PlayerList Widget.
+
+
+
+
 Version 2.7.7:
     Change:
       * Converted all remaining Global variables to use an enum Class type.

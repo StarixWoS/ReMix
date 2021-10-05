@@ -8,6 +8,7 @@
 #include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "theme.hpp"
 #include "remix.hpp"
 #include "user.hpp"
 
@@ -15,9 +16,11 @@
 #include <QApplication>
 #include <QToolButton>
 #include <QTabBar>
+#include <QMenu>
 
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance{ nullptr };
+Theme* ReMixTabWidget::themeInstance{ nullptr };
 
 QMap<int, ReMixWidget*> ReMixTabWidget::serverMap;
 qint32 ReMixTabWidget::instanceCount;
@@ -29,8 +32,13 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     this->setMovable( true );
 
     tabInstance = this;
-    this->setTabsClosable( true );
+    this->setTabsClosable( false );
     this->createTabButtons();
+    this->setContextMenuPolicy( Qt::CustomContextMenu );
+
+    this->setThemeInstance( Theme::getInstance() );
+
+    QObject::connect( this, &ReMixTabWidget::customContextMenuRequested, this, &ReMixTabWidget::customContextMenuRequestedSlot );
 
     createDialog = CreateInstance::getInstance( this );
 
@@ -50,64 +58,19 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
             createDialog->show();
     } );
 
+    QObject::connect( this, &ReMixTabWidget::themeChangedSignal, this, &ReMixTabWidget::themeChangedSlot );
     QObject::connect( this, &QTabWidget::tabCloseRequested, this, &ReMixTabWidget::tabCloseRequestedSlot );
 
     //Hide Tab-specific UI dialog windows when the tabs change.
     QObject::connect( this, &QTabWidget::currentChanged, this, &ReMixTabWidget::currentChangedSlot );
 
-    QObject::connect( this, &QTabWidget::tabBarDoubleClicked, this,
-    [=, this](int index)
-    {
-        ReMixWidget* tabA{ serverMap.value( index ) };
-        if ( tabA != nullptr )
-        {
-            QString title{ "Rename Server: [ %1 ]" };
-                    title = title.arg( tabA->getServerName() );
-            QString message{ "Please enter the new name you wish to use for this server!" };
+    //QObject::connect( this, &QTabWidget::tabBarDoubleClicked, this, &ReMixTabWidget::renameServerTabSlot );
 
-            bool accepted{ false };
-            QString response{ Helper::getTextResponse( this, title, message, tabA->getServerName(), &accepted, MessageBox::SingleLine ) };
+    QToolButton* nightButton{ this->getNightModeButton() };
+                 nightButton->setCursor( Qt::ArrowCursor );
+    this->setCornerWidget( nightButton, Qt::TopRightCorner );
 
-            //The User clicked OK. Do nothing if the User clicked Cancel.
-            if ( accepted )
-            {
-                bool warnUser{ false };
-                //The Response was not empty, change the Server's Name.
-                if ( !response.isEmpty() )
-                {
-                    if ( Helper::strContainsStr( response, "world=" ) )
-                    {
-                        message = "Servers cannot be initialized with the World selection within the name. Please try again.";
-                        warnUser = true;
-                    }
-                    else
-                    {
-                        //Check if the new name is the same as the old.
-                        if ( !Helper::cmpStrings( tabA->getServerName(), response ) )
-                        {
-                            this->setTabText( index, response );
-                            tabA->renameServer( response );
-
-                            emit this->currentChanged( index );
-                        }
-                        else //The new Server name is the same as the Old.
-                        {
-                            message = "The new server name can not be the same as the old name!";
-                            warnUser = true;
-                        }
-                    }
-                }
-                else //The Response was empty or otherwise invalid.
-                {    //Inform the User.
-                    message = "The server name can not be empty!";
-                    warnUser = true;
-                }
-
-                if ( warnUser )
-                    Helper::warningMessage( this, "Error:", message );
-            }
-        }
-    } );
+    QObject::connect( nightButton, &QToolButton::clicked, this, &ReMixTabWidget::nightModeButtonClickedSlot );
 
     //Refresh the server instance's ServerID when the Tabs are moved.
     QObject::connect( this->tabBar(), &QTabBar::tabMoved, this->tabBar(),
@@ -130,6 +93,12 @@ ReMixTabWidget::~ReMixTabWidget()
     {
         createDialog->deleteLater();
         createDialog = nullptr;
+    }
+
+    if ( themeInstance != nullptr )
+    {
+        themeInstance->deleteLater();
+        themeInstance = nullptr;
     }
 
     nightModeButton->deleteLater();
@@ -244,6 +213,55 @@ void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
     }
 }
 
+Theme* ReMixTabWidget::getThemeInstance() const
+{
+    if ( themeInstance == nullptr )
+        themeInstance = Theme::getInstance();
+
+    return themeInstance;
+}
+
+void ReMixTabWidget::setThemeInstance(Theme* newThemeInstance)
+{
+    themeInstance = newThemeInstance;
+}
+
+QToolButton* ReMixTabWidget::getNightModeButton()
+{
+    if ( nightModeButton == nullptr )
+        this->setNightModeButton( new QToolButton( this ) );
+
+    return nightModeButton;
+}
+
+void ReMixTabWidget::setNightModeButton(QToolButton* newNightModeButton)
+{
+    nightModeButton = newNightModeButton;
+}
+
+QToolButton* ReMixTabWidget::getNewTabButton()
+{
+    if ( newTabButton == nullptr )
+        this->setNewTabButton( new QToolButton( this ) );
+
+    return newTabButton;
+}
+
+void ReMixTabWidget::setNewTabButton(QToolButton* button)
+{
+    newTabButton = button;
+}
+
+Themes ReMixTabWidget::getThemeType() const
+{
+    return themeType;
+}
+
+void ReMixTabWidget::setThemeType(Themes newThemeType)
+{
+    themeType = newThemeType;
+}
+
 void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const bool& restart)
 {
     ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
@@ -336,46 +354,68 @@ void ReMixTabWidget::repositionServerIndices()
 
 void ReMixTabWidget::createTabButtons()
 {
-    newTabButton = new QToolButton( this );
-    newTabButton->setIcon( QIcon( ":/icon/newtab.png" ) );
-    newTabButton->setCursor( Qt::ArrowCursor );
-    newTabButton->setAutoRaise( true );
-
-    this->setCornerWidget( newTabButton, Qt::TopLeftCorner );
-    QObject::connect( newTabButton, &QToolButton::clicked, this, &ReMixTabWidget::createServer );
-
-    nightModeButton = new QToolButton( this );
-    nightModeButton->setCursor( Qt::ArrowCursor );
-
-    if ( Settings::getSetting( SKeys::Setting, SSubKeys::DarkMode ).toBool() )
+    QToolButton* button = this->getNewTabButton();
+    if ( button != nullptr )
     {
-        nightModeButton->setText( "Normal Mode" );
-        nightMode = !nightMode;
-    }
-    else
-        nightModeButton->setText( "Night Mode" );
+        button->setCursor( Qt::ArrowCursor );
+        button->setAutoRaise( true );
 
-    this->setCornerWidget( nightModeButton, Qt::TopRightCorner );
-    QObject::connect( nightModeButton, &QToolButton::clicked, nightModeButton,
-    [=, this]()
-    {
-        bool type{ false };
-        if ( !nightMode )
+        this->setCornerWidget( button, Qt::TopLeftCorner );
+        QObject::connect( button, &QToolButton::clicked, this, &ReMixTabWidget::createServer );
+
+        Themes theme{ this->getThemeType() };
+        if ( Settings::getSetting( SKeys::Setting, SSubKeys::DarkMode ).toBool() )
         {
-            nightModeButton->setText( "Normal Mode" );
-            type = true;
+            this->getNightModeButton()->setText( "Normal Mode" );
+            theme = Themes::Dark;
         }
         else
-            nightModeButton->setText( "Night Mode" );
+        {
+            this->getNightModeButton()->setText( "Night Mode" );
+            theme = Themes::Light;
+        }
+        emit this->themeChangedSlot( theme );
+    }
+    button = nullptr;
+}
 
-        QString title{ "Restart Required:" };
-        QString msg{ "The theme change will take effect after a restart." };
+void ReMixTabWidget::nightModeButtonClickedSlot()
+{
+    Themes theme{ this->getThemeType() };
+    QToolButton* nightButton{ this->getNightModeButton() };
+    if ( nightButton != nullptr )
+    {
+        if ( theme == Themes::Light )
+        {
+            nightButton->setText( "Normal Mode" );
+            theme = Themes::Dark;
+        }
+        else
+        {
+            nightButton->setText( "Night Mode" );
+            theme = Themes::Light;
+        }
 
-        Helper::warningMessage( this, title, msg );
-        Settings::setSetting( type, SKeys::Setting, SSubKeys::DarkMode );
+        Settings::setSetting( ( theme != Themes::Light ), SKeys::Setting, SSubKeys::DarkMode );
+        this->getThemeInstance()->setThemeType( theme );
 
-        nightMode = !nightMode;
-    } );
+        emit this->themeChangedSlot( theme );
+    }
+}
+
+void ReMixTabWidget::themeChangedSlot(const Themes& theme)
+{
+    QToolButton* button{ this->getNewTabButton() };
+    if ( button != nullptr )
+    {
+        button->setIconSize( QSize( 32, 32 ) ); //Increase the default from 16/16 pixels to 32/32 pixels.
+        QString icon{ ":/icon/newtablight.png" };
+        if ( theme == Themes::Dark )
+            icon = ":/icon/newtabdark.png";
+
+        button->setIcon( QIcon( icon ) );
+    }
+    this->setThemeType( theme );
 }
 
 void ReMixTabWidget::createServer()
@@ -384,6 +424,57 @@ void ReMixTabWidget::createServer()
         createDialog->hide();
     else
         createDialog->show();
+}
+
+void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
+{
+    if ( point.isNull() )
+        return;
+
+    QMenu menu( this );
+
+    int tabIndex = this->tabBar()->tabAt( point );
+    if ( tabIndex >= 0 )
+    {
+        const ReMixWidget* widget{ serverMap.value( tabIndex ) };
+        if ( widget != nullptr )
+        {
+            QString name{ widget->getServerName() };
+
+            QString renameMsg{ "Rename [ %1 ]" };
+                    renameMsg = renameMsg.arg( name );
+
+            QAction* renameAction{ new QAction( renameMsg, this ) };
+
+            menu.addAction( renameAction );
+
+            QObject::connect( renameAction, &QAction::triggered, renameAction,
+            [=, this]()
+            {
+                this->renameServerTabSlot( tabIndex );
+
+                renameAction->disconnect();
+                renameAction->deleteLater();
+            }, Qt::UniqueConnection );
+
+            QString closeMsg{ "Close [ %1 ]" };
+                    closeMsg = closeMsg.arg( name );
+
+            QAction* closeAction{ new QAction( closeMsg, this ) };
+
+            menu.addAction( closeAction );
+            QObject::connect( closeAction, &QAction::triggered, closeAction,
+            [=, this]()
+            {
+                emit this->tabCloseRequested( tabIndex );
+
+                closeAction->disconnect();
+                closeAction->deleteLater();
+            }, Qt::UniqueConnection );
+
+            menu.exec( this->tabBar()->mapToGlobal( point ) );
+        }
+    }
 }
 
 void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
@@ -440,6 +531,59 @@ void ReMixTabWidget::currentChangedSlot(const qint32& newTab)
     ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
         ReMix::updateTitleBars( server->getServerInfo() );
+}
+
+void ReMixTabWidget::renameServerTabSlot(int index)
+{
+    ReMixWidget* tabA{ serverMap.value( index ) };
+    if ( tabA != nullptr )
+    {
+        QString title{ "Rename Server: [ %1 ]" };
+                title = title.arg( tabA->getServerName() );
+        QString message{ "Please enter the new name you wish to use for this server!" };
+
+        bool accepted{ false };
+        QString response{ Helper::getTextResponse( this, title, message, tabA->getServerName(), &accepted, MessageBox::SingleLine ) };
+
+        //The User clicked OK. Do nothing if the User clicked Cancel.
+        if ( accepted )
+        {
+            bool warnUser{ false };
+            //The Response was not empty, change the Server's Name.
+            if ( !response.isEmpty() )
+            {
+                if ( Helper::strContainsStr( response, "world=" ) )
+                {
+                    message = "Servers cannot be initialized with the World selection within the name. Please try again.";
+                    warnUser = true;
+                }
+                else
+                {
+                    //Check if the new name is the same as the old.
+                    if ( !Helper::cmpStrings( tabA->getServerName(), response ) )
+                    {
+                        this->setTabText( index, response );
+                        tabA->renameServer( response );
+
+                        emit this->currentChanged( index );
+                    }
+                    else //The new Server name is the same as the Old.
+                    {
+                        message = "The new server name can not be the same as the old name!";
+                        warnUser = true;
+                    }
+                }
+            }
+            else //The Response was empty or otherwise invalid.
+            {    //Inform the User.
+                message = "The server name can not be empty!";
+                warnUser = true;
+            }
+
+            if ( warnUser )
+                Helper::warningMessage( this, "Error:", message );
+        }
+    }
 }
 
 void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
