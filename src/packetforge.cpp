@@ -3,7 +3,7 @@
 #include "packetforge.hpp"
 
 //ReMix includes.
-#include "serverinfo.hpp"
+#include "server.hpp"
 #include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
@@ -77,7 +77,7 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
     QString message{ "Auto-Mute; SerNum Missmatch; Tried sending a packet as [ %1 ] while connected as [ %2 ]." };
             message = message.arg( Helper::serNumToIntStr( srcSerNum ) )
                              .arg( plr->getSernum_s() );
-    plr->getServerInfo()->sendMasterMessage( message, plr, false );
+    plr->getServer()->sendMasterMessage( message, plr, false );
 
     QString msg{ "Automatic Network Mute of <[ %1 ][ %2 ]> due to a SerNum Missmatch; Tried sending [ %3 ] as [ %4 ] while connected as [ %5 ]." };
             msg = msg.arg( plr->getSernum_s() )

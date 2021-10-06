@@ -18,6 +18,7 @@ class PlrListWidget : public QWidget
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
     TblEventFilter* tblEvFilter{ nullptr };
+    ReMixWidget* remixWidget{ nullptr };
 
     QModelIndex prevIndex;
 
@@ -25,10 +26,10 @@ class PlrListWidget : public QWidget
     QMenu* contextMenu{ nullptr };
     Player* menuTarget{ nullptr };
 
-    ServerInfo* server{ nullptr };
+    Server* server{ nullptr };
 
     public:
-        explicit PlrListWidget(QWidget* parent = nullptr, ServerInfo* svr = nullptr);
+        explicit PlrListWidget(ReMixWidget* parent = nullptr, Server* svr = nullptr);
         ~PlrListWidget() override;
 
         QStandardItemModel* getPlrModel() const;
@@ -36,6 +37,11 @@ class PlrListWidget : public QWidget
 
     private:
         void initContextMenu();
+
+    public slots:
+        void updatePlrViewSlot(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
+        void plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data);
+        void plrViewRemoveRowSlot(QStandardItem* object);
 
     private slots:
         void on_playerView_customContextMenuRequested(const QPoint& pos);
@@ -49,6 +55,7 @@ class PlrListWidget : public QWidget
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertedRowItemSignal(QStandardItem* item, const qintptr& peer, const QByteArray& data);
 
     private:
         Ui::PlrListWidget* ui;

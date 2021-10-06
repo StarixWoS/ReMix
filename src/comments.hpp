@@ -14,10 +14,10 @@ namespace Ui {
 class Comments : public QDialog
 {
         Q_OBJECT
-        ServerInfo* server{ nullptr };
+        Server* server{ nullptr };
 
     public:
-        explicit Comments(QWidget* parent = nullptr, ServerInfo* serverInfo = nullptr);
+        explicit Comments(QWidget* parent = nullptr, Server* serverObj = nullptr);
         ~Comments() override;
 
         void setTitle(const QString& name);

@@ -4,11 +4,11 @@
 
 //ReMix includes.
 #include "widgets/settingswidget.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "logger.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -152,7 +152,7 @@ QString MasterMixThread::getModdedHost()
     return host;
 }
 
-void MasterMixThread::obtainMasterData(ServerInfo* server)
+void MasterMixThread::obtainMasterData(Server* server)
 {
     QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
     masterMixPref->sync();
@@ -188,7 +188,7 @@ void MasterMixThread::run()
     this->exec();
 }
 
-void MasterMixThread::getMasterMixInfo(ServerInfo* server)
+void MasterMixThread::getMasterMixInfo(Server* server)
 {
     QObject::connect( this, &MasterMixThread::masterMixInfoSignal, this, [=, this]()
     {

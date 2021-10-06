@@ -15,7 +15,7 @@ class MOTDWidget : public QWidget
 {
     Q_OBJECT
 
-    static QHash<ServerInfo*, MOTDWidget*> motdWidgets;
+    static QHash<Server*, MOTDWidget*> motdWidgets;
     QString serverName{ "" };
     QTimer motdUpdate;
 
@@ -23,8 +23,8 @@ class MOTDWidget : public QWidget
         explicit MOTDWidget(const QString& name);
         ~MOTDWidget() override;
 
-        static MOTDWidget* getWidget(ServerInfo* server);
-        static void deleteWidget(ServerInfo* server);
+        static MOTDWidget* getWidget(Server* server);
+        static void deleteWidget(Server* server);
 
         void setServerName(const QString& name);
         void changeMotD(const QString& message);

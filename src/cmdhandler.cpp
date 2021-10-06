@@ -6,10 +6,10 @@
 #include "widgets/remixtabwidget.hpp"
 #include "widgets/motdwidget.hpp"
 #include "campexemption.hpp"
-#include "serverinfo.hpp"
 #include "cmdtable.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
+#include "server.hpp"
 #include "player.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
@@ -18,7 +18,7 @@
 //Qt includes.
 #include <QtCore>
 
-CmdHandler::CmdHandler(QObject* parent, ServerInfo* svr)
+CmdHandler::CmdHandler(QObject* parent, Server* svr)
     : QObject(parent)
 {
     cmdTable = CmdTable::getInstance();
@@ -1020,7 +1020,7 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
 
     if ( !stop )
     {
-        ServerInfo* plrServer{ admin->getServerInfo() };
+        Server* plrServer{ admin->getServer() };
         if ( shutdownTimer == nullptr )
             shutdownTimer = new QTimer();
 

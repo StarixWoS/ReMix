@@ -5,9 +5,9 @@
 //ReMix includes.
 #include "createinstance.hpp"
 #include "remixwidget.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 #include "theme.hpp"
 #include "remix.hpp"
 #include "user.hpp"
@@ -159,7 +159,7 @@ ReMixTabWidget* ReMixTabWidget::getTabInstance(QWidget* parent)
     return tabInstance;
 }
 
-void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)
+void ReMixTabWidget::remoteCloseServer(Server* server, const bool restart)
 {
     ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
     if ( tabWidget != nullptr
@@ -170,7 +170,7 @@ void ReMixTabWidget::remoteCloseServer(ServerInfo* server, const bool restart)
             const ReMixWidget* instance{ serverMap.value( i ) };
             if ( instance != nullptr )
             {
-                if ( instance->getServerInfo()->getServerName() == server->getServerName() )
+                if ( instance->getServer()->getServerName() == server->getServerName() )
                 {
                     removeServer( i, true, restart );
                     break;
@@ -188,7 +188,7 @@ void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
     {
         qint32 index{ serverMap.key( widget ) };
 
-        ServerInfo* server{ widget->getServerInfo() };
+        Server* server{ widget->getServer() };
 
         QString bytesInUnit{ "" };
         QString bytesIn{ "" };
@@ -272,7 +272,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     if ( instance == nullptr )
         return;
 
-    ServerInfo* server{ instance->getServerInfo() };
+    Server* server{ instance->getServer() };
     if ( server == nullptr )
         return;
 
@@ -472,7 +472,7 @@ void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
                 closeAction->deleteLater();
             }, Qt::UniqueConnection );
 
-            menu.exec( this->tabBar()->mapToGlobal( point ) );
+            menu.exec( this->mapToGlobal( point ) );
         }
     }
 }
@@ -530,7 +530,7 @@ void ReMixTabWidget::currentChangedSlot(const qint32& newTab)
 
     ReMixWidget* server{ serverMap.value( newTab ) };
     if ( server != nullptr )
-        ReMix::updateTitleBars( server->getServerInfo() );
+        ReMix::updateTitleBars( server->getServer() );
 }
 
 void ReMixTabWidget::renameServerTabSlot(int index)
@@ -586,7 +586,7 @@ void ReMixTabWidget::renameServerTabSlot(int index)
     }
 }
 
-void ReMixTabWidget::createServerAcceptedSlot(ServerInfo* server)
+void ReMixTabWidget::createServerAcceptedSlot(Server* server)
 {
     if ( server == nullptr )
         return;
@@ -627,7 +627,7 @@ void ReMixTabWidget::restartServerListSlot(const QStringList& restartList)
 {
     if ( !restartList.isEmpty() )
     {
-        ServerInfo* server{ nullptr };
+        Server* server{ nullptr };
         for ( const QString& name : restartList )
         {
             //Only Restart the server if it is enabled for the selected server.
@@ -640,7 +640,7 @@ void ReMixTabWidget::restartServerListSlot(const QStringList& restartList)
     }
 }
 
-void ReMixTabWidget::crossServerCommentSlot(ServerInfo* server, const QString& comment)
+void ReMixTabWidget::crossServerCommentSlot(Server* server, const QString& comment)
 {
     emit this->crossServerCommentSignal( server, comment);
 }

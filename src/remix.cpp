@@ -8,10 +8,10 @@
 
 //ReMix includes.
 #include "campexemption.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "logger.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -101,7 +101,7 @@ void ReMix::setInstance(ReMix* value)
     instance = value;
 }
 
-void ReMix::updateTitleBars(ServerInfo* server)
+void ReMix::updateTitleBars(Server* server)
 {
     Settings* settings{ Settings::getInstance() };
     if ( settings != nullptr )

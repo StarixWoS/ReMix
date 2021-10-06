@@ -16,7 +16,7 @@ class RulesWidget : public QWidget
 {
     Q_OBJECT
 
-    static QHash<ServerInfo*, RulesWidget*> ruleWidgets;
+    static QHash<Server*, RulesWidget*> ruleWidgets;
     QMap<QTableWidgetItem*, Qt::CheckState> stateMap;
 
     SelectWorld* selectWorld{ nullptr };
@@ -28,8 +28,8 @@ class RulesWidget : public QWidget
         explicit RulesWidget();
         ~RulesWidget() override;
 
-        static RulesWidget* getWidget(ServerInfo* server);
-        static void deleteWidget(ServerInfo* server);
+        static RulesWidget* getWidget(Server* server);
+        static void deleteWidget(Server* server);
 
         void setServerName(const QString& name);
         void setCheckedState(const RToggles& option, const bool& val);

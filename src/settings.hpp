@@ -26,8 +26,8 @@ class Settings : public QDialog
         static Settings* getInstance();
         static void setInstance(Settings* value);
 
-        static void updateTabBar(ServerInfo* server);
-        static void copyServerSettings(ServerInfo* server, const QString& newName);
+        static void updateTabBar(Server* server);
+        static void copyServerSettings(Server* server, const QString& newName);
 
         static QHash<QHostAddress, QByteArray> bioHash;
         static QSettings* prefs;

@@ -4,14 +4,14 @@
 #include "ui_motdwidget.h"
 
 //ReMix includes.
-#include "serverinfo.hpp"
 #include "settings.hpp"
+#include "server.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
 #include <QTimer>
 
-QHash<ServerInfo*, MOTDWidget*> MOTDWidget::motdWidgets;
+QHash<Server*, MOTDWidget*> MOTDWidget::motdWidgets;
 
 MOTDWidget::MOTDWidget(const QString& name) :
     ui(new Ui::MOTDWidget)
@@ -38,7 +38,7 @@ MOTDWidget::~MOTDWidget()
     delete ui;
 }
 
-MOTDWidget* MOTDWidget::getWidget(ServerInfo* server)
+MOTDWidget* MOTDWidget::getWidget(Server* server)
 {
     MOTDWidget* widget{ motdWidgets.value( server ) };
     if ( widget == nullptr )
@@ -49,7 +49,7 @@ MOTDWidget* MOTDWidget::getWidget(ServerInfo* server)
     return widget;
 }
 
-void MOTDWidget::deleteWidget(ServerInfo* server)
+void MOTDWidget::deleteWidget(Server* server)
 {
     MOTDWidget* widget{ motdWidgets.take( server ) };
     if ( widget != nullptr )

@@ -9,9 +9,9 @@
 #include "widgets/motdwidget.hpp"
 
 //ReMix includes.
-#include "serverinfo.hpp"
 #include "randdev.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 
 //Qt Includes.
 #include <QNetworkAccessManager>
@@ -144,7 +144,7 @@ void Settings::setInstance(Settings* value)
     instance = value;
 }
 
-void Settings::updateTabBar(ServerInfo* server)
+void Settings::updateTabBar(Server* server)
 {
     qint32 index{ tabWidget->currentIndex() };
 
@@ -158,7 +158,7 @@ void Settings::updateTabBar(ServerInfo* server)
     tabWidget->setCurrentIndex( index );
 }
 
-void Settings::copyServerSettings(ServerInfo* server, const QString& newName)
+void Settings::copyServerSettings(Server* server, const QString& newName)
 {
     //QMutexLocker locker( &mutex );
     QString oldName{ server->getServerName() };

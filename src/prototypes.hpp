@@ -105,7 +105,7 @@
     class CampExemption;
     class SelectWorld;
     class PacketForge;
-    class ServerInfo;
+    class Server;
     class CmdHandler;
     class CmdTable;
     class ChatView;
@@ -115,7 +115,6 @@
     class RandDev;
     class SendMsg;
     class Player;
-    class Server;
     class Helper;
     class Logger;
     class Theme;

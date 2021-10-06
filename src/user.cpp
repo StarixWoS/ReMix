@@ -83,7 +83,7 @@ User::User(QWidget* parent) :
     //Setup our QSettings Object.
     userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
 
-    //Setup the ServerInfo TableView.
+    //Setup the Server TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>( UserCols::ColCount ), nullptr );
     tblModel->setHeaderData( static_cast<int>( UserCols::MuteDuration ), Qt::Horizontal, "Muted Until" );
     tblModel->setHeaderData( static_cast<int>( UserCols::BanDuration ), Qt::Horizontal, "Banned Until" );

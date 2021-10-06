@@ -45,7 +45,6 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/packetforge.cpp
         src/selectworld.cpp
         src/cmdhandler.cpp
-        src/serverinfo.cpp
         src/sortutil.cpp
         src/cmdtable.cpp
         src/chatview.cpp
@@ -83,7 +82,6 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/packetforge.hpp
         src/selectworld.hpp
         src/cmdhandler.hpp
-        src/serverinfo.hpp
         src/prototypes.hpp
         src/sortutil.hpp
         src/cmdtable.hpp

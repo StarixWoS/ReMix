@@ -5,8 +5,8 @@
 
 //ReMix includes.
 #include "selectworld.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
+#include "server.hpp"
 #include "helper.hpp"
 
 //Qt Includes.
@@ -15,7 +15,7 @@
 #include <QtCore>
 #include <QDir>
 
-QHash<ServerInfo*, RulesWidget*> RulesWidget::ruleWidgets;
+QHash<Server*, RulesWidget*> RulesWidget::ruleWidgets;
 QMutex RulesWidget::mutex;
 
 RulesWidget::RulesWidget() :
@@ -29,7 +29,7 @@ RulesWidget::~RulesWidget()
     delete ui;
 }
 
-RulesWidget* RulesWidget::getWidget(ServerInfo* server)
+RulesWidget* RulesWidget::getWidget(Server* server)
 {
     RulesWidget* widget{ ruleWidgets.value( server ) };
     if ( widget == nullptr )
@@ -38,13 +38,13 @@ RulesWidget* RulesWidget::getWidget(ServerInfo* server)
         if ( widget != nullptr )
         {
             ruleWidgets.insert( server, widget );
-            QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server, &ServerInfo::setMaxIdleTimeSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server, &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
         }
     }
     return widget;
 }
 
-void RulesWidget::deleteWidget(ServerInfo* server)
+void RulesWidget::deleteWidget(Server* server)
 {
     RulesWidget* widget{ ruleWidgets.take( server ) };
     if ( widget != nullptr )

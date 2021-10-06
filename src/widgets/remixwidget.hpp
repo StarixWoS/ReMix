@@ -15,16 +15,13 @@ class ReMixWidget : public QWidget
 {
     Q_OBJECT
 
-    QHash<QString, QStandardItem*> plrTableItems;
-    QStandardItemModel* plrViewModel{ nullptr };
-
+    QHash<qintptr, QStandardItem*> plrTableItems;
     MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
     QThread* masterMixThread{ nullptr };
     PlrListWidget* plrWidget{ nullptr };
-    ServerInfo* server{ nullptr };
-    Server* tcpServer{ nullptr };
+    Server* server{ nullptr };
 
     Comments* serverComments{ nullptr };
     PacketHandler* pktHandle{ nullptr };
@@ -34,10 +31,10 @@ class ReMixWidget : public QWidget
     QMenu* contextMenu{ nullptr };
 
     public:
-        explicit ReMixWidget(QWidget* parent = nullptr, ServerInfo* svrInfo = nullptr);
+        explicit ReMixWidget(QWidget* parent = nullptr, Server* svrInfo = nullptr);
         ~ReMixWidget() override;
 
-        ServerInfo* getServerInfo() const;
+        Server* getServer() const;
         void renameServer(const QString& newName);
 
         void sendServerMessage(const QString& msg) const;
@@ -45,6 +42,7 @@ class ReMixWidget : public QWidget
         QString getServerName() const;
 
         quint16 getPrivatePort() const;
+        qintptr getPeerFromQItem(QStandardItem* item) const;
 
     private:
         void initUIUpdate();
@@ -60,18 +58,23 @@ class ReMixWidget : public QWidget
         void on_openChatView_clicked();
 
         void on_logButton_clicked();
-
         void initializeServerSlot();
 
         void plrConnectedSlot(qintptr socketDescriptor);
         void plrDisconnectedSlot(Player* plr, const bool& timedOut = false);
 
         void updatePlayerTable(Player* plr);
-        QStandardItem* updatePlayerTableImpl(const QString& peerIP, const QByteArray& data, const bool& insert);
+
+    public slots:
+        void fwdUpdatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
+        void insertedRowItemSlot(QStandardItem* item, const qintptr& peer, const QByteArray& data);
 
     signals:
         void reValidateServerIPSignal();
-        void crossServerCommentSignal(ServerInfo* server, const QString& comment);
+        void crossServerCommentSignal(Server* server, const QString& comment);
+        void fwdUpdatePlrViewSignal(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
+        void plrViewInsertRowSignal(const qintptr& peer, const QByteArray& data);
+        void plrViewRemoveRowSignal(QStandardItem* object);
 
     private:
         Ui::ReMixWidget* ui;

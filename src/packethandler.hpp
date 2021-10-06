@@ -14,13 +14,13 @@ class PacketHandler : public QObject
 
     PacketForge* pktForge{ nullptr };
     CmdHandler* cmdHandle{ nullptr };
-    ServerInfo* server{ nullptr };
+    Server* server{ nullptr };
     ChatView* chatView{ nullptr };
 
     QTimer masterCheckIn;
 
     public:
-        PacketHandler(ServerInfo* svr, ChatView* chat);
+        PacketHandler(Server* svr, ChatView* chat);
         ~PacketHandler() override;
 
         void startMasterCheckIn();

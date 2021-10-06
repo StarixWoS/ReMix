@@ -39,7 +39,7 @@ class ReMix : public QMainWindow
         static ReMix* getInstance();
         static void setInstance(ReMix* value);
 
-        static void updateTitleBars(ServerInfo* server);
+        static void updateTitleBars(Server* server);
 
     private slots:
         //Handle Minimize events.

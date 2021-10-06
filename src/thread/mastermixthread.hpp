@@ -33,7 +33,7 @@ class MasterMixThread : public QThread
         void startUpdateInfoTimer(const bool& start);
 
     private slots:
-        void obtainMasterData(ServerInfo* server);
+        void obtainMasterData(Server* server);
 
     public slots:
         void masterMixInfoChangedSlot();
@@ -44,7 +44,7 @@ class MasterMixThread : public QThread
 
         static MasterMixThread* getInstance();
         static void setInstance(MasterMixThread* value);
-        void getMasterMixInfo(ServerInfo* server);
+        void getMasterMixInfo(Server* server);
         void updateMasterMixInfo(const bool& forceDownload = false);
 
         QString getDefaultHost() const;

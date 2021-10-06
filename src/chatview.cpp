@@ -7,7 +7,6 @@
 #include "packethandler.hpp"
 #include "campexemption.hpp"
 #include "packetforge.hpp"
-#include "serverinfo.hpp"
 #include "cmdhandler.hpp"
 #include "settings.hpp"
 #include "server.hpp"
@@ -93,7 +92,7 @@ QStringList ChatView::bleepList
     "whore", "willies"
 };
 
-ChatView::ChatView(QWidget* parent, ServerInfo* svr) :
+ChatView::ChatView(QWidget* parent, Server* svr) :
     QDialog(parent),
     ui(new Ui::ChatView)
 {

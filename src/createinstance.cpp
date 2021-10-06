@@ -8,11 +8,11 @@
 
 //ReMix includes.
 #include "thread/mastermixthread.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "logger.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 
 //Qt Includes.
 #include <QMessageBox>
@@ -154,7 +154,7 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                ServerInfo* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
+                Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
                                                              ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
 
                 emit this->createServerAcceptedSignal( server );
@@ -209,7 +209,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         //Verify that the server hasn't been initialized previously.
         if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            ServerInfo* server{ this->initializeServer( name, gameName, port, useUPNP, isPublic ) };
+            Server* server{ this->initializeServer( name, gameName, port, useUPNP, isPublic ) };
 
             emit this->createServerAcceptedSignal( server );
             emit this->accept();
@@ -224,7 +224,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
     }
 }
 
-ServerInfo* CreateInstance::loadOldServer(const QString& name)
+Server* CreateInstance::loadOldServer(const QString& name)
 {
     if ( !name.isEmpty() )
     {
@@ -233,20 +233,20 @@ ServerInfo* CreateInstance::loadOldServer(const QString& name)
         bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
         bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
 
-        ServerInfo* server{ this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic ) };
+        Server* server{ this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic ) };
         return server;
     }
     return nullptr;
 }
 
-ServerInfo* CreateInstance::initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
+Server* CreateInstance::initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
 {
-    ServerInfo* server{ nullptr };
+    Server* server{ nullptr };
 
     //Verify Instance Count isn't above the maximum.
     if ( ReMixTabWidget::getInstanceCount() + 1 <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
     {
-        server = new ServerInfo();
+        server = new Server();
         if ( server == nullptr )
             return nullptr;
 

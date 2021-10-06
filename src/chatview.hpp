@@ -21,11 +21,11 @@ class ChatView : public QDialog
     static QStringList bleepList;
 
     PacketForge* pktForge{ nullptr };
-    ServerInfo* server{ nullptr };
+    Server* server{ nullptr };
     CmdHandler* cmdHandle{ nullptr };
 
     public:
-        explicit ChatView(QWidget* parent = nullptr, ServerInfo* svr = nullptr);
+        explicit ChatView(QWidget* parent = nullptr, Server* svr = nullptr);
         ~ChatView() override;
 
         void setTitle(const QString& name);

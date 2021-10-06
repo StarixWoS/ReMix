@@ -5,8 +5,8 @@
 
 //ReMix includes.
 #include "packetforge.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
+#include "server.hpp"
 #include "helper.hpp"
 #include "rules.hpp"
 

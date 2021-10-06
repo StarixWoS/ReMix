@@ -12,11 +12,11 @@ class CmdHandler : public QObject
     Q_OBJECT
 
     CmdTable* cmdTable{ nullptr };
-    ServerInfo* server{ nullptr };
+    Server* server{ nullptr };
     QTimer* shutdownTimer{ nullptr };
 
     public:
-        explicit CmdHandler(QObject* parent = nullptr, ServerInfo* svr = nullptr);
+        explicit CmdHandler(QObject* parent = nullptr, Server* svr = nullptr);
         ~CmdHandler() override;
 
         bool canUseAdminCommands(Player* admin, const GMRanks rank, const QString& cmdStr);

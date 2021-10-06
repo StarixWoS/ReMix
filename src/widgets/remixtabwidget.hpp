@@ -39,7 +39,7 @@ class ReMixTabWidget : public QTabWidget
 
         static qint32 getInstanceCount();
         static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
-        static void remoteCloseServer(ServerInfo* server, const bool restart = false);
+        static void remoteCloseServer(Server* server, const bool restart = false);
         static void setToolTipString(ReMixWidget* widget);
 
         Theme* getThemeInstance() const;
@@ -70,12 +70,12 @@ class ReMixTabWidget : public QTabWidget
         void themeChangedSlot(const Themes& theme);
 
     public slots:
-        void crossServerCommentSlot(ServerInfo* server, const QString& comment);
-        void createServerAcceptedSlot(ServerInfo* server = nullptr);
+        void crossServerCommentSlot(Server* server, const QString& comment);
+        void createServerAcceptedSlot(Server* server = nullptr);
         void restartServerListSlot(const QStringList& restartList);
 
     signals:
-        void crossServerCommentSignal(ServerInfo* server, const QString& comment);
+        void crossServerCommentSignal(Server* server, const QString& comment);
         void themeChangedSignal(const Themes& theme);
 };
 

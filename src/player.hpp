@@ -16,7 +16,7 @@ class Player : public QTcpSocket
     Q_OBJECT
 
     QStandardItem* tableRow{ nullptr };
-    ServerInfo* serverInfo{ nullptr };
+    Server* server{ nullptr };
     User* userUIObject{ nullptr };
 
     bool newAdminPwdRequested{ false };
@@ -81,13 +81,8 @@ class Player : public QTcpSocket
         qint64 getConnTime() const;
         void startConnTimer();
 
-        QStandardItem* getTableRow() const;
-        void setTableRow(QStandardItem* value);
-        void setTableRowData(QStandardItem* model, const qint32& row, const qint32& column, const QVariant& data,
-                             const qint32& role, const bool& isColor = false);
-
-        ServerInfo* getServerInfo() const;
-        void setServerInfo(ServerInfo* value);
+        Server* getServer() const;
+        void setServer(Server* value);
 
         bool getIsVisible() const;
         void setIsVisible(const bool& value);
@@ -197,7 +192,7 @@ class Player : public QTcpSocket
 
         void setIsAFK(bool value);
 
-        void validateSerNum(ServerInfo* server, const qint32& id);
+        void validateSerNum(Server* server, const qint32& id);
 
         qint64 getPlrConnectedTime() const;
         void setPlrConnectedTime(const qint64& value);
@@ -214,6 +209,8 @@ class Player : public QTcpSocket
         qint32 getPktHeaderExemptCount() const;
         void setPktHeaderExemptCount(const qint32& value);
 
+        QString getIPAddress();
+
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
@@ -227,6 +224,7 @@ class Player : public QTcpSocket
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void parsePacketSignal(const QByteArray& packet, Player* plr);
         void hexSerNumSetSignal(Player* plr);
+        void updatePlrViewSignal(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
 };
 
 #endif // PLAYER_HPP

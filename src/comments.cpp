@@ -4,22 +4,22 @@
 #include "ui_comments.h"
 
 //ReMix includes.
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
+#include "server.hpp"
 
 //Qt Includes.
 #include <QScrollBar>
 #include <QtCore>
 
-Comments::Comments(QWidget* parent, ServerInfo* serverInfo) :
+Comments::Comments(QWidget* parent, Server* serverObj) :
     QDialog(parent),
     ui(new Ui::Comments)
 {
     ui->setupUi(this);
 
-    server = serverInfo;
+    server = serverObj;
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Comments::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );

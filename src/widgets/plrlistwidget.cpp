@@ -8,12 +8,14 @@
 #include "views/tbleventfilter.hpp"
 
 //ReMix includes.
-#include "serverinfo.hpp"
+#include "remixwidget.hpp"
 #include "settings.hpp"
 #include "sendmsg.hpp"
 #include "player.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
+#include "server.hpp"
+#include "theme.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -23,11 +25,11 @@
 #include <QtCore>
 #include <QMenu>
 
-PlrListWidget::PlrListWidget(QWidget* parent, ServerInfo* svr) :
-    QWidget(parent),
+PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
+    remixWidget = parent;
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -116,14 +118,46 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
+void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
+{
+    if ( object != nullptr )
+    {
+        QStandardItemModel* sModel = object->model();
+        if ( sModel != nullptr )
+        {
+            if ( isColor )
+                sModel->setData( sModel->index( object->row(), column ), Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ), role );
+            else
+                sModel->setData( sModel->index( object->row(), column ), data, role );
+        }
+    }
+}
+
+void PlrListWidget::plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data)
+{
+    int row{ plrModel->rowCount() };
+
+    QStandardItem* item{ new QStandardItem() };
+    plrModel->insertRow( row, item );
+
+    emit this->insertedRowItemSignal( item, peer, data );
+}
+
+void PlrListWidget::plrViewRemoveRowSlot(QStandardItem* object)
+{
+    if ( object != nullptr )
+        plrModel->removeRow( object->row() );
+}
+
 void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
 {
     QModelIndex menuIndex{ plrProxy->mapToSource( ui->playerView->indexAt( pos ) ) };
 
     this->initContextMenu();
-    if ( menuIndex.row() >= 0 )
+    if ( menuIndex.row() >= 0
+      && remixWidget != nullptr )
     {
-        Player* plr{ server->getPlayer( server->getQItemSlot( plrModel->item( menuIndex.row(), 0 ) ) ) };
+        Player* plr{ server->getPlayer( remixWidget->getPeerFromQItem( plrModel->item( menuIndex.row(), 0 ) ) ) };
         if ( plr != nullptr )
             menuTarget = plr;
 
@@ -176,12 +210,12 @@ void PlrListWidget::on_actionSendMessage_triggered()
             }
             menuTarget = nullptr;
         }, Qt::UniqueConnection );
-    }
 
-    if ( !messageDialog->isVisible() )
-        messageDialog->exec();
-    else
-        messageDialog->hide();
+        if ( !messageDialog->isVisible() )
+            messageDialog->exec();
+        else
+            messageDialog->hide();
+    }
 }
 
 void PlrListWidget::on_actionMakeAdmin_triggered()

@@ -3,10 +3,10 @@
 #include "helper.hpp"
 
 //ReMix includes.
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "logger.hpp"
+#include "server.hpp"
 #include "user.hpp"
 
 //Qt Includes.

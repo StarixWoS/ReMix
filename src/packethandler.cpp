@@ -5,7 +5,6 @@
 //ReMix includes.
 #include "packetforge.hpp"
 #include "cmdhandler.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "chatview.hpp"
 #include "helper.hpp"
@@ -19,7 +18,7 @@
 #include <QTime>
 #include <QtCore>
 
-PacketHandler::PacketHandler(ServerInfo* svr, ChatView* chat)
+PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 {
     pktForge = PacketForge::getInstance();
     chatView = chat;

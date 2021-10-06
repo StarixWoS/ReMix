@@ -4,7 +4,6 @@
 
 //ReMix Includes
 #include "packethandler.hpp"
-#include "serverinfo.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
