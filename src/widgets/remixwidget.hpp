@@ -20,12 +20,9 @@ class ReMixWidget : public QWidget
     RulesWidget* rules{ nullptr };
 
     QThread* masterMixThread{ nullptr };
-    PlrListWidget* plrWidget{ nullptr };
     Server* server{ nullptr };
 
     Comments* serverComments{ nullptr };
-    PacketHandler* pktHandle{ nullptr };
-    ChatView* chatView{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
@@ -49,6 +46,7 @@ class ReMixWidget : public QWidget
 
     private slots:
         void on_openSettings_clicked();
+        void on_openPlayerView_clicked();
         void on_openUserComments_clicked();
         void on_openUserInfo_clicked();
         void on_isPublicServer_toggled(bool value);

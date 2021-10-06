@@ -15,9 +15,14 @@ class CmdHandler : public QObject
     Server* server{ nullptr };
     QTimer* shutdownTimer{ nullptr };
 
+    static QHash<Server*, CmdHandler*> cmdInstanceMap;
+
     public:
         explicit CmdHandler(QObject* parent = nullptr, Server* svr = nullptr);
         ~CmdHandler() override;
+
+        static CmdHandler* getInstance(Server* server);
+        static void deleteInstance(Server* server);
 
         bool canUseAdminCommands(Player* admin, const GMRanks rank, const QString& cmdStr);
         void parseMix5Command(Player* plr, const QString& packet);

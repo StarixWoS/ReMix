@@ -19,8 +19,6 @@ class Server : public QTcpServer
     Q_OBJECT
 
     UdpThread* udpThread{ nullptr };
-
-    PacketHandler* pktHandle{ nullptr };
     UPNP* upnp{ nullptr };
 
     qint64 initializeDate{ 0 };
@@ -235,8 +233,7 @@ class Server : public QTcpServer
         qint32 getUsageDays() const;
         qint32 getUsageMins() const;
 
-        PacketHandler* getPktHandle() const;
-        void setPktHandle(PacketHandler* value);
+        PacketHandler* getPktHandle();
 
         void updateBytesOut(Player* plr, const qint64 bOut);
 

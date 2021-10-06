@@ -28,8 +28,8 @@ class RulesWidget : public QWidget
         explicit RulesWidget();
         ~RulesWidget() override;
 
-        static RulesWidget* getWidget(Server* server);
-        static void deleteWidget(Server* server);
+        static RulesWidget* getInstance(Server* server);
+        static void deleteInstance(Server* server);
 
         void setServerName(const QString& name);
         void setCheckedState(const RToggles& option, const bool& val);

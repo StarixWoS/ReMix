@@ -12,8 +12,9 @@ class PacketHandler : public QObject
 {
     Q_OBJECT
 
+    static QHash<Server*, PacketHandler*> pktHandleInstanceMap;
+
     PacketForge* pktForge{ nullptr };
-    CmdHandler* cmdHandle{ nullptr };
     Server* server{ nullptr };
     ChatView* chatView{ nullptr };
 
@@ -23,10 +24,14 @@ class PacketHandler : public QObject
         PacketHandler(Server* svr, ChatView* chat);
         ~PacketHandler() override;
 
+        static PacketHandler* getInstance(Server* server);
+        static void deleteInstance(Server* server);
+
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
         void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port);
+        bool parseTCPPacket(const QByteArray& packet, Player* plr = nullptr);
 
         bool checkBannedInfo(Player* plr) const;
         bool getIsBanned(const QString& serNum, const QString& ipAddr, const QString& plrSerNum) const;
@@ -55,6 +60,7 @@ class PacketHandler : public QObject
         void sendPacketToPlayerSignal(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertChatMsgSignal(const QString& msg, const Colors& color, const bool& newLine);
 };
 
 #endif // PACKETHANDLER_HPP

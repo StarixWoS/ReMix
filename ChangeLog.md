@@ -11,6 +11,21 @@ Version 2.7.8:
       * Added a context menu to the ReMixTabWidget.
         * When right-clicking a Tab the User will be given the option to Rename or Close a server instance.
         * Double-clicking a tab will no longer prompt the User to rename the Tab.
+      * Merged the Server Class into the ServerInfo Class, and renamed ServerInfo to Server.
+        * Reduced confusion over which "Server" object was being used.
+      * Removed all direct uses of the PlrListWidget object from the Player and ReMixWidget classes.
+        * The UI is now updated via signals and slots, but more safe.
+        * Neither class should have ever been accessing UI elements directly.
+      * Converted the ChatView dialog into a Widget.
+        * The Chat View is now shown alongside the Player View.
+        * The User is able to now hide the Player View or the Chat View.
+          * One view must remain option. When hiding one View the other Button is disabled.
+      * Moved packet related code from the ChatView Class into the PacketHandler Class.
+        * The Chat View should never have had this code within.
+      * The PlrListWidget, PacketHandler, CmdHandler, and the ChatView are now accessed via "Class::getInstance" function calls.
+        * This is to reduce the amount of naked pointers being shared and stored within ReMix.
+      * The Theme class now Signals to the ChatView class when changing theme types.
+        * This allows us to dynamically change the text colors of chat previously submitted to the ChatView.
       
 
 

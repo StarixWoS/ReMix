@@ -38,13 +38,11 @@ ReMix::ReMix(QWidget* parent) :
 
     ui->setupUi(this);
 
-    this->setInstance( this );
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
     //Setup Objects.
     Settings::setInstance( new Settings( this ) );
-    Logger::setInstance( new Logger( this ) );
     User::setInstance( new User( this ) );
 
     serverUI = ReMixTabWidget::getTabInstance( this );
@@ -94,11 +92,6 @@ ReMix* ReMix::getInstance()
         instance = new ReMix();
 
     return instance;
-}
-
-void ReMix::setInstance(ReMix* value)
-{
-    instance = value;
 }
 
 void ReMix::updateTitleBars(Server* server)

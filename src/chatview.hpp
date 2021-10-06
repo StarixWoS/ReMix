@@ -13,35 +13,37 @@ namespace Ui {
     class ChatView;
 }
 
-class ChatView : public QDialog
+class ChatView : public QWidget
 {
     Q_OBJECT
 
-    Games gameID{ Games::Invalid };
+    static QHash<Server*, ChatView*> chatViewInstanceMap;
     static QStringList bleepList;
 
-    PacketForge* pktForge{ nullptr };
+    Games gameID{ Games::Invalid };
     Server* server{ nullptr };
-    CmdHandler* cmdHandle{ nullptr };
 
     public:
         explicit ChatView(QWidget* parent = nullptr, Server* svr = nullptr);
         ~ChatView() override;
 
+        static ChatView* getInstance(Server* server);
+        static void deleteInstance(Server* server);
+
         void setTitle(const QString& name);
         void setGameID(const Games& gID);
         Games getGameID() const;
 
-        bool parsePacket(const QByteArray& packet, Player* plr = nullptr);
         bool parseChatEffect(const QString& packet);
         void bleepChat(QString& message);
         void insertChat(const QString& msg, const Colors& color, const bool& newLine);
 
-        CmdHandler* getCmdHandle() const;
-        void setCmdHandle(CmdHandler* value);
+    public slots:
+        void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
 
     private slots:
         void on_chatInput_returnPressed();
+        void themeChangedSlot(const Themes& theme);
 
     private:
         Ui::ChatView* ui;

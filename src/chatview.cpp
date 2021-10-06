@@ -1,18 +1,17 @@
 
 //Class includes.
 #include "chatview.hpp"
-#include "ui_chatview.h"
+#include "ui_chatviewwidget.h"
 
 //ReMix includes.
-#include "packethandler.hpp"
 #include "campexemption.hpp"
-#include "packetforge.hpp"
 #include "cmdhandler.hpp"
 #include "settings.hpp"
 #include "server.hpp"
 #include "logger.hpp"
 #include "player.hpp"
 #include "helper.hpp"
+#include "remix.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -92,8 +91,10 @@ QStringList ChatView::bleepList
     "whore", "willies"
 };
 
+QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
+
 ChatView::ChatView(QWidget* parent, Server* svr) :
-    QDialog(parent),
+    QWidget(parent),
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
@@ -102,17 +103,42 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
-    pktForge = PacketForge::getInstance();
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ChatView::themeChangedSlot, Qt::UniqueConnection );
+
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 }
 
 ChatView::~ChatView()
 {
+    this->disconnect();
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
     delete ui;
+}
+
+ChatView* ChatView::getInstance(Server* server)
+{
+    ChatView* instance{ chatViewInstanceMap.value( server ) };
+    if ( instance == nullptr )
+    {
+        instance = new ChatView( ReMix::getInstance(), server );
+        if ( instance != nullptr )
+            chatViewInstanceMap.insert( server, instance );
+    }
+    return instance;
+}
+
+void ChatView::deleteInstance(Server* server)
+{
+    ChatView* instance{ chatViewInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
 }
 
 void ChatView::setTitle(const QString& name)
@@ -135,204 +161,6 @@ void ChatView::setGameID(const Games& gID)
 Games ChatView::getGameID() const
 {
     return gameID;
-}
-
-bool ChatView::parsePacket(const QByteArray& packet, Player* plr)
-{
-    //We were unable to load our PacketForge library, return.
-    if ( pktForge == nullptr )
-        return false;
-
-    //The Player object is invalid, return.
-    if ( plr == nullptr )
-        return false;
-
-    bool retn{ true };
-    QString pkt{ packet };
-    if ( this->getGameID() != Games::W97 )
-    {
-        //WoS and Arcadia distort Packets in the same manner.
-        pkt = pktForge->decryptPacket( packet );
-        if ( !pkt.isEmpty() )
-        {
-
-            //Remove checksum from Arcadia chat packet.
-            if ( this->getGameID() == Games::ToY )
-            {
-                //Arcadia Packets have a longer checksum than WoS packets.
-                //Remove the extra characters.
-                pkt = pkt.left( pkt.length() - 4 );
-            }
-
-            //WoS and Arcadia both use the opCode 'C' at position '3' in the packet to denote Chat packets.
-            if ( pkt.at( 3 ) == 'C' )
-            {
-                plr->setIsAFK( false );
-                retn = this->parseChatEffect( pkt );
-            }
-            else if ( pkt.at( 3 ) == '3'
-                   || ( ( this->getGameID() == Games::ToY ) && ( pkt.at( 3 ) == 'N' ) ) )
-            {
-                QStringList varList;
-                if ( this->getGameID() == Games::ToY )
-                    varList = pkt.mid( 39 ).split( "," );
-                else
-                    varList = pkt.mid( 47 ).split( "," );
-
-                QString plrName{ varList.at( 0 ) };
-                if ( !plrName.isEmpty() )
-                    plr->setPlrName( plrName );
-
-                //Check that the User is actually incarnating.
-                int type{ pkt.at( 14 ).toLatin1() - 0x41 };
-                if ( type >= 1 && type != 4 )
-                {
-                    //Send Camp packets to the newly connecting User.
-                    if ( this->getGameID() == Games::WoS )
-                    {
-                        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
-                        {
-                            Player* tmpPlr{ server->getPlayer( i ) };
-                            if ( tmpPlr != nullptr
-                              && plr != tmpPlr )
-                            {
-                                if ( plr->getSceneHost() != tmpPlr->getSernum_i()
-                                  || plr->getSceneHost() <= 0 )
-                                {
-                                    if ( !tmpPlr->getCampPacket().isEmpty()
-                                      && tmpPlr->getTargetType() == PktTarget::ALL )
-                                    {
-                                        tmpPlr->setTargetSerNum( plr->getSernum_i() );
-                                        tmpPlr->setTargetType( PktTarget::PLAYER );
-                                        tmpPlr->forceSendCampPacket();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else if ( this->getGameID() == Games::WoS )
-            {
-                switch ( pkt.at( 3 ).toLatin1() )
-                {
-                    case 'F':
-                        {  //Save the User's camp packet. --Send to newly connecting Users.
-                            if ( plr->getCampPacket().isEmpty() )
-                            {
-                                qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
-                                if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
-                                {
-                                    plr->setCampPacket( packet );
-                                    plr->setCampCreatedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
-                                }
-                            }
-                        }
-                    break;
-                    case 'f':
-                        {  //User un-camp. Remove camp packet.
-                            if ( !plr->getCampPacket().isEmpty() )
-                            {
-                                plr->setCampPacket( "" );
-                                plr->setCampCreatedTime( 0 );
-                            }
-                        }
-                    break;
-                    case 's': //Parse Player Level and AFK status.
-                        {
-                            plr->setPlrLevel( Helper::strToInt( pkt.mid( 21 ).left( 4 ) ) );
-                            plr->setIsAFK( Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) & 1 );
-                        }
-                    break;
-                    case 'K':  //If pet level exceess the Player's level then discard the packet.
-                        {
-                            QString msg{ "You may not call a pet stronger than yourself within a camp (scene) hosted by another Player!" };
-                            qint32 petLevel{ Helper::strToInt( pkt.mid( 19 ).left( 4 ) ) };
-
-                            if ( plr->getPlrLevel() >= 1
-                              && petLevel >= plr->getPlrLevel() )
-                            {
-                                server->sendMasterMessage( msg, plr, false );
-                                retn = false;
-                            }
-                        }
-                    break;
-                    case 'J':
-                        {
-                            QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
-                            Player* tmpPlr{ nullptr };
-                            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
-                            {
-                                tmpPlr = server->getPlayer( i );
-                                if ( tmpPlr != nullptr )
-                                {
-                                    if ( Helper::cmpStrings( tmpPlr->getSernumHex_s(), trgSerNum ) )
-                                        break;
-                                }
-                                tmpPlr = nullptr;
-                            }
-
-                            if ( tmpPlr != nullptr )
-                            {
-                                QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
-                                if ( !CampExemption::getInstance()->getIsWhitelisted( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
-                                {   //The Player is not exempted from further checking.
-                                    if ( tmpPlr->getIsCampLocked() )
-                                    {
-                                        retn = false;
-                                    }
-                                    else if ( tmpPlr->getIsCampOptOut() )
-                                    {
-                                        //The Camp was created before the Player connected. Mark it as old.
-                                        if (( tmpPlr->getCampCreatedTime() - plr->getPlrConnectedTime() ) < 0 )
-                                        {
-                                            message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
-                                            retn = false;
-                                        }
-                                        else
-                                            retn = true;
-                                    }
-                                }
-
-                                if ( !retn )
-                                {
-                                    message = message.arg( tmpPlr->getPlrName() );
-                                    server->sendMasterMessage( message, plr, false );
-                                }
-                            }
-                        }
-                    break;
-                }
-            }
-        }
-    }
-    else //Handle Warpath97 and Warpath 21st Century Chat.
-    {
-        pkt = pkt.trimmed();
-
-        //Warpath denotes Chat Packets with opCode 'D' at position '7'.
-        if ( pkt.at( 7 ) == 'D' )
-        {
-            //Remove the packet header.
-            pkt = pkt.mid( 8 );
-
-            //Remove the checksum.
-            pkt = pkt.left( pkt.length() - 2 );
-
-            this->insertChat( plr->getPlrName() % ": ", Colors::Name, true );
-            this->insertChat( pkt, Colors::Chat, false );
-
-            plr->setIsAFK( false );
-        }
-        else if ( pkt.at( 7 ) == '4' )
-        {
-            QString plrName{ pkt.mid( 20 ) };
-                    plrName = plrName.left( plrName.length() - 2 );
-            if ( !plrName.isEmpty() )
-                plr->setPlrName( plrName );
-        }
-    }
-    return retn;
 }
 
 bool ChatView::parseChatEffect(const QString& packet)
@@ -414,12 +242,10 @@ bool ChatView::parseChatEffect(const QString& packet)
             break;
             case '`': //Custom command input.
                 {
-                    CmdHandler* cHandle{ this->getCmdHandle() };
-                    if ( cHandle != nullptr
-                      && plr != nullptr )
+                    if ( plr != nullptr )
                     {
                         message = message.mid( 1 );
-                        cHandle->parseCommandImpl( plr, message );
+                        CmdHandler::getInstance( server )->parseCommandImpl( plr, message );
                     }
                     log = false;
                     retn = false;
@@ -480,24 +306,17 @@ void ChatView::insertChat(const QString& msg, const Colors& color, const bool& n
     }
 
     //Detect when the user is scrolling upwards.
-    if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax)
+    if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
     {
         if ( selStart == 0 && selEnd == 0 )
             obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
     }
 }
 
-CmdHandler* ChatView::getCmdHandle() const
+void ChatView::insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine)
 {
-    if ( cmdHandle == nullptr )
-        return nullptr;
-
-    return cmdHandle;
-}
-
-void ChatView::setCmdHandle(CmdHandler* value)
-{
-    cmdHandle = value;
+    if ( !msg.isEmpty() )
+        this->insertChat( msg, color, newLine );
 }
 
 void ChatView::on_chatInput_returnPressed()
@@ -528,4 +347,57 @@ void ChatView::on_chatInput_returnPressed()
 
     emit this->sendChatSignal( message );
     ui->chatInput->clear();
+}
+
+void ChatView::themeChangedSlot(const Themes& theme)
+{
+    QString txtHtml{ ui->chatView->toHtml() };
+    if ( !txtHtml.isEmpty() )
+    {
+        //enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
+        //OwnerChat, Chat, Gossip, Shout, Emote,
+        //GoldenSoul = 10, Default = -1 };
+
+        if ( theme == Themes::Light )
+        {
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::GoldenSoul ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::GoldenSoul ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::OwnerName ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::OwnerName ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Gossip ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Shout ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Shout ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Emote ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Emote ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Name ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Name ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Chat ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Chat ).name() );
+        }
+        else
+        {
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::GoldenSoul ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::GoldenSoul ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::OwnerName ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::OwnerName ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Gossip ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Shout ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Shout ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Emote ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Emote ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Name ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Name ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Chat ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Chat ).name() );
+        }
+
+        ui->chatView->clear();
+        ui->chatView->insertHtml( txtHtml );
+    }
 }

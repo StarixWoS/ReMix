@@ -33,8 +33,7 @@ int main(int argc, char* [])
     else
         Theme::getInstance()->setThemeType( Themes::Light );
 
-    ReMix w;
-    w.show();
+    ReMix::getInstance()->show();
 
     return a.exec();
 }

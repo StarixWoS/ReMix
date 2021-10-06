@@ -29,7 +29,7 @@ RulesWidget::~RulesWidget()
     delete ui;
 }
 
-RulesWidget* RulesWidget::getWidget(Server* server)
+RulesWidget* RulesWidget::getInstance(Server* server)
 {
     RulesWidget* widget{ ruleWidgets.value( server ) };
     if ( widget == nullptr )
@@ -44,7 +44,7 @@ RulesWidget* RulesWidget::getWidget(Server* server)
     return widget;
 }
 
-void RulesWidget::deleteWidget(Server* server)
+void RulesWidget::deleteInstance(Server* server)
 {
     RulesWidget* widget{ ruleWidgets.take( server ) };
     if ( widget != nullptr )

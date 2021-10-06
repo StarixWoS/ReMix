@@ -290,19 +290,21 @@ Player* Server::createPlayer(qintptr socketDescriptor)
     if ( slot >= 0 && slot < static_cast<int>( Globals::MAX_PLAYERS ) )
     {
         Player* plr{ new Player( socketDescriptor ) };
+        if ( plr != nullptr )
+        {
+            players[ slot ] = plr;
+            plr->setSlotPos( slot );
+            plr->setMaxIdleTimeSlot( this->getMaxIdleTime() );
 
-        players[ slot ] = plr;
-        plr->setSlotPos( slot );
-        plr->setMaxIdleTimeSlot( this->getMaxIdleTime() );
+            this->setPlayerCount( this->getPlayerCount() + 1 );
 
-        this->setPlayerCount( this->getPlayerCount() + 1 );
+            QObject::connect( this->getPktHandle(), &PacketHandler::sendPacketToPlayerSignal, plr, &Player::sendPacketToPlayerSlot );
+            QObject::connect( this, &Server::setMaxIdleTimeSignal, plr, &Player::setMaxIdleTimeSlot );
+            QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr, &Player::sendMasterMsgToPlayerSlot );
+            QObject::connect( this, &Server::connectionTimeUpdateSignal, plr, &Player::connectionTimeUpdateSlot );
 
-        QObject::connect( pktHandle, &PacketHandler::sendPacketToPlayerSignal, players[ slot ], &Player::sendPacketToPlayerSlot );
-        QObject::connect( this, &Server::setMaxIdleTimeSignal, players[ slot ], &Player::setMaxIdleTimeSlot );
-        QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, players[ slot ], &Player::sendMasterMsgToPlayerSlot );
-        QObject::connect( this, &Server::connectionTimeUpdateSignal, players[ slot ], &Player::connectionTimeUpdateSlot );
-
-        return plr;
+            return plr;
+        }
     }
     return nullptr;
 }
@@ -1043,14 +1045,9 @@ qint32 Server::getUsageMins() const
     return usageMins;
 }
 
-PacketHandler* Server::getPktHandle() const
+PacketHandler* Server::getPktHandle()
 {
-    return pktHandle;
-}
-
-void Server::setPktHandle(PacketHandler* value)
-{
-    pktHandle = value;
+    return PacketHandler::getInstance( this );
 }
 
 void Server::updateBytesOut(Player* plr, const qint64 bOut)

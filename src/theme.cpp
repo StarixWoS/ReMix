@@ -124,6 +124,8 @@ void Theme::setThemeType(const Themes& value)
 {
     themeType = value;
     applyTheme( themeType );
+
+    emit this->themeChangedSignal( themeType );
 }
 
 QBrush Theme::getThemeColor(const Colors& color)
@@ -133,6 +135,11 @@ QBrush Theme::getThemeColor(const Colors& color)
         return qApp->palette().windowText();
 
     return QBrush( QColor( themeColors[ static_cast<int>( getThemeType() ) ][ static_cast<int>( color ) ] ) );
+}
+
+QColor Theme::getThemeColor(const Themes& theme, const Colors& color)
+{
+    return QColor( themeColors[ static_cast<int>( theme ) ][ static_cast<int>( color ) ] );
 }
 
 Theme* Theme::getInstance()

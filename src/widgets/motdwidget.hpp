@@ -23,8 +23,8 @@ class MOTDWidget : public QWidget
         explicit MOTDWidget(const QString& name);
         ~MOTDWidget() override;
 
-        static MOTDWidget* getWidget(Server* server);
-        static void deleteWidget(Server* server);
+        static MOTDWidget* getInstance(Server* server);
+        static void deleteInstance(Server* server);
 
         void setServerName(const QString& name);
         void changeMotD(const QString& message);

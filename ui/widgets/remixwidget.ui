@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>698</width>
-    <height>205</height>
+    <height>306</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -36,12 +36,12 @@
     <number>5</number>
    </property>
    <property name="bottomMargin">
-    <number>5</number>
+    <number>0</number>
    </property>
    <property name="spacing">
     <number>5</number>
    </property>
-   <item row="0" column="0" colspan="2">
+   <item row="0" column="0" colspan="3">
     <widget class="QLabel" name="networkStatus">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
@@ -60,7 +60,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
+   <item row="0" column="3">
     <widget class="QLabel" name="onlineTime">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -73,9 +73,6 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1" rowspan="2" colspan="2">
-    <widget class="QWidget" name="tmpWidget" native="true"/>
-   </item>
    <item row="1" column="0" rowspan="2">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="sizePolicy">
@@ -87,7 +84,7 @@
      <property name="maximumSize">
       <size>
        <width>130</width>
-       <height>182</height>
+       <height>202</height>
       </size>
      </property>
      <property name="title">
@@ -118,7 +115,47 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="4" column="0" colspan="3">
+      <item row="6" column="0" colspan="3">
+       <widget class="QPushButton" name="openChatView">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Chat View</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="useUPNP">
+        <property name="text">
+         <string>UPNP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="isPublicServer">
+        <property name="text">
+         <string>Public</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="3">
+       <widget class="QPushButton" name="logButton">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Log View</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
        <widget class="QPushButton" name="openUserComments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -140,31 +177,6 @@
         </property>
         <property name="text">
          <string>User Comments</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="QPushButton" name="openUserInfo">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>20</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>20</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>User Information</string>
         </property>
        </widget>
       </item>
@@ -193,15 +205,20 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="isPublicServer">
-        <property name="text">
-         <string>Public</string>
+      <item row="3" column="0" colspan="3">
+       <widget class="QPushButton" name="openUserInfo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-       </widget>
-      </item>
-      <item row="6" column="0" colspan="3">
-       <widget class="QPushButton" name="logButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>20</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -209,32 +226,38 @@
          </size>
         </property>
         <property name="text">
-         <string>Log View</string>
+         <string>User Information</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="3">
-       <widget class="QPushButton" name="openChatView">
-        <property name="maximumSize">
+      <item row="2" column="0" colspan="3">
+       <widget class="QPushButton" name="openPlayerView">
+        <property name="minimumSize">
          <size>
-          <width>16777215</width>
+          <width>0</width>
           <height>20</height>
          </size>
         </property>
         <property name="text">
-         <string>Chat View</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="useUPNP">
-        <property name="text">
-         <string>UPNP</string>
+         <string>Player View</string>
         </property>
        </widget>
       </item>
      </layout>
     </widget>
+   </item>
+   <item row="1" column="1" rowspan="2" colspan="3">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="plrListFill" native="true"/>
+     </item>
+     <item>
+      <widget class="QWidget" name="chatViewFill" native="true"/>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

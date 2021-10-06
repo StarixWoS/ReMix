@@ -15,6 +15,8 @@ class PlrListWidget : public QWidget
 {
     Q_OBJECT
 
+    static QHash<Server*, PlrListWidget*> plrViewInstanceMap;
+
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
     TblEventFilter* tblEvFilter{ nullptr };
@@ -31,6 +33,9 @@ class PlrListWidget : public QWidget
     public:
         explicit PlrListWidget(ReMixWidget* parent = nullptr, Server* svr = nullptr);
         ~PlrListWidget() override;
+
+        static PlrListWidget* getInstance(ReMixWidget* parent, Server* server);
+        static void deleteInstance(Server* server);
 
         QStandardItemModel* getPlrModel() const;
         void resizeColumns();

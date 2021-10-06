@@ -3,6 +3,7 @@
 #include "packethandler.hpp"
 
 //ReMix includes.
+#include "campexemption.hpp"
 #include "packetforge.hpp"
 #include "cmdhandler.hpp"
 #include "settings.hpp"
@@ -15,8 +16,11 @@
 
 //Qt Includes.
 #include <QTcpSocket>
-#include <QTime>
 #include <QtCore>
+#include <QTime>
+#include <QHash>
+
+QHash<Server*, PacketHandler*> PacketHandler::pktHandleInstanceMap;
 
 PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 {
@@ -24,9 +28,7 @@ PacketHandler::PacketHandler(Server* svr, ChatView* chat)
     chatView = chat;
     server = svr;
 
-    cmdHandle = new CmdHandler( this, server );
-    chatView->setCmdHandle( cmdHandle );
-    QObject::connect( cmdHandle, &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
+    QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -34,7 +36,31 @@ PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 
 PacketHandler::~PacketHandler()
 {
-    cmdHandle->deleteLater();
+    if ( server != nullptr )
+        CmdHandler::deleteInstance( server );
+}
+
+PacketHandler* PacketHandler::getInstance(Server* server)
+{
+    PacketHandler* instance{ pktHandleInstanceMap.value( server ) };
+    if ( instance == nullptr )
+    {
+        instance = new PacketHandler( server, ChatView::getInstance( server ) );
+        if ( instance != nullptr )
+            pktHandleInstanceMap.insert( server, instance );
+    }
+    return instance;
+}
+
+void PacketHandler::deleteInstance(Server* server)
+{
+    PacketHandler* instance{ pktHandleInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
 }
 
 void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
@@ -126,7 +152,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
                 if ( !pktForge->validateSerNum( plr, packet ) )
                     parsePkt = false;
                 else
-                    parsePkt = chatView->parsePacket( packet, plr );
+                    parsePkt = this->parseTCPPacket( packet, plr );
             }
 
             if ( parsePkt )
@@ -263,6 +289,204 @@ void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ip
     }
 }
 
+bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
+{
+    //We were unable to load our PacketForge library, return.
+    if ( pktForge == nullptr )
+        return false;
+
+    //The Player object is invalid, return.
+    if ( plr == nullptr )
+        return false;
+
+    bool retn{ true };
+    QString pkt{ packet };
+    if ( server->getGameId() != Games::W97 )
+    {
+        //WoS and Arcadia distort Packets in the same manner.
+        pkt = pktForge->decryptPacket( packet );
+        if ( !pkt.isEmpty() )
+        {
+
+            //Remove checksum from Arcadia chat packet.
+            if ( server->getGameId() == Games::ToY )
+            {
+                //Arcadia Packets have a longer checksum than WoS packets.
+                //Remove the extra characters.
+                pkt = pkt.left( pkt.length() - 4 );
+            }
+
+            //WoS and Arcadia both use the opCode 'C' at position '3' in the packet to denote Chat packets.
+            if ( pkt.at( 3 ) == 'C' )
+            {
+                plr->setIsAFK( false );
+                retn = chatView->parseChatEffect( pkt );
+            }
+            else if ( pkt.at( 3 ) == '3'
+                   || ( ( server->getGameId() == Games::ToY ) && ( pkt.at( 3 ) == 'N' ) ) )
+            {
+                QStringList varList;
+                if ( server->getGameId() == Games::ToY )
+                    varList = pkt.mid( 39 ).split( "," );
+                else
+                    varList = pkt.mid( 47 ).split( "," );
+
+                QString plrName{ varList.at( 0 ) };
+                if ( !plrName.isEmpty() )
+                    plr->setPlrName( plrName );
+
+                //Check that the User is actually incarnating.
+                int type{ pkt.at( 14 ).toLatin1() - 0x41 };
+                if ( type >= 1 && type != 4 )
+                {
+                    //Send Camp packets to the newly connecting User.
+                    if ( server->getGameId() == Games::WoS )
+                    {
+                        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                        {
+                            Player* tmpPlr{ server->getPlayer( i ) };
+                            if ( tmpPlr != nullptr
+                              && plr != tmpPlr )
+                            {
+                                if ( plr->getSceneHost() != tmpPlr->getSernum_i()
+                                  || plr->getSceneHost() <= 0 )
+                                {
+                                    if ( !tmpPlr->getCampPacket().isEmpty()
+                                      && tmpPlr->getTargetType() == PktTarget::ALL )
+                                    {
+                                        tmpPlr->setTargetSerNum( plr->getSernum_i() );
+                                        tmpPlr->setTargetType( PktTarget::PLAYER );
+                                        tmpPlr->forceSendCampPacket();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if ( server->getGameId() == Games::WoS )
+            {
+                switch ( pkt.at( 3 ).toLatin1() )
+                {
+                    case 'F':
+                        {  //Save the User's camp packet. --Send to newly connecting Users.
+                            if ( plr->getCampPacket().isEmpty() )
+                            {
+                                qint32 sceneID{ Helper::strToInt( pkt.left( 17 ).mid( 13 ) ) };
+                                if ( sceneID >= 1 ) //If is 0 then it is the well scene and we can ignore the 'camp' packet.
+                                {
+                                    plr->setCampPacket( packet );
+                                    plr->setCampCreatedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
+                                }
+                            }
+                        }
+                    break;
+                    case 'f':
+                        {  //User un-camp. Remove camp packet.
+                            if ( !plr->getCampPacket().isEmpty() )
+                            {
+                                plr->setCampPacket( "" );
+                                plr->setCampCreatedTime( 0 );
+                            }
+                        }
+                    break;
+                    case 's': //Parse Player Level and AFK status.
+                        {
+                            plr->setPlrLevel( Helper::strToInt( pkt.mid( 21 ).left( 4 ) ) );
+                            plr->setIsAFK( Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) & 1 );
+                        }
+                    break;
+                    case 'K':  //If pet level exceess the Player's level then discard the packet.
+                        {
+                            QString msg{ "You may not call a pet stronger than yourself within a camp (scene) hosted by another Player!" };
+                            qint32 petLevel{ Helper::strToInt( pkt.mid( 19 ).left( 4 ) ) };
+
+                            if ( plr->getPlrLevel() >= 1
+                              && petLevel >= plr->getPlrLevel() )
+                            {
+                                server->sendMasterMessage( msg, plr, false );
+                                retn = false;
+                            }
+                        }
+                    break;
+                    case 'J':
+                        {
+                            QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
+                            Player* tmpPlr{ nullptr };
+                            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                            {
+                                tmpPlr = server->getPlayer( i );
+                                if ( tmpPlr != nullptr )
+                                {
+                                    if ( Helper::cmpStrings( tmpPlr->getSernumHex_s(), trgSerNum ) )
+                                        break;
+                                }
+                                tmpPlr = nullptr;
+                            }
+
+                            if ( tmpPlr != nullptr )
+                            {
+                                QString message{ "The Camp Hosted by [ %1 ] is currently locked and you may not enter!" };
+                                if ( !CampExemption::getInstance()->getIsWhitelisted( tmpPlr->getSernumHex_s(), plr->getSernumHex_s() ) )
+                                {   //The Player is not exempted from further checking.
+                                    if ( tmpPlr->getIsCampLocked() )
+                                    {
+                                        retn = false;
+                                    }
+                                    else if ( tmpPlr->getIsCampOptOut() )
+                                    {
+                                        //The Camp was created before the Player connected. Mark it as old.
+                                        if (( tmpPlr->getCampCreatedTime() - plr->getPlrConnectedTime() ) < 0 )
+                                        {
+                                            message = "The Camp Hosted by [ %1 ] is considered \"Old\" to your client and you can not enter!";
+                                            retn = false;
+                                        }
+                                        else
+                                            retn = true;
+                                    }
+                                }
+
+                                if ( !retn )
+                                {
+                                    message = message.arg( tmpPlr->getPlrName() );
+                                    server->sendMasterMessage( message, plr, false );
+                                }
+                            }
+                        }
+                    break;
+                }
+            }
+        }
+    }
+    else //Handle Warpath97 and Warpath 21st Century Chat.
+    {
+        pkt = pkt.trimmed();
+
+        //Warpath denotes Chat Packets with opCode 'D' at position '7'.
+        if ( pkt.at( 7 ) == 'D' )
+        {
+            //Remove the packet header.
+            pkt = pkt.mid( 8 );
+
+            //Remove the checksum.
+            pkt = pkt.left( pkt.length() - 2 );
+
+            emit this->insertChatMsgSignal( plr->getPlrName() % ": ", Colors::Name, true );
+            emit this->insertChatMsgSignal( pkt, Colors::Chat, false );
+
+            plr->setIsAFK( false );
+        }
+        else if ( pkt.at( 7 ) == '4' )
+        {
+            QString plrName{ pkt.mid( 20 ) };
+            plrName = plrName.left( plrName.length() - 2 );
+            if ( !plrName.isEmpty() )
+                plr->setPlrName( plrName );
+        }
+    }
+    return retn;
+}
+
 bool PacketHandler::checkBannedInfo(Player* plr) const
 {
     if ( plr == nullptr )
@@ -310,13 +534,13 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 if ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString()
                   && !plr->getIsDisconnected() )
                 {
-                    auto disconnect = [=, this]( Player* plr, const QString& logMsg,
-                                           QString& plrMessage )
+                    auto disconnect =
+                    [=, this]( Player* plr, const QString& logMsg, QString& plrMessage )
                     {
                         QString reason{ logMsg };
-                                reason = reason.arg( "Duplicate IP" )
-                                               .arg( plr->peerAddress().toString() )
-                                               .arg( plr->getBioData() );
+                        reason = reason.arg( "Duplicate IP" )
+                                       .arg( plr->peerAddress().toString() )
+                                       .arg( plr->getBioData() );
 
                         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
@@ -407,13 +631,13 @@ void PacketHandler::detectFlooding(Player* plr)
         if ( time <= static_cast<int>( Globals::PACKET_FLOOD_TIME ) )
         {
             if ( floodCount >= static_cast<int>( Globals::PACKET_FLOOD_LIMIT )
-              && !plr->getIsDisconnected() )
+                 && !plr->getIsDisconnected() )
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
-                        logMsg = logMsg.arg( plr->peerAddress().toString() )
-                                       .arg( floodCount )
-                                       .arg( time )
-                                       .arg( plr->getBioData() );
+                logMsg = logMsg.arg( plr->peerAddress().toString() )
+                         .arg( floodCount )
+                         .arg( time )
+                         .arg( plr->getBioData() );
 
                 User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
                 emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
@@ -452,9 +676,9 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
             reason = "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User exceeded the maximum allowed < %4 > Packet Header Exemptions.";
             reason = reason.arg( plr->getSernum_s() )
-                           .arg( plr->peerAddress().toString() )
-                           .arg( plr->getBioData() )
-                           .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
+                     .arg( plr->peerAddress().toString() )
+                     .arg( plr->getBioData() )
+                     .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 
             emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
@@ -464,8 +688,8 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
-                             .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
-                             .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
+                      .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
+                      .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.
             //I'm not sure if WoS will allow this.
@@ -531,7 +755,7 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
 
         //Do not accept comments from User who have been muted.
         if ( !plr->getIsMuted() )
-            cmdHandle->parseMix5Command( plr, packet );
+            CmdHandler::getInstance( server )->parseMix5Command( plr, packet );
     }
 }
 
@@ -545,7 +769,7 @@ void PacketHandler::readMIX6(const QString& packet, Player* plr)
 
         //Do not accept commands from User who have been muted.
         if ( !plr->getIsMuted() )
-            cmdHandle->parseMix6Command( plr, packet );
+            CmdHandler::getInstance( server )->parseMix6Command( plr, packet );
     }
 }
 

@@ -39,40 +39,40 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     masterMixThread->moveToThread( MasterMixThread::getInstance() );
 
     //Initialize the ChatView Dialog.
-    chatView = new ChatView( parent, server );
-    chatView->setTitle( server->getServerName() );
-    chatView->setGameID( server->getGameId() );
-
-    //Initialize the PacketHandler Object..
-    pktHandle = new PacketHandler( server, chatView );
-    server->setPktHandle( pktHandle );
+    ChatView::getInstance( server )->setTitle( server->getServerName() );
+    ChatView::getInstance( server )->setGameID( server->getGameId() );
 
     //Initialize the Comments Dialog.
-    serverComments = new Comments( parent, server );
+    serverComments = new Comments( nullptr, server );
     serverComments->setTitle( server->getServerName() );
 
     //Setup Objects.
-    motdWidget = MOTDWidget::getWidget( server );
+    motdWidget = MOTDWidget::getInstance( server );
 
     //Initialize the RulesWidget
-    rules = RulesWidget::getWidget( server );
+    rules = RulesWidget::getInstance( server );
     rules->setServerName( server->getServerName() );
     server->setGameInfo( rules->getGameInfo() );
 
     //Initialize the PlrListWidget.
-    plrWidget = new PlrListWidget( this, server );
-    QObject::connect( this, &ReMixWidget::fwdUpdatePlrViewSignal, plrWidget, &PlrListWidget::updatePlrViewSlot );
-    QObject::connect( this, &ReMixWidget::plrViewInsertRowSignal, plrWidget, &PlrListWidget::plrViewInsertRowSlot );
-    QObject::connect( this, &ReMixWidget::plrViewRemoveRowSignal, plrWidget, &PlrListWidget::plrViewRemoveRowSlot );
-    QObject::connect( plrWidget, &PlrListWidget::insertedRowItemSignal, this, &ReMixWidget::insertedRowItemSlot );
+    PlrListWidget* plrList{ PlrListWidget::getInstance( this, server ) };
+    QObject::connect( this, &ReMixWidget::fwdUpdatePlrViewSignal, plrList, &PlrListWidget::updatePlrViewSlot );
+    QObject::connect( this, &ReMixWidget::plrViewInsertRowSignal, plrList, &PlrListWidget::plrViewInsertRowSlot );
+    QObject::connect( this, &ReMixWidget::plrViewRemoveRowSignal, plrList, &PlrListWidget::plrViewRemoveRowSlot );
+    QObject::connect( plrList, &PlrListWidget::insertedRowItemSignal, this, &ReMixWidget::insertedRowItemSlot );
 
     //Fill the ReMix UI with the PlrListWidget.
-    ui->tmpWidget->setLayout( plrWidget->layout() );
-    ui->tmpWidget->layout()->addWidget( plrWidget );
+    ui->plrListFill->setLayout( plrList->layout() );
+    ui->plrListFill->layout()->addWidget( plrList );
+    ui->openPlayerView->setText( "Hide Player List" );
+
+    ui->chatViewFill->setLayout( ChatView::getInstance( server )->layout() );
+    ui->chatViewFill->layout()->addWidget( ChatView::getInstance( server ) );
+    ui->openChatView->setText( "Hide Chat View" );
 
     //Connect Object Signals to Slots.
     QObject::connect( server, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
-    QObject::connect( pktHandle, &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
+    QObject::connect( server->getPktHandle(), &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
     QObject::connect( serverComments, &Comments::newUserCommentSignal, this,
     [=, this](const QString& comment)
     {
@@ -103,7 +103,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
         server->setIsPublic( true );
     } );
 
-    QObject::connect( chatView, &ChatView::sendChatSignal, chatView,
+    QObject::connect( ChatView::getInstance( server ), &ChatView::sendChatSignal, this,
     [=, this](QString msg)
     {
         if ( !msg.isEmpty() )
@@ -143,17 +143,12 @@ ReMixWidget::~ReMixWidget()
     masterMixThread->exit();
     masterMixThread->disconnect();
     masterMixThread->deleteLater();
-    pktHandle->disconnect();
-    pktHandle->deleteLater();
-    plrWidget->disconnect();
-    plrWidget->deleteLater();
-    pktHandle->disconnect();
-    pktHandle->deleteLater();
-    chatView->disconnect();
-    chatView->deleteLater();
 
-    RulesWidget::deleteWidget( server );
-    MOTDWidget::deleteWidget( server );
+    PlrListWidget::deleteInstance( server );
+    PacketHandler::deleteInstance( server );
+    RulesWidget::deleteInstance( server );
+    MOTDWidget::deleteInstance( server );
+    ChatView::deleteInstance( server );
 
     delete server;
     delete ui;
@@ -262,7 +257,7 @@ void ReMixWidget::initUIUpdate()
             if ( Settings::getSetting( SKeys::WrongIP, server->getPrivateIP() ).toBool() )
                 emit this->reValidateServerIPSignal();
 
-            plrWidget->resizeColumns();
+            PlrListWidget::getInstance( this, server )->resizeColumns();
         }
         ui->networkStatus->setText( msg );
     } );
@@ -289,6 +284,25 @@ void ReMixWidget::on_openSettings_clicked()
         settings->show();
 }
 
+void ReMixWidget::on_openPlayerView_clicked()
+{
+    if ( ui->chatViewFill->isVisible() )
+    {
+        if ( !ui->plrListFill->isVisible() )
+        {
+            ui->openPlayerView->setText( "Hide Player List" );
+            ui->openChatView->setEnabled( true );
+            ui->plrListFill->show();
+        }
+        else
+        {
+            ui->openPlayerView->setText( "Show Player List" );
+            ui->openChatView->setEnabled( false );
+            ui->plrListFill->hide();
+        }
+    }
+}
+
 void ReMixWidget::on_openUserComments_clicked()
 {
     if ( serverComments != nullptr )
@@ -308,18 +322,20 @@ void ReMixWidget::on_openUserComments_clicked()
 
 void ReMixWidget::on_openChatView_clicked()
 {
-    if ( chatView != nullptr )
+    if ( ui->plrListFill->isVisible() )
     {
-        if ( chatView->isVisible() )
-            chatView->hide();
+        if ( !ui->chatViewFill->isVisible() )
+        {
+            ui->openChatView->setText( "Hide Chat View" );
+            ui->openPlayerView->setEnabled( true );
+            ui->chatViewFill->show();
+        }
         else
-            chatView->show();
-    }
-    else
-    {
-        QString title{ "Error:" };
-        QString message{ "Unable to fetch the Server's Chat View dialog!" };
-        Helper::warningMessage( this, title, message );
+        {
+            ui->openChatView->setText( "Show Chat View" );
+            ui->openPlayerView->setEnabled( false );
+            ui->chatViewFill->hide();
+        }
     }
 }
 
@@ -423,7 +439,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
 
     }, Qt::UniqueConnection );
 
-    QObject::connect( plr, &Player::parsePacketSignal, pktHandle, &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
+    QObject::connect( plr, &Player::parsePacketSignal, server->getPktHandle(), &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
 
     server->sendServerGreeting( plr );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
@@ -465,7 +481,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     else
         this->insertedRowItemSlot( plrTableItems.value( peerSoc, nullptr ), peerSoc, data );
 
-    pktHandle->checkBannedInfo( plr );
+    server->getPktHandle()->checkBannedInfo( plr );
 
     QString logMsg{ "Client: [ %1: ] connected with BIO [ %2 ]" };
             logMsg = logMsg.arg( plr->peerAddress().toString() )

@@ -108,7 +108,7 @@ set(UI ui/widgets/settingswidget.ui
     ui/widgets/motdwidget.ui
     ui/createinstance.ui
     ui/selectworld.ui
-    ui/chatview.ui
+    #ui/chatview.ui
     ui/comments.ui
     ui/settings.ui
     ui/sendmsg.ui

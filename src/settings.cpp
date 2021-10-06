@@ -152,8 +152,8 @@ void Settings::updateTabBar(Server* server)
 
     getInstance()->setWindowTitle( "[ " % server->getServerName() % " ] Settings:");
     tabWidget->insertTab( 0, SettingsWidget::getInstance(), "Settings" );
-    tabWidget->insertTab( 1, RulesWidget::getWidget( server ), "Rules" );
-    tabWidget->insertTab( 2, MOTDWidget::getWidget( server ), "MotD" );
+    tabWidget->insertTab( 1, RulesWidget::getInstance( server ), "Rules" );
+    tabWidget->insertTab( 2, MOTDWidget::getInstance( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
 }

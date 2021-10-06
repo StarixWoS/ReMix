@@ -17,6 +17,7 @@ MOTDWidget::MOTDWidget(const QString& name) :
     ui(new Ui::MOTDWidget)
 {
     ui->setupUi(this);
+    this->setWindowModality( Qt::ApplicationModal );
     this->setServerName( name );
 
     //Update the MOTD file after the timer has elapsed.
@@ -38,7 +39,7 @@ MOTDWidget::~MOTDWidget()
     delete ui;
 }
 
-MOTDWidget* MOTDWidget::getWidget(Server* server)
+MOTDWidget* MOTDWidget::getInstance(Server* server)
 {
     MOTDWidget* widget{ motdWidgets.value( server ) };
     if ( widget == nullptr )
@@ -49,7 +50,7 @@ MOTDWidget* MOTDWidget::getWidget(Server* server)
     return widget;
 }
 
-void MOTDWidget::deleteWidget(Server* server)
+void MOTDWidget::deleteInstance(Server* server)
 {
     MOTDWidget* widget{ motdWidgets.take( server ) };
     if ( widget != nullptr )

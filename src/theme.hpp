@@ -24,10 +24,14 @@ class Theme : public QObject
 
         static void applyTheme(const Themes& type = Themes::Light);
         static Themes getThemeType();
-        static void setThemeType(const Themes& value);
+        void setThemeType(const Themes& value);
         static QBrush getThemeColor(const Colors& color);
+        static QColor getThemeColor(const Themes& theme, const Colors& color);
 
         static Theme* getInstance();
+
+    signals:
+        void themeChangedSignal(const Themes& type);
 };
 
 #endif // THEMECHANGE_HPP

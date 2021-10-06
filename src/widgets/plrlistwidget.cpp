@@ -15,6 +15,7 @@
 #include "helper.hpp"
 #include "logger.hpp"
 #include "server.hpp"
+#include "remix.hpp"
 #include "theme.hpp"
 #include "user.hpp"
 
@@ -24,6 +25,9 @@
 #include <QTcpSocket>
 #include <QtCore>
 #include <QMenu>
+#include <QMap>
+
+QHash<Server*, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
 
 PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     ui(new Ui::PlrListWidget)
@@ -91,6 +95,29 @@ PlrListWidget::~PlrListWidget()
     plrProxy->deleteLater();
 
     delete ui;
+}
+
+PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, Server* server)
+{
+    PlrListWidget* instance{ plrViewInstanceMap.value( server ) };
+    if ( instance == nullptr )
+    {
+        instance = new PlrListWidget( parent, server );
+        if ( instance != nullptr )
+            plrViewInstanceMap.insert( server, instance );
+    }
+    return instance;
+}
+
+void PlrListWidget::deleteInstance(Server* server)
+{
+    PlrListWidget* instance{ plrViewInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
 }
 
 QStandardItemModel* PlrListWidget::getPlrModel() const

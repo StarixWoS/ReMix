@@ -18,6 +18,8 @@
 //Qt includes.
 #include <QtCore>
 
+QHash<Server*, CmdHandler*> CmdHandler::cmdInstanceMap;
+
 CmdHandler::CmdHandler(QObject* parent, Server* svr)
     : QObject(parent)
 {
@@ -29,6 +31,29 @@ CmdHandler::CmdHandler(QObject* parent, Server* svr)
 }
 
 CmdHandler::~CmdHandler() = default;
+
+CmdHandler* CmdHandler::getInstance(Server* server)
+{
+    CmdHandler* instance{ cmdInstanceMap.value( server ) };
+    if ( instance == nullptr )
+    {
+        instance = new CmdHandler( nullptr, server );
+        if ( instance != nullptr )
+            cmdInstanceMap.insert( server, instance );
+    }
+    return instance;
+}
+
+void CmdHandler::deleteInstance(Server* server)
+{
+    CmdHandler* instance{ cmdInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
+}
 
 bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QString& cmdStr)
 {
@@ -574,7 +599,7 @@ void CmdHandler::motdHandler(Player* admin, const QString& subCmd, const QString
     if ( !subCmd.isEmpty()
       && cmdTable->isSubCommand( GMCmds::MotD, subCmd ) )
     {
-        MOTDWidget* motdWidget{ MOTDWidget::getWidget( server ) };
+        MOTDWidget* motdWidget{ MOTDWidget::getInstance( server ) };
         if ( motdWidget != nullptr )
         {
             QString message{ "Admin [ %1 ] has changed the Message of the Day to: [ %2 ]" };
@@ -846,7 +871,7 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
     QString invalid{ "Incorrect" };
     QString valid{ "Correct" };
 
-    QStringList pwdTypes{ "Server", "Admin" };
+    QStringList pwdTypes{ "[ Server ]", "[ Admin ]" };
 
     bool disconnect{ false };
     PwdTypes pwdType{ PwdTypes::Invalid };
