@@ -16,6 +16,8 @@ class Settings : public QDialog
 {
     Q_OBJECT
 
+    static QVector<SSubKeys> serverSettings;
+    static QVector<SSubKeys> serverRules;
     static QTabWidget* tabWidget;
     static Settings* instance;
 

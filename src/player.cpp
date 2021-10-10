@@ -535,6 +535,26 @@ void Player::setIsCampOptOut(bool value)
     isCampOptOut = value;
 }
 
+bool Player::getIsIncarnated() const
+{
+    return isIncarnated;
+}
+
+void Player::setIsIncarnated(bool newIsIncarnated)
+{
+    isIncarnated = newIsIncarnated;
+}
+
+bool Player::getIsGhosting() const
+{
+    return isGhosting;
+}
+
+void Player::setIsGhosting(bool newIsGhosting)
+{
+    isGhosting = newIsGhosting;
+}
+
 quint64 Player::getMuteDuration()
 {
     return muteDuration;

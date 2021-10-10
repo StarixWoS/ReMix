@@ -183,6 +183,9 @@ void Server::setupUPNP(const bool& enable)
 
 void Server::sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
 {
+    if ( !this->getIsPublic() )
+        return;
+
     if ( addr.isNull() )
         return;
 
@@ -235,6 +238,11 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
 
 void Server::sendMasterInfo(const bool& disconnect)
 {
+    if ( !this->getIsPublic() && !disconnect )
+    {
+        return;
+    }
+
     QHostAddress addr{ this->getMasterIP() };
     QString response{ "X" };
 
@@ -363,6 +371,19 @@ Player* Server::getPlayer(const qintptr& socketDescriptor)
         plr = this->getPlayerVector().at( slot );
 
     return plr;
+}
+
+Player* Server::getPlayer(const QString& hexSerNum)
+{
+    for ( Player* plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && Helper::cmpStrings( plr->getSernumHex_s(), hexSerNum ) )
+        {
+            return plr;
+        }
+    }
+    return nullptr;
 }
 
 int Server::getSocketSlot(qintptr socketDescriptor)
@@ -678,6 +699,8 @@ void Server::setIsPublic(const bool& value)
         this->stopMasterCheckIn();
         this->sendMasterInfo( true );
     }
+
+    Settings::setSetting( isPublic, SKeys::Setting, SSubKeys::IsRunning, serverName );
 }
 
 bool Server::getUseUPNP() const
@@ -791,7 +814,8 @@ void Server::setServerName(const QString& value)
     if ( !Helper::cmpStrings( serverName, value ) )
     {
         serverName = value;
-        if ( this->getMasterUDPResponse() )
+        if ( this->getMasterUDPResponse()
+          && this->getIsPublic() )
         {
             this->sendMasterInfo( true ); //Disconnect from the Master Mix.
             this->sendMasterInfo( false ); //Reconnect to the Master Mix using the new name.

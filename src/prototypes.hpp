@@ -313,7 +313,7 @@
         enum class LogTypes: int{ ALL = 0, ADMIN, COMMENT, CLIENT, MASTERMIX, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PING };
 
         //Used for converting time in seconds to a human readable format.
-        enum class TimeFormat{ Hours = 0, Minutes = 1, Seconds = 2, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60 };
+        enum class TimeFormat{ Days = 0, Hours = 1, Minutes = 2, Seconds = 3, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60, DaysDiv = 24 };
         enum class MultiplyTime: int{ Hours = 60, Minutes = 60, Seconds = 60, Miliseconds = 1000 };
 
         //Valid Ban Durations in seconds.

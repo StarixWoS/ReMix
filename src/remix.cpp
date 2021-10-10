@@ -28,6 +28,8 @@ ReMix::ReMix(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::ReMix)
 {
+    instance = this;
+
     //Register the LogTypes type for use within signals and slots.
     qRegisterMetaType<LogTypes>("LogTypes");
     //Register the QHostAddress type for use within signals and slots.

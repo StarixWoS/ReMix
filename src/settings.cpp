@@ -88,6 +88,41 @@ const QStringList Settings::sKeys =
     "autoRestart",
 };
 
+QVector<SSubKeys> Settings::serverSettings //Settings Specific to a Server Instance.
+{
+    SSubKeys::ChatAutoScroll,
+    SSubKeys::HidePlayerView,
+    SSubKeys::HideChatView,
+    SSubKeys::PortNumber,
+    SSubKeys::IsRunning,
+    SSubKeys::IsPublic,
+    SSubKeys::GameName,
+    SSubKeys::UseUPNP,
+    SSubKeys::MOTD,
+};
+
+QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
+{
+    SSubKeys::HasSvrPassword,
+    SSubKeys::NoEavesdrop,
+    SSubKeys::SvrPassword,
+    SSubKeys::AutoRestart,
+    SSubKeys::MinVersion,
+    SSubKeys::MaxPlayers,
+    SSubKeys::NoMigrate,
+    SSubKeys::NoModding,
+    SSubKeys::PKLadder,
+    SSubKeys::ArenaPK,
+    SSubKeys::NoCheat,
+    SSubKeys::NoBleep,
+    SSubKeys::SvrUrl,
+    SSubKeys::NoPets,
+    SSubKeys::MaxIdle,
+    SSubKeys::World,
+    SSubKeys::AllPK,
+    SSubKeys::NoPK,
+};
+
 //The BIO Hash is accessible via any ReMix Server Instance.
 QHash<QHostAddress, QByteArray> Settings::bioHash;
 
@@ -163,66 +198,24 @@ void Settings::updateTabBar(Server* server)
 
 void Settings::copyServerSettings(Server* server, const QString& newName)
 {
-    //QMutexLocker locker( &mutex );
     QString oldName{ server->getServerName() };
-    QVariant val;
     if ( oldName != newName )
     {
         prefs->sync();
 
-        //Copy Rules.
-        val = getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::HasSvrPassword, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoEavesdrop, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::SvrPassword, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::SvrPassword, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::AutoRestart, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::AutoRestart, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::MinVersion, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::MinVersion, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::MaxPlayers, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::MaxPlayers, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoMigrate, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoMigrate, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoModding, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoModding, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::PKLadder, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::PKLadder, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::ArenaPK, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::ArenaPK, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoCheat, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoCheat, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoBleep, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoBleep, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::SvrUrl, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::SvrUrl, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoPets, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoPets, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::MaxIdle, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::MaxIdle, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::World, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::World, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::AllPK, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::AllPK, newName );
-        val = getSetting( SKeys::Rules, SSubKeys::NoPK, oldName );
-              setSetting( val, SKeys::Rules, SSubKeys::NoPK, newName );
+        //Copy Server Rules.
+        for ( const SSubKeys& key : serverRules )
+        {
+            QVariant val = getSetting( SKeys::Rules, key, oldName );
+            setSetting( val, SKeys::Rules, key, newName );
+        }
 
-        //Copy Settings.
-        val = getSetting( SKeys::Setting, SSubKeys::PortNumber, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::PortNumber, newName );
-        val = getSetting( SKeys::Setting, SSubKeys::IsRunning, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::IsRunning, newName );
-        val = getServerID( oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::Extension, newName );
-        val = getSetting( SKeys::Setting, SSubKeys::IsPublic, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::IsPublic, newName );
-        val = getSetting( SKeys::Setting, SSubKeys::GameName, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::GameName, newName );
-        val = getSetting( SKeys::Setting, SSubKeys::UseUPNP, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::UseUPNP, newName );
-        val = getSetting( SKeys::Setting, SSubKeys::MOTD, oldName );
-              setSetting( val, SKeys::Setting, SSubKeys::MOTD, oldName );
+        //Copy Server Settings.
+        for ( const SSubKeys& key : serverSettings )
+        {
+            QVariant val = getSetting( SKeys::Setting, key, oldName );
+            setSetting( val, SKeys::Setting, key, newName );
+        }
 
         prefs->remove( oldName );
         prefs->sync();

@@ -637,7 +637,6 @@ void ReMixTabWidget::createServerAcceptedSlot(Server* server)
             this->setCurrentIndex( serverID );
 
         QObject::connect( serverMap.value( serverID ), &ReMixWidget::crossServerCommentSignal, this, &ReMixTabWidget::crossServerCommentSlot );
-        Settings::setSetting( server->getIsPublic(), SKeys::Setting, SSubKeys::IsRunning, serverName );
     }
 }
 

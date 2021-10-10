@@ -28,6 +28,8 @@ class Player : public QTcpSocket
     bool isDisconnected{ false };
     bool isCampLocked{ false };
     bool isCampOptOut{ false };
+    bool isIncarnated{ false };
+    bool isGhosting{ false };
     bool isVisible{ true };
     bool isAFK{ false };
 
@@ -210,6 +212,12 @@ class Player : public QTcpSocket
         void setPktHeaderExemptCount(const qint32& value);
 
         QString getIPAddress() const;
+
+        bool getIsIncarnated() const;
+        void setIsIncarnated(bool newIsIncarnated);
+
+        bool getIsGhosting() const;
+        void setIsGhosting(bool newIsGhosting);
 
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);

@@ -15,6 +15,12 @@ Version 2.7.9:
         * The Hidden/Shown state is saved as a Server specific setting.
       * Removed UDP Packet handling from the PacketHandler Class and into the UDPThread Class.
         * The UDP Thread Class signals the parsed data to the Server Class for further proccessing of Server specific information.
+      * Reduced Code Bloat related to copying Server Settings/Rules in a NameChange event.
+        * In the process it has become easier to mark which settings/rules are server specific.
+      * Properly parse the '3', '5', and 'k' packets for chat related information.
+        * The '3' Packet Contains incarnation/disincarnation/and ghost messaging.
+        * The '5' Packet signals a player is leaving the server.
+        * The 'k' Packet contains PK Attack information.
       
 
 
@@ -25,6 +31,12 @@ Version 2.7.9:
         * Reimplemented the tabAt() function to account for this buttton's size within the ReMixTabWidget Class.
       * Fixed an issue where applying the Normal/Dark themes would not correctly theme the LogView UI.
         * The workaround for this was to have the Theme Class signal the Theme change directly to the LogView Class and applying the pallette directly.
+      * Fixed an issue where Window Positions were not being saved.
+      * Fixed an issue where ReMix would send a MasterMix ping even when the Server was not public.
+        * This was due to how ReMix handles connecting players and updating the Player Count to the Master Mix.
+        * We now properly ensure that the Server is Public before posting information to the Master.
+      * Fixed an issue where changing a Servers name would not copy certain settings and rules.
+      * Fixed an issue where Users initializing a custom command would have a TimeStamp with no message inserted into the ChatView.
 
 
 

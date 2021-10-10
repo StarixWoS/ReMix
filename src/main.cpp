@@ -34,7 +34,9 @@ int main(int argc, char* [])
     else
         Theme::getInstance()->setThemeType( Themes::Light );
 
-    ReMix::getInstance()->show();
+    ReMix m;
+    m.show();
+    //ReMix::getInstance()->show();
 
     return a.exec();
 }

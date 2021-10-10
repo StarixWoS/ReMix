@@ -34,8 +34,7 @@ class ChatView : public QWidget
         void insertChat(const QString& msg, const Colors& color, const bool& newLine);
 
         void scrollToBottom(const bool& forceScroll = false);
-        QString getTimeStr();
-
+        static QString getTimeStr();
 
     public slots:
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);

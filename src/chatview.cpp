@@ -198,7 +198,9 @@ bool ChatView::parseChatEffect(const QString& packet)
         QChar type{ packet.at( 31 ) };
         bool log{ true };
 
-        this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+        if ( type.toLatin1() != '`' )
+            this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+
         switch ( type.toLatin1() )
         {
             case '\'': //Gossip Chat Effect.

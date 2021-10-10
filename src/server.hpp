@@ -104,6 +104,7 @@ class Server : public QTcpServer
         Player* createPlayer(qintptr socketDescriptor);
         Player* getPlayer(const int& slot);
         Player* getPlayer(const qintptr& socketDescriptor);
+        Player* getPlayer(const QString& hexSerNum);
         void deletePlayer(Player* plr, const bool& timedOut = false);
 
         Player* getLastPlayerInStorage(Player* plr);

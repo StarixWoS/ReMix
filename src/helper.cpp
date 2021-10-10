@@ -240,7 +240,6 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 
 qint32 Helper::serNumtoInt(const QString& sernum, const bool& isHex)
 {
-
     QString serNum{ sernum };
             serNum = stripSerNumHeader( sernum );
 
@@ -403,8 +402,9 @@ QString Helper::getTimeAsString(const quint64& time)
 
 QString Helper::getTimeFormat(const qint64& time)
 {
-    QString format{ "%1:%2:%3" };
-            format = format.arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
+    QString format{ "%1:%2:%3:%4" };
+            format = format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
+                           .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
                            .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
                            .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) );
     return format;
@@ -415,6 +415,10 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
     qint64 retn{ time };
     switch ( format )
     {
+        case TimeFormat::Days:
+            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
+                     % static_cast<int>( TimeFormat::DaysDiv ) );
+        break;
         case TimeFormat::Hours:
             retn = ( time / static_cast<int>( TimeFormat::HoursDiv ) );
         break;
@@ -428,8 +432,9 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
         case TimeFormat::Default:
             retn = time;
         break;
-        case TimeFormat::SecDiv:
         case TimeFormat::HoursDiv:
+        case TimeFormat::DaysDiv:
+        case TimeFormat::SecDiv:
             retn = time;
         break;
     }

@@ -29,6 +29,7 @@ PacketHandler::PacketHandler(Server* svr, ChatView* chat)
     server = svr;
 
     QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
+    QObject::connect( this, &PacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot );
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -223,6 +224,47 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
 
                 //Check that the User is actually incarnating.
                 int type{ pkt.at( 14 ).toLatin1() - 0x41 };
+                if ( type >= 1 && !Helper::cmpStrings( plr->getPlrName(), "Unincarnated" ) )
+                {
+                    bool isIncarnated{ plr->getIsIncarnated() };
+                    plr->setIsIncarnated( true );
+                    plr->setIsGhosting( false );
+
+                    QString msg{ "" };
+                    switch ( type )
+                    {
+                        case 1:
+                            {
+                                msg = " has incarnated into this world! ";
+                            }
+                        break;
+                        case 2:
+                            {
+                                plr->setIsGhosting( true );
+                                msg = " walks the land as an apparition! ";
+                            }
+                        break;
+                        case 4:
+                            {
+                                plr->setIsIncarnated( false );
+                                isIncarnated = false;
+                                msg = " has returned to the Well of Souls! ";
+                            }
+                        break;
+                        default:
+                        break;
+                    }
+
+                    if ( !msg.isEmpty() && !isIncarnated )
+                    {
+                        emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
+                        emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
+                        emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
+                        emit this->insertChatMsgSignal( msg, Colors::Invalid, false );
+                        emit this->insertChatMsgSignal( "***", Colors::Invalid, false );
+                    }
+                }
+
                 if ( type >= 1 && type != 4 )
                 {
                     //Send Camp packets to the newly connecting User.
@@ -252,8 +294,33 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
             }
             else if ( server->getGameId() == Games::WoS )
             {
+                QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
+                Player* targetPlayer{ server->getPlayer( trgSerNum ) };
+
                 switch ( pkt.at( 3 ).toLatin1() )
                 {
+                    case '5': //Player Leaves Server.
+                        {
+                            emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
+                            emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
+                            emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
+                            emit this->insertChatMsgSignal( " has left this world! ***", Colors::Invalid, false );
+                        }
+                    break;
+                    case 'k': //PK Attack.
+                        {
+                            if ( targetPlayer != nullptr )
+                            {
+                                emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
+                                emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::Name, false );
+                                emit this->insertChatMsgSignal( " has challenged ", Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( targetPlayer->getPlrName(), Colors::Name, false );
+                                emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::Invalid, false );
+                            }
+
+                        }
+                    break;
                     case 'F':
                         {  //Save the User's camp packet. --Send to newly connecting Users.
                             if ( plr->getCampPacket().isEmpty() )
@@ -297,7 +364,6 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     break;
                     case 'J':
                         {
-                            QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
                             Player* tmpPlr{ nullptr };
                             for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                             {
