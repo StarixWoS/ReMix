@@ -155,7 +155,7 @@ void CreateInstance::on_initializeServer_clicked()
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
                 Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
-                                                             ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
+                                                         ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
 
                 emit this->createServerAcceptedSignal( server );
                 emit this->accept();
@@ -267,10 +267,7 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
             }
         }
         else
-        {
             MasterMixThread::getInstance()->getMasterMixInfo( server );
-            //Helper::getSynRealData( server );
-        }
 
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );

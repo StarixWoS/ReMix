@@ -30,7 +30,6 @@ class PacketHandler : public QObject
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        void parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port);
         bool parseTCPPacket(const QByteArray& packet, Player* plr = nullptr);
 
         bool checkBannedInfo(Player* plr) const;

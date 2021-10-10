@@ -12,6 +12,7 @@
 #include "logger.hpp"
 #include "helper.hpp"
 #include "server.hpp"
+#include "theme.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -38,6 +39,7 @@ ReMix::ReMix(QWidget* parent) :
 
     ui->setupUi(this);
 
+    Logger::setInstance( new Logger( this ) );
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
@@ -73,6 +75,7 @@ ReMix::~ReMix()
     CampExemption::getInstance()->deleteLater();
     Settings::getInstance()->deleteLater();
     Logger::getInstance()->deleteLater();
+    Theme::getInstance()->deleteLater();
     User::getInstance()->deleteLater();
 
     serverUI->close();

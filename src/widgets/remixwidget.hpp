@@ -6,7 +6,7 @@
 //Required Qt Includes..
 #include <QModelIndex>
 #include <QWidget>
-
+#include <QSplitter>
 namespace Ui {
     class ReMixWidget;
 }
@@ -21,8 +21,6 @@ class ReMixWidget : public QWidget
 
     QThread* masterMixThread{ nullptr };
     Server* server{ nullptr };
-
-    Comments* serverComments{ nullptr };
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
@@ -47,7 +45,6 @@ class ReMixWidget : public QWidget
     private slots:
         void on_openSettings_clicked();
         void on_openPlayerView_clicked();
-        void on_openUserComments_clicked();
         void on_openUserInfo_clicked();
         void on_isPublicServer_toggled(bool value);
         void on_useUPNP_toggled(bool value);

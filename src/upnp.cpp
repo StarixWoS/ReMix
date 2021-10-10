@@ -47,7 +47,6 @@ UPNP::UPNP(QObject* parent )
 
         httpSocket = new QNetworkAccessManager();
         udpSocket = new QUdpSocket();
-        udpSocket->bind( localAddress.ip(), 0 );
 
         QString logMsg{ "Creating UPNP Object." };
         emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true );
@@ -93,29 +92,31 @@ void UPNP::setTunneled(bool value)
 
 void UPNP::makeTunnel()
 {
-    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot );
-
     QString discover{ "M-SEARCH * HTTP/1.1\r\n"
-                         "HOST:239.255.255.250:1900\r\n"
-                         "ST: upnp:rootdevice\r\n"
-                         //"GatewayDevice:1\r\n"/*upnp:rootdevice*/
-                         "Man:\"ssdp:discover\"\r\n"
-                         "MX:3\r\n\r\n"
-    };
+                      "HOST:239.255.255.250:1900\r\n"
+                      "ST: upnp:rootdevice\r\n"
+                      //"GatewayDevice:1\r\n"/*upnp:rootdevice*/
+                      "Man:\"ssdp:discover\"\r\n"
+                      "MX:3\r\n\r\n" };
 
+    QObject::connect( udpSocket, &QUdpSocket::readyRead, this, &UPNP::getUdpSlot, Qt::UniqueConnection );
+    udpSocket->bind( localAddress.ip(), 0 );
     udpSocket->writeDatagram( discover.toLatin1(),
                               discover.size(),
                               localAddress.broadcast(),
                               1900 );
 
     QString logMsg{ "Sent UDP Query Response [ %1 ]." };
-    logMsg = logMsg.arg( discover.trimmed() );
+            logMsg = logMsg.arg( discover.trimmed() );
 
     emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true );
 }
 
 void UPNP::getUdpSlot()
 {
+    if ( udpSocket->state() != QAbstractSocket::BoundState )
+        return;
+
     QString vs;
     while ( udpSocket->hasPendingDatagrams() )
     {
@@ -160,14 +161,16 @@ void UPNP::getUdpSlot()
 
                 sport.remove( 0, 5 );
                 index = 0;
-                while ( sport[ index ] != QChar( ':' ) )
+                while ( ( index <sport.size() )
+                     && ( sport[ index ] != QChar( ':' ) ) )
                 {
                     index++;
                 }
 
                 sport.remove( 0, index+1 );
                 index = 0;
-                while ( sport[ index ] != QChar( '/' ) )
+                while ( ( index<sport.size() )
+                     && ( sport[ index ] != QChar( '/' ) ) )
                 {
                     index++;
                 }
@@ -201,11 +204,11 @@ void UPNP::getUdpSlot()
                             bool validSchema{ false };
                             for ( const QString& schema : schemas )
                             {
-                                logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
-                                logMsg = logMsg.arg( rtrSchema )
-                                               .arg( schema );
+//                                logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
+//                                logMsg = logMsg.arg( rtrSchema )
+//                                               .arg( schema );
 
-                                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true );
+//                                emit this->insertLogSignal( "UPNP", logMsg, LogTypes::UPNP, true, true );
 
                                 validSchema = false;
                                 if ( Helper::cmpStrings( rtrSchema, schema ) )
@@ -246,7 +249,6 @@ void UPNP::getUdpSlot()
                         else
                             reader.readNext();
                     }
-                    //this->getExternalIP();
 
                     httpSocket->disconnect();
                 } );

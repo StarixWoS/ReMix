@@ -7,8 +7,6 @@
 #include "settings.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
-#include "player.hpp"
-#include "server.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -59,9 +57,16 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
 
     if ( !data.isEmpty() )
     {
+        emit this->setBytesInSignal( static_cast<quint64>( data.size() ) );
+
         QChar opCode{ data.at( 0 ).toLatin1() };
         switch ( opCode.toLatin1() )
         {
+            case 'G':   //Set the Server's gameInfoString.
+            {
+                emit this->recvPlayerGameInfoSignal( data, ipAddr.toString() );
+            }
+            break;
             case 'P':   //Store the Player information into a struct.
             {
                 qint32 index{ Helper::getStrIndex( data, "sernum=" ) };
@@ -112,6 +117,24 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 emit this->increaseServerPingsSignal();
             }
             break;
+            case 'M':   //Master Response - Parse information.
+            {
+                if ( !data.isEmpty() )
+                {
+                    quint32 pubIP{ 0 };
+                    int pubPort{ 0 };
+                    int opcode{ 0 };
+
+                    QDataStream mDataStream( udp );
+                                mDataStream >> opcode;
+                                mDataStream >> pubIP;
+                                mDataStream >> pubPort;
+
+                    emit this->recvMasterInfoResponseSignal( ipAddr.toString(), port, QHostAddress( pubIP ).toString(),
+                                                             static_cast<quint16>( qFromBigEndian( pubPort ) ) );
+                }
+            }
+            break;
             case 'Q':   //Send Online User Information.
             {
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
@@ -158,16 +181,7 @@ void UdpThread::readyReadUDPSlot()
     socket->readDatagram( data.data(), data.size(), &senderAddr, &senderPort );
 
     if ( !data.isEmpty() )
-    {
-        emit this->udpDataSignal( data, senderAddr, senderPort );
-        if ( data.at( 0 ) == 'P'
-          || data.at( 0 ) == 'Q'
-          || data.at( 0 ) == 'R' )
-        {
-            //Time-critical packet types will be handled directly by the UdpThread class.
-            this->parseUdpPacket( data, senderAddr, senderPort );
-        }
-    }
+        this->parseUdpPacket( data, senderAddr, senderPort );
 }
 
 void UdpThread::bindSocketSlot(const QHostAddress& addr, const quint16& port)

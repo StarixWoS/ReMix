@@ -175,120 +175,6 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
     return;
 }
 
-void PacketHandler::parseUDPPacket(const QByteArray& udp, const QHostAddress& ipAddr, const quint16& port)
-{
-    QString logTxt{ "Ignoring UDP from banned %1: [ %2 ] sent command: [ %3 ]" };
-
-    QString data{ udp };
-    QString sernum{ "" };
-    QString dVar{ "" };
-    QString wVar{ "" };
-
-    if ( !data.isEmpty() )
-    {
-        server->setBytesIn( server->getBytesIn() + static_cast<quint64>( data.size() ) );
-
-        QChar opCode{ data.at( 0 ).toLatin1() };
-        bool isMaster{ false };
-        if ( opCode == 'M' )
-        {
-            //Prevent Spoofing a MasterMix response.
-            if ( Helper::cmpStrings( server->getMasterIP(), ipAddr.toString() ) )
-                isMaster = true;
-        }
-
-        switch ( opCode.toLatin1() )
-        {
-            case 'G':   //Set the Server's gameInfoString.
-            {
-                //Check if the IP Address is a properly connected User. Or at least is in the User list...
-                bool connected{ false };
-                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
-                {
-                    const Player* tmpPlr = server->getPlayer( i );
-                    if ( tmpPlr != nullptr )
-                    {
-                        if ( Helper::cmpStrings( tmpPlr->peerAddress().toString(), ipAddr.toString() ) )
-                        {
-                            connected = true;
-                            break;
-                        }
-                    }
-                    connected = false;
-                }
-
-                if ( !connected )
-                    break;
-
-                QString svrInfo{ server->getGameInfo() };
-                QString usrInfo{ data.mid( 1 ) };
-                if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
-                {
-                    //Check if the World String starts with "world=" And remove the substring.
-                    if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
-                        usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
-
-                    if ( usrInfo.contains( '\u0000' ) )
-                        usrInfo = usrInfo.remove( '\u0000' );
-
-                    //Enforce a 256 character limit on GameNames.
-                    if ( usrInfo.length() > static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) )
-                        server->setGameInfo( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String to 256.
-                    else
-                        server->setGameInfo( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
-                }
-            }
-            break;
-            case 'M':   //Master Response - Parse information.
-            {
-                if ( !isMaster )   //Prevent Spoofing a MasterMix response.
-                    break;
-
-                QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. "
-                             "( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
-
-                msg = msg.arg( ipAddr.toString() )
-                         .arg( port );
-
-                //Store the Master Server's Response Time.
-                server->setMasterPingRespTime( QDateTime::currentMSecsSinceEpoch() );
-
-                //We've obtained a Master response.
-                server->setMasterUDPResponse( true );
-
-                if ( !data.isEmpty() )
-                {
-                    quint32 pubIP{ 0 };
-                    int pubPort{ 0 };
-                    int opcode{ 0 };
-
-                    QDataStream mDataStream( udp );
-                                mDataStream >> opcode;
-                                mDataStream >> pubIP;
-                                mDataStream >> pubPort;
-
-                    server->setPublicIP( QHostAddress( pubIP ).toString() );
-                    server->setPublicPort( static_cast<quint16>( qFromBigEndian( pubPort ) ) );
-
-                    msg = msg.arg( server->getPublicIP() )
-                             .arg( server->getPublicPort() )
-                             .arg( server->getMasterPing() )
-                             .arg( server->getMasterPingAvg() )
-                             .arg( server->getMasterPingTrend() )
-                             .arg( server->getMasterPingFailCount() );
-
-                    emit this->insertLogSignal( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
-                }
-            }
-            break;
-            case 'P':   //User Ping - Send Server Information.
-            case 'Q':   //Send Online User Information.
-            case 'R':   //Send Online User Information.
-            break;
-        }
-    }
-}
-
 bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
 {
     //We were unable to load our PacketForge library, return.
@@ -506,10 +392,10 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( this->getIsBanned( plr->getSernumHex_s(), plr->peerAddress().toString(), plrSerNum ) )
+    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getIPAddress(), plrSerNum ) )
     {
         reason = reason.arg( "Banned Info" )
-                       .arg( plr->peerAddress().toString() )
+                       .arg( plr->getIPAddress() )
                        .arg( plr->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -531,7 +417,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
             if ( tmpPlr != nullptr
               && tmpPlr != plr )
             {
-                if ( tmpPlr->peerAddress().toString() == plr->peerAddress().toString()
+                if ( tmpPlr->getIPAddress() == plr->getIPAddress()
                   && !plr->getIsDisconnected() )
                 {
                     auto disconnect =
@@ -539,7 +425,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                     {
                         QString reason{ logMsg };
                         reason = reason.arg( "Duplicate IP" )
-                                       .arg( plr->peerAddress().toString() )
+                                       .arg( plr->getIPAddress() )
                                        .arg( plr->getBioData() );
 
                         emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -547,7 +433,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                         if ( Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() )
                         {
                             reason = "Auto-Banish; Duplicate IP Address: [ %1 ], %2";
-                            reason = reason.arg( plr->peerAddress().toString() )
+                            reason = reason.arg( plr->getIPAddress() )
                                            .arg( plr->getBioData() );
 
                             //Ban for only half an hour.
@@ -591,7 +477,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                 {
                     reason = logMsg;
                     reason = reason.arg( "Duplicate SerNum" )
-                                   .arg( plr->peerAddress().toString() )
+                                   .arg( plr->getIPAddress() )
                                    .arg( plr->getBioData() );
 
                     emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
@@ -634,7 +520,7 @@ void PacketHandler::detectFlooding(Player* plr)
                  && !plr->getIsDisconnected() )
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
-                logMsg = logMsg.arg( plr->peerAddress().toString() )
+                logMsg = logMsg.arg( plr->getIPAddress() )
                          .arg( floodCount )
                          .arg( time )
                          .arg( plr->getBioData() );
@@ -676,7 +562,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
             reason = "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User exceeded the maximum allowed < %4 > Packet Header Exemptions.";
             reason = reason.arg( plr->getSernum_s() )
-                     .arg( plr->peerAddress().toString() )
+                     .arg( plr->getIPAddress() )
                      .arg( plr->getBioData() )
                      .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 

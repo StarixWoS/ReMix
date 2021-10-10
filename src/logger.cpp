@@ -7,12 +7,14 @@
 #include "thread/writethread.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "theme.hpp"
 
 //Qt Includes.
 #include <QGraphicsPixmapItem>
 #include <QStandardItemModel>
 #include <QDesktopServices>
 #include <QGraphicsItem>
+#include <QPixmapCache>
 #include <QScrollBar>
 #include <QVariant>
 #include <QPixmap>
@@ -89,6 +91,14 @@ Logger::Logger(QWidget *parent) :
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
 
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
+    [=,this]()
+    {
+        auto pal{ Theme::getCurrentPal() };
+        ui->logView->setPalette( pal );
+        ui->autoScroll->setPalette( pal );
+        ui->autoClear->setPalette( pal );
+    });
     logThread->start();
 }
 

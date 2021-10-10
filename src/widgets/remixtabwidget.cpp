@@ -357,9 +357,6 @@ void ReMixTabWidget::createTabButtons()
     QToolButton* button = this->getNewTabButton();
     if ( button != nullptr )
     {
-        button->setCursor( Qt::ArrowCursor );
-        button->setAutoRaise( true );
-
         this->setCornerWidget( button, Qt::TopLeftCorner );
         QObject::connect( button, &QToolButton::clicked, this, &ReMixTabWidget::createServer );
 
@@ -426,6 +423,26 @@ void ReMixTabWidget::createServer()
         createDialog->show();
 }
 
+int ReMixTabWidget::tabAt(const QPoint& position, const qint32& cornerButtonWidth) const
+{
+    //Reimplemented the default QTabBar::tabAt(const QPoint& position) function to account for the usage of a QTabCornerWidget.
+    //This allows us to find the *true* Tab at the QPoint position by shifting the iterated tab's QRect data by the width of the QTabCornerWidget.
+    QTabBar* bar{ this->tabBar() };
+    if ( bar != nullptr )
+    {
+        QRect currentRect{ bar->tabRect( bar->currentIndex() ) };
+        for ( int i = 0; i < bar->count(); ++i )
+        {
+            currentRect = bar->tabRect( i );
+            currentRect.adjust( cornerButtonWidth, 0, cornerButtonWidth, 0 );
+
+            if ( currentRect.contains( position ) )
+                return i;
+        }
+    }
+    return -1;
+}
+
 void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
 {
     if ( point.isNull() )
@@ -433,7 +450,8 @@ void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
 
     QMenu menu( this );
 
-    int tabIndex = this->tabBar()->tabAt( point );
+    QSize cornerWidgetSize{ this->cornerWidget( Qt::TopLeftCorner )->size() };
+    int tabIndex = this->tabAt( point, cornerWidgetSize.width() );
     if ( tabIndex >= 0 )
     {
         const ReMixWidget* widget{ serverMap.value( tabIndex ) };

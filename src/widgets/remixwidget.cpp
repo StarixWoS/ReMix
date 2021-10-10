@@ -12,9 +12,7 @@
 //ReMix includes.
 #include "remixtabwidget.hpp"
 #include "packethandler.hpp"
-#include "comments.hpp"
 #include "chatview.hpp"
-#include "comments.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
 #include "player.hpp"
@@ -37,14 +35,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     //Initialize the MasterMixThread Object.
     masterMixThread = new QThread();
     masterMixThread->moveToThread( MasterMixThread::getInstance() );
-
-    //Initialize the ChatView Dialog.
-    ChatView::getInstance( server )->setTitle( server->getServerName() );
-    ChatView::getInstance( server )->setGameID( server->getGameId() );
-
-    //Initialize the Comments Dialog.
-    serverComments = new Comments( nullptr, server );
-    serverComments->setTitle( server->getServerName() );
 
     //Setup Objects.
     motdWidget = MOTDWidget::getInstance( server );
@@ -72,8 +62,8 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
 
     //Connect Object Signals to Slots.
     QObject::connect( server, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
-    QObject::connect( server->getPktHandle(), &PacketHandler::newUserCommentSignal, serverComments, &Comments::newUserCommentSlot );
-    QObject::connect( serverComments, &Comments::newUserCommentSignal, this,
+    QObject::connect( server->getPktHandle(), &PacketHandler::newUserCommentSignal, ChatView::getInstance( server ), &ChatView::newUserCommentSlot );
+    QObject::connect( ChatView::getInstance( server ), &ChatView::newUserCommentSignal, this,
     [=, this](const QString& comment)
     {
         emit this->crossServerCommentSignal( server, comment );
@@ -123,6 +113,25 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     ui->isPublicServer->setChecked( server->getIsPublic() );
     ui->useUPNP->setChecked( server->getUseUPNP() );
 
+    //Hide PlayerView based on User Settings.
+    bool plrListHidden{ false };
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::HidePlayerView, server->getServerName() ).toBool() )
+    {
+        ui->openPlayerView->setText( "Show Player List" );
+        ui->openChatView->setDisabled( true );
+        ui->plrListFill->hide();
+        plrListHidden = true;
+    }
+
+    //Hide ChatView based on User Settings.
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::HideChatView, server->getServerName() ).toBool()
+      && !plrListHidden )
+    {
+        ui->openChatView->setText( "Show Chat View" );
+        ui->openPlayerView->setDisabled( true );
+        ui->chatViewFill->hide();
+    }
+
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
 
@@ -138,8 +147,6 @@ ReMixWidget::~ReMixWidget()
         server->setupUPNP( false );
 
     //Disconnect and Delete Objects.
-    serverComments->disconnect();
-    serverComments->deleteLater();
     masterMixThread->exit();
     masterMixThread->disconnect();
     masterMixThread->deleteLater();
@@ -286,6 +293,7 @@ void ReMixWidget::on_openSettings_clicked()
 
 void ReMixWidget::on_openPlayerView_clicked()
 {
+    bool hide{ false };
     if ( ui->chatViewFill->isVisible() )
     {
         if ( !ui->plrListFill->isVisible() )
@@ -293,35 +301,25 @@ void ReMixWidget::on_openPlayerView_clicked()
             ui->openPlayerView->setText( "Hide Player List" );
             ui->openChatView->setEnabled( true );
             ui->plrListFill->show();
+            hide = false;
         }
         else
         {
             ui->openPlayerView->setText( "Show Player List" );
             ui->openChatView->setEnabled( false );
             ui->plrListFill->hide();
+            hide = true;
         }
     }
-}
 
-void ReMixWidget::on_openUserComments_clicked()
-{
-    if ( serverComments != nullptr )
-    {
-        if ( serverComments->isVisible() )
-            serverComments->hide();
-        else
-            serverComments->show();
-    }
-    else
-    {
-        QString title{ "Error:" };
-        QString message{ "Unable to fetch the Server's Comment dialog!" };
-        Helper::warningMessage( this, title, message );
-    }
+    Settings::setSetting( hide, SKeys::Setting, SSubKeys::HidePlayerView, server->getServerName() );
+    if ( hide )
+        Settings::setSetting( false, SKeys::Setting, SSubKeys::HideChatView, server->getServerName() );
 }
 
 void ReMixWidget::on_openChatView_clicked()
 {
+    bool hide{ false };
     if ( ui->plrListFill->isVisible() )
     {
         if ( !ui->chatViewFill->isVisible() )
@@ -329,14 +327,20 @@ void ReMixWidget::on_openChatView_clicked()
             ui->openChatView->setText( "Hide Chat View" );
             ui->openPlayerView->setEnabled( true );
             ui->chatViewFill->show();
+            hide = false;
         }
         else
         {
             ui->openChatView->setText( "Show Chat View" );
             ui->openPlayerView->setEnabled( false );
             ui->chatViewFill->hide();
+            hide = true;
         }
     }
+
+    Settings::setSetting( hide, SKeys::Setting, SSubKeys::HideChatView, server->getServerName() );
+    if ( hide )
+        Settings::setSetting( false, SKeys::Setting, SSubKeys::HidePlayerView, server->getServerName() );
 }
 
 void ReMixWidget::on_isPublicServer_toggled(bool value)
@@ -484,7 +488,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     server->getPktHandle()->checkBannedInfo( plr );
 
     QString logMsg{ "Client: [ %1: ] connected with BIO [ %2 ]" };
-            logMsg = logMsg.arg( plr->peerAddress().toString() )
+            logMsg = logMsg.arg( plr->getIPAddress() )
                            .arg( plr->getBioData() );
 
     Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
@@ -517,7 +521,7 @@ void ReMixWidget::insertedRowItemSlot(QStandardItem* item, const qintptr& peer, 
     if ( plr != nullptr )
     {
         QString bio{ QString( data ) };
-        QString ip{ plr->peerAddress().toString() % ":%1" };
+        QString ip{ plr->getIPAddress() % ":%1" };
                 ip = ip.arg( plr->peerPort() );
 
         this->fwdUpdatePlrViewSlot( plr, 0, ip, Qt::DisplayRole, false );

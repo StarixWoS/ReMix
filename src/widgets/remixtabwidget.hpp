@@ -60,6 +60,7 @@ class ReMixTabWidget : public QTabWidget
         void repositionServerIndices();
         void createTabButtons();
         void createServer();
+        int tabAt(const QPoint &position, const qint32& cornerButtonWidth) const;
 
     private slots:
         void customContextMenuRequestedSlot(const QPoint& point);

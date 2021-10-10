@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 2.7.8 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 2.7.9 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -48,7 +48,6 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/sortutil.cpp
         src/cmdtable.cpp
         src/chatview.cpp
-        src/comments.cpp
         src/settings.cpp
         src/runguard.cpp
         src/randdev.cpp
@@ -86,7 +85,6 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/sortutil.hpp
         src/cmdtable.hpp
         src/chatview.hpp
-        src/comments.hpp
         src/settings.hpp
         src/runguard.hpp
         src/randdev.hpp
@@ -109,7 +107,6 @@ set(UI ui/widgets/settingswidget.ui
     ui/createinstance.ui
     ui/selectworld.ui
     #ui/chatview.ui
-    ui/comments.ui
     ui/settings.ui
     ui/sendmsg.ui
     ui/logger.ui
@@ -117,7 +114,7 @@ set(UI ui/widgets/settingswidget.ui
     ui/user.ui)
 
 set(RC resources/icons.qrc
-    resources/ReMix.rc)
+    resources/ReMix.rc )
 
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI} ${RC})
 set_target_properties(

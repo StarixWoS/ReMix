@@ -4,6 +4,31 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.7.9:
+    Change:
+      * Removed the Comments Dialog.
+        * Comments send to ReMix will now appear within the ChatView Widget.
+      * Added a TimeStamp to the ChatView, prepended to any chat or comments.
+      * Added a toggle to the ChatView Widget to autoscroll text as it's sent to the text view.
+      * Added the Ability to hide the PlayerList or ChatView widgets.
+        * Only one widget may be hidden at a time per Server Instance.
+        * The Hidden/Shown state is saved as a Server specific setting.
+      * Removed UDP Packet handling from the PacketHandler Class and into the UDPThread Class.
+        * The UDP Thread Class signals the parsed data to the Server Class for further proccessing of Server specific information.
+      
+
+
+
+    Bugfixes:
+      * Fixed an issue where right-clicking a Server Tab would popup the incorrect context menu, or no menu at all in some cases.
+        * This was due to the QTabBar::tabAt() function having no knowledge of the NewTab Button.
+        * Reimplemented the tabAt() function to account for this buttton's size within the ReMixTabWidget Class.
+      * Fixed an issue where applying the Normal/Dark themes would not correctly theme the LogView UI.
+        * The workaround for this was to have the Theme Class signal the Theme change directly to the LogView Class and applying the pallette directly.
+
+
+
+
 Version 2.7.8:
     Change:
       * Enabled changing the Light/Dark theme without requiring the User to restart ReMix.

@@ -14,6 +14,7 @@ class Theme : public QObject
     Q_OBJECT
 
     static QVector<QStringList> themeColors;
+    static QPalette currentPal;
     static QStyle* themeStyle;
     static Themes themeType;
     static Theme* instance;
@@ -29,6 +30,8 @@ class Theme : public QObject
         static QColor getThemeColor(const Themes& theme, const Colors& color);
 
         static Theme* getInstance();
+
+        static const QPalette& getCurrentPal();
 
     signals:
         void themeChangedSignal(const Themes& type);

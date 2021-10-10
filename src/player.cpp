@@ -150,7 +150,7 @@ void Player::setSernum_i(qint32 value)
         muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
 
         if ( muteDuration == 0 )
-            muteDuration = User::getIsPunished( PunishTypes::Mute, this->peerAddress().toString(), PunishTypes::IP, sernumHex_s );
+            muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP, sernumHex_s );
 
         if ( muteDuration >= 1 )
             this->setMuteDuration( muteDuration );
@@ -299,7 +299,7 @@ void Player::setPktHeaderExemptCount(const qint32& value)
     pktHeaderExemptCount = value;
 }
 
-QString Player::getIPAddress()
+QString Player::getIPAddress() const
 {
     return this->peerAddress().toString();
 }
@@ -702,7 +702,7 @@ void Player::validateSerNum(Server* server, const qint32& id)
                 case PlrDisconnectType::SerNumOne:
                     {
                         const QString masterIP{ server->getMasterIP() };
-                        const QString socketIP{ this->peerAddress().toString() };
+                        const QString socketIP{ this->getIPAddress() };
 
                         QString message{ "" };
                         if ( !Helper::cmpStrings( masterIP, socketIP ) )

@@ -19,7 +19,6 @@ class Server : public QTcpServer
     Q_OBJECT
 
     UdpThread* udpThread{ nullptr };
-    UPNP* upnp{ nullptr };
 
     qint64 initializeDate{ 0 };
 
@@ -272,9 +271,11 @@ class Server : public QTcpServer
         void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
         void masterMixIPChangedSlot();
+        void setBytesInSignal(const quint64& bytes);
+        void recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
+        void recvPlayerGameInfoSlot(const QString& info, const QString& ip);
 
     private slots:
-        void udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port);
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void increaseServerPingSlot();
         void upnpPortAddedSlot(const quint16& port, const QString& protocol);

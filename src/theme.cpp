@@ -9,6 +9,7 @@
 #include <QPalette>
 #include <QObject>
 #include <QBrush>
+#include <QFile>
 #include <QFont>
 
 //Declare Class Static Objects.
@@ -26,6 +27,8 @@ QVector<QStringList> Theme::themeColors =
         "darkgoldenrod",  //Shout.
         "darkolivegreen", //Emote;
         "goldenrod",      //Golden Soul.
+        "#800080",        //Time Stamp
+        "#0000ff",        //Comments
     },
     {   //Dark.
         "limegreen", //Valid.
@@ -39,9 +42,12 @@ QVector<QStringList> Theme::themeColors =
         "sienna",    //Shout.
         "seagreen",  //Emote;
         "goldenrod", //Golden Soul.
+        "#ff8080",   //Time Stamp
+        "#d6c540",   //Comments
     }
 };
 
+QPalette Theme::currentPal;
 QStyle* Theme::themeStyle{ QStyleFactory::create( "Fusion" ) };
 Themes Theme::themeType{ Themes::Light };
 Theme* Theme::instance{ nullptr };
@@ -61,7 +67,14 @@ Theme::~Theme()
 
 void Theme::applyTheme(const Themes& type)
 {
-    QPalette customPalette;
+    if ( themeStyle == nullptr )
+    {
+        themeStyle = QStyleFactory::create( "Fusion" );
+    }
+
+    qApp->setStyle( themeStyle );
+    QPalette customPalette{ themeStyle->standardPalette() };
+    currentPal = customPalette;
 
 #ifndef Q_OS_WIN
     qApp->setFont( QFont( "Lucida Grande", 8 ) );
@@ -70,47 +83,38 @@ void Theme::applyTheme(const Themes& type)
 #endif
 
     qApp->font().setFixedPitch( true );
-
-    if ( themeStyle == nullptr )
-        themeStyle = QStyleFactory::create( "Fusion" );
-
-    qApp->setStyle( themeStyle );
-    qApp->setStyleSheet( "" );
-
     if ( type == Themes::Dark )
     {
         //Activated Color Roles
-        customPalette.setColor( QPalette::All, QPalette::HighlightedText, QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::LinkVisited, QColor( 165, 122, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::ToolTipText, QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::BrightText, QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::ButtonText, QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::AlternateBase, QColor( 81, 81, 81 ) );
-        customPalette.setColor( QPalette::All, QPalette::WindowText, QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Midlight, QColor( 227, 227, 227 ) );
-        customPalette.setColor( QPalette::All, QPalette::Shadow, QColor( 105, 105, 105 ) );
-        customPalette.setColor( QPalette::All, QPalette::Light, QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::All, QPalette::Text, QColor( 231, 231, 231 ) );
-        customPalette.setColor( QPalette::All, QPalette::Window, QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Button, QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::All, QPalette::Mid, QColor( 160, 160, 160 ) );
-        customPalette.setColor( QPalette::All, QPalette::Link, QColor( 0, 122, 144 ) );
-        customPalette.setColor( QPalette::All, QPalette::Base, QColor( 51, 51, 51 ) );
-        customPalette.setColor( QPalette::All, QPalette::Dark, QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::AlternateBase, QColor( 66, 66, 66 ) );
+        customPalette.setColor( QPalette::ToolTipText, QColor( 53, 53, 53 ) );
+        customPalette.setColor( QPalette::Highlight, QColor( 42, 130, 218 ) );
+        customPalette.setColor( QPalette::Shadow, QColor( 20, 20, 20 ) );
+        customPalette.setColor( QPalette::Button, QColor( 53, 53, 53 ) );
+        customPalette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
+        customPalette.setColor( QPalette::Window, QColor( 53, 53, 53 ));
+        customPalette.setColor( QPalette::Dark, QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::Base, QColor( 42, 42, 42 ) );
+        customPalette.setColor( QPalette::HighlightedText, Qt::white);
+        customPalette.setColor( QPalette::ToolTipBase, Qt::white );
+        customPalette.setColor( QPalette::WindowText, Qt::white );
+        customPalette.setColor( QPalette::ButtonText, Qt::white );
+        customPalette.setColor( QPalette::BrightText, Qt::red );
+        customPalette.setColor( QPalette::Text, Qt::white );
 
         //Disabled Color Roles
-        customPalette.setColor( QPalette::Disabled, QPalette::WindowText, QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Midlight, QColor( 247, 247, 247 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Text, QColor( 255, 255, 255 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Button, QColor( 35, 35, 35 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Window, QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Base, QColor( 68, 68, 68 ) );
-        customPalette.setColor( QPalette::Disabled, QPalette::Shadow, QColor( 0, 0, 0 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::HighlightedText, QColor( 127, 127, 127 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::WindowText, QColor( 127, 127, 127 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::ButtonText, QColor( 127, 127, 127 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Highlight, QColor( 80, 80, 80 ) );
+        customPalette.setColor( QPalette::Disabled, QPalette::Text, QColor( 127, 127, 127 ) );
 
-        qApp->setPalette( customPalette );
+        currentPal = customPalette;
     }
     else
-        qApp->setPalette( themeStyle->standardPalette() );
+        currentPal = themeStyle->standardPalette();
+
+    qApp->setPalette( currentPal );
 
     QPixmapCache::clear();
 }
@@ -148,4 +152,9 @@ Theme* Theme::getInstance()
         instance = new Theme( nullptr );
 
     return instance;
+}
+
+const QPalette& Theme::getCurrentPal()
+{
+    return currentPal;
 }

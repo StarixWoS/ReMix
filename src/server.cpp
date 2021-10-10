@@ -43,8 +43,10 @@ Server::Server(QWidget* parent)
     //Connect signals from the UdpThread class to the slots within the Server class.
     QObject::connect( udpThread, &UdpThread::increaseServerPingsSignal, this, &Server::increaseServerPingSlot );
     QObject::connect( udpThread, &UdpThread::sendUserListSignal, this, &Server::sendUserListSlot );
-    QObject::connect( udpThread, &UdpThread::udpDataSignal, this, &Server::udpDataSlot );
     QObject::connect( udpThread, &UdpThread::dataOutSizeSignal, this, &Server::dataOutSizeSlot );
+    QObject::connect( udpThread, &UdpThread::setBytesInSignal, this, &Server::setBytesInSignal );
+    QObject::connect( udpThread, &UdpThread::recvMasterInfoResponseSignal, this, &Server::recvMasterInfoResponseSlot );
+    QObject::connect( udpThread, &UdpThread::recvPlayerGameInfoSignal, this, &Server::recvPlayerGameInfoSlot );
 
     //Connect signals from the Server class to the slots within the UdpThread class.
     QObject::connect( this, &Server::serverWorldChangedSignal, udpThread, &UdpThread::serverWorldChangedSlot );
@@ -59,9 +61,8 @@ Server::Server(QWidget* parent)
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixIPChangedSignal, this, &Server::masterMixIPChangedSlot );
 
     //Connect the Server Class Signals to the UPNP Class Slots.
-    upnp = UPNP::getInstance();
-    QObject::connect( this, &Server::upnpPortForwardSignal, upnp, &UPNP::upnpPortForwardSlot );
-    QObject::connect( upnp, &UPNP::upnpPortAddedSignal, this, &Server::upnpPortAddedSlot );
+    QObject::connect( this, &Server::upnpPortForwardSignal, UPNP::getInstance(), &UPNP::upnpPortForwardSlot );
+    QObject::connect( UPNP::getInstance(), &UPNP::upnpPortAddedSignal, this, &Server::upnpPortAddedSlot );
 
     upnpPortRefresh.setInterval( static_cast<int>( Globals::UPNP_TIME_OUT_MS ) );
     QObject::connect( &upnpPortRefresh, &QTimer::timeout, &upnpPortRefresh,
@@ -397,7 +398,7 @@ void Server::deletePlayer(Player* plr, const bool& timedOut)
 
     QString logMsg{ "Client%1: [ %2 ] was on for %3 minutes and sent %4 %5 in %6 packets, [ %7 ]" };
             logMsg = logMsg.arg( timeOut )
-                           .arg( player->peerAddress().toString() )
+                           .arg( player->getIPAddress() )
                            .arg( Helper::getTimeIntFormat( player->getConnTime(), TimeFormat::Minutes ) )
                            .arg( bytesSec )
                            .arg( bytesUnit )
@@ -427,7 +428,7 @@ void Server::sendPlayerSocketInfo()
     {
         if ( plr != nullptr && plr->getHasSernum() )
         {
-            ipAddr = QHostAddress( plr->peerAddress().toString() );
+            ipAddr = QHostAddress( plr->getIPAddress() );
             response = response.append( filler.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) )
                                               .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543,
                                                                       static_cast<int>( IntBase::HEX ) ) ) );
@@ -1125,11 +1126,80 @@ void Server::masterMixIPChangedSlot()
     }
 }
 
-void Server::udpDataSlot(const QByteArray& data, const QHostAddress& ipAddr, const quint16& port)
+void Server::setBytesInSignal(const quint64& bytes)
 {
-    PacketHandler* pktHandle{ this->getPktHandle() };
-    if ( pktHandle != nullptr )
-        pktHandle->parseUDPPacket( data, ipAddr, port );
+    this->setBytesIn( this->getBytesIn() + bytes );
+}
+
+void Server::recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort)
+{
+    bool isMaster{ false };
+    //Prevent Spoofing a MasterMix response.
+    if ( Helper::cmpStrings( this->getMasterIP(), masterIP ) )
+        isMaster = true;
+
+    if ( isMaster )
+    {
+        this->setPublicIP( userIP );
+        this->setPublicPort( userPort );
+
+        //Store the Master Server's Response Time.
+        this->setMasterPingRespTime( QDateTime::currentMSecsSinceEpoch() );
+
+        //We've obtained a Master response.
+        this->setMasterUDPResponse( true );
+        QString msg{ "Got Response from Master [ %1:%2 ]; it thinks we are [ %3:%4 ]. ( Ping: %5 ms, Avg: %6 ms, Trend: %7 ms, Dropped: %8 )" };
+                msg = msg.arg( masterIP )
+                         .arg( masterPort )
+                         .arg( this->getPublicIP() )
+                         .arg( this->getPublicPort() )
+                         .arg( this->getMasterPing() )
+                         .arg( this->getMasterPingAvg() )
+                         .arg( this->getMasterPingTrend() )
+                         .arg( this->getMasterPingFailCount() );
+
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+    }
+}
+
+void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
+{
+    //Check if the IP Address is a properly connected User. Or at least is in the User list...
+    bool connected{ false };
+    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    {
+        const Player* tmpPlr = this->getPlayer( i );
+        if ( tmpPlr != nullptr )
+        {
+            if ( Helper::cmpStrings( tmpPlr->getIPAddress(), ip ) )
+            {
+                connected = true;
+                break;
+            }
+        }
+        connected = false;
+    }
+
+    if ( connected )
+    {
+        QString svrInfo{ this->getGameInfo() };
+        QString usrInfo{ info.mid( 1 ) };
+        if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
+        {
+            //Check if the World String starts with "world=" And remove the substring.
+            if ( Helper::strStartsWithStr( usrInfo, "world=" ) )
+                usrInfo = Helper::getStrStr( usrInfo, "world", "=", "=" );
+
+            if ( usrInfo.contains( '\u0000' ) )
+                usrInfo = usrInfo.remove( '\u0000' );
+
+            //Enforce a 256 character limit on GameNames.
+            if ( usrInfo.length() > static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) )
+                this->setGameInfo( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String.
+            else
+                this->setGameInfo( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
+        }
+    }
 }
 
 void Server::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)

@@ -108,7 +108,7 @@ bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QS
 
             //Append IP:Port and BIO data to the reason for the Ban log.
             QString append{ " [ %1:%2 ], %3" };
-                    append = append.arg( admin->peerAddress().toString() )
+                    append = append.arg( admin->getIPAddress() )
                                    .arg( admin->peerPort() )
                                    .arg( admin->getBioData() );
             reason.append( append );
@@ -573,7 +573,7 @@ void CmdHandler::cannotIssueAction(Player* admin, Player* target, const GMCmds& 
 bool CmdHandler::isTarget(Player* target, const QString& arg1, const bool isAll)
 {
     QString sernum{ Helper::serNumToHexStr( arg1 ) };
-    if ( ( target->peerAddress().toString() == arg1 )
+    if ( ( target->getIPAddress() == arg1 )
       || ( target->getSernumHex_s() == sernum )
       || isAll )
     {
@@ -852,7 +852,7 @@ void CmdHandler::msgHandler(const QString& arg1, const QString& message, const b
                 Player* tmpPlr{ server->getPlayer( i ) };
                 if ( tmpPlr != nullptr )
                 {
-                    if ( tmpPlr->peerAddress().toString() == arg1
+                    if ( tmpPlr->getIPAddress() == arg1
                       || tmpPlr->getSernum_s() == arg1 )
                     {
                         server->sendMasterMessage( message, tmpPlr, false );

@@ -63,6 +63,9 @@ const QStringList Settings::sKeys =
     "overrideMasterIP",
     "loggerAutoClear",
     "overrideMasterHost",
+    "chatAutoScroll",
+    "hidePlayerView",
+    "hideChatView",
 
     //Rules.
     "hasSvrPassword",

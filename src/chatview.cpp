@@ -103,18 +103,22 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
+    //Conect Theme Signals to the ChatView Class.
     QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ChatView::themeChangedSlot, Qt::UniqueConnection );
 
-    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+    if ( server->getGameId() == Games::W97 )
+    {
+        //Warpath, we can't send Master comments, disable chat interface.
+        ui->chatInput->setEnabled( false );
+        ui->chatInput->setText( "Unable to interact with Warpath Players!" );
+    }
+
+    ui->autoScrollCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() ).toBool() );
 }
 
 ChatView::~ChatView()
 {
     this->disconnect();
-    if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
-
     delete ui;
 }
 
@@ -139,28 +143,6 @@ void ChatView::deleteInstance(Server* server)
         instance->setParent( nullptr );
         instance->deleteLater();
     }
-}
-
-void ChatView::setTitle(const QString& name)
-{
-    if ( !name.isEmpty() )
-        this->setWindowTitle( "Chat View: [ " % name % " ]" );
-}
-
-void ChatView::setGameID(const Games& gID)
-{
-    gameID = gID;
-    if ( gameID == Games::W97 )
-    {
-        //Warpath, we can't send Master comments, disable chat interface.
-        ui->chatInput->setEnabled( false );
-        ui->chatInput->setText( "Unable to interact with Warpath Players!" );
-    }
-}
-
-Games ChatView::getGameID() const
-{
-    return gameID;
 }
 
 bool ChatView::parseChatEffect(const QString& packet)
@@ -216,19 +198,20 @@ bool ChatView::parseChatEffect(const QString& packet)
         QChar type{ packet.at( 31 ) };
         bool log{ true };
 
+        this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
         switch ( type.toLatin1() )
         {
             case '\'': //Gossip Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " gossips: " % message, Colors::Gossip, true );
+                    this->insertChat( plrName % " gossips: " % message, Colors::Gossip, false );
                     message = plrName % " gossips: " % message;
                 }
             break;
             case '!': //Shout Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " shouts: " % message, Colors::Shout, true );
+                    this->insertChat( plrName % " shouts: " % message, Colors::Shout, false );
 
                     message = plrName % " shouts: " % message;
                 }
@@ -236,7 +219,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '/': //Emote Chat Effect.
                 {
                     message = message.mid( 2 );
-                    this->insertChat( plrName % message, Colors::Emote, true );
+                    this->insertChat( plrName % message, Colors::Emote, false );
                     message = plrName % message;
                 }
             break;
@@ -253,7 +236,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             break;
             default:
                 {
-                    this->insertChat( plrName % ": ", Colors::Name, true );
+                    this->insertChat( plrName % ": ", Colors::Name, false );
                     this->insertChat( message, Colors::Chat, false );
 
                     message = plrName % ": " % message;
@@ -309,14 +292,55 @@ void ChatView::insertChat(const QString& msg, const Colors& color, const bool& n
     if ( obj->verticalScrollBar()->sliderPosition() == curScrlPosMax )
     {
         if ( selStart == 0 && selEnd == 0 )
-            obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
+            this->scrollToBottom( true );
     }
+    else
+        this->scrollToBottom( ui->autoScrollCheckBox->isChecked() );
+}
+
+void ChatView::scrollToBottom(const bool& forceScroll)
+{
+    auto* obj{ ui->chatView };
+
+    //Detect when the user is scrolling upwards. And prevent scrolling.
+    if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum()
+      || forceScroll )
+    {
+        obj->verticalScrollBar()->setSliderPosition( obj->verticalScrollBar()->maximum() );
+    }
+}
+
+QString ChatView::getTimeStr()
+{
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
+    return QString( "[ " % Helper::getTimeAsString( date ) % " ] " );
 }
 
 void ChatView::insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine)
 {
     if ( !msg.isEmpty() )
         this->insertChat( msg, color, newLine );
+}
+
+void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message)
+{
+    QString name{ "%1 [ %2 ]: " };
+            name = name.arg( alias )
+                       .arg( sernum );
+    QString comment{ "%1%2" };
+            comment = comment.arg( name )
+                             .arg( message );
+
+    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+    this->insertChat( "USER COMMENT: ", Colors::Comment, false );
+    this->insertChat( name, Colors::Name, false );
+    this->insertChat( message, Colors::Chat, false );
+
+    //Log comments only when enabled.
+    if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
+        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+
+    emit this->newUserCommentSignal( comment.simplified() );
 }
 
 void ChatView::on_chatInput_returnPressed()
@@ -332,10 +356,11 @@ void ChatView::on_chatInput_returnPressed()
         }
     }
 
-    this->insertChat( "Owner: ", Colors::OwnerName, true );
+    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+    this->insertChat( "Owner: ", Colors::OwnerName, false );
     this->insertChat( message, Colors::OwnerChat, false );
 
-    if ( gameID == Games::W97 )
+    if ( server->getGameId() == Games::W97 )
     {
         //TODO: Emulate a Warpath Chat packet.
     }
@@ -366,6 +391,10 @@ void ChatView::themeChangedSlot(const Themes& theme)
                                        Theme::getThemeColor( Themes::Light, Colors::OwnerName ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name(),
                                        Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::TimeStamp ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::TimeStamp ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Comment ).name(),
+                                       Theme::getThemeColor( Themes::Light, Colors::Comment ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name(),
                                        Theme::getThemeColor( Themes::Light, Colors::Gossip ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Shout ).name(),
@@ -385,6 +414,10 @@ void ChatView::themeChangedSlot(const Themes& theme)
                                        Theme::getThemeColor( Themes::Dark, Colors::OwnerName ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name(),
                                        Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::TimeStamp ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::TimeStamp ).name() );
+            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Comment ).name(),
+                                       Theme::getThemeColor( Themes::Dark, Colors::Comment ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Gossip ).name(),
                                        Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name() );
             txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Shout ).name(),
@@ -400,4 +433,12 @@ void ChatView::themeChangedSlot(const Themes& theme)
         ui->chatView->clear();
         ui->chatView->insertHtml( txtHtml );
     }
+    this->scrollToBottom( true );
 }
+
+void ChatView::on_autoScrollCheckBox_toggled(bool checked)
+{
+    Settings::setSetting( checked, SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() );
+    ui->autoScrollCheckBox->setChecked( checked );
+}
+

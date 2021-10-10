@@ -4,6 +4,7 @@
 #include "runguard.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
+#include "logger.hpp"
 #include "remix.hpp"
 #include "theme.hpp"
 

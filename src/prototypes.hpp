@@ -70,7 +70,6 @@
     class QPoint;
     class QIcon;
     class QChar;
-    class QFile;
     class QMenu;
     class QDir;
     class QUrl;
@@ -92,6 +91,7 @@
     class ReMixWidget;
     class RulesWidget;
     class MOTDWidget;
+    class ChatView;
 
     //Threaded Classes.
     class MasterMixThread;
@@ -105,18 +105,16 @@
     class CampExemption;
     class SelectWorld;
     class PacketForge;
-    class Server;
     class CmdHandler;
     class CmdTable;
-    class ChatView;
     class Settings;
-    class Comments;
     class RunGuard;
     class RandDev;
     class SendMsg;
     class Player;
     class Helper;
     class Logger;
+    class Server;
     class Theme;
     class ReMix;
     class User;
@@ -296,7 +294,7 @@
         //Valid Theme Colors
         enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
                                 OwnerChat, Chat, Gossip, Shout, Emote,
-                                GoldenSoul = 10, Default = -1 };
+                                GoldenSoul, TimeStamp, Comment = 12, Default = -1 };
 
         //Valid columns within the PlrListWidget.
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
@@ -343,8 +341,9 @@
         enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
-                                  LoggerAutoClear, OverrideMasterHost, HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion,
-                                  PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, HidePlayerView, HideChatView, HasSvrPassword, SvrPassword,
+                                  World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding,
+                                  NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
 
         //Valid Toggles for the Settings Widget.
         enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,

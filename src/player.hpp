@@ -209,7 +209,7 @@ class Player : public QTcpSocket
         qint32 getPktHeaderExemptCount() const;
         void setPktHeaderExemptCount(const qint32& value);
 
-        QString getIPAddress();
+        QString getIPAddress() const;
 
     public slots:
         void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
