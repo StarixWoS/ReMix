@@ -31,6 +31,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
 
         ui->worldViewer->setRootIndex( model->index( Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() ) );
     } );
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 SelectWorld::~SelectWorld()

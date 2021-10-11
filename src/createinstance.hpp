@@ -54,6 +54,7 @@ class CreateInstance : public QDialog
         void createServerAcceptedSignal(Server* server);
         void closeServerSignal();
         void restartServerListSignal(const QStringList& restartList);
+        void quitSignal();
 
     private:
         Ui::CreateInstance* ui;

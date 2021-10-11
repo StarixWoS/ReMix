@@ -114,6 +114,8 @@ User::User(QWidget* parent) :
     this->loadUserInfo();
 
     QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValueSlot );
+
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 User::~User()
@@ -421,17 +423,20 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
     quint64 banDuration{ date + static_cast<quint64>( duration ) };
     QString serNum{ target->getSernumHex_s() };
 
-    setData( serNum, keys[ UserKeys::kBANREASON ], msg );
-    setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
-    setData( serNum, keys[ UserKeys::kBANNED ], date );
-
-    QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
-    if ( index.isValid() )
+    if ( !serNum.isEmpty() )
     {
-        user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), msg );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), date );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::Banned ), ( date > 0 ) );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), banDuration );
+        setData( serNum, keys[ UserKeys::kBANREASON ], msg );
+        setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
+        setData( serNum, keys[ UserKeys::kBANNED ], date );
+
+        QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
+        if ( index.isValid() )
+        {
+            user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), msg );
+            user->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), date );
+            user->updateRowData( index.row(), static_cast<int>( UserCols::Banned ), ( date > 0 ) );
+            user->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), banDuration );
+        }
     }
     return true;
 }

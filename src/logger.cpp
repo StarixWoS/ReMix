@@ -100,6 +100,8 @@ Logger::Logger(QWidget *parent) :
         ui->autoClear->setPalette( pal );
     });
     logThread->start();
+
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 Logger::~Logger()

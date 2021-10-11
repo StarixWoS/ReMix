@@ -318,7 +318,34 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                                 emit this->insertChatMsgSignal( targetPlayer->getPlrName(), Colors::Name, false );
                                 emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::Invalid, false );
                             }
+                        }
+                    break;
+                    case 'p':
+                        {
+                            bool isJoining = true;
 
+                            int leader = trgSerNum.toInt( nullptr, 16 );
+                            if ( leader == 0 )
+                            {
+                                leader = packet.left( 29 ).mid( 21 ).toInt( nullptr, 16 );
+                                if ( leader == 0 )
+                                    break;
+
+                                isJoining = false;
+                            }
+                            QString ldr = Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 );
+
+                            Player* partyLeader = server->getPlayer( ldr );
+                            if ( partyLeader != nullptr )
+                            {
+                                emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
+                                emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
+                                emit this->insertChatMsgSignal( ( isJoining ? " joins " : " leaves " ), Colors::Invalid, false );
+
+                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s [ " % partyLeader->getSernum_s() % " ] ", Colors::Name, false );
+                                emit this->insertChatMsgSignal( "party. ***", Colors::Invalid, false );
+                            }
                         }
                     break;
                     case 'F':
@@ -587,9 +614,9 @@ void PacketHandler::detectFlooding(Player* plr)
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
                 logMsg = logMsg.arg( plr->getIPAddress() )
-                         .arg( floodCount )
-                         .arg( time )
-                         .arg( plr->getBioData() );
+                               .arg( floodCount )
+                               .arg( time )
+                               .arg( plr->getBioData() );
 
                 User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
                 emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
@@ -598,7 +625,7 @@ void PacketHandler::detectFlooding(Player* plr)
                 server->sendMasterMessage( plrMessage, plr, false );
             }
         }
-        else if ( time >= static_cast<int>( Globals::PACKET_FLOOD_TIME ) )
+        else if ( time >= static_cast<qint64>( Globals::PACKET_FLOOD_TIME ) )
         {
             plr->restartFloodTimer();
             plr->setPacketFloodCount( 0 );
@@ -628,9 +655,9 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
             reason = "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User exceeded the maximum allowed < %4 > Packet Header Exemptions.";
             reason = reason.arg( plr->getSernum_s() )
-                     .arg( plr->getIPAddress() )
-                     .arg( plr->getBioData() )
-                     .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
+                           .arg( plr->getIPAddress() )
+                           .arg( plr->getBioData() )
+                           .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 
             emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
         }
@@ -640,8 +667,8 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
 
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
-                      .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
-                      .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
+                             .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
+                             .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.
             //I'm not sure if WoS will allow this.
@@ -776,13 +803,15 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
             ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ), vars.value( 3 ) );
         }
 
+        QString value{ vars.value( 3 ) };
         if ( ssvDir.exists() )
         {
+            value = ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString();
             val = val.arg( sernum )
                      .arg( vars.value( 0 ) ) //file name
                      .arg( vars.value( 1 ) ) //category
                      .arg( vars.value( 2 ) ) //variable
-                     .arg( ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString() ); //value
+                     .arg( value ); //value
 
             if ( mode == SSVModes::Write )
             {
@@ -812,7 +841,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
                  .arg( vars.value( 0 ) % ".ini" ) //file name
                  .arg( vars.value( 1 ) ) //category
                  .arg( vars.value( 2 ) ) //variable
-                 .arg( vars.value( 3 ) ); //value
+                 .arg( value ); //value
 
         emit this->insertLogSignal( server->getServerName(), msg, LogTypes::QUEST, true, true );
     }

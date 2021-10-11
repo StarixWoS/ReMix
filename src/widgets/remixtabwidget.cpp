@@ -44,6 +44,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
 
     QObject::connect( createDialog, &CreateInstance::restartServerListSignal, this, &ReMixTabWidget::restartServerListSlot );
     QObject::connect( createDialog, &CreateInstance::createServerAcceptedSignal, this, &ReMixTabWidget::createServerAcceptedSlot );
+    QObject::connect( createDialog, &CreateInstance::quitSignal, ReMix::getInstance(), &ReMix::quitSlot, Qt::QueuedConnection );
     createDialog->updateServerList( true );
 
     //Initalize the First Server. --Only if no stored servers are marked as "AutoRestart"

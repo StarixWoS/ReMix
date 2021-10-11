@@ -132,7 +132,7 @@ void Theme::setThemeType(const Themes& value)
     emit this->themeChangedSignal( themeType );
 }
 
-QBrush Theme::getThemeColor(const Colors& color)
+QBrush Theme::getColor(const Colors& color)
 {
     //Return the default palette text color.
     if ( color == Colors::Default )
@@ -141,7 +141,7 @@ QBrush Theme::getThemeColor(const Colors& color)
     return QBrush( QColor( themeColors[ static_cast<int>( getThemeType() ) ][ static_cast<int>( color ) ] ) );
 }
 
-QColor Theme::getThemeColor(const Themes& theme, const Colors& color)
+QColor Theme::getColor(const Themes& theme, const Colors& color)
 {
     return QColor( themeColors[ static_cast<int>( theme ) ][ static_cast<int>( color ) ] );
 }

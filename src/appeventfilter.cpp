@@ -21,7 +21,7 @@ bool AppEventFilter::eventFilter(QObject* obj, QEvent* event)
             QIcon icon{ w->windowIcon() };
 
             w->setWindowFlags( w->windowFlags() & ( ~Qt::WindowContextHelpButtonHint ) );
-            w->setWindowModality( Qt::ApplicationModal );
+            //w->setWindowModality( Qt::ApplicationModal );
             w->setWindowIcon( icon );
         }
     }

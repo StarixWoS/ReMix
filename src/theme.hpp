@@ -26,8 +26,8 @@ class Theme : public QObject
         static void applyTheme(const Themes& type = Themes::Light);
         static Themes getThemeType();
         void setThemeType(const Themes& value);
-        static QBrush getThemeColor(const Colors& color);
-        static QColor getThemeColor(const Themes& theme, const Colors& color);
+        static QBrush getColor(const Colors& color);
+        static QColor getColor(const Themes& theme, const Colors& color);
 
         static Theme* getInstance();
 

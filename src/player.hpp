@@ -233,6 +233,7 @@ class Player : public QTcpSocket
         void parsePacketSignal(const QByteArray& packet, Player* plr);
         void hexSerNumSetSignal(Player* plr);
         void updatePlrViewSignal(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
+        void ipDCIncreaseSignal(const DCTypes& type);
 };
 
 #endif // PLAYER_HPP

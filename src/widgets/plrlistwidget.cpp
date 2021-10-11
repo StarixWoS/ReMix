@@ -153,7 +153,7 @@ void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& colum
         if ( sModel != nullptr )
         {
             if ( isColor )
-                sModel->setData( sModel->index( object->row(), column ), Theme::getThemeColor( static_cast<Colors>( data.toInt() ) ), role );
+                sModel->setData( sModel->index( object->row(), column ), Theme::getColor( static_cast<Colors>( data.toInt() ) ), role );
             else
                 sModel->setData( sModel->index( object->row(), column ), data, role );
         }

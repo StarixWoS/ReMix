@@ -161,9 +161,13 @@ void Server::incomingConnection(qintptr socketDescriptor)
     emit this->plrConnectedSignal( socketDescriptor );
 }
 
-void Server::setupInfo()
+void Server::setupInfo(const QString& interfaceIP)
 {
-    QHostAddress addr{ Helper::getPrivateIP() };
+    QHostAddress addr;
+    if ( interfaceIP.isEmpty() )
+        addr = Helper::getPrivateIP();
+    else
+        addr = QHostAddress( interfaceIP );
 
     emit this->bindSocketSignal( addr, this->getPrivatePort() );
     if ( !this->getIsSetUp() )
@@ -176,8 +180,10 @@ void Server::setupInfo()
 void Server::setupUPNP(const bool& enable)
 {
     if ( !enable )
+    {
         this->setUpnpPortAdded( false );
-
+        return;
+    }
     emit this->upnpPortForwardSignal( this->getPrivatePort(), enable );
 }
 
@@ -238,7 +244,8 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
 
 void Server::sendMasterInfo(const bool& disconnect)
 {
-    if ( !this->getIsPublic() && !disconnect )
+    if ( !this->getIsPublic()
+      && !disconnect )
     {
         return;
     }
@@ -311,6 +318,7 @@ Player* Server::createPlayer(qintptr socketDescriptor)
             QObject::connect( this, &Server::setMaxIdleTimeSignal, plr, &Player::setMaxIdleTimeSlot );
             QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr, &Player::sendMasterMsgToPlayerSlot );
             QObject::connect( this, &Server::connectionTimeUpdateSignal, plr, &Player::connectionTimeUpdateSlot );
+            QObject::connect( plr, &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot, Qt::DirectConnection );
 
             return plr;
         }
@@ -833,7 +841,8 @@ bool Server::getIsSetUp() const
 void Server::setIsSetUp(const bool& value)
 {
     isSetUp = value;
-    emit this->serverIsSetupSignal();
+    if ( isSetUp )
+        emit this->serverIsSetupSignal();
 }
 
 quint32 Server::getUserCalls() const
@@ -1226,6 +1235,28 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
     }
 }
 
+void Server::ipDCIncreaseSlot(const DCTypes& type)
+{
+    switch ( type )
+    {
+        case DCTypes::IPDC:
+            {
+                this->setIpDc( this->getIpDc() + 1 );
+            }
+        break;
+        case DCTypes::DupDC:
+            {
+                this->setDupDc( this->getDupDc() + 1 );
+            }
+        break;
+        case DCTypes::PktDC:
+            {
+                this->setPktDc( this->getPktDc() + 1 );
+            }
+        break;
+    }
+}
+
 void Server::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
 {
     this->sendUserList( addr, port, type );
@@ -1245,7 +1276,7 @@ void Server::upnpPortAddedSlot(const quint16& port, const QString& protocol)
     {
         this->startMasterCheckIn();
         emit this->initializeServerSignal();
-        this->sendMasterInfo();
+        //this->sendMasterInfo();
 
         this->setUpnpPortAdded( true );
         upnpPortRefresh.start();

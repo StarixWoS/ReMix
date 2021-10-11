@@ -485,29 +485,7 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     isDisconnected = value;
     if ( isDisconnected )
     {
-        Server* server{ this->getServer() };
-        if ( server != nullptr )
-        {
-            //Increment the disconnect count for the specific type.
-            switch ( dcType )
-            {
-                case DCTypes::IPDC:
-                    {
-                        server->setIpDc( server->getIpDc() + 1 );
-                    }
-                break;
-                case DCTypes::DupDC:
-                    {
-                        server->setDupDc( server->getDupDc() + 1 );
-                    }
-                break;
-                case DCTypes::PktDC:
-                    {
-                        server->setPktDc( server->getPktDc() + 1 );
-                    }
-                break;
-            }
-        }
+        emit this->ipDCIncreaseSignal( dcType );
         killTimer.start( static_cast<int>( Globals::MAX_DISCONNECT_TTL ) );
     }
 }

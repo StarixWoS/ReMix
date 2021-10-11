@@ -41,6 +41,8 @@ CreateInstance::CreateInstance(QWidget* parent) :
     ui->setupUi(this);
     collator.setNumericMode( true );
     collator.setCaseSensitivity( Qt::CaseInsensitive );
+
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 CreateInstance::~CreateInstance()
@@ -329,7 +331,7 @@ void CreateInstance::closeEvent(QCloseEvent* event)
             if ( Helper::confirmAction( this, title, prompt ) )
             {
                 event->accept();
-                qApp->quit();
+                emit this->quitSignal();
             }
             else
                 event->ignore();

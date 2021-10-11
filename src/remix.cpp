@@ -113,6 +113,11 @@ void ReMix::updateTitleBars(Server* server)
     ReMix::getInstance()->setWindowTitle( title );
 }
 
+void ReMix::quitSlot()
+{
+    qApp->quit();
+}
+
 #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
 void ReMix::initSysTray()
 {

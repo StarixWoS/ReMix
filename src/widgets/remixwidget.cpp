@@ -23,6 +23,7 @@
 
 //Qt Includes.
 #include <QStandardItemModel>
+#include <QNetworkInterface>
 #include <QMenu>
 
 ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
@@ -85,12 +86,17 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     QObject::connect( server, &Server::initializeServerSignal, this, &ReMixWidget::initializeServerSlot );
 
     QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,
-    [=, this]()
+    [=, this](const QString& interfaceIP)
     {
-        if ( server->getIsSetUp() )
-            server->setIsSetUp( false );
-
-        server->setIsPublic( true );
+        if ( !Helper::cmpStrings( interfaceIP, server->getPrivateIP() ) )
+        {
+            if ( server->getIsSetUp() )
+            {
+                server->setIsSetUp( false );
+                server->setupInfo( interfaceIP );
+            }
+            server->setIsPublic( true );
+        }
     } );
 
     QObject::connect( ChatView::getInstance( server ), &ChatView::sendChatSignal, this,
@@ -197,14 +203,6 @@ QString ReMixWidget::getServerName() const
     return server->getServerName();
 }
 
-quint16 ReMixWidget::getPrivatePort() const
-{
-    if ( server == nullptr )
-        return 0;
-
-    return server->getPrivatePort();
-}
-
 void ReMixWidget::initUIUpdate()
 {
     //Create and Connect Lamda Objects
@@ -268,6 +266,26 @@ void ReMixWidget::initUIUpdate()
         }
         ui->networkStatus->setText( msg );
     } );
+}
+
+QString ReMixWidget::getInterface(QWidget* parent)
+{
+    QList<QHostAddress> ipList{ QNetworkInterface::allAddresses() };
+    QStringList items;
+
+    //Default to our localhost address if nothing valid is found.
+    QHostAddress ipAddress{ QHostAddress::Null };
+    for ( const QHostAddress& ip : ipList )
+    {
+        items.append( ip.toString() );
+    }
+
+    bool ok;
+    QString item{ QInputDialog::getItem( parent, "ReMix", "Select Network Interface:", items, 0, false, &ok) };
+    if ( ok && !item.isEmpty() )
+        return item;
+
+    return Helper::getPrivateIP().toString();
 }
 
 void ReMixWidget::on_openUserInfo_clicked()
@@ -350,22 +368,11 @@ void ReMixWidget::on_isPublicServer_toggled(bool value)
         server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
-void ReMixWidget::on_networkStatus_linkActivated(const QString& link)
+void ReMixWidget::on_networkStatus_linkActivated(const QString&)
 {
-    QString title{ "Invalid IP:" };
-    QString prompt{ "Do you wish to mark the IP Address [ %1 ] as invalid and refresh the network interface?" };
-
-    prompt = prompt.arg( link );
-    if ( Helper::confirmAction( this, title, prompt ) )
-    {
-        Settings::setSetting( true, SKeys::WrongIP, link );
-
-        emit this->reValidateServerIPSignal();
-
-        title = "Note:";
-        prompt = "Please refresh your server list in-game!";
-        Helper::confirmAction( this, title, prompt );
-    }
+    QString interface{ this->getInterface( this ) };
+    if ( interface != server->getPrivateIP() )
+        emit this->reValidateServerIPSignal( interface );
 }
 
 void ReMixWidget::on_useUPNP_toggled(bool value)

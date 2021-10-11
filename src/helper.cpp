@@ -402,7 +402,7 @@ QString Helper::getTimeAsString(const quint64& time)
 
 QString Helper::getTimeFormat(const qint64& time)
 {
-    QString format{ "%1:%2:%3:%4" };
+    QString format{ "%1d:%2h:%3m:%4s" };
             format = format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
                            .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
                            .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
@@ -417,10 +417,11 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
     {
         case TimeFormat::Days:
             retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
-                     % static_cast<int>( TimeFormat::DaysDiv ) );
+                     / static_cast<int>( TimeFormat::DaysDiv ) );
         break;
         case TimeFormat::Hours:
-            retn = ( time / static_cast<int>( TimeFormat::HoursDiv ) );
+            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
+                     % static_cast<int>( TimeFormat::DaysDiv ) );
         break;
         case TimeFormat::Minutes:
             retn = ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )

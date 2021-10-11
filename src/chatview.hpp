@@ -18,6 +18,7 @@ class ChatView : public QWidget
     Q_OBJECT
 
     static QHash<Server*, ChatView*> chatViewInstanceMap;
+    static QVector<Colors> colors;
     static QStringList bleepList;
 
     Server* server{ nullptr };

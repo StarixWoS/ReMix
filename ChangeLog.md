@@ -17,10 +17,19 @@ Version 2.7.9:
         * The UDP Thread Class signals the parsed data to the Server Class for further proccessing of Server specific information.
       * Reduced Code Bloat related to copying Server Settings/Rules in a NameChange event.
         * In the process it has become easier to mark which settings/rules are server specific.
-      * Properly parse the '3', '5', and 'k' packets for chat related information.
+      * Properly parse the '3', '5', 'k', and 'p' packets for chat related information.
         * The '3' Packet Contains incarnation/disincarnation/and ghost messaging.
         * The '5' Packet signals a player is leaving the server.
         * The 'k' Packet contains PK Attack information.
+        * The 'p' packet handles Party join/leave information.
+      * Removed files from that are no longer used.
+      * Reduced code bloat related to swapping the ChatView colors when changing the Theme from Normal/Dark.
+      * Added a Day field to the PlayerOnline and Server Instance timecodes.
+        * Previously we only tracked how many hours, minutes, and seconds a User or Instance has been active.
+        * e.g. 751:32:14 will now read as 31d:07h:32m:14s
+      * Repurposed the [ Blocked IP ] function into one where the User could select an IP Interface for ReMix to use.
+        * This is Server specific and is not saved as a setting.
+        * This is accessed by clicking the Blue IP address within the main ReMix UI.
       
 
 
@@ -37,6 +46,12 @@ Version 2.7.9:
         * We now properly ensure that the Server is Public before posting information to the Master.
       * Fixed an issue where changing a Servers name would not copy certain settings and rules.
       * Fixed an issue where Users initializing a custom command would have a TimeStamp with no message inserted into the ChatView.
+      * Fixed an issue where changing the Theme to Normal/Dark would not swap colors correctly.
+      * Fixed an issue where ReMix would freeze when canceling the CreateInstance dialog while no Server instance is active.
+        * The corrected behaviour is that ReMix will now properly close.
+      * Fixed an issue when Reading an SSV for a User would not have the returned value sent to the LogView.
+      * Fixed an issue where an Automatic Ban would cause UI elements to appear linked to an invalid Player Object.
+      * Fixed an issue where manually re-selecting an IP Interface would send multiple MasterMix checkings.
 
 
 

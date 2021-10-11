@@ -39,6 +39,9 @@ class ReMix : public QMainWindow
         static ReMix* getInstance();
         static void updateTitleBars(Server* server);
 
+    public slots:
+        void quitSlot();
+
     private slots:
         //Handle Minimize events.
         #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )

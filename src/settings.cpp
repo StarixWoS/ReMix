@@ -151,6 +151,8 @@ Settings::Settings(QWidget* parent) :
 
     if ( getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 Settings::~Settings()

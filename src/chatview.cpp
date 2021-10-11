@@ -92,6 +92,20 @@ QStringList ChatView::bleepList
 };
 
 QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
+QVector<Colors> ChatView::colors
+{
+    Colors::GoldenSoul,
+    Colors::OwnerName,
+    Colors::OwnerChat,
+    Colors::TimeStamp,
+    Colors::Comment,
+    Colors::Invalid,
+    Colors::Gossip,
+    Colors::Shout,
+    Colors::Emote,
+    Colors::Name,
+    Colors::Chat,
+};
 
 ChatView::ChatView(QWidget* parent, Server* svr) :
     QWidget(parent),
@@ -276,7 +290,7 @@ void ChatView::insertChat(const QString& msg, const Colors& color, const bool& n
     cursor.movePosition( QTextCursor::End );
 
     QTextCharFormat format;
-                    format.setForeground( Theme::getThemeColor( color ) );
+                    format.setForeground( Theme::getColor( color ) );
     cursor.setCharFormat( format );
     if ( newLine )
         cursor.insertText( "\r\n" );
@@ -381,55 +395,21 @@ void ChatView::themeChangedSlot(const Themes& theme)
     QString txtHtml{ ui->chatView->toHtml() };
     if ( !txtHtml.isEmpty() )
     {
-        //enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
-        //OwnerChat, Chat, Gossip, Shout, Emote,
-        //GoldenSoul = 10, Default = -1 };
-
         if ( theme == Themes::Light )
         {
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::GoldenSoul ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::GoldenSoul ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::OwnerName ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::OwnerName ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::TimeStamp ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::TimeStamp ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Comment ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Comment ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Gossip ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Shout ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Shout ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Emote ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Emote ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Name ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Name ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Dark, Colors::Chat ).name(),
-                                       Theme::getThemeColor( Themes::Light, Colors::Chat ).name() );
+            for ( const Colors& color : colors )
+            {
+                txtHtml = txtHtml.replace( Theme::getColor( Themes::Dark, color ).name(),
+                                           Theme::getColor( Themes::Light, color ).name() );
+            }
         }
         else
         {
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::GoldenSoul ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::GoldenSoul ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::OwnerName ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::OwnerName ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::OwnerChat ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::OwnerChat ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::TimeStamp ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::TimeStamp ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Comment ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Comment ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Gossip ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Gossip ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Shout ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Shout ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Emote ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Emote ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Name ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Name ).name() );
-            txtHtml = txtHtml.replace( Theme::getThemeColor( Themes::Light, Colors::Chat ).name(),
-                                       Theme::getThemeColor( Themes::Dark, Colors::Chat ).name() );
+            for ( const Colors& color : colors )
+            {
+                txtHtml = txtHtml.replace( Theme::getColor( Themes::Light, color ).name(),
+                                           Theme::getColor( Themes::Dark, color ).name() );
+            }
         }
 
         ui->chatView->clear();

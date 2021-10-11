@@ -95,7 +95,7 @@ class Server : public QTcpServer
         ~Server() override;
         void incomingConnection(qintptr socketDescriptor) override;
 
-        void setupInfo();
+        void setupInfo(const QString& interfaceIP = "");
         void setupUPNP(const bool& enable = false);
 
         void sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
@@ -275,6 +275,8 @@ class Server : public QTcpServer
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
         void recvPlayerGameInfoSlot(const QString& info, const QString& ip);
+
+        void ipDCIncreaseSlot(const DCTypes& type);
 
     private slots:
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);

@@ -22,6 +22,7 @@ SendMsg::SendMsg(QWidget* parent) :
     //Install EventFilters.
     this->installEventFilter( this );
     ui->msgEditor->installEventFilter( this );
+    this->setWindowModality( Qt::ApplicationModal );
 }
 
 SendMsg::~SendMsg()

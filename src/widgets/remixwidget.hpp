@@ -36,11 +36,11 @@ class ReMixWidget : public QWidget
         quint32 getPlayerCount() const;
         QString getServerName() const;
 
-        quint16 getPrivatePort() const;
         qintptr getPeerFromQItem(QStandardItem* item) const;
 
     private:
         void initUIUpdate();
+        QString getInterface(QWidget* parent);
 
     private slots:
         void on_openSettings_clicked();
@@ -48,7 +48,7 @@ class ReMixWidget : public QWidget
         void on_openUserInfo_clicked();
         void on_isPublicServer_toggled(bool value);
         void on_useUPNP_toggled(bool value);
-        void on_networkStatus_linkActivated(const QString& link);
+        void on_networkStatus_linkActivated(const QString&);
         void on_networkStatus_customContextMenuRequested(const QPoint&);
         void on_openChatView_clicked();
 
@@ -65,7 +65,7 @@ class ReMixWidget : public QWidget
         void insertedRowItemSlot(QStandardItem* item, const qintptr& peer, const QByteArray& data);
 
     signals:
-        void reValidateServerIPSignal();
+        void reValidateServerIPSignal(const QString& interfaceIP = "");
         void crossServerCommentSignal(Server* server, const QString& comment);
         void fwdUpdatePlrViewSignal(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
         void plrViewInsertRowSignal(const qintptr& peer, const QByteArray& data);
