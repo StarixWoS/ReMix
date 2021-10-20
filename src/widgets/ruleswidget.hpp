@@ -50,6 +50,9 @@ class RulesWidget : public QWidget
         void gameInfoChangedSignal(const QString& gameInfo);
         void setMaxIdleTimeSignal();
 
+    public slots:
+        void nameChangedSlot(const QString& name);
+
     private:
         Ui::RulesWidget* ui;
         static QMutex mutex;

@@ -30,7 +30,6 @@ class ReMix : public QMainWindow
     #if !defined( Q_OS_LINUX ) && !defined( Q_OS_OSX )
         void initSysTray();
     #endif
-        void initUIUpdate();
 
     public:
         explicit ReMix(QWidget* parent = nullptr);

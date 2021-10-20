@@ -13,6 +13,7 @@
 #include "helper.hpp"
 #include "server.hpp"
 #include "theme.hpp"
+#include "upnp.hpp"
 #include "user.hpp"
 
 //Qt Includes.
@@ -49,7 +50,7 @@ ReMix::ReMix(QWidget* parent) :
     Settings::setInstance( new Settings( this ) );
     User::setInstance( new User( this ) );
 
-    serverUI = ReMixTabWidget::getTabInstance( this );
+    serverUI = ReMixTabWidget::getInstance( this );
     ui->frame->layout()->addWidget( serverUI );
 
     //Update the window title to reflect the current version.
@@ -75,16 +76,23 @@ ReMix::~ReMix()
         trayMenu->deleteLater();
 
     CampExemption::getInstance()->deleteLater();
-    Settings::getInstance()->deleteLater();
-    Logger::getInstance()->deleteLater();
     Theme::getInstance()->deleteLater();
+    UPNP::getInstance()->deleteLater();
+
+    ReMixTabWidget::getInstance()->close();
+    ReMixTabWidget::getInstance()->deleteLater();
+
+    Settings::getInstance()->close();
+    Settings::getInstance()->deleteLater();
+
+    Logger::getInstance()->close();
+    Logger::getInstance()->deleteLater();
+
+    User::getInstance()->close();
     User::getInstance()->deleteLater();
 
-    serverUI->close();
-    serverUI->deleteLater();
-
-    instance->close();
-    instance->deleteLater();
+    this->getInstance()->close();
+    this->getInstance()->deleteLater();
 
     Settings::prefs->deleteLater();
     Settings::bioHash.clear();

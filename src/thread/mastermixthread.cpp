@@ -33,7 +33,6 @@ MasterMixThread::MasterMixThread()
     this->connectSlots();
 
     updateInfoTimer.setInterval( static_cast<qint32>( Globals::MASTER_MIX_UPDATE_INTERVAL ) ); //Default of 6 hours in Milliseconds..
-
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
         QString msg{ "Automatically refreshing the Master Mix Information." };
@@ -157,21 +156,37 @@ void MasterMixThread::obtainMasterData(Server* server)
     QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
     masterMixPref->sync();
 
-    QString str{ masterMixPref->value( server->getGameName() % "/master" ).toString() };
-
-    int index{ static_cast<int>( str.indexOf( ":" ) ) };
-    if ( index > 0 )
+    QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+    if ( !overrideIP.isEmpty() )
     {
-        QString ip{ str.left( index ) };
-        quint16 port{ static_cast<quint16>( str.mid( index + 1 ).toInt() ) };
+        qint32 index{ static_cast<int>( overrideIP.indexOf( ":" ) ) };
+        if ( index > 0 )
+        {
+            server->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) );
+            QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
+                    msg = msg.arg( server->getMasterIP() )
+                             .arg( server->getMasterPort() );
+            Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+        }
+    }
+    else
+    {
+        QString str{ masterMixPref->value( server->getGameName() % "/master" ).toString() };
 
-        QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
-                msg = msg.arg( ip )
-                         .arg( port )
-                         .arg( server->getGameName() );
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+        int index{ static_cast<int>( str.indexOf( ":" ) ) };
+        if ( index > 0 )
+        {
+            QString ip{ str.left( index ) };
+            quint16 port{ static_cast<quint16>( str.mid( index + 1 ).toInt() ) };
 
-        server->setMasterIP( ip, port );
+            QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
+            msg = msg.arg( ip )
+                  .arg( port )
+                  .arg( server->getGameName() );
+            emit this->insertLogSignal( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+
+            server->setMasterIP( ip, port );
+        }
     }
 }
 

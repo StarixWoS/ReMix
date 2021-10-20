@@ -90,6 +90,7 @@
     class PlrListWidget;
     class ReMixWidget;
     class RulesWidget;
+    class ColorWidget;
     class MOTDWidget;
     class ChatView;
 
@@ -155,6 +156,9 @@
             //Minimum amount of time in MS (30 Seconds)
             //before re-announcing to the Master Server.
             MIN_MASTER_CHECK_IN_TIME = 30000,
+
+            //Minimum amount of time in MS (0.5 Seconds).
+            MIN_MASTER_STARTUP_TIME = 500,
 
             //Amount of times an un-authenticated (admin) can use commands.
             MAX_CMD_ATTEMPTS = 3,
@@ -224,6 +228,10 @@
             //30 Minutes in milliseconds.
             UPNP_TIME_OUT_MS = 1800000,
 
+            //Maximum amount of time ReMix will wait for a UPNP Port Forward Response.
+            //5 Seconds in Milliseconds.
+            UPNP_RESPONSE_TIME_OUT = 5000,
+
             //Count of currently accepted UPNP Schemas
             UPNP_SCHEMA_COUNT = 6,
 
@@ -292,9 +300,9 @@
         enum class Themes: int{ Light = 0, Dark = 1 };
 
         //Valid Theme Colors
-        enum class Colors: int{ Valid = 0, Invisible, Invalid, OwnerName, Name,
-                                OwnerChat, Chat, Gossip, Shout, Emote,
-                                GoldenSoul, TimeStamp, Comment = 12, Default = -1 };
+        enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, PlayerTxt, OwnerTxt, CommentTxt,
+                                GoldenSoul, WhiteSoul, PlayerName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
+                                IPInvalid, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 19, ColorCount = 19, Default = -1 };
 
         //Valid columns within the PlrListWidget.
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
@@ -335,19 +343,19 @@
         enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
 
         //Valid Key values for use within the Rules and Settings Classes.
-        enum class SKeys: int{ Setting = 0, WrongIP, Messages, Positions, Rules, Logger = 5, KeyCount = 5 };
+        enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors = 5 };
 
         //Valid Sub-Key values for use within the Settings Class.
-        enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, MOTD, LogComments, FwdComments,
+        enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
-                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, HidePlayerView, HideChatView, HasSvrPassword, SvrPassword,
-                                  World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding,
-                                  NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, HidePlayerView, HideChatView, NetInterface, HasSvrPassword,
+                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate,
+                                  NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
 
         //Valid Toggles for the Settings Widget.
-        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
-                                  InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMasterHost, OverrideMaster = 15 };
+        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
+                                  InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMasterHost, OverrideMaster = 16 };
 
         //Valid Toggles for the Rules Widget.
         enum class RToggles: int{ ServerPassword = 0, AutoRestart, WorldName, UrlAddr, AllPK, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep, NoCheat,

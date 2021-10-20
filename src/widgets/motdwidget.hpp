@@ -20,7 +20,7 @@ class MOTDWidget : public QWidget
     QTimer motdUpdate;
 
     public:
-        explicit MOTDWidget(const QString& name);
+        explicit MOTDWidget();
         ~MOTDWidget() override;
 
         static MOTDWidget* getInstance(Server* server);
@@ -28,6 +28,9 @@ class MOTDWidget : public QWidget
 
         void setServerName(const QString& name);
         void changeMotD(const QString& message);
+
+    public slots:
+        void nameChangedSlot(const QString& name);
 
     private slots:
         void on_motdEdit_textChanged();

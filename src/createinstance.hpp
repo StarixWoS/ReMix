@@ -32,9 +32,11 @@ class CreateInstance : public QDialog
         bool testPort(const quint16& port);
         quint16 genPort();
 
-        void restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic);
+        void restartServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                           const bool& useUPNP, const bool& isPublic);
         Server* loadOldServer(const QString& name);
-        Server* initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic);
+        Server* initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                 const bool& useUPNP, const bool& isPublic);
 
         bool getLoadingOldServers() const;
         void setLoadingOldServers(bool value);
@@ -49,6 +51,8 @@ class CreateInstance : public QDialog
         void on_close_clicked();
         void on_randomizePort_clicked();
         void on_deleteServer_clicked();
+
+        void on_useUPNP_clicked();
 
     signals:
         void createServerAcceptedSignal(Server* server);

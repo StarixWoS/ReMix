@@ -24,7 +24,6 @@ QHash<Server*, PacketHandler*> PacketHandler::pktHandleInstanceMap;
 
 PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 {
-    pktForge = PacketForge::getInstance();
     chatView = chat;
     server = svr;
 
@@ -147,10 +146,9 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 
             //Warpath doesn't send packets using SerNums.
             //Check and skip the validation if this is Warpath.
-            if ( server->getGameId() != Games::W97
-              && pktForge != nullptr )
+            if ( server->getGameId() != Games::W97 )
             {
-                if ( !pktForge->validateSerNum( plr, packet ) )
+                if ( !PacketForge::getInstance()->validateSerNum( plr, packet ) )
                     parsePkt = false;
                 else
                     parsePkt = this->parseTCPPacket( packet, plr );
@@ -178,20 +176,20 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
 
 bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
 {
-    //We were unable to load our PacketForge library, return.
-    if ( pktForge == nullptr )
-        return false;
-
     //The Player object is invalid, return.
     if ( plr == nullptr )
         return false;
+
+    Colors serNumColor{ Colors::WhiteSoul };
+    if ( plr->getIsGoldenSerNum() )
+        serNumColor = Colors::GoldenSoul;
 
     bool retn{ true };
     QString pkt{ packet };
     if ( server->getGameId() != Games::W97 )
     {
         //WoS and Arcadia distort Packets in the same manner.
-        pkt = pktForge->decryptPacket( packet );
+        pkt = PacketForge::getInstance()->decryptPacket( packet );
         if ( !pkt.isEmpty() )
         {
 
@@ -258,10 +256,11 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     if ( !msg.isEmpty() && !isIncarnated )
                     {
                         emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
-                        emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
-                        emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
-                        emit this->insertChatMsgSignal( msg, Colors::Invalid, false );
-                        emit this->insertChatMsgSignal( "***", Colors::Invalid, false );
+                        emit this->insertChatMsgSignal( "*** ", Colors::SoulIncarnated, false );
+                        emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                        emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                        emit this->insertChatMsgSignal( msg, Colors::SoulIncarnated, false );
+                        emit this->insertChatMsgSignal( "***", Colors::SoulIncarnated, false );
                     }
                 }
 
@@ -302,9 +301,10 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     case '5': //Player Leaves Server.
                         {
                             emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
-                            emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
-                            emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
-                            emit this->insertChatMsgSignal( " has left this world! ***", Colors::Invalid, false );
+                            emit this->insertChatMsgSignal( "*** ", Colors::SoulLeftWorld, false );
+                            emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                            emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                            emit this->insertChatMsgSignal( " has left this world! ***", Colors::SoulLeftWorld, false );
                         }
                     break;
                     case 'k': //PK Attack.
@@ -312,11 +312,11 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                             if ( targetPlayer != nullptr )
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
-                                emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
-                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::Name, false );
-                                emit this->insertChatMsgSignal( " has challenged ", Colors::Invalid, false );
-                                emit this->insertChatMsgSignal( targetPlayer->getPlrName(), Colors::Name, false );
-                                emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( "*** ", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( " has challenged ", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( targetPlayer->getPlrName(), Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::PKChallenge, false );
                             }
                         }
                     break;
@@ -339,12 +339,14 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                             if ( partyLeader != nullptr )
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
-                                emit this->insertChatMsgSignal( "*** ", Colors::Invalid, false );
-                                emit this->insertChatMsgSignal( plr->getPlrName() % " [ " % plr->getSernum_s() % " ] ", Colors::Name, false );
-                                emit this->insertChatMsgSignal( ( isJoining ? " joins " : " leaves " ), Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( "*** ", Colors::PartyJoin, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                                emit this->insertChatMsgSignal( ( isJoining ? " joins " : " leaves " ), Colors::PartyJoin, false );
 
-                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s [ " % partyLeader->getSernum_s() % " ] ", Colors::Name, false );
-                                emit this->insertChatMsgSignal( "party. ***", Colors::Invalid, false );
+                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s [ " % partyLeader->getSernum_s() % " ] ",
+                                                                Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( "party. ***", Colors::PartyJoin, false );
                             }
                         }
                     break;
@@ -450,8 +452,8 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
 
-            emit this->insertChatMsgSignal( plr->getPlrName() % ": ", Colors::Name, true );
-            emit this->insertChatMsgSignal( pkt, Colors::Chat, false );
+            emit this->insertChatMsgSignal( plr->getPlrName() % ": ", Colors::PlayerName, true );
+            emit this->insertChatMsgSignal( pkt, Colors::PlayerTxt, false );
 
             plr->setIsAFK( false );
         }

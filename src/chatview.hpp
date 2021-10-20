@@ -40,12 +40,15 @@ class ChatView : public QWidget
     public slots:
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
         void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
+        void colorOverrideSlot(const QString& oldColor, const QString& newColor);
 
     private slots:
         void on_chatInput_returnPressed();
         void themeChangedSlot(const Themes& theme);
 
         void on_autoScrollCheckBox_toggled(bool checked);
+
+        void on_clearChat_clicked();
 
     private:
         Ui::ChatView* ui;

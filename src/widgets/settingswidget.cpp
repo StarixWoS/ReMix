@@ -26,6 +26,7 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( SToggles::InformAdminLogin, Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() );
     this->setCheckedState( SToggles::DCBlueCode, Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() );
     this->setCheckedState( SToggles::MinimizeToTray, Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool() );
+    this->setCheckedState( SToggles::CensorIPInfo, Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool() );
     this->setCheckedState( SToggles::EchoComments, Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() );
     this->setCheckedState( SToggles::FwdComments, Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() );
     this->setCheckedState( SToggles::LogComments, Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() );
@@ -175,6 +176,12 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
             {
                 if ( this->getCheckedState( SToggles::AllowDupeIP ) )
                     this->toggleSettingsModel( static_cast<int>( SToggles::AllowDupeIP ) );
+            }
+        break;
+        case SToggles::CensorIPInfo:
+            {
+                emit this->censorUIIPInfoSignal( state );
+                Settings::setSetting( state, SKeys::Setting, SSubKeys::CensorIPInfo );
             }
         break;
         case SToggles::ReqSerNum: //2

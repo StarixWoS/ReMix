@@ -13,12 +13,11 @@
 
 QHash<Server*, MOTDWidget*> MOTDWidget::motdWidgets;
 
-MOTDWidget::MOTDWidget(const QString& name) :
+MOTDWidget::MOTDWidget() :
     ui(new Ui::MOTDWidget)
 {
     ui->setupUi(this);
     this->setWindowModality( Qt::ApplicationModal );
-    this->setServerName( name );
 
     //Update the MOTD file after the timer has elapsed.
     motdUpdate.setInterval( 2000 ); //Update the file after 2seconds.
@@ -44,7 +43,9 @@ MOTDWidget* MOTDWidget::getInstance(Server* server)
     MOTDWidget* widget{ motdWidgets.value( server ) };
     if ( widget == nullptr )
     {
-        widget = new MOTDWidget( server->getServerName() );
+        widget = new MOTDWidget();
+        widget->setServerName( server->getServerName() );
+        QObject::connect( server, &Server::serverNameChangedSignal, widget, &MOTDWidget::nameChangedSlot );
         motdWidgets.insert( server, widget );
     }
     return widget;
@@ -78,6 +79,11 @@ void MOTDWidget::changeMotD(const QString& message)
 {
     ui->motdEdit->setText( message );
     motdUpdate.start();
+}
+
+void MOTDWidget::nameChangedSlot(const QString& name)
+{
+    this->setServerName( name );
 }
 
 void MOTDWidget::on_motdEdit_textChanged()

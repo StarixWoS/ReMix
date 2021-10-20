@@ -35,6 +35,7 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/widgets/userdelegate.cpp
         src/widgets/remixwidget.cpp
         src/widgets/ruleswidget.cpp
+        src/widgets/colorwidget.cpp
         src/widgets/motdwidget.cpp
         src/thread/writethread.cpp
         src/thread/udpthread.cpp
@@ -71,6 +72,7 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/widgets/userdelegate.hpp
         src/widgets/remixwidget.hpp
         src/widgets/ruleswidget.hpp
+        src/widgets/colorwidget.hpp
         src/widgets/motdwidget.hpp
         src/thread/writethread.hpp
         src/thread/udpthread.hpp
@@ -103,10 +105,10 @@ set(UI ui/widgets/settingswidget.ui
     ui/widgets/plrlistwidget.ui
     ui/widgets/remixwidget.ui
     ui/widgets/ruleswidget.ui
+    ui/widgets/colorwidget.ui
     ui/widgets/motdwidget.ui
     ui/createinstance.ui
     ui/selectworld.ui
-    #ui/chatview.ui
     ui/settings.ui
     ui/sendmsg.ui
     ui/logger.ui

@@ -31,14 +31,17 @@ RulesWidget::~RulesWidget()
 
 RulesWidget* RulesWidget::getInstance(Server* server)
 {
-    RulesWidget* widget{ ruleWidgets.value( server ) };
+    RulesWidget* widget{ ruleWidgets.value( server, nullptr ) };
     if ( widget == nullptr )
     {
         widget = new RulesWidget();
         if ( widget != nullptr )
         {
             ruleWidgets.insert( server, widget );
+            widget->setServerName( server->getServerName() );
             QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server, &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::gameInfoChangedSignal, server, &Server::gameInfoChangedSlot, Qt::UniqueConnection );
+            QObject::connect( server, &Server::serverNameChangedSignal, widget, &RulesWidget::nameChangedSlot, Qt::UniqueConnection );
         }
     }
     return widget;
@@ -134,7 +137,11 @@ bool RulesWidget::getCheckedState(const RToggles& option)
 
 void RulesWidget::setGameInfo(const QString& gInfo)
 {
-    gameInfo = gInfo;
+    if ( !Helper::cmpStrings( gameInfo, gInfo) )
+    {
+        gameInfo = gInfo;
+        emit this->gameInfoChangedSignal( gInfo );
+    }
 }
 
 const QString& RulesWidget::getGameInfo() const
@@ -156,6 +163,11 @@ void RulesWidget::on_rulesView_itemClicked(QTableWidgetItem* item)
             }
         }
     }
+}
+
+void RulesWidget::nameChangedSlot(const QString& name)
+{
+    this->setServerName( name );
 }
 
 void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
@@ -285,7 +297,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 ui->rulesView->item( static_cast<int>( RToggles::WorldName ), 0 )->setText( rowText );
                 Settings::setSetting( world, SKeys::Rules, SSubKeys::World, serverName );
 
-                emit this->gameInfoChangedSignal( world );
+                this->setGameInfo( world );
             }
         break;
         case RToggles::UrlAddr:

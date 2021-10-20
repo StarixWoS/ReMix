@@ -38,7 +38,8 @@ class ReMixTabWidget : public QTabWidget
         quint32 getServerCount() const;
 
         static qint32 getInstanceCount();
-        static ReMixTabWidget* getTabInstance(QWidget* parent = nullptr);
+        static ReMixTabWidget* getInstance(QWidget* parent = nullptr);
+
         static void remoteCloseServer(Server* server, const bool restart = false);
         static void setToolTipString(ReMixWidget* widget);
 

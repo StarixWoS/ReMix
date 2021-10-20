@@ -195,6 +195,7 @@ class Player : public QTcpSocket
         void setIsAFK(bool value);
 
         void validateSerNum(Server* server, const qint32& id);
+        bool getIsGoldenSerNum();
 
         qint64 getPlrConnectedTime() const;
         void setPlrConnectedTime(const qint64& value);
@@ -212,6 +213,7 @@ class Player : public QTcpSocket
         void setPktHeaderExemptCount(const qint32& value);
 
         QString getIPAddress() const;
+        QString getIPPortAddress() const;
 
         bool getIsIncarnated() const;
         void setIsIncarnated(bool newIsIncarnated);

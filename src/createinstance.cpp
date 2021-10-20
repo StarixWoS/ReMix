@@ -15,6 +15,7 @@
 #include "server.hpp"
 
 //Qt Includes.
+#include <QNetworkInterface>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QTcpSocket>
@@ -42,7 +43,19 @@ CreateInstance::CreateInstance(QWidget* parent) :
     collator.setNumericMode( true );
     collator.setCaseSensitivity( Qt::CaseInsensitive );
 
-    this->setWindowModality( Qt::ApplicationModal );
+    //Load the Network Interface List.
+    QList<QHostAddress> ipList{ QNetworkInterface::allAddresses() };
+    QStringList items;
+
+    //Default to our localhost address if nothing valid is found.
+    QHostAddress ipAddress{ QHostAddress::Null };
+    for ( const QHostAddress& ip : ipList )
+    {
+        items.append( ip.toString() );
+    }
+
+    ui->netInterface->addItems( items );
+    ui->netInterface->setCurrentIndex( 0 );
 }
 
 CreateInstance::~CreateInstance()
@@ -156,8 +169,8 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->portNumber->text( ).toUShort(),
-                                                         ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
+                Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->netInterface->currentText(),
+                                                         ui->portNumber->text( ).toUShort(), ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
 
                 emit this->createServerAcceptedSignal( server );
                 emit this->accept();
@@ -187,31 +200,28 @@ quint16 CreateInstance::genPort()
     quint16 portMin{ std::numeric_limits<quint16>::min() };
     quint16 port{ 0 };
 
-    RandDev* randDev{ RandDev::getDevice() };
-    if ( randDev == nullptr )
-        return 8888;    //Return Arbitrary number if Generator is invalid.
-
     //Generate a Valid Port Number.
     if ( port == portMin )
     {
         do
         {   //Generate a Possibly Usable Port Number.
             const quint16 portMax{ std::numeric_limits<quint16>::max() };
-            port = randDev->genRandNum( quint16( 10000 ), portMax );
+            port = RandDev::getInstance().getGen(quint16( 10000 ), portMax );
         }   //Test our Generated Port Number for usability.
         while ( !this->testPort( port ) );
     }
     return port;
 }
 
-void CreateInstance::restartServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
+void CreateInstance::restartServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                   const bool& useUPNP, const bool& isPublic)
 {
     if ( !name.isEmpty() )
     {
         //Verify that the server hasn't been initialized previously.
         if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            Server* server{ this->initializeServer( name, gameName, port, useUPNP, isPublic ) };
+            Server* server{ this->initializeServer( name, gameName, netInterface, port, useUPNP, isPublic ) };
 
             emit this->createServerAcceptedSignal( server );
             emit this->accept();
@@ -230,18 +240,20 @@ Server* CreateInstance::loadOldServer(const QString& name)
 {
     if ( !name.isEmpty() )
     {
+        QString netInterface{ Settings::getSetting( SKeys::Setting, SSubKeys::NetInterface, name ).toString() };
         QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, name ).toString() };
         QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, name ).toString() };
         bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
         bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
 
-        Server* server{ this->initializeServer( name, gameName, svrPort.toUShort(), useUPNP, isPublic ) };
+        Server* server{ this->initializeServer( name, gameName, netInterface, svrPort.toUShort(), useUPNP, isPublic ) };
         return server;
     }
     return nullptr;
 }
 
-Server* CreateInstance::initializeServer(const QString& name, const QString& gameName, const quint16& port, const bool& useUPNP, const bool& isPublic)
+Server* CreateInstance::initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                         const bool& useUPNP, const bool& isPublic)
 {
     Server* server{ nullptr };
 
@@ -254,27 +266,16 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
 
         server->setServerName( name );
         server->setGameName( gameName );
-
-        QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
-        if ( !overrideIP.isEmpty() )
-        {
-            qint32 index{ static_cast<int>( overrideIP.indexOf( ":" ) ) };
-            if ( index > 0 )
-            {
-                server->setMasterIP( overrideIP.left( index ), static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) );
-                QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
-                        msg = msg.arg( server->getMasterIP() )
-                                 .arg( server->getMasterPort() );
-                Logger::getInstance()->insertLog( server->getServerName(), msg, LogTypes::MASTERMIX, true, true );
-            }
-        }
-        else
-            MasterMixThread::getInstance()->getMasterMixInfo( server );
-
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );
         server->setUseUPNP( useUPNP );
-        server->setIsPublic( isPublic );
+
+        if ( !netInterface.isEmpty() )
+            server->setIsPublic( isPublic, netInterface );
+        else
+            server->setIsPublic( isPublic, Helper::getPrivateIP().toString() );
+
+        MasterMixThread::getInstance()->getMasterMixInfo( server );
     }
     else
     {
@@ -378,6 +379,17 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         }
     }
 
+
+    QString netInterface{ Settings::getSetting( SKeys::Setting, SSubKeys::NetInterface, svrName ).toString() };
+    if ( !netInterface.isEmpty() )
+    {
+        qint32 netIndex{ ui->netInterface->findText( netInterface ) };
+        if ( netIndex >= 0 )
+            ui->netInterface->setCurrentIndex( netIndex );
+    }
+    else
+        ui->netInterface->setCurrentIndex( 0 );
+
     QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, svrName ).toString() };
     if ( !svrPort.isEmpty() )
         ui->portNumber->setText( svrPort );
@@ -454,5 +466,16 @@ void CreateInstance::on_deleteServer_clicked()
             Settings::removeSetting( svrName );
             this->updateServerList( false );
         }
+    }
+}
+
+void CreateInstance::on_useUPNP_clicked()
+{
+    if ( ui->useUPNP->checkState() == Qt::Checked )
+    {
+        static const QString title{ "UPNP Feature:" };
+        static const QString prompt{ "Enabling the UPNP Feature may result in ReMix being unable to ping the Master Mix! "
+                                     "If you are unable to ping the Master Mix try disabling the UPNP Feature and manusally forward your desired ports.." };
+        Helper::warningMessage( this, title, prompt );
     }
 }

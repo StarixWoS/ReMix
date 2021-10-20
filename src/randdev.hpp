@@ -12,21 +12,26 @@
 
 class RandDev
 {
-    static RandDev* device;
-    static std::mt19937_64 randDevice;
+    static QRandomGenerator64 genInt64;
+    static QRandomGenerator genInt;
+    static RandDev instance;
 
     public:
         RandDev();
         ~RandDev();
 
-        static RandDev* getDevice();
-        static qint64 getSeed();
+        static RandDev& getInstance();
 
         template<typename T>
-        T genRandNum(T min, T max)
+        static T getGen64(T min, T max)
         {
-            std::uniform_int_distribution<T> randInt( min, max );
-            return randInt( randDevice );
+            return genInt64.bounded( min, max );
+        }
+
+        template<typename T>
+        static T getGen(T min, T max)
+        {
+            return genInt.bounded( min, max );
         }
 };
 

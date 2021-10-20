@@ -36,7 +36,6 @@ int main(int argc, char* [])
 
     ReMix m;
     m.show();
-    //ReMix::getInstance()->show();
 
     return a.exec();
 }

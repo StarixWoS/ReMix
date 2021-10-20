@@ -8,6 +8,7 @@
 #include "settings.hpp"
 #include "helper.hpp"
 #include "theme.hpp"
+#include "remix.hpp"
 
 //Qt Includes.
 #include <QGraphicsPixmapItem>
@@ -99,9 +100,8 @@ Logger::Logger(QWidget *parent) :
         ui->autoScroll->setPalette( pal );
         ui->autoClear->setPalette( pal );
     });
-    logThread->start();
 
-    this->setWindowModality( Qt::ApplicationModal );
+    logThread->start();
 }
 
 Logger::~Logger()
@@ -131,7 +131,7 @@ Logger::~Logger()
 Logger* Logger::getInstance()
 {
     if ( logInstance == nullptr )
-        logInstance = new Logger();
+        logInstance = new Logger( ReMix::getInstance() );
 
     return logInstance;
 }

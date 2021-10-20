@@ -3,7 +3,10 @@
 #include "plrlistwidget.hpp"
 #include "ui_plrlistwidget.h"
 
-//Required ReMix Widget includes.
+//ReMix Widget includes.
+#include "widgets/settingswidget.hpp"
+
+//ReMix Views includes.
 #include "views/plrsortproxymodel.hpp"
 #include "views/tbleventfilter.hpp"
 
@@ -65,6 +68,11 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesOut ), 120 );
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesIn ), 120 );
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::IPPort ), 130 );
+    if ( Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool() )
+        this->censorUIIPInfoSlot( true );
+
+    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::censorUIIPInfoSignal, this, &PlrListWidget::censorUIIPInfoSlot );
+
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::SerNum ), 100 );
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Alias ), 70 );
     ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Time ), 50 );
@@ -74,6 +82,13 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     //Install Event Filter to enable Row-Deslection.
     tblEvFilter = new TblEventFilter( ui->playerView );
     ui->playerView->viewport()->installEventFilter( tblEvFilter );
+
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
+    [=,this]()
+    {
+        auto pal{ Theme::getCurrentPal() };
+        ui->playerView->setPalette( pal );
+    });
 }
 
 PlrListWidget::~PlrListWidget()
@@ -130,6 +145,11 @@ void PlrListWidget::resizeColumns()
     //ui->playerView->resizeColumnsToContents();
 }
 
+bool PlrListWidget::getCensorUIIPInfo() const
+{
+    return censorUIIPInfo;
+}
+
 void PlrListWidget::initContextMenu()
 {
     contextMenu->clear();
@@ -153,9 +173,17 @@ void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& colum
         if ( sModel != nullptr )
         {
             if ( isColor )
-                sModel->setData( sModel->index( object->row(), column ), Theme::getColor( static_cast<Colors>( data.toInt() ) ), role );
+                sModel->setData( sModel->index( object->row(), column ), Theme::getColorBrush( static_cast<Colors>( data.toInt() ) ), role );
             else
-                sModel->setData( sModel->index( object->row(), column ), data, role );
+            {
+                if ( static_cast<PlrCols>( column ) == PlrCols::IPPort
+                  && this->getCensorUIIPInfo() )
+                {
+                    sModel->setData( sModel->index( object->row(), column ), "***.***.***.***", role );
+                }
+                else
+                    sModel->setData( sModel->index( object->row(), column ), data, role );
+            }
         }
     }
 }
@@ -174,6 +202,11 @@ void PlrListWidget::plrViewRemoveRowSlot(QStandardItem* object)
 {
     if ( object != nullptr )
         plrModel->removeRow( object->row() );
+}
+
+void PlrListWidget::censorUIIPInfoSlot(const bool& state)
+{
+    censorUIIPInfo = state;
 }
 
 void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)

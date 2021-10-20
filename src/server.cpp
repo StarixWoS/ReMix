@@ -57,6 +57,8 @@ Server::Server(QWidget* parent)
     QObject::connect( this, &Server::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot );
     QObject::connect( this, &Server::bindSocketSignal, udpThread, &UdpThread::bindSocketSlot );
 
+    QObject::connect( this, &Server::recvMasterInfoSignal, this, &Server::recvMasterInfoSlot );
+
     //Connect the MasterMixThread signals to the Server Slots.
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixIPChangedSignal, this, &Server::masterMixIPChangedSlot );
 
@@ -68,7 +70,7 @@ Server::Server(QWidget* parent)
     QObject::connect( &upnpPortRefresh, &QTimer::timeout, &upnpPortRefresh,
     [=,this]()
     {
-        emit this->upnpPortForwardSignal( this->getPrivatePort(), this->getUseUPNP() );
+        emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), this->getUseUPNP() );
     } );
 
     players.resize( static_cast<int>( Globals::MAX_PLAYERS ) );
@@ -90,12 +92,27 @@ Server::Server(QWidget* parent)
         this->setMasterTimedOut( true );
     } );
 
+    upnpPortTimeOut.setSingleShot( true );
+    QObject::connect( &upnpPortTimeOut, &QTimer::timeout, &upnpPortTimeOut,
+    [=,this]()
+    {
+        this->setUpnpTimedOut( true );
+    } );
+
     QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
     [=,this]()
     {
-        this->sendMasterInfo();
-        if ( !masterTimeOut.isActive() )
-            masterTimeOut.start();
+        if ( this->getMasterInfoRecv() )
+        {
+            if ( ( this->getUseUPNP() && this->getUpnpPortAdded() )
+              || ( !this->getUseUPNP() && !this->getUpnpPortAdded() )
+              || this->getUpnpTimedOut() )
+            {
+                this->sendMasterInfo();
+                if ( !masterTimeOut.isActive() )
+                    masterTimeOut.start();
+            }
+        }
     } );
 
     //Updates the Server's Server Usage array every 10 minutes.
@@ -184,7 +201,8 @@ void Server::setupUPNP(const bool& enable)
         this->setUpnpPortAdded( false );
         return;
     }
-    emit this->upnpPortForwardSignal( this->getPrivatePort(), enable );
+    upnpPortTimeOut.start( static_cast<int>( Globals::UPNP_RESPONSE_TIME_OUT ) );
+    emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), enable );
 }
 
 void Server::sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
@@ -265,7 +283,7 @@ void Server::sendMasterInfo(const bool& disconnect)
                                .arg( this->getHostInfo().localHostName() )
                                .arg( this->getServerID() )
                                .arg( this->getPrivatePort() )
-                               .arg( this->getGameInfo() )
+                               .arg( this->getGameWorld() )
                                .arg( this->getServerName() );
         }
     }
@@ -589,17 +607,17 @@ QTimer* Server::getUpTimer()
     return &upTimer;
 }
 
-QString Server::getGameInfo() const
+QString Server::getGameWorld() const
 {
-    return gameInfo;
+    return gameWorld;
 }
 
-void Server::setGameInfo(const QString& value)
+void Server::setGameWorld(const QString& value)
 {
-    if ( !Helper::cmpStrings( gameInfo, value ) )
+    if ( !Helper::cmpStrings( gameWorld, value ) )
     {
-        gameInfo = value;
-        emit this->serverWorldChangedSignal( gameInfo );
+        gameWorld = value;
+        emit this->serverWorldChangedSignal( gameWorld );
     }
 }
 
@@ -666,13 +684,25 @@ QString Server::getMasterIP() const
 
 void Server::setMasterIP(const QString& value, const quint16& port)
 {
-    //Port should be set before the IP Address.
-    this->setMasterPort( port );
+    if ( !value.isEmpty() )
+    {
+        //Port should be set before the IP Address.
+        this->setMasterPort( port );
 
-    masterIP = value;
+        masterIP = value;
+        emit this->recvMasterInfoSignal();
+        this->setMasterInfoRecv( true );
+    }
+}
 
-    //this->setupInfo();
-    this->setIsPublic( this->getIsPublic() );
+bool Server::getMasterInfoRecv() const
+{
+    return masterInfoRecv;
+}
+
+void Server::setMasterInfoRecv(bool infoRecv)
+{
+    masterInfoRecv = infoRecv;
 }
 
 bool Server::getIsPublic() const
@@ -680,7 +710,7 @@ bool Server::getIsPublic() const
     return isPublic;
 }
 
-void Server::setIsPublic(const bool& value)
+void Server::setIsPublic(const bool& value, const QString& netInterface)
 {
     isPublic = value;
     Settings::setSetting( value, SKeys::Setting, SSubKeys::IsPublic, this->getServerName() );
@@ -691,14 +721,12 @@ void Server::setIsPublic(const bool& value)
     if ( value )
     {
         if ( !this->getIsSetUp() )
-            this->setupInfo();
+            this->setupInfo( netInterface );
 
         if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
           || ( this->getUpnpPortAdded() && this->getUseUPNP() ) )
         {
-            this->startMasterCheckIn();
             emit this->initializeServerSignal();
-            this->sendMasterInfo();
         }
     }
     else
@@ -764,7 +792,7 @@ void Server::setPlayerCount(const quint32& value)
 {
     if ( value == 0 )
     {
-        this->setGameInfo( Settings::getSetting( SKeys::Rules, SSubKeys::World, this->getServerName() ).toString() );
+        this->setGameWorld( Settings::getSetting( SKeys::Rules, SSubKeys::World, this->getServerName() ).toString() );
         playerCount = 0;
     }
     else
@@ -810,6 +838,7 @@ QString Server::getPrivateIP() const
 void Server::setPrivateIP(const QString& value)
 {
     privateIP = value;
+    Settings::setSetting( value, SKeys::Setting, SSubKeys::NetInterface, this->getServerName() );
 }
 
 QString Server::getServerName() const
@@ -829,7 +858,7 @@ void Server::setServerName(const QString& value)
             this->sendMasterInfo( false ); //Reconnect to the Master Mix using the new name.
         }
         emit this->serverNameChangedSignal( serverName );
-        this->setGameInfo( "" );
+        this->setGameWorld( "" );
     }
 }
 
@@ -965,10 +994,10 @@ void Server::setMasterTimedOut(const bool& value)
 
 void Server::startMasterCheckIn()
 {
-    //Every 2 Seconds we will attempt to Obtain Master Info.
+    //Every 500 Milliseconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
 
-    masterCheckIn.setInterval( static_cast<int>( Globals::MIN_MASTER_CHECK_IN_TIME ) );
+    masterCheckIn.setInterval( static_cast<int>( Globals::MIN_MASTER_STARTUP_TIME ) );
     masterCheckIn.start();
 }
 
@@ -1109,6 +1138,16 @@ void Server::setUpnpPortAdded(bool value)
     upnpPortAdded = value;
 }
 
+bool Server::getUpnpTimedOut() const
+{
+    return upnpTimedOut;
+}
+
+void Server::setUpnpTimedOut(bool newUpnpTimedOut)
+{
+    upnpTimedOut = newUpnpTimedOut;
+}
+
 qint64 Server::getMaxIdleTime()
 {
     QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() ) };
@@ -1215,7 +1254,7 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
 
     if ( connected )
     {
-        QString svrInfo{ this->getGameInfo() };
+        QString svrInfo{ this->getGameWorld() };
         QString usrInfo{ info.mid( 1 ) };
         if ( svrInfo.isEmpty() && !usrInfo.isEmpty() )
         {
@@ -1228,11 +1267,16 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
 
             //Enforce a 256 character limit on GameNames.
             if ( usrInfo.length() > static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) )
-                this->setGameInfo( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String.
+                this->setGameWorld( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String.
             else
-                this->setGameInfo( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
+                this->setGameWorld( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
         }
     }
+}
+
+void Server::gameInfoChangedSlot(const QString& info)
+{
+    this->setGameWorld( info );
 }
 
 void Server::ipDCIncreaseSlot(const DCTypes& type)
@@ -1257,6 +1301,11 @@ void Server::ipDCIncreaseSlot(const DCTypes& type)
     }
 }
 
+void Server::recvMasterInfoSlot()
+{
+    this->startMasterCheckIn();
+}
+
 void Server::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)
 {
     this->sendUserList( addr, port, type );
@@ -1274,11 +1323,12 @@ void Server::upnpPortAddedSlot(const quint16& port, const QString& protocol)
 
     if ( Helper::cmpStrings( protocol, "UDP" ) )
     {
-        this->startMasterCheckIn();
         emit this->initializeServerSignal();
-        //this->sendMasterInfo();
-
         this->setUpnpPortAdded( true );
+
+        this->startMasterCheckIn();
+
         upnpPortRefresh.start();
     }
+    upnpPortTimeOut.stop();
 }

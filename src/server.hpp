@@ -53,6 +53,7 @@ class Server : public QTcpServer
     QTimer masterCheckIn;
     QTimer masterTimeOut;
     bool masterTimedOut{ false };
+    bool masterInfoRecv{ false };
 
     qint32 masterPingFailCount{ 0 };
     qint32 masterPingCount{ 0 };
@@ -73,7 +74,7 @@ class Server : public QTcpServer
     QString gameName{ "WoS" };
     Games gameId{ Games::Invalid };
 
-    QString gameInfo{ "" };
+    QString gameWorld{ "" };
 
     QVector<Player*> players;
     QMap<qint32, Player*> plrSlotMap;
@@ -88,7 +89,9 @@ class Server : public QTcpServer
     quint64 bytesIn{ 0 };
 
     QTimer upnpPortRefresh;
+    QTimer upnpPortTimeOut;
     bool upnpPortAdded{ false };
+    bool upnpTimedOut{ false };
 
     public:
         Server(QWidget* parent = nullptr);
@@ -121,8 +124,8 @@ class Server : public QTcpServer
         qint64 getUpTime() const;
         QTimer* getUpTimer();
 
-        QString getGameInfo() const;
-        void setGameInfo(const QString& value);
+        QString getGameWorld() const;
+        void setGameWorld(const QString& value);
 
         Games getGameId() const;
         void setGameId(const QString& gameName);
@@ -141,8 +144,11 @@ class Server : public QTcpServer
         QString getMasterIP() const;
         void setMasterIP(const QString& value, const quint16& port);
 
+        bool getMasterInfoRecv() const;
+        void setMasterInfoRecv(bool infoRecv);
+
         bool getIsPublic() const;
-        void setIsPublic(const bool& value);
+        void setIsPublic(const bool& value, const QString& netInterface = "");
 
         bool getUseUPNP() const;
         void setUseUPNP(const bool& value);
@@ -191,9 +197,6 @@ class Server : public QTcpServer
 
         quint64 getBytesOut() const;
         void setBytesOut(const quint64 &value);
-
-        QString getMasterInfoHost() const;
-        void setMasterInfoHost(const QString& value);
 
         bool getSentUDPCheckin() const;
         void setSentUDPCheckIn(const bool& value);
@@ -245,6 +248,9 @@ class Server : public QTcpServer
         qint64 getInitializeDate() const;
         void setInitializeDate(const qint64& value);
 
+        bool getUpnpTimedOut() const;
+        void setUpnpTimedOut(bool newUpnpTimedOut);
+
     private:
         const inline QVector<Player*> getPlayerVector(){ return players; }
 
@@ -265,8 +271,9 @@ class Server : public QTcpServer
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
 
-        void upnpPortForwardSignal(const quint16& port, const bool& insert);
+        void upnpPortForwardSignal(const QString& privateIP, const quint16& port, const bool& insert);
         void connectionTimeUpdateSignal();
+        void recvMasterInfoSignal();
 
     public slots:
         void dataOutSizeSlot(const quint64& size);
@@ -275,8 +282,10 @@ class Server : public QTcpServer
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
         void recvPlayerGameInfoSlot(const QString& info, const QString& ip);
+        void gameInfoChangedSlot(const QString& info);
 
         void ipDCIncreaseSlot(const DCTypes& type);
+        void recvMasterInfoSlot();
 
     private slots:
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);

@@ -3,8 +3,9 @@
 #include "remixwidget.hpp"
 #include "ui_remixwidget.h"
 
-//Required ReMix Widget includes.
+//ReMix Widget includes.
 #include "thread/mastermixthread.hpp"
+#include "widgets/settingswidget.hpp"
 #include "widgets/plrlistwidget.hpp"
 #include "widgets/ruleswidget.hpp"
 #include "widgets/motdwidget.hpp"
@@ -33,6 +34,9 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     ui->setupUi( this );
     server = svrInfo;
 
+    censorUIIPInfo = Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool();
+    QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::censorUIIPInfoSignal, this, &ReMixWidget::censorUIIPInfoSlot );
+
     //Initialize the MasterMixThread Object.
     masterMixThread = new QThread();
     masterMixThread->moveToThread( MasterMixThread::getInstance() );
@@ -42,8 +46,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
 
     //Initialize the RulesWidget
     rules = RulesWidget::getInstance( server );
-    rules->setServerName( server->getServerName() );
-    server->setGameInfo( rules->getGameInfo() );
+    server->setGameWorld( rules->getGameInfo() );
 
     //Initialize the PlrListWidget.
     PlrListWidget* plrList{ PlrListWidget::getInstance( this, server ) };
@@ -70,7 +73,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
         emit this->crossServerCommentSignal( server, comment );
     });
 
-    QObject::connect( ReMixTabWidget::getTabInstance(), &ReMixTabWidget::crossServerCommentSignal, this,
+    QObject::connect( ReMixTabWidget::getInstance(), &ReMixTabWidget::crossServerCommentSignal, this,
     [=, this](Server* serverObj, const QString& comment)
     {
         if ( server != serverObj
@@ -106,12 +109,6 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
             server->sendMasterMessage( msg, nullptr, true );
     } );
 
-    QObject::connect( rules, &RulesWidget::gameInfoChangedSignal, this,
-    [=, this](const QString& gameInfo)
-    {
-        server->setGameInfo( gameInfo );
-    } );
-
     //Initialize the TCP Server if we're starting as a public instance.
     if ( server->getIsPublic() )
         this->initializeServerSlot();
@@ -137,6 +134,21 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
         ui->openPlayerView->setDisabled( true );
         ui->chatViewFill->hide();
     }
+
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
+    [=,this]()
+    {
+        auto pal{ Theme::getCurrentPal() };
+        ui->openPlayerView->setPalette( pal );
+        ui->isPublicServer->setPalette( pal );
+        ui->networkStatus->setPalette( pal );
+        ui->openSettings->setPalette( pal );
+        ui->openUserInfo->setPalette( pal );
+        ui->openChatView->setPalette( pal );
+        ui->onlineTime->setPalette( pal );
+        ui->logButton->setPalette( pal );
+        ui->useUPNP->setPalette( pal );
+    });
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
@@ -177,9 +189,6 @@ void ReMixWidget::renameServer(const QString& newName)
     if ( !newName.isEmpty() )
     {
         Settings::copyServerSettings( server, newName );
-        motdWidget->setServerName( newName );
-        rules->setServerName( newName );
-
         server->setServerName( newName );
     }
 }
@@ -214,22 +223,38 @@ void ReMixWidget::initUIUpdate()
 
         //Update other Info as well.
         QString msg{ "Toggle \"Public Servers\" when ready!" };
+        QString listeningStr{ "Listening for incoming calls to: <a href=\"%1\"><span style=\" text-decoration: underline; color:#007af4;\">%1:%2</span></a>" };
         if ( server->getIsPublic() )
         {
-            msg = QString( "Listening for incoming calls to: <a href=\"%1\"><span style=\" text-decoration: underline; color:#007af4;\">%1:%2</span></a>" )
-                      .arg( server->getPrivateIP() )
-                      .arg( server->getPrivatePort() );
+            if ( this->getCensorUIIPInfo() )
+            {
+                msg = listeningStr.arg( "***.***.***.***" )
+                                  .arg( server->getPrivatePort() );
+            }
+            else
+            {
+                msg = listeningStr.arg( server->getPrivateIP() )
+                                  .arg( server->getPrivatePort() );
+            }
 
             if ( server->getSentUDPCheckin() )
             {
                 if ( server->getMasterUDPResponse() )
                 {
                     QString msg2{ " ( Port forward from: %1:%2 ) ( Ping: %3 ms, Avg: %4 ms, Trend: %5 ms )" };
-                            msg2 = msg2.arg( server->getPublicIP() )
-                                       .arg( server->getPublicPort() )
-                                       .arg( server->getMasterPing() )
-                                       .arg( server->getMasterPingAvg() )
-                                       .arg( server->getMasterPingTrend() );
+                    if ( this->getCensorUIIPInfo() )
+                    {
+                        msg2 = msg2.arg( "***.***.***.***" )
+                                   .arg( server->getPublicPort() );
+                    }
+                    else
+                    {
+                        msg2 = msg2.arg( server->getPublicIP() )
+                                   .arg( server->getPublicPort() );
+                    }
+                    msg2 = msg2.arg( server->getMasterPing() )
+                               .arg( server->getMasterPingAvg() )
+                               .arg( server->getMasterPingTrend() );
                     msg.append( msg2 );
 
                     qint32 fails{ server->getMasterPingFailCount() };
@@ -256,11 +281,6 @@ void ReMixWidget::initUIUpdate()
                         msg = "No UDP response received from master server. Perhaps we are behind a firewall?";
                 }
             }
-
-            //Validate the server's IP Address is still valid.
-            //If it is now invalid, restart the network sockets.
-            if ( Settings::getSetting( SKeys::WrongIP, server->getPrivateIP() ).toBool() )
-                emit this->reValidateServerIPSignal();
 
             PlrListWidget::getInstance( this, server )->resizeColumns();
         }
@@ -379,6 +399,17 @@ void ReMixWidget::on_useUPNP_toggled(bool value)
 {
     if ( value != server->getUseUPNP() )
         server->setUseUPNP( ui->useUPNP->isChecked() );
+}
+
+void ReMixWidget::on_useUPNP_clicked()
+{
+    if ( ui->useUPNP->checkState() == Qt::Checked )
+    {
+        static const QString title{ "UPNP Feature:" };
+        static const QString prompt{ "Enabling the UPNP Feature may result in ReMix being unable to ping the Master Mix! "
+                                     "If you are unable to ping the Master Mix try disabling the UPNP Feature and manusally forward your desired ports.." };
+        Helper::warningMessage( this, title, prompt );
+    }
 }
 
 void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)
@@ -506,6 +537,11 @@ qintptr ReMixWidget::getPeerFromQItem(QStandardItem* item) const
     return plrTableItems.key( item );
 }
 
+bool ReMixWidget::getCensorUIIPInfo() const
+{
+    return censorUIIPInfo;
+}
+
 void ReMixWidget::fwdUpdatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
     if ( plr != nullptr )
@@ -548,4 +584,9 @@ void ReMixWidget::insertedRowItemSlot(QStandardItem* item, const qintptr& peer, 
         }
     }
     server->sendMasterInfo();
+}
+
+void ReMixWidget::censorUIIPInfoSlot(const bool& state)
+{
+    censorUIIPInfo = state;
 }

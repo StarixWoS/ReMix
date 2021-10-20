@@ -303,8 +303,6 @@ QString Helper::hashPassword(const QString& password)
 
 QString Helper::genPwdSalt(const qint32& length)
 {
-    RandDev* randGen{ RandDev::getDevice() };
-
     QString salt{ "" };
     QString charList
     {
@@ -314,7 +312,7 @@ QString Helper::genPwdSalt(const qint32& length)
 
     while ( salt.length() < length )
     {
-        qint32 chrPos{ randGen->genRandNum( 0, static_cast<int>( charList.length() - 1 ) ) };
+        qint32 chrPos{ RandDev::getInstance().getGen( 0, static_cast<int>( charList.length() - 1 ) ) };
         salt.append( charList.at( chrPos ) );
     }
 
@@ -352,7 +350,6 @@ QHostAddress Helper::getPrivateIP()
 
         if ( ip != QHostAddress::LocalHost    //Remove localhost addresses.
           && ip.toIPv4Address()    //Remove any ipv6 addresses.
-          && !Settings::getSetting( SKeys::WrongIP, tmp ).toBool()    //Remove any addresses the User manually marked invalid.
           && !strStartsWithStr( tmp, "169" ) )    //Remove Windows generated APIPA addresses.
         {
             ipAddress = QHostAddress( ip );    //Use first non-local IP address.

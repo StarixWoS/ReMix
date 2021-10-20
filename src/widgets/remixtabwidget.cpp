@@ -148,21 +148,17 @@ qint32 ReMixTabWidget::getInstanceCount()
     return instanceCount;
 }
 
-ReMixTabWidget* ReMixTabWidget::getTabInstance(QWidget* parent)
+ReMixTabWidget* ReMixTabWidget::getInstance(QWidget* parent)
 {
     if ( tabInstance == nullptr )
-    {
-        if ( parent != nullptr )
-            tabInstance = new ReMixTabWidget( parent );
-        else
-            tabInstance = new ReMixTabWidget();
-    }
+        tabInstance = new ReMixTabWidget( parent );
+
     return tabInstance;
 }
 
 void ReMixTabWidget::remoteCloseServer(Server* server, const bool restart)
 {
-    ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
+    ReMixTabWidget* tabWidget{ ReMixTabWidget::getInstance() };
     if ( tabWidget != nullptr
       && server != nullptr )
     {
@@ -183,7 +179,7 @@ void ReMixTabWidget::remoteCloseServer(Server* server, const bool restart)
 
 void ReMixTabWidget::setToolTipString(ReMixWidget* widget)
 {
-    ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
+    ReMixTabWidget* tabWidget{ ReMixTabWidget::getInstance() };
     if ( tabWidget != nullptr
       && widget != nullptr )
     {
@@ -265,7 +261,7 @@ void ReMixTabWidget::setThemeType(Themes newThemeType)
 
 void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const bool& restart)
 {
-    ReMixTabWidget* tabWidget{ ReMixTabWidget::getTabInstance() };
+    ReMixTabWidget* tabWidget{ ReMixTabWidget::getInstance() };
     if ( tabWidget == nullptr )
         return;
 
@@ -329,7 +325,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
         }
     }
     else    //The server is set to restart. Use the previous server's information.
-        createDialog->restartServer( name, gameName, server->getPrivatePort(), server->getUseUPNP(), server->getIsPublic() );
+        createDialog->restartServer( name, gameName, server->getPrivateIP(), server->getPrivatePort(), server->getUseUPNP(), server->getIsPublic() );
 
     if ( instanceCount == 1 )
         tabWidget->setCurrentIndex( 0 );

@@ -40,6 +40,7 @@ class SettingsWidget : public QWidget
     signals:
         void masterMixInfoChangedSignal();
         void masterMixIPChangedSignal();
+        void censorUIIPInfoSignal(const bool& state);
 
     private:
         Ui::SettingsWidget* ui;

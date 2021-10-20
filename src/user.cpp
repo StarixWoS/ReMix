@@ -4,6 +4,7 @@
 #include "ui_user.h"
 
 //ReMix Widget includes.
+#include "views/tbleventfilter.hpp"
 #include "widgets/userdelegate.hpp"
 
 //ReMix includes.
@@ -13,6 +14,7 @@
 #include "logger.hpp"
 #include "helper.hpp"
 #include "player.hpp"
+#include "remix.hpp"
 
 //Qt Includes.
 #include <QStandardItemModel>
@@ -114,8 +116,6 @@ User::User(QWidget* parent) :
     this->loadUserInfo();
 
     QObject::connect( tblModel, &QAbstractItemModel::dataChanged, this, &User::updateDataValueSlot );
-
-    this->setWindowModality( Qt::ApplicationModal );
 }
 
 User::~User()
@@ -131,7 +131,7 @@ User::~User()
 User* User::getInstance()
 {
     if ( instance == nullptr )
-        instance = new User( nullptr );
+        instance = new User( ReMix::getInstance() );
 
     return instance;
 }
@@ -166,6 +166,9 @@ PunishDurations User::requestDuration(QWidget* parent)
 
 QSettings* User::getUserData()
 {
+    if ( userData == nullptr )
+        userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
+
     return userData;
 }
 

@@ -64,6 +64,7 @@ Player::Player(qintptr socketDescriptor)
             emit this->disconnected();
         }
     });
+
     floodTimer.start();
     idleTime.start();
 }
@@ -302,6 +303,11 @@ void Player::setPktHeaderExemptCount(const qint32& value)
 QString Player::getIPAddress() const
 {
     return this->peerAddress().toString();
+}
+
+QString Player::getIPPortAddress() const
+{
+    return QString( "%1:%2" ).arg( this->getIPAddress() ).arg( this->peerPort() );
 }
 
 qint32 Player::getPktHeaderSlot() const
@@ -737,6 +743,11 @@ void Player::validateSerNum(Server* server, const qint32& id)
     }
 }
 
+bool Player::getIsGoldenSerNum()
+{
+    return !( this->getSernum_i() & static_cast<int>( Globals::MIN_HEX_SERNUM ) );
+}
+
 //Slots
 void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet)
 {
@@ -839,14 +850,14 @@ void Player::connectionTimeUpdateSlot()
     if ( this->getIsAdmin() )
     {
         if ( this->getAdminPwdReceived() )
-            color = Colors::Valid;
+            color = Colors::AdminValid;
         else
-            color = Colors::Invalid;
+            color = Colors::AdminInvalid;
     }
     else
     {
         color = Colors::Default;
-        if ( !( this->getSernum_i() & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
+        if ( this->getIsGoldenSerNum() )
             color = Colors::GoldenSoul;
     }
 
@@ -856,14 +867,15 @@ void Player::connectionTimeUpdateSlot()
     if ( !this->getIsMuted() )
     {
         if ( !this->getIsVisible() )
-            color = Colors::Invisible;
+            color = Colors::IPVanished;
         else
-            color = Colors::Valid;
+            color = Colors::IPValid;
     }
     else
-        color = Colors::Invalid;
+        color = Colors::IPInvalid;
 
     //Color the User's IP/Port.
+    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::IPPort ), this->getIPPortAddress(), Qt::DisplayRole, false );
     emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
     //Set the NPK/AFK icon.

@@ -2,31 +2,24 @@
 //Class includes.
 #include "randdev.hpp"
 
-//Required STD includes.
-#include <random>
-
 //Required Qt includes.
+#include <QRandomGenerator64>
+#include <QRandomGenerator>
 #include <QDateTime>
 
-RandDev* RandDev::device{ nullptr };
-std::mt19937_64 RandDev::randDevice;
+QRandomGenerator64 RandDev::genInt64;
+QRandomGenerator RandDev::genInt;
 
+RandDev RandDev::instance;
 RandDev::RandDev()
 {
-    randDevice.seed( static_cast<std::random_device::result_type>( this->getSeed() ) );
+    genInt64 = QRandomGenerator64::securelySeeded();
+    genInt = QRandomGenerator::securelySeeded();
 }
 
-RandDev::~RandDev() = default;
+RandDev::~RandDev(){}
 
-RandDev* RandDev::getDevice()
+RandDev& RandDev::getInstance()
 {
-    if ( device == nullptr )
-        device = new RandDev();
-
-    return device;
-}
-
-qint64 RandDev::getSeed()
-{
-    return QDateTime::currentMSecsSinceEpoch();
+    return instance;
 }

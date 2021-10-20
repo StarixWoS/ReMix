@@ -94,17 +94,26 @@ QStringList ChatView::bleepList
 QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
 QVector<Colors> ChatView::colors
 {
+    Colors::GossipTxt,
+    Colors::ShoutTxt,
+    Colors::EmoteTxt,
+    Colors::PlayerTxt,
+    Colors::OwnerTxt,
+    Colors::CommentTxt,
     Colors::GoldenSoul,
+    Colors::WhiteSoul,
+    Colors::PlayerName,
     Colors::OwnerName,
-    Colors::OwnerChat,
     Colors::TimeStamp,
-    Colors::Comment,
-    Colors::Invalid,
-    Colors::Gossip,
-    Colors::Shout,
-    Colors::Emote,
-    Colors::Name,
-    Colors::Chat,
+    Colors::AdminValid,
+    Colors::AdminInvalid,
+    Colors::IPValid,
+    Colors::IPInvalid,
+    Colors::IPVanished,
+    Colors::PartyJoin,
+    Colors::PKChallenge,
+    Colors::SoulIncarnated,
+    Colors::SoulLeftWorld,
 };
 
 ChatView::ChatView(QWidget* parent, Server* svr) :
@@ -126,6 +135,17 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
         ui->chatInput->setEnabled( false );
         ui->chatInput->setText( "Unable to interact with Warpath Players!" );
     }
+
+    QObject::connect( Theme::getInstance(), &Theme::colorOverrideSignal, this, &ChatView::colorOverrideSlot );
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
+    [=,this]()
+    {
+        auto pal{ Theme::getCurrentPal() };
+        ui->autoScrollCheckBox->setPalette( pal );
+        ui->chatInput->setPalette( pal );
+        ui->chatView->setPalette( pal );
+        ui->label->setPalette( pal );
+    });
 
     ui->autoScrollCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() ).toBool() );
 }
@@ -182,6 +202,8 @@ bool ChatView::parseChatEffect(const QString& packet)
     {
         QString plrName{ "Unincarnated [ %1 ]" };
         Player* plr{ nullptr };
+        Colors serNumColor{ Colors::WhiteSoul };
+
         for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             plr = server->getPlayer( i );
@@ -189,15 +211,16 @@ bool ChatView::parseChatEffect(const QString& packet)
             {
                 if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
                 {
-                    plrName = plr->getPlrName().append( " [ %1 ]" );
+                    plrName = plr->getPlrName();
+                    if ( plr->getIsGoldenSerNum() )
+                        serNumColor = Colors::GoldenSoul;
+
                     break;
                 }
                 else
                     plr = nullptr;
             }
         }
-
-        plrName = plrName.arg( srcSerNum );
 
         QString message{ packet.mid( 31 ) };
 
@@ -220,14 +243,18 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '\'': //Gossip Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " gossips: " % message, Colors::Gossip, false );
+                    this->insertChat( plrName, Colors::PlayerName, false );
+                    this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
+                    this->insertChat( " gossips: " % message, Colors::GossipTxt, false );
                     message = plrName % " gossips: " % message;
                 }
             break;
             case '!': //Shout Chat Effect.
                 {
                     message = message.mid( 1 );
-                    this->insertChat( plrName % " shouts: " % message, Colors::Shout, false );
+                    this->insertChat( plrName, Colors::PlayerName, false );
+                    this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
+                    this->insertChat( " shouts: " % message, Colors::ShoutTxt, false );
 
                     message = plrName % " shouts: " % message;
                 }
@@ -235,7 +262,9 @@ bool ChatView::parseChatEffect(const QString& packet)
             case '/': //Emote Chat Effect.
                 {
                     message = message.mid( 2 );
-                    this->insertChat( plrName % message, Colors::Emote, false );
+                    this->insertChat( plrName, Colors::PlayerName, false );
+                    this->insertChat( " [ " % srcSerNum % " ] ", serNumColor, false );
+                    this->insertChat( message, Colors::EmoteTxt, false );
                     message = plrName % message;
                 }
             break;
@@ -252,8 +281,9 @@ bool ChatView::parseChatEffect(const QString& packet)
             break;
             default:
                 {
-                    this->insertChat( plrName % ": ", Colors::Name, false );
-                    this->insertChat( message, Colors::Chat, false );
+                    this->insertChat( plrName, Colors::PlayerName, false );
+                    this->insertChat( " [ " % srcSerNum % " ]: ", serNumColor, false );
+                    this->insertChat( message, Colors::PlayerTxt, false );
 
                     message = plrName % ": " % message;
                 }
@@ -348,9 +378,9 @@ void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, c
                              .arg( message );
 
     this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-    this->insertChat( "USER COMMENT: ", Colors::Comment, false );
-    this->insertChat( name, Colors::Name, false );
-    this->insertChat( message, Colors::Chat, false );
+    this->insertChat( "USER COMMENT: ", Colors::CommentTxt, false );
+    this->insertChat( name, Colors::PlayerName, false );
+    this->insertChat( message, Colors::CommentTxt, false );
 
     //Log comments only when enabled.
     if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
@@ -359,22 +389,23 @@ void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, c
     emit this->newUserCommentSignal( comment.simplified() );
 }
 
+void ChatView::colorOverrideSlot(const QString& oldColor, const QString& newColor)
+{
+    QString txtHtml{ ui->chatView->toHtml() };
+            txtHtml = txtHtml.replace( oldColor, newColor );
+
+    ui->chatView->clear();
+    ui->chatView->insertHtml( txtHtml );
+    this->scrollToBottom( true );
+}
+
 void ChatView::on_chatInput_returnPressed()
 {
     QString message{ ui->chatInput->text() };
-    if ( Helper::strStartsWithStr( message, "/" ) )
-    {
-        if ( Helper::cmpStrings( message, "/clear" ) )
-        {
-            ui->chatView->clear();
-            ui->chatInput->clear();
-            return;
-        }
-    }
 
     this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
     this->insertChat( "Owner: ", Colors::OwnerName, false );
-    this->insertChat( message, Colors::OwnerChat, false );
+    this->insertChat( message, Colors::OwnerTxt, false );
 
     if ( server->getGameId() == Games::W97 )
     {
@@ -422,5 +453,12 @@ void ChatView::on_autoScrollCheckBox_toggled(bool checked)
 {
     Settings::setSetting( checked, SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() );
     ui->autoScrollCheckBox->setChecked( checked );
+}
+
+
+void ChatView::on_clearChat_clicked()
+{
+    ui->chatView->clear();
+    ui->chatInput->clear();
 }
 

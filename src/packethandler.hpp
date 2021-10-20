@@ -14,7 +14,6 @@ class PacketHandler : public QObject
 
     static QHash<Server*, PacketHandler*> pktHandleInstanceMap;
 
-    PacketForge* pktForge{ nullptr };
     Server* server{ nullptr };
     ChatView* chatView{ nullptr };
 

@@ -101,9 +101,9 @@ bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QS
         if ( admin->getCmdAttempts() >= static_cast<int>( Globals::MAX_CMD_ATTEMPTS ) )
         {
             QString reason = "Auto-Banish; <Unregistered Remote Admin[ %1 ]: [ %2 ] command attempts>";
+                    reason = reason.arg (admin->getSernum_s() )
+                                   .arg( admin->getCmdAttempts() );
 
-            reason = reason.arg (admin->getSernum_s() )
-                           .arg( admin->getCmdAttempts() );
             server->sendMasterMessage( reason, admin, false );
 
             //Append IP:Port and BIO data to the reason for the Ban log.
@@ -496,13 +496,12 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
     }
 
     QString msg{ "Remote-Admin: [ %1 ] issued the command [ %2 ] with ArgType [ %3 ], Arg1 [ %4 ], Arg2 [ %5 ] and Message [ %6 ]." };
-
-    msg = msg.arg( admin->getSernum_s() )
-             .arg( cmd )
-             .arg( subCmd )
-             .arg( arg1 )
-             .arg( arg2 )
-             .arg( message );
+            msg = msg.arg( admin->getSernum_s() )
+                     .arg( cmd )
+                     .arg( subCmd )
+                     .arg( arg1 )
+                     .arg( arg2 )
+                     .arg( message );
 
     //The command was a Message, do not send command information to online Users.
     if ( argIndex != GMCmds::Message
@@ -1313,12 +1312,16 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
         else
             msg = msg.arg( unlock );
 
-        if ( admin->getIsCampOptOut() )
+        if ( admin->getIsCampOptOut()
+          || admin->getIsCampLocked() )
+        {
             msg = msg.arg( "Not Allowed" );
+        }
         else
             msg = msg.arg( "Allowed" );
 
-        msg.append( hasWhitelisted );
+        if ( !hasWhitelisted.isEmpty() )
+            msg.append( hasWhitelisted );
     }
 
     if ( !msg.isEmpty() )

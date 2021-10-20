@@ -36,6 +36,7 @@ class Settings : public QDialog
 
         static const QStringList pKeys;
         static const QStringList sKeys;
+        static const QStringList cKeys;
 
     public: //Static-Free functions. Ported from Helper and Admin.
         static void setSettingFromPath(const QString& path, const QVariant& value);
@@ -43,6 +44,7 @@ class Settings : public QDialog
 
         static QString makeSettingPath(const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey);
         static QString makeSettingPath(const SKeys& key, const SSubKeys& subKey);
+        static QString makeSettingPath(const SKeys& key, const Themes& theme, const Colors& subKey);
         static QString makeSettingPath(const SKeys& key, const QVariant& subKey);
 
         static void removeSetting(const QString& path);
@@ -50,10 +52,12 @@ class Settings : public QDialog
 
         static void setSetting(const QVariant& value, const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey);
         static void setSetting(const QVariant& value, const SKeys& key, const SSubKeys& subKey);
+        static void setSetting(const QVariant& value, const SKeys& key, const Themes& theme, const Colors& subKey);
         static void setSetting(const QVariant& value, const SKeys& key, const QVariant& subKey);
 
         static QVariant getSetting(const SKeys& key, const SSubKeys& subKey, const QVariant& childSubKey);
         static QVariant getSetting(const SKeys& key, const SSubKeys& subKey);
+        static QVariant getSetting(const SKeys& key, const Themes& theme, const Colors& subKey);
         static QVariant getSetting(const SKeys& key, const QString& subKey);
 
         static void setServerSetting(const QString& key, const QString& subKey, const QVariant& value, const QString& svrID);

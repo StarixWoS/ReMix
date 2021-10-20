@@ -6,12 +6,14 @@
 //ReMix Widget includes.
 #include "widgets/settingswidget.hpp"
 #include "widgets/ruleswidget.hpp"
+#include "widgets/colorwidget.hpp"
 #include "widgets/motdwidget.hpp"
 
 //ReMix includes.
 #include "randdev.hpp"
 #include "helper.hpp"
 #include "server.hpp"
+#include "remix.hpp"
 
 //Qt Includes.
 #include <QNetworkAccessManager>
@@ -25,11 +27,11 @@
 const QStringList Settings::pKeys =
 {
     "Settings",
-    "WrongIPs",
     "Messages",
     "Positions",
     "Rules",
-    "Logger"
+    "Logger",
+    "Colors",
 };
 
 const QStringList Settings::sKeys =
@@ -42,6 +44,7 @@ const QStringList Settings::sKeys =
     "dupeOK",
     "supportsSSV",
     "banishDupeIP",
+    "censorUIIPInfo",
     "MOTD",
     "logComments",
     "fwdComments",
@@ -66,6 +69,7 @@ const QStringList Settings::sKeys =
     "chatAutoScroll",
     "hidePlayerView",
     "hideChatView",
+    "netInterface",
 
     //Rules.
     "hasSvrPassword",
@@ -86,6 +90,32 @@ const QStringList Settings::sKeys =
     "noPK",
     "arenaPK",
     "autoRestart",
+};
+
+const QStringList Settings::cKeys =
+{
+    //Color Roles.
+    "colorGossipTxt",
+    "colorShoutTxt",
+    "colorEmoteTxt",
+    "colorPlayerTxt",
+    "colorOwnerTxt",
+    "colorCommentTxt",
+    "colorGoldenSoul",
+    "colorWhiteSoul",
+    "colorPlayerName",
+    "colorOwnerName",
+    "colorTimestamp",
+    "colorAdminValid",
+    "colorAdminInvalid",
+    "colorIPValid",
+    "colorIPInvalid",
+    "colorIPVanished",
+    "colorPartyJoin",
+    "colorPKChallenge",
+    "colorSoulIncarnated",
+    "colorSoulLeftWorld",
+    "colorSoulDisappeared",
 };
 
 QVector<SSubKeys> Settings::serverSettings //Settings Specific to a Server Instance.
@@ -151,8 +181,6 @@ Settings::Settings(QWidget* parent) :
 
     if ( getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
-
-    this->setWindowModality( Qt::ApplicationModal );
 }
 
 Settings::~Settings()
@@ -160,6 +188,7 @@ Settings::~Settings()
     if ( getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
 
+    ColorWidget::deleteInstance();
     tabWidget->deleteLater();
 
     instance->close();
@@ -174,7 +203,7 @@ Settings::~Settings()
 Settings* Settings::getInstance()
 {
     if ( instance == nullptr )
-        instance = new Settings( nullptr );
+        instance = new Settings( ReMix::getInstance() );
 
     return instance;
 }
@@ -193,7 +222,8 @@ void Settings::updateTabBar(Server* server)
     getInstance()->setWindowTitle( "[ " % server->getServerName() % " ] Settings:");
     tabWidget->insertTab( 0, SettingsWidget::getInstance(), "Settings" );
     tabWidget->insertTab( 1, RulesWidget::getInstance( server ), "Rules" );
-    tabWidget->insertTab( 2, MOTDWidget::getInstance( server ), "MotD" );
+    tabWidget->insertTab( 2, ColorWidget::getInstance(), "Colors" );
+    tabWidget->insertTab( 3, MOTDWidget::getInstance( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
 }
@@ -264,6 +294,20 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
     return path;
 }
 
+QString Settings::makeSettingPath(const SKeys& key, const Themes& theme, const Colors& subKey)
+{
+    QMutexLocker<QMutex> locker( &mutex );
+    QString themeStr{ "Light" };
+    if ( theme == Themes::Dark )
+        themeStr = "Dark";
+
+    QString path{ "%1/%2/%3" };
+            path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
+                       .arg( themeStr )
+                       .arg( cKeys[ static_cast<int>( subKey ) ] );
+    return path;
+}
+
 QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
 {
     QMutexLocker<QMutex> locker( &mutex );
@@ -304,6 +348,11 @@ void Settings::setSetting(const QVariant& value, const SKeys& key, const SSubKey
     setSettingFromPath( makeSettingPath( key, subKey ), value );
 }
 
+void Settings::setSetting(const QVariant& value, const SKeys& key, const Themes& theme, const Colors& subKey)
+{
+    setSettingFromPath( makeSettingPath( key, theme, subKey ), value );
+}
+
 void Settings::setSetting(const QVariant& value, const SKeys& key, const QVariant& subKey)
 {
     setSettingFromPath( makeSettingPath( key, subKey ), value );
@@ -319,6 +368,11 @@ QVariant Settings::getSetting(const SKeys& key, const SSubKeys& subKey)
     return getSettingFromPath( makeSettingPath( key, subKey ) );
 }
 
+QVariant Settings::getSetting(const SKeys& key, const Themes& theme, const Colors& subKey)
+{
+    return getSettingFromPath( makeSettingPath( key, theme, subKey ) );
+}
+
 QVariant Settings::getSetting(const SKeys& key, const QString& subKey)
 {
     return getSettingFromPath( makeSettingPath( key, subKey ) );
@@ -330,12 +384,8 @@ QString Settings::getServerID(const QString& svrID)
     qint32 id{ getSetting( SKeys::Setting, SSubKeys::Extension, svrID ).toInt() };
     if ( id <= 0 )
     {
-        RandDev* randDev{ RandDev::getDevice() };
-        if ( randDev != nullptr )
-            id = randDev->genRandNum( 1, 0x7FFFFFFE );
-
+        id = RandDev::getInstance().getGen( 1, 0x7FFFFFFE );
         setSetting( id, SKeys::Setting, SSubKeys::Extension, svrID );
-        randDev = nullptr;
     }
     return Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 );
 }

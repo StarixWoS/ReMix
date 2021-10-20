@@ -25,6 +25,7 @@ class ReMixWidget : public QWidget
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
 
+    bool censorUIIPInfo{ false };
     public:
         explicit ReMixWidget(QWidget* parent = nullptr, Server* svrInfo = nullptr);
         ~ReMixWidget() override;
@@ -37,6 +38,8 @@ class ReMixWidget : public QWidget
         QString getServerName() const;
 
         qintptr getPeerFromQItem(QStandardItem* item) const;
+
+        bool getCensorUIIPInfo() const;
 
     private:
         void initUIUpdate();
@@ -51,18 +54,19 @@ class ReMixWidget : public QWidget
         void on_networkStatus_linkActivated(const QString&);
         void on_networkStatus_customContextMenuRequested(const QPoint&);
         void on_openChatView_clicked();
+        void on_useUPNP_clicked();
 
         void on_logButton_clicked();
         void initializeServerSlot();
 
         void plrConnectedSlot(qintptr socketDescriptor);
         void plrDisconnectedSlot(Player* plr, const bool& timedOut = false);
-
         void updatePlayerTable(Player* plr);
 
     public slots:
         void fwdUpdatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
         void insertedRowItemSlot(QStandardItem* item, const qintptr& peer, const QByteArray& data);
+        void censorUIIPInfoSlot(const bool& state);
 
     signals:
         void reValidateServerIPSignal(const QString& interfaceIP = "");

@@ -30,6 +30,8 @@ class PlrListWidget : public QWidget
 
     Server* server{ nullptr };
 
+    bool censorUIIPInfo{ false };
+
     public:
         explicit PlrListWidget(ReMixWidget* parent = nullptr, Server* svr = nullptr);
         ~PlrListWidget() override;
@@ -40,6 +42,8 @@ class PlrListWidget : public QWidget
         QStandardItemModel* getPlrModel() const;
         void resizeColumns();
 
+        bool getCensorUIIPInfo() const;
+
     private:
         void initContextMenu();
 
@@ -47,6 +51,7 @@ class PlrListWidget : public QWidget
         void updatePlrViewSlot(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
         void plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data);
         void plrViewRemoveRowSlot(QStandardItem* object);
+        void censorUIIPInfoSlot(const bool& state);
 
     private slots:
         void on_playerView_customContextMenuRequested(const QPoint& pos);
