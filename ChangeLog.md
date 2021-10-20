@@ -30,6 +30,14 @@ Version 2.7.9:
       * Repurposed the [ Blocked IP ] function into one where the User could select an IP Interface for ReMix to use.
         * This is Server specific and is not saved as a setting.
         * This is accessed by clicking the Blue IP address within the main ReMix UI.
+        * The initial IP Addressed used is selected via the Create Instance dialog.
+      * Added a Color Selection UI accessed from the Settings dialog to enable customization of CHat/UI colors used to display information.
+        * The customized colors are saved within the "preferences.ini" under the Key [ Colors ];
+      * Added a button used to clear the Chat View.
+      * Converted the RandDev Class to use the "QRandomGenerator" classes instead of the std library.
+      * Added a new setting to allow censoring the IP Addresses visible within the Main ReMix UI.
+        * IP addresses within the User or Logger dialogs are not censored.
+        * This setting is to allow taking screenshots of the Main UI without inadvertently sharing another persons IP (Not that it's important.).
       
 
 
@@ -52,6 +60,8 @@ Version 2.7.9:
       * Fixed an issue when Reading an SSV for a User would not have the returned value sent to the LogView.
       * Fixed an issue where an Automatic Ban would cause UI elements to appear linked to an invalid Player Object.
       * Fixed an issue where manually re-selecting an IP Interface would send multiple MasterMix checkings.
+      * Fixed an issue where when the UPNP feature is enabled ReMix would not send a MasterMix checkin.
+        * The UPNP feature now has a 5second timeout to allow for sending the MasterMix checkin regardless of a UPNP success.
 
 
 
