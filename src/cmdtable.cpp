@@ -241,7 +241,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { },
         0,
         "Version Description: Shows the Servers Version Information.",
-        "Version Usage: /version *Message (Optional comment to the Server Host.)",
+        "Version Usage: /version",
         GMRanks::User,
         true,
         GMCmds::Version,

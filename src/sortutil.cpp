@@ -38,8 +38,8 @@ int SortUtil::NaturalCompare::compare( const QString& left, const QString& right
                 return str.mid( start, ( pos - start ) );
             };
 
-            const QString numViewL = intView(left, posL);
-            const QString numViewR = intView(right, posR);
+            const QString numViewL = intView( left, posL );
+            const QString numViewR = intView( right, posR );
 
             if ( numViewL.length() != numViewR.length() )
                 return static_cast<int>( numViewL.length() - numViewR.length() );

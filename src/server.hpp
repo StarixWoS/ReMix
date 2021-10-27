@@ -252,7 +252,7 @@ class Server : public QTcpServer
         void setUpnpTimedOut(bool newUpnpTimedOut);
 
     private:
-        const inline QVector<Player*> getPlayerVector(){ return players; }
+        const inline QVector<Player*> getPlayerVector() const{ return players; }
 
     signals:
         void plrConnectedSignal(qintptr socketDescriptor);
@@ -285,6 +285,7 @@ class Server : public QTcpServer
         void gameInfoChangedSlot(const QString& info);
 
         void ipDCIncreaseSlot(const DCTypes& type);
+        void setVisibleStateSlot( const bool& state);
         void recvMasterInfoSlot();
 
     private slots:

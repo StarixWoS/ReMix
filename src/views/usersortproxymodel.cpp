@@ -35,21 +35,18 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
           || column == static_cast<int>( UserCols::MuteDate )
           || column == static_cast<int>( UserCols::MuteDuration ) )
         {
-            vlStr = QString::number( QDateTime::fromString( vlStr, "ddd MMM dd HH:mm:ss yyyy" ).toSecsSinceEpoch() );
+            vlStr = QString::number( QDateTime::fromString( vlStr, "ddd MMM dd HH:mm:ss yyyy" )
+                                                    .toSecsSinceEpoch() );
 
             vrStr = QString::number( QDateTime::fromString( vrStr, "ddd MMM dd HH:mm:ss yyyy" )
                                                     .toSecsSinceEpoch() );
         }
         else if ( column == static_cast<int>( UserCols::SerNum ) )
         {
-            if ( !vlStr.contains( "SOUL" ) )
-                vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );
-            else
+            if ( vlStr.contains( "SOUL" ) )
                 vlStr = vlStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
-            if ( !vrStr.contains( "SOUL" ) )
-                vrStr = Helper::intSToStr( vrStr, static_cast<int>( IntBase::DEC ) );
-            else
+            if ( vrStr.contains( "SOUL" ) )
                 vrStr = vrStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
             vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );

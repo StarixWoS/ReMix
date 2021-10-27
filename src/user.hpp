@@ -23,6 +23,8 @@ class User : public QDialog
 
     static const QStringList keys;
     static const QVector<PunishDurations> punishDurations;
+    static const QVector<GMRanks> adminRanks;
+    static const QStringList adminRankStrings;
 
     public:
         enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
@@ -37,6 +39,7 @@ class User : public QDialog
 
         static QString requestReason(QWidget* parent = nullptr);
         static PunishDurations requestDuration(QWidget* parent = nullptr);
+        static GMRanks requestRank(QWidget* parent);
 
         static QSettings* getUserData();
         static void setUserData(const QSettings* value);
@@ -52,6 +55,7 @@ class User : public QDialog
 
         static qint32 getAdminRank(const QString& sernum);
         static void setAdminRank(const QString& sernum, const GMRanks& rank);
+        static void setAdminRank(const Player* plr, const GMRanks& rank, const bool& remote);
 
         static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum = "" );
         static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
@@ -64,8 +68,10 @@ class User : public QDialog
 
         static void updateCallCount(const QString& serNum);
 
-        static void logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio);
         static QByteArray getBIOData(const QString& sernum);
+
+        static bool validateSalt(const QString& salt);
+        static QString genPwdSalt(const qint32& length);
 
     private:
         QModelIndex findModelIndex(const QString& value, const UserCols& col);
@@ -76,6 +82,9 @@ class User : public QDialog
         void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
         void removePunishmentSignal(const QString& value, const PunishTypes& type);
+
+    public slots:
+        static void logBIOSlot(const QString& serNum, const QHostAddress& ip, const QString& bio);
 
     private slots:
         void updateDataValueSlot(const QModelIndex& index, const QModelIndex&, const QVector<int>& = QVector<int> ());

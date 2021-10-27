@@ -228,8 +228,8 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         }
         else //Warn the Server Host.
         {
-            QString title{ "Unable to Initialize Server:" };
-            QString message{ "You are unable to initialize two servers with the same name!" };
+            static const QString title{ "Unable to Initialize Server:" };
+            static const QString message{ "You are unable to initialize two servers with the same name!" };
 
             Helper::warningMessage( this, title, message );
         }
@@ -279,7 +279,7 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
     }
     else
     {
-        QString title{ "Unable to Initialize Server:" };
+        static const QString title{ "Unable to Initialize Server:" };
         QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
         message = message.arg( static_cast<int>( Globals::MAX_SERVER_COUNT ) );
 
@@ -324,8 +324,8 @@ void CreateInstance::closeEvent(QCloseEvent* event)
 
     if ( event->type() == QEvent::Close )
     {
-        QString title{ "Close ReMix:" };
-        QString prompt{ "You are about to shut down your ReMix game server!\r\n\r\nAre you certain?" };
+        static const QString title{ "Close ReMix:" };
+        static const QString prompt{ "You are about to shut down your ReMix game server!\r\n\r\nAre you certain?" };
 
         if ( ReMixTabWidget::getInstanceCount() == 0 )
         {
@@ -456,7 +456,7 @@ void CreateInstance::on_randomizePort_clicked()
 void CreateInstance::on_deleteServer_clicked()
 {
     QString svrName{ ui->servers->currentText() };
-    QString title{ "Warning:" };
+    static const QString title{ "Warning:" };
     QString message{ "Please make sure that you would like the server [ %1 ] to be deleted from storage!" };
     if ( !svrName.isEmpty() )
     {

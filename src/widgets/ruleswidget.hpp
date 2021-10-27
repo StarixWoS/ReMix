@@ -19,8 +19,6 @@ class RulesWidget : public QWidget
     static QHash<Server*, RulesWidget*> ruleWidgets;
     QMap<QTableWidgetItem*, Qt::CheckState> stateMap;
 
-    SelectWorld* selectWorld{ nullptr };
-
     QString serverName{ "" };
     QString gameInfo{ "" };
 

@@ -10,6 +10,8 @@
 #include "theme.hpp"
 
 //Qt Includes.
+#include <QStandardItemModel>
+#include <QTableView>
 #include <QColorDialog>
 
 ColorWidget* ColorWidget::instance;
@@ -42,15 +44,42 @@ ColorWidget::ColorWidget() :
 {
     ui->setupUi(this);
 
-    ui->colorWidget->insertItems( 0, rowList );
+    colorModel = new QStandardItemModel( 0, 3, nullptr );
+    colorModel->setHeaderData( 0, Qt::Horizontal, "Color Role" );
+    colorModel->setHeaderData( 1, Qt::Horizontal, "Color Value" );
+    colorModel->setHeaderData( 2, Qt::Horizontal, "Color" );
+
+    ui->colorView->setModel( colorModel );
+
+    for ( const QString& role : rowList )
+    {
+        const qint32 row{ colorModel->rowCount() };
+        QStandardItem* item{ new QStandardItem() };
+        colorModel->insertRow( colorModel->rowCount(), item );
+
+        colorModel->setData( colorModel->index( row, 0 ), role, Qt::DisplayRole );
+    }
+
+    for ( int row = 0; row < colorModel->rowCount(); ++row )
+    {
+        for ( int col = 0; col < colorModel->columnCount(); ++col )
+        {
+            QModelIndex index = colorModel->index( row, col, QModelIndex() );
+            if ( col == 1 || col == 2 )
+            {
+                QStandardItem* item = colorModel->itemFromIndex( index );
+                               item->setFlags( item->flags() & Qt::ItemIsEnabled ); //Disable the Item within Column "col".
+            }
+        }
+    }
+    this->loadColors();
 
     QObject::connect( this, &ColorWidget::colorOverrideSignal, Theme::getInstance(), &Theme::colorOverrideSlot );
     QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
     [=]()
     {
-        ui->colorWidget->clearSelection();
-        currentIndex = QModelIndex();
-        this->setColorView( QColor() );
+        this->loadColors();
+        ui->colorView->setPalette( Theme::getCurrentPal() );
     } );
 
     ui->colorView->setAutoFillBackground( true );
@@ -59,6 +88,18 @@ ColorWidget::ColorWidget() :
 ColorWidget::~ColorWidget()
 {
     delete ui;
+}
+
+void ColorWidget::loadColors()
+{
+    for ( int i = 0; i <= static_cast<int>( Colors::ColorCount ); ++i )
+    {
+        const QColor color{ Theme::getColor( static_cast<Colors>( i ) ) };
+
+        colorModel->setData( colorModel->index( i, 1 ), color.name(), Qt::DisplayRole );
+        colorModel->setData( colorModel->index( i, 2 ), color, Qt::BackgroundRole );
+    }
+    ui->colorView->resizeColumnsToContents();
 }
 
 ColorWidget* ColorWidget::getInstance()
@@ -80,59 +121,42 @@ void ColorWidget::deleteInstance()
 
 void ColorWidget::selectColor(int currentRow)
 {
-    const QColor color = QColorDialog::getColor( Qt::white, this, "Select Color Override:" );
+    const QModelIndex index{ colorModel->index( currentRow, 1 ) };
+    QColor defaultColor{ Qt::white };
+    if ( index.isValid() )
+        defaultColor = index.data( Qt::DisplayRole ).toString();
+
+    const QColor color = QColorDialog::getColor( defaultColor, this, "Select Color Override:" );
 
     if ( color.isValid() )
     {
-        this->setColorView( color );
-
+        colorModel->setData( colorModel->index( currentRow, 1 ), color.name(), Qt::DisplayRole );
+        colorModel->setData( colorModel->index( currentRow, 2 ), color, Qt::BackgroundRole );
         emit this->colorOverrideSignal( static_cast<Colors>( currentRow ), color.name() );
     }
 }
 
-void ColorWidget::setColorView(const QColor& color)
-{
-    if ( color.isValid() )
-    {
-        ui->colorView->setText( color.name() );
-        ui->colorView->setPalette( QPalette( color ) );
-    }
-    else
-    {
-        ui->colorView->setText( "#0000000" );
-        ui->colorView->setPalette( Theme::getDefaultPal() );
-    }
-}
-
-void ColorWidget::on_colorWidget_currentRowChanged(int currentRow)
-{
-    currentIndex = ui->colorWidget->indexFromItem( ui->colorWidget->item( currentRow ) );
-
-    const QColor color{ Theme::getColor( static_cast<Colors>( currentRow ) ) };
-    this->setColorView( color );
-}
-
 void ColorWidget::on_resetColor_clicked()
 {
-    if ( currentIndex.isValid() )
+    QModelIndex index{ ui->colorView->currentIndex() };
+    if ( index.isValid() )
     {
-        const Colors colorRole{ static_cast<Colors>( currentIndex.row() ) };
+        const Colors colorRole{ static_cast<Colors>( index.row() ) };
         const QString colorString{ Theme::getDefaultColor( Theme::getThemeType(), colorRole ) };
 
-        this->setColorView( QColor( colorString ) );
+        colorModel->setData( colorModel->index( index.row(), 1 ), colorString, Qt::DisplayRole );
+        colorModel->setData( colorModel->index( index.row(), 2 ), QColor( colorString ), Qt::BackgroundRole );
+
         emit this->colorOverrideSignal( colorRole, colorString );
     }
 }
 
-void ColorWidget::on_colorWidget_doubleClicked(const QModelIndex& index)
+void ColorWidget::on_colorView_doubleClicked(const QModelIndex& index)
 {
-    currentIndex = index;
     this->selectColor( index.row() );
 }
 
-
 void ColorWidget::on_selectColor_clicked()
 {
-    this->selectColor( ui->colorWidget->currentRow() );
+    this->selectColor( ui->colorView->currentIndex().row() );
 }
-

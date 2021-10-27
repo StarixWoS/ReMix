@@ -189,20 +189,10 @@ QString Helper::serNumToHexStr(QString sernum, const int& fillAmt)
     if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
     {
         bool ok{ false };
-        sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) );
 
+        result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) ), static_cast<int>( IntBase::HEX ), fillAmt );
         if ( !ok )
-        {
-            result = intToStr( sernum.toUInt( &ok, static_cast<int>( IntBase::HEX ) ), static_cast<int>( IntBase::HEX ), fillAmt );
-            if ( !ok )
-                result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::HEX ) ), static_cast<int>( IntBase::HEX ), fillAmt );
-        }
-        else
-        {
-            result = intToStr( sernum.toUInt( &ok, static_cast<int>( IntBase::DEC ) ), static_cast<int>( IntBase::HEX ), fillAmt );
-            if ( !ok )
-                result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) ), static_cast<int>( IntBase::HEX ), fillAmt );
-        }
+            result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::HEX ) ), static_cast<int>( IntBase::HEX ), fillAmt );
     }
     else
         result = intToStr( sernum_i, static_cast<int>( IntBase::HEX ), fillAmt );
@@ -284,7 +274,7 @@ QString Helper::getTextResponse(QWidget* parent, const QString& title, const QSt
 
 QString Helper::getDisconnectReason(QWidget* parent)
 {
-    QString label{ "Disconnect Reason ( Sent to User ):" };
+    static const QString label{ "Disconnect Reason ( Sent to User ):" };
     QInputDialog* dialog{ createInputDialog( parent, label, QInputDialog::TextInput, 355, 170 ) };
 
     dialog->exec();
@@ -299,43 +289,6 @@ QString Helper::hashPassword(const QString& password)
                        hash.addData( password.toLatin1() );
 
     return QString( hash.result().toHex() );
-}
-
-QString Helper::genPwdSalt(const qint32& length)
-{
-    QString salt{ "" };
-    QString charList
-    {
-        "0123456789 `~!@#$%^&*-_=+{([])}|;:'\"\\,./?<>"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
-    };
-
-    while ( salt.length() < length )
-    {
-        qint32 chrPos{ RandDev::getInstance().getGen( 0, static_cast<int>( charList.length() - 1 ) ) };
-        salt.append( charList.at( chrPos ) );
-    }
-
-    if ( !validateSalt( salt ) )
-        salt = genPwdSalt( length );
-
-    return salt;
-}
-
-bool Helper::validateSalt(const QString& salt)
-{
-    QSettings* userData{ User::getUserData() };
-    QStringList groups{ userData->childGroups() };
-    QString j{ "" };
-
-    for ( int i = 0; i < groups.count(); ++i )
-    {
-        j = userData->value( groups.at( i ) % "/salt" ).toString();
-
-        if ( j == salt )
-            return false;
-    }
-    return true;
 }
 
 QHostAddress Helper::getPrivateIP()

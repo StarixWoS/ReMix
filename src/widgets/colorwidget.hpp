@@ -17,24 +17,23 @@ class ColorWidget : public QWidget
     static ColorWidget* instance;
     const static QStringList rowList;
 
-    QModelIndex currentIndex;
+    QStandardItemModel* colorModel{ nullptr };
 
     public:
         explicit ColorWidget();
         ~ColorWidget();
+        void loadColors();
 
         static ColorWidget* getInstance();
         static void deleteInstance();
         void selectColor(int currentRow);
-        void setColorView(const QColor& color);
 
     signals:
         void colorOverrideSignal(const Colors& colorRole, const QString& color);
 
     private slots:
-        void on_colorWidget_currentRowChanged(int currentRow);
         void on_resetColor_clicked();
-        void on_colorWidget_doubleClicked(const QModelIndex &index);
+        void on_colorView_doubleClicked(const QModelIndex &index);
         void on_selectColor_clicked();
 
     private:

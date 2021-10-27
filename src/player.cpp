@@ -101,6 +101,8 @@ bool Player::getIsVisible() const
 void Player::setIsVisible(const bool& value)
 {
     isVisible = value;
+
+    emit this->setVisibleStateSignal( isVisible );
 }
 
 bool Player::getHasSernum() const
@@ -663,8 +665,11 @@ void Player::validateSerNum(Server* server, const qint32& id)
             }
         }
 
-        if ( id == 1 || this->getSernum_i() == 1 )
+        if ( (( id == 1 ) || ( this->getSernum_i() == 1 ))
+          || (( id == 0x4637B6ED ) || ( this->getSernum_i() == 0x4637B6ED )) )
+        {
             type = PlrDisconnectType::SerNumOne;
+        }
 
         if ( type != PlrDisconnectType::InvalidSerNum )
         {

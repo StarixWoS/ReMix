@@ -18,6 +18,7 @@ UdpThread::UdpThread(QObject *parent)
     : QThread(parent)
 {
     QObject::connect( this, &UdpThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
+    QObject::connect( this, &UdpThread::logBIOSignal, User::getInstance(), &User::logBIOSlot );
 }
 
 UdpThread::~UdpThread()
@@ -110,8 +111,8 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                   .arg( data );
 
                     Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
-                    User::logBIO( sernum, ipAddr, data );
 
+                    emit this->logBIOSignal( sernum, ipAddr, data );
                     emit this->insertLogSignal( serverName, msg, LogTypes::PING, true, true );
                 }
                 emit this->increaseServerPingsSignal();

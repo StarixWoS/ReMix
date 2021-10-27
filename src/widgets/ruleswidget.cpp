@@ -248,18 +248,16 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 QString worldDir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                 if ( !worldDir.isEmpty() )
                 {
-                    selectWorld = new SelectWorld( this );
-                    selectWorld->setRequireWorld( !world.isEmpty() );
+                    SelectWorld* selWorld = new SelectWorld( this );
+                    selWorld->setRequireWorld( !world.isEmpty() );
 
-                    QObject::connect( selectWorld, &SelectWorld::accepted, selectWorld, [&world, this]()
+                    QObject::connect( selWorld, &SelectWorld::finished, selWorld, [=, &world]()
                     {
-                        world = selectWorld->getSelectedWorld();
-
-                        selectWorld->close();
-                        selectWorld->disconnect();
-                        selectWorld->deleteLater();
-                    }, Qt::DirectConnection );
-                    selectWorld->exec();
+                        world = selWorld->getSelectedWorld();
+                        selWorld->close();
+                        selWorld->deleteLater();
+                    } );
+                    selWorld->exec();
 
                     state = true;
                     if ( world.isEmpty() )
@@ -277,17 +275,17 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                         }
 
                         if ( world.isEmpty() || !ok )
-                            ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
+                            state = false;
 
                     }
                     else if ( !world.isEmpty() )
                     {
                         world = "";
-                        ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
                         state = false;
                     }
                 }
 
+                ui->rulesView->item( row, 0 )->setCheckState( state == true ? Qt::Checked : Qt::Unchecked );
                 rowText = "World Name: [ %1 ]";
                 if ( world.isEmpty() )
                     rowText = rowText.arg( "Not Selected" );

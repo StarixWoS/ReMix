@@ -42,7 +42,7 @@ PacketHandler::~PacketHandler()
 
 PacketHandler* PacketHandler::getInstance(Server* server)
 {
-    PacketHandler* instance{ pktHandleInstanceMap.value( server ) };
+    PacketHandler* instance{ pktHandleInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
         instance = new PacketHandler( server, ChatView::getInstance( server ) );
@@ -129,8 +129,8 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
         else if ( Helper::strStartsWithStr( pkt, ":SR?" ) ) //User is requesting Slot information for their packet headers.
         {
             QString sernum{ packet.mid( 4 ).left( 8 ) };
-
             plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
+
             server->sendPlayerSocketPosition( plr, false );
             return; //No need to continue parsing. Return now.
         }
@@ -139,8 +139,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
         if ( !this->validatePacketHeader( plr, pkt ) )
             return;
 
-        if ( !plr->getIsMuted()
-          && plr->getIsVisible() )
+        if ( !plr->getIsMuted() )
         {
             bool parsePkt{ true };
 
@@ -153,13 +152,17 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
                 else
                     parsePkt = this->parseTCPPacket( packet, plr );
             }
+            else
+                parsePkt = this->parseTCPPacket( packet, plr );
 
-            if ( parsePkt )
+            if ( parsePkt
+              && plr->getIsVisible() )
             {
                 if ( !pkt.isEmpty() )
                     pkt.append( "\r\n" );
 
-                if ( plr->getSvrPwdReceived() || !plr->getSvrPwdRequested() )
+                if ( plr->getSvrPwdReceived()
+                  || !plr->getSvrPwdRequested() )
                 {
                     emit this->sendPacketToPlayerSignal( plr, static_cast<qint32>( plr->getTargetType() ), plr->getTargetSerNum(),
                                                          plr->getTargetScene(), pkt );
@@ -275,20 +278,24 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                             if ( tmpPlr != nullptr
                               && plr != tmpPlr )
                             {
-                                if ( plr->getSceneHost() != tmpPlr->getSernum_i()
-                                  || plr->getSceneHost() <= 0 )
+                                if ( tmpPlr->getIsVisible() ) //Do not force Invisible Users to send camp packets.
                                 {
-                                    if ( !tmpPlr->getCampPacket().isEmpty()
-                                      && tmpPlr->getTargetType() == PktTarget::ALL )
+                                    if ( plr->getSceneHost() != tmpPlr->getSernum_i()
+                                      || plr->getSceneHost() <= 0 )
                                     {
-                                        tmpPlr->setTargetSerNum( plr->getSernum_i() );
-                                        tmpPlr->setTargetType( PktTarget::PLAYER );
-                                        tmpPlr->forceSendCampPacket();
+                                        if ( !tmpPlr->getCampPacket().isEmpty()
+                                             && tmpPlr->getTargetType() == PktTarget::ALL )
+                                        {
+                                            tmpPlr->setTargetSerNum( plr->getSernum_i() );
+                                            tmpPlr->setTargetType( PktTarget::PLAYER );
+                                            tmpPlr->forceSendCampPacket();
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
                 }
             }
             else if ( server->getGameId() == Games::WoS )
@@ -333,9 +340,8 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
 
                                 isJoining = false;
                             }
-                            QString ldr = Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 );
 
-                            Player* partyLeader = server->getPlayer( ldr );
+                            Player* partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
                             if ( partyLeader != nullptr )
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
@@ -446,14 +452,9 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
         //Warpath denotes Chat Packets with opCode 'D' at position '7'.
         if ( pkt.at( 7 ) == 'D' )
         {
-            //Remove the packet header.
-            pkt = pkt.mid( 8 );
-
             //Remove the checksum.
             pkt = pkt.left( pkt.length() - 2 );
-
-            emit this->insertChatMsgSignal( plr->getPlrName() % ": ", Colors::PlayerName, true );
-            emit this->insertChatMsgSignal( pkt, Colors::PlayerTxt, false );
+            retn = chatView->parseChatEffect( pkt );
 
             plr->setIsAFK( false );
         }
@@ -750,7 +751,10 @@ void PacketHandler::readMIX6(const QString& packet, Player* plr)
 
         //Do not accept commands from User who have been muted.
         if ( !plr->getIsMuted() )
-            CmdHandler::getInstance( server )->parseMix6Command( plr, packet );
+        {
+            static const QString message{ "This command syntax is no longer supported. Please use the syntax \"/command\" e.g. \"/help version\" instead." };
+            server->sendMasterMessage( message, plr );
+        }
     }
 }
 

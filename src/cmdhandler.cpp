@@ -8,7 +8,6 @@
 #include "campexemption.hpp"
 #include "cmdtable.hpp"
 #include "settings.hpp"
-#include "randdev.hpp"
 #include "server.hpp"
 #include "player.hpp"
 #include "helper.hpp"
@@ -34,7 +33,7 @@ CmdHandler::~CmdHandler() = default;
 
 CmdHandler* CmdHandler::getInstance(Server* server)
 {
-    CmdHandler* instance{ cmdInstanceMap.value( server ) };
+    CmdHandler* instance{ cmdInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
         instance = new CmdHandler( nullptr, server );
@@ -60,8 +59,8 @@ bool CmdHandler::canUseAdminCommands(Player* admin, const GMRanks rank, const QS
     bool retn{ false };
     QString invalidAuth{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use commands that you lack access to!" };
 
-    QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and are unable to use these "
-                    "commands. Please reply to this message with (/login *PASS) and the server will authenticate you." };
+    static const QString unauth{ "While your SerNum is registered as a Remote Admin, you are not Authenticated and are unable to use these "
+                                 "commands. Please reply to this message with (/login *PASS) and the server will authenticate you." };
 
     QString invalid{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use Remote Admin "
                      "commands as you will automatically be banned after [ %2 ] attempts." };
@@ -147,17 +146,8 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
     if ( !alias.isEmpty()
       && !msg.trimmed().isEmpty() )
     {
-        if ( Helper::strStartsWithStr( msg, "/" ) )
-        {
-            if ( Helper::strStartsWithStr( msg, "/cmd " ) )
-                msg = msg.mid( Helper::getStrIndex( msg, "/cmd " ) + 4 );
-            else
-                msg = msg.mid( Helper::getStrIndex( msg, "/" ) + 1 );
-
-            if ( !msg.isEmpty() )
-                this->parseCommandImpl( plr, msg );
-        }
-        else
+        if ( !Helper::strStartsWithStr( msg, "/" )
+          && !Helper::strStartsWithStr( msg, "`" ) )
         {
             //Echo the chat back to the User.
             if ( Settings::getSetting( SKeys::Setting, SSubKeys::FwdComments ).toBool() )
@@ -192,30 +182,47 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
             QString sernum{ plr->getSernum_s() };
             emit newUserCommentSignal( sernum, alias, msg );
         }
+        else
+        {
+            if ( this->canParseCommand( plr, msg ) )
+                this->parseCommandImpl( plr, msg );
+        }
     }
 }
 
-void CmdHandler::parseMix6Command(Player* plr, const QString& packet)
+bool CmdHandler::canParseCommand(const Player* admin, const QString& command)
 {
-    QString cmd{ packet };
+    qDebug() << admin << command.isEmpty() << command.length() << command.at( 1 ) << Helper::strStartsWithStr( command, "/cmd" );
+    //Player Object must not be null.
+    if ( admin == nullptr )
+        return false;
 
-    if ( plr != nullptr
-      && !packet.isEmpty() )
+    //Ignore Empty Commands.
+    if ( command.isEmpty() )
+        return false;
+
+    //Ignore Commands where only the delimiter is used.
+    if ( command.length() == 1 )
+        return false;
+
+    //Ignore Commands with multiple delimiters.
+    if ( command.at( 1 ) == '`'
+      || command.at( 1 ) == '/')
     {
-        qint32 colIndex{ Helper::getStrIndex( packet, ": /cmd " ) };
-        if ( colIndex >= 0 )
-            cmd = cmd.mid( colIndex + 7 );
-        else
-            cmd = cmd.mid( 10 );
-
-        cmd = cmd.left( cmd.length() - 2 );
-        if ( !cmd.isEmpty() )
-            this->parseCommandImpl( plr, cmd );
+        return false;
     }
+
+    //Ignore Deprecated command method.
+    if ( Helper::strStartsWithStr( command, "/cmd" ) )
+        return false;
+
+    return true;
 }
 
 bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
 {
+    packet = packet.mid( 1 );
+
     if ( admin == nullptr )
         return false;
 
@@ -313,7 +320,7 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                 {
                     //Server UpTime, Connected Users, Connected Admins.
                     qint32 adminCount{ 0 };
-                    QString tmpMsg{ "Server Info: Up Time[ %1 ], Connected Users[ %2 ], Connected Admins[ %3 ]." };
+                    QString tmpMsg{ "Server Info: Up Time [ %1 ], Connected Users [ %2 ], Connected Admins [ %3 ]." };
 
                     for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                     {
@@ -334,7 +341,6 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                                    .arg( adminCount );
                     server->sendMasterMessage( tmpMsg, admin, false );
                 }
-                retn = true;
             }
         break;
 //        case GMCmds::NetStatus:
@@ -502,13 +508,6 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                      .arg( arg1 )
                      .arg( arg2 )
                      .arg( message );
-
-    //The command was a Message, do not send command information to online Users.
-    if ( argIndex != GMCmds::Message
-      && retn )
-    {
-        server->sendMasterMessage( msg, admin, false );
-    }
 
     if ( logMsg )
         emit this->insertLogSignal( server->getServerName(), msg, LogTypes::ADMIN, true, true );
@@ -816,7 +815,8 @@ void CmdHandler::unMuteHandler(Player* admin, const QString& subCmd, const QStri
             reasonMsg = reasonMsg.arg( admin->getSernum_s() );
 
     QString sernum{ Helper::serNumToHexStr( arg1 ) };
-    bool isSernum{ Helper::cmpStrings( subCmd, "soul" ) };
+    const bool isSernum{ Helper::cmpStrings( subCmd, "soul" ) };
+    const bool isIP{ Helper::cmpStrings( subCmd, "ip" ) };
 
     for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
@@ -834,9 +834,9 @@ void CmdHandler::unMuteHandler(Player* admin, const QString& subCmd, const QStri
     }
 
     //Default to the provided values. User might not be online.
-    if ( !isSernum )
+    if ( !isSernum && isIP )
         User::removePunishment( arg1, PunishTypes::Mute, PunishTypes::IP );
-    else
+    else if ( isSernum && !isIP )
         User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 }
 
@@ -867,10 +867,12 @@ void CmdHandler::msgHandler(const QString& arg1, const QString& message, const b
 void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
 {
     QString response{ "%1 %2 Password." };
-    QString invalid{ "Incorrect" };
-    QString valid{ "Correct" };
+    static const QString invalidStr{ "Incorrect" };
+    static const QString validStr{ "Correct" };
+    static const QString welcomeStr{ " Welcome!" };
+    static const QString goodbyeStr{ " Goodbye." };
 
-    QStringList pwdTypes{ "[ Server ]", "[ Admin ]" };
+    static const QStringList pwdTypes{ "[ Server ]", "[ Admin ]" };
 
     bool disconnect{ false };
     PwdTypes pwdType{ PwdTypes::Invalid };
@@ -882,14 +884,14 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
         pwdType = PwdTypes::Server;
         if ( Settings::cmpServerPassword( server->getServerName(), pwd ) )
         {
-            response = response.arg( valid );
+            response = response.arg( validStr );
 
             admin->setSvrPwdRequested( false );
             admin->setSvrPwdReceived( true );
         }
         else
         {
-            response = response.arg( invalid ).append( " Goodbye." );
+            response = response.arg( invalidStr ).append( goodbyeStr );
             disconnect = true;
         }
         response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
@@ -904,16 +906,17 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
         if ( !pwd.isEmpty()
           && User::cmpAdminPwd( sernum, pwd ) )
         {
-            response = response.arg( valid ).append( " Welcome!" );
+            response = response.arg( validStr ).append( welcomeStr );
 
             admin->setAdminPwdRequested( false );
             admin->setAdminPwdReceived( true );
 
+            QString loginStr{ "Remote Admin [ %1 ] Authenticated with the server." };
+                    loginStr = loginStr.arg( admin->getSernum_s() ) ;
+
             //Inform Other Users of this Remote-Admin's login if enabled.
             if ( Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
             {
-                QString message{ "Remote Admin [ %1 ] has Authenticated with the server." };
-                        message = message.arg( admin->getSernum_s() ) ;
 
                 for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
                 {
@@ -925,15 +928,16 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
                         {
                             //Do not Inform our own Admin.. --Redundant..
                             if ( tmpPlr != admin )
-                                server->sendMasterMessage( message, tmpPlr, false );
+                                server->sendMasterMessage( loginStr, tmpPlr, false );
                         }
                     }
                 }
             }
+            emit this->insertLogSignal( server->getServerName(), loginStr, LogTypes::ADMIN, true, true );
         }
         else
         {
-            response = response.arg( invalid ).append( " Goodbye." );
+            response = response.arg( invalidStr ).append( goodbyeStr );
             disconnect = true;
         }
         response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
@@ -959,9 +963,10 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
 
 void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
 {
-    QString success{ "You are now registered as an Admin with the Server. Congrats!" };
+    static const QString successStr{ "You are now registered as an Admin with the Server." };
+    static const QString failStr{ "You were not registered as an Admin with the Server. "
+                                  "It seems something has gone wrong or you were already registered as an Admin." };
 
-    QString fail{ "You were not registered as an Admin with the Server. It seems something has gone wrong or you were already registered as an Admin." };
     QString response{ "" };
 
     QString sernum{ admin->getSernumHex_s() };
@@ -973,7 +978,7 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
            || admin->getIsAdmin() )
           && !User::getHasPassword( sernum ) )
         {
-            response = success;
+            response = successStr;
             if ( User::makeAdmin( sernum, subCmd ) )
             {
                 registered = true;
@@ -986,7 +991,7 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
             }
             else
             {
-                response = fail;
+                response = failStr;
 
                 admin->setNewAdminPwdRequested( false );
                 admin->setNewAdminPwdReceived( false );
@@ -998,8 +1003,8 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
     if ( registered
       && Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
     {
-        QString message{ "User [ %1 ] has Registered as a Remote Administrator with the server." };
-                message = message.arg( admin->getSernum_s() );
+        QString registerStr{ "User [ %1 ] Registered as a Remote Administrator with the server." };
+                registerStr = registerStr.arg( admin->getSernum_s() );
 
         for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
@@ -1011,10 +1016,11 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
                 {
                     //Do not Inform our own Admin.. --Redundant..
                     if ( tmpPlr != admin )
-                        server->sendMasterMessage( message, admin, false );
+                        server->sendMasterMessage( registerStr, admin, false );
                 }
             }
         }
+        emit this->insertLogSignal( server->getServerName(), registerStr, LogTypes::ADMIN, true, true );
     }
 
     if ( !response.isEmpty() )
@@ -1029,9 +1035,8 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
     QString message{ "Admin [ %1 ]: The Server will %2 in [ %3 ] < %4 >..." };
     QString timeText{ "seconds" };
 
-    QString type{ "shut down" };
-    if ( restart )
-        type = "restart";
+    static const QString shutDownStr{ "shut down" };
+    static const QString restartStr{ "restart" };
 
     if ( !duration.isEmpty() )
     {
@@ -1063,7 +1068,7 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
         }
 
         message = message.arg( admin->getSernum_s() )
-                         .arg( type )
+                         .arg( ( restart == true ? restartStr : shutDownStr ) )
                          .arg( duration )
                          .arg( timeText );
 
@@ -1078,7 +1083,7 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
 
             message = "Admin [ %1 ]: Has canceled the Server %2...";
             message = message.arg( admin->getSernum_s() )
-                             .arg( type );
+                             .arg( ( restart == true ? restartStr : shutDownStr ) );
         }
         else
             sendMsg = false;
@@ -1098,16 +1103,19 @@ void CmdHandler::shutDownHandler(Player* admin, const QString& duration, const Q
 void CmdHandler::vanishHandler(Player* admin, const QString& subCmd)
 {
     QString message{ "Admin [ %1 ]: You are now %2 to other Players..." };
-    QString state{ "visible" };
+    static const QString invisibleStr{ "Invisible" };
+    static const QString visibleStr{ "Visible" };
+
+    QString state{ visibleStr };
 
     bool isVisible{ admin->getIsVisible() };
     if ( !isVisible )
-        state = "visible";
+        state = visibleStr;
 
     if ( subCmd.isEmpty() )
     {
         if ( isVisible )
-            state = "invisible";
+            state = invisibleStr;
 
         admin->setIsVisible( !isVisible );
     }
@@ -1118,13 +1126,13 @@ void CmdHandler::vanishHandler(Player* admin, const QString& subCmd)
             if ( Helper::cmpStrings( subCmd, "hide" )
               && isVisible )
             {
-                state = "invisible";
+                state = invisibleStr;
                 admin->setIsVisible( false );
             }
             else if ( Helper::cmpStrings( subCmd, "show" )
                    && !isVisible )
             {
-                state = "visible";
+                state = visibleStr;
                 admin->setIsVisible( true );
             }
             else if ( Helper::cmpStrings( subCmd, "status" ) )
@@ -1142,7 +1150,7 @@ void CmdHandler::vanishHandler(Player* admin, const QString& subCmd)
 void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd)
 {
     QString msg{ "" };
-    QString allowCurrent{ "Players can not your camp if it's considered old." };
+    static const QString allowCurrent{ "Players can not your camp if it's considered old." };
     QString allowExempt{ "The Player [ %1 ] has been [ %2 ] your Camp Exemptions list." };
     QString allowNew{ "Players can enter your camp even if it's considered old." };
     QString lockMsg{ "Your Camp has been %1!" };
@@ -1151,11 +1159,11 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
     QString overrideLockAppend{ " by Admin [ %1 ]" };
     QString overrideAllowAppend{ "Admin [ %1 ]: " };
 
-    QString unlock{ "Unlocked" };
-    QString lock{ "Locked" };
+    static const QString unlock{ "Unlocked" };
+    static const QString lock{ "Locked" };
 
-    QString removed{ "Removed From" };
-    QString added{ "Added To" };
+    static const QString removed{ "Removed From" };
+    static const QString added{ "Added To" };
 
     //Swap to the targeted Player.
     Player* tmpPlr{ nullptr };
@@ -1306,6 +1314,9 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
         QString hasWhitelisted{ " The following Users are [ Allowed ]: %1" };
                 hasWhitelisted = hasWhitelisted.arg( whiteList );
 
+        static const QString notAllowedStr{ "Not Allowed" };
+        static const QString allowedStr{ "Allowed" };
+
         msg = "Your camp is currently [ %1 ]. New players are [ %2 ] to enter your camp if it's considered old to their client.";
         if ( admin->getIsCampLocked() )
             msg = msg.arg( lock );
@@ -1315,10 +1326,10 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
         if ( admin->getIsCampOptOut()
           || admin->getIsCampLocked() )
         {
-            msg = msg.arg( "Not Allowed" );
+            msg = msg.arg( notAllowedStr );
         }
         else
-            msg = msg.arg( "Allowed" );
+            msg = msg.arg( allowedStr );
 
         if ( !hasWhitelisted.isEmpty() )
             msg.append( hasWhitelisted );

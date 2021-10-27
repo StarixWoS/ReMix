@@ -337,6 +337,7 @@ Player* Server::createPlayer(qintptr socketDescriptor)
             QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr, &Player::sendMasterMsgToPlayerSlot );
             QObject::connect( this, &Server::connectionTimeUpdateSignal, plr, &Player::connectionTimeUpdateSlot );
             QObject::connect( plr, &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot, Qt::DirectConnection );
+            QObject::connect( plr, &Player::setVisibleStateSignal, this, &Server::setVisibleStateSlot );
 
             return plr;
         }
@@ -517,8 +518,10 @@ void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
 
     Player* lastPlr{ this->getLastPlayerInStorage( plr ) };
     qint32 slot{ 1 }; //Slot must be above 1 to be valid.
+    if ( this->getGameId() == Games::W97 )  //Warpath must start at slot 0.
+        slot = 0;
 
-    for ( int i = 1; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = slot; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
     {
         const Player* tmpPlr = plrSlotMap.value( i, nullptr );
         if ( tmpPlr == nullptr )
@@ -535,9 +538,9 @@ void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
     plr->setPktHeaderSlot( slot );
     plrSlotMap.insert( slot, plr );
     QString slotResponse{ ":SR!%1%2%3\r\n" };
-    slotResponse = slotResponse.arg( plr->getSernumHex_s() )
-                               .arg( Helper::intToStr( slot, static_cast<int>( IntBase::HEX ), 2 ) )
-                               .arg( lastPlr->getSernumHex_s() );
+            slotResponse = slotResponse.arg( plr->getSernumHex_s() )
+                                       .arg( Helper::intToStr( slot, static_cast<int>( IntBase::HEX ), 2 ) )
+                                       .arg( lastPlr->getSernumHex_s() );
 
     qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };
     this->updateBytesOut( plr, bOut );
@@ -560,6 +563,8 @@ void Server::sendServerGreeting(Player* plr)
 {
     QString serverName{ this->getServerName() };
     QString greeting{ Settings::getSetting( SKeys::Setting, SSubKeys::MOTD, serverName ).toString() };
+
+
     if ( !Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, serverName ).toString().isEmpty() )
     {
         greeting.append( " Password required: Please reply with (/login *PASS) or be disconnected." );
@@ -797,6 +802,8 @@ void Server::setPlayerCount(const quint32& value)
     }
     else
         playerCount = value;
+
+    this->sendMasterInfo();
 }
 
 quint16 Server::getPublicPort() const
@@ -1299,6 +1306,14 @@ void Server::ipDCIncreaseSlot(const DCTypes& type)
             }
         break;
     }
+}
+
+void Server::setVisibleStateSlot(const bool& state)
+{
+    if ( state )
+        this->setPlayerCount( this->getPlayerCount() + 1 );
+    else
+        this->setPlayerCount( this->getPlayerCount() + -1 );
 }
 
 void Server::recvMasterInfoSlot()

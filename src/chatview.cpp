@@ -91,6 +91,7 @@ QStringList ChatView::bleepList
     "whore", "willies"
 };
 
+Themes ChatView::currentTheme;
 QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
 QVector<Colors> ChatView::colors
 {
@@ -121,6 +122,7 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
+    currentTheme = Theme::getThemeType();
     server = svr;
 
     //Connect LogFile Signals to the Logger Class.
@@ -133,7 +135,9 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
     {
         //Warpath, we can't send Master comments, disable chat interface.
         ui->chatInput->setEnabled( false );
-        ui->chatInput->setText( "Unable to interact with Warpath Players!" );
+
+        static const QString warPathStr{ "Unable to interact with Warpath Players!" };
+        ui->chatInput->setText( warPathStr );
     }
 
     QObject::connect( Theme::getInstance(), &Theme::colorOverrideSignal, this, &ChatView::colorOverrideSlot );
@@ -158,7 +162,7 @@ ChatView::~ChatView()
 
 ChatView* ChatView::getInstance(Server* server)
 {
-    ChatView* instance{ chatViewInstanceMap.value( server ) };
+    ChatView* instance{ chatViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
         instance = new ChatView( ReMix::getInstance(), server );
@@ -183,38 +187,133 @@ bool ChatView::parseChatEffect(const QString& packet)
 {
     bool retn{ true };
     QString srcSerNum{ Helper::serNumToIntStr( packet.left( 12 ).mid( 4 ), true ) };
-    QString fltrCode{ packet.mid( 13 ).left( 2 ) };
+    Colors serNumColor{ Colors::WhiteSoul };
+    Player* plr{ nullptr };
+    QString message{ "" };
 
-    qint32 code{ (fltrCode.at( 0 ).toLatin1() - 'A') & 0xFF };
-    if ( code == 3 || code == 5 || code == 6 || code == 10 )
+    if ( server->getGameId() != Games::W97 )
     {
-        //0 = Normal Chat.
-        //1 = Level-Up and Dice Roll
-        //3 = Learn Spell.
-        //6 = Pet Command.
-        //5 = Unknown
-        //10 = Scene Message
-        //11 = PK Attack
-        return true;
+
+        QString fltrCode{ packet.mid( 13 ).left( 2 ) };
+        qint32 code{ (fltrCode.at( 0 ).toLatin1() - 'A') & 0xFF };
+        if ( code == 3 || code == 5 || code == 6 || code == 10 )
+        {
+            //0 = Normal Chat.
+            //1 = Level-Up and Dice Roll
+            //3 = Learn Spell.
+            //6 = Pet Command.
+            //5 = Unknown
+            //10 = Scene Message
+            //11 = PK Attack
+            return true;
+        }
+
+        message = packet.mid( 31 );
+        QChar type{ packet.at( 31 ) };
+
+        if ( packet.at( 3 ) == 'C' )
+        {
+            QString plrName{ "Unincarnated [ %1 ]" };
+
+            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+            {
+                plr = server->getPlayer( i );
+                if ( plr != nullptr )
+                {
+                    if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
+                    {
+                        plrName = plr->getPlrName();
+                        if ( plr->getIsGoldenSerNum() )
+                            serNumColor = Colors::GoldenSoul;
+
+                        break;
+                    }
+                    else
+                        plr = nullptr;
+                }
+            }
+
+            //Quick and dirty word replacement.
+            if ( server != nullptr )
+            {
+                //Check if the bleeping rule is set. There's no pont in censoring our chat if we aren't censoring chat for other people.
+                if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoBleep, server->getServerName() ).toBool() )
+                    this->bleepChat( message );
+            }
+
+            bool log{ true };
+
+            if ( type.toLatin1() != '`' )
+                this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+
+            switch ( type.toLatin1() )
+            {
+                case '\'': //Gossip Chat Effect.
+                    {
+                        message = message.mid( 1 );
+                        this->insertChat( plrName, Colors::PlayerName, false );
+                        this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
+                        this->insertChat( " gossips: " % message, Colors::GossipTxt, false );
+                        message = plrName % " gossips: " % message;
+                    }
+                break;
+                case '!': //Shout Chat Effect.
+                    {
+                        message = message.mid( 1 );
+                        this->insertChat( plrName, Colors::PlayerName, false );
+                        this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
+                        this->insertChat( " shouts: " % message, Colors::ShoutTxt, false );
+                        message = plrName % " shouts: " % message;
+                    }
+                break;
+                case '/': //Emote Chat Effect.
+                    {
+                        message = message.mid( 2 );
+                        this->insertChat( plrName, Colors::PlayerName, false );
+                        this->insertChat( " [ " % srcSerNum % " ] ", serNumColor, false );
+                        this->insertChat( message, Colors::EmoteTxt, false );
+                        message = plrName % message;
+                    }
+                break;
+                case '`': //Custom command input.
+                    {
+                        if ( plr != nullptr )
+                        {
+                            if ( CmdHandler::canParseCommand( plr, message ) )
+                                CmdHandler::getInstance( server )->parseCommandImpl( plr, message );
+                        }
+
+                        log = false;
+                        retn = false;
+                    }
+                break;
+                default:
+                    {
+                        this->insertChat( plrName, Colors::PlayerName, false );
+                        this->insertChat( " [ " % srcSerNum % " ]: ", serNumColor, false );
+                        this->insertChat( message, Colors::PlayerTxt, false );
+
+                        message = plrName % ": " % message;
+                    }
+                break;
+            }
+
+            if ( !message.isEmpty() && log )
+                emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
+        }
     }
-
-    if ( packet.at( 3 ) == 'C' )
+    else
     {
-        QString plrName{ "Unincarnated [ %1 ]" };
-        Player* plr{ nullptr };
-        Colors serNumColor{ Colors::WhiteSoul };
-
+        qint32 plrSlot{ Helper::strToInt( packet.left( 6 ).mid( 4 ) ) };
         for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
         {
             plr = server->getPlayer( i );
             if ( plr != nullptr )
             {
-                if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
+                if ( plr->getSlotPos() == plrSlot )
                 {
-                    plrName = plr->getPlrName();
                     if ( plr->getIsGoldenSerNum() )
                         serNumColor = Colors::GoldenSoul;
-
                     break;
                 }
                 else
@@ -222,85 +321,36 @@ bool ChatView::parseChatEffect(const QString& packet)
             }
         }
 
-        QString message{ packet.mid( 31 ) };
-
-        //Quick and dirty word replacement.
-        if ( server != nullptr )
+        if ( plr != nullptr )
         {
-            //Check if the bleeping rule is set. There's no pont in censoring our chat if we aren't censoring chat for other people.
-            if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoBleep, server->getServerName() ).toBool() )
-                this->bleepChat( message );
-        }
-
-        QChar type{ packet.at( 31 ) };
-        bool log{ true };
-
-        if ( type.toLatin1() != '`' )
-            this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-
-        switch ( type.toLatin1() )
-        {
-            case '\'': //Gossip Chat Effect.
+            if ( packet.at( 7 ) == 'D' )
+            {
+                //Remove the packet header.
+                message = packet.mid( 8 );
+                if ( packet.at( 8 ) != '`' )
                 {
-                    message = message.mid( 1 );
-                    this->insertChat( plrName, Colors::PlayerName, false );
-                    this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
-                    this->insertChat( " gossips: " % message, Colors::GossipTxt, false );
-                    message = plrName % " gossips: " % message;
-                }
-            break;
-            case '!': //Shout Chat Effect.
-                {
-                    message = message.mid( 1 );
-                    this->insertChat( plrName, Colors::PlayerName, false );
-                    this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
-                    this->insertChat( " shouts: " % message, Colors::ShoutTxt, false );
-
-                    message = plrName % " shouts: " % message;
-                }
-            break;
-            case '/': //Emote Chat Effect.
-                {
-                    message = message.mid( 2 );
-                    this->insertChat( plrName, Colors::PlayerName, false );
-                    this->insertChat( " [ " % srcSerNum % " ] ", serNumColor, false );
-                    this->insertChat( message, Colors::EmoteTxt, false );
-                    message = plrName % message;
-                }
-            break;
-            case '`': //Custom command input.
-                {
-                    if ( plr != nullptr )
-                    {
-                        message = message.mid( 1 );
-                        CmdHandler::getInstance( server )->parseCommandImpl( plr, message );
-                    }
-                    log = false;
-                    retn = false;
-                }
-            break;
-            default:
-                {
-                    this->insertChat( plrName, Colors::PlayerName, false );
-                    this->insertChat( " [ " % srcSerNum % " ]: ", serNumColor, false );
+                    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+                    this->insertChat( plr->getPlrName(), Colors::PlayerName, false );
+                    this->insertChat( " [ " % plr->getSernum_s() % " ]: ", serNumColor, false );
                     this->insertChat( message, Colors::PlayerTxt, false );
-
-                    message = plrName % ": " % message;
                 }
-            break;
+                else
+                {
+                    if ( CmdHandler::canParseCommand( plr, message ) )
+                        CmdHandler::getInstance( server )->parseCommandImpl( plr, message );
+                }
+            }
         }
-
-        if ( !message.isEmpty() && log )
-            emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
     }
     return retn;
 }
 
 void ChatView::bleepChat(QString& message)
 {
+    static const QString bleepStr{ "bleep" };
     for ( const QString& el : bleepList )
     {
-        message = message.replace( el, "bleep", Qt::CaseInsensitive );
+        message = message.replace( el, bleepStr, Qt::CaseInsensitive );
     }
 }
 
@@ -378,7 +428,9 @@ void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, c
                              .arg( message );
 
     this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-    this->insertChat( "USER COMMENT: ", Colors::CommentTxt, false );
+
+    static const QString commentStr{ "USER COMMENT: " };
+    this->insertChat( commentStr, Colors::CommentTxt, false );
     this->insertChat( name, Colors::PlayerName, false );
     this->insertChat( message, Colors::CommentTxt, false );
 
@@ -401,10 +453,11 @@ void ChatView::colorOverrideSlot(const QString& oldColor, const QString& newColo
 
 void ChatView::on_chatInput_returnPressed()
 {
+    static const QString ownerStr{ "Owner: " };
     QString message{ ui->chatInput->text() };
 
     this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-    this->insertChat( "Owner: ", Colors::OwnerName, false );
+    this->insertChat( ownerStr, Colors::OwnerName, false );
     this->insertChat( message, Colors::OwnerTxt, false );
 
     if ( server->getGameId() == Games::W97 )
@@ -412,7 +465,7 @@ void ChatView::on_chatInput_returnPressed()
         //TODO: Emulate a Warpath Chat packet.
     }
     else
-        message.prepend( "Owner: " );
+        message.prepend( ownerStr );
 
     if ( !message.isEmpty() )
         emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
@@ -423,30 +476,23 @@ void ChatView::on_chatInput_returnPressed()
 
 void ChatView::themeChangedSlot(const Themes& theme)
 {
-    QString txtHtml{ ui->chatView->toHtml() };
-    if ( !txtHtml.isEmpty() )
+    if ( theme != currentTheme )
     {
-        if ( theme == Themes::Light )
+        QString txtHtml{ ui->chatView->toHtml() };
+        if ( !txtHtml.isEmpty() )
         {
             for ( const Colors& color : colors )
             {
-                txtHtml = txtHtml.replace( Theme::getColor( Themes::Dark, color ).name(),
-                                           Theme::getColor( Themes::Light, color ).name() );
+                txtHtml = txtHtml.replace( Theme::getColor( currentTheme, color ).name(),
+                                           Theme::getColor( theme, color ).name() );
             }
-        }
-        else
-        {
-            for ( const Colors& color : colors )
-            {
-                txtHtml = txtHtml.replace( Theme::getColor( Themes::Light, color ).name(),
-                                           Theme::getColor( Themes::Dark, color ).name() );
-            }
-        }
 
-        ui->chatView->clear();
-        ui->chatView->insertHtml( txtHtml );
+            ui->chatView->clear();
+            ui->chatView->insertHtml( txtHtml );
+        }
+        this->scrollToBottom( true );
+        currentTheme = theme;
     }
-    this->scrollToBottom( true );
 }
 
 void ChatView::on_autoScrollCheckBox_toggled(bool checked)
@@ -458,7 +504,12 @@ void ChatView::on_autoScrollCheckBox_toggled(bool checked)
 
 void ChatView::on_clearChat_clicked()
 {
-    ui->chatView->clear();
-    ui->chatInput->clear();
-}
+    static const QString title{ "Clear Chat:" };
+    static const QString prompt{ "Do you wish to clear the Chat View Text?" };
 
+    if ( Helper::confirmAction( this, title, prompt ) )
+    {
+        ui->chatView->clear();
+        ui->chatInput->clear();
+    }
+}

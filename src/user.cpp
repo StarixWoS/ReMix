@@ -61,9 +61,28 @@ const QVector<PunishDurations> User::punishDurations =
     PunishDurations::PERMANENT,
 };
 
+const QVector<GMRanks> User::adminRanks =
+{
+    GMRanks::User,
+    GMRanks::GMaster,
+    GMRanks::CoAdmin,
+    GMRanks::Admin,
+    GMRanks::Owner,
+    GMRanks::Creator,
+};
+
+const QStringList User::adminRankStrings =
+{
+    "User",
+    "Game Master",
+    "Co-Admin",
+    "Admin",
+    "Owner",
+};
+
 QSortFilterProxyModel* User::tblProxy{ nullptr };
 QStandardItemModel* User::tblModel{ nullptr };
-QSettings* User::userData{ nullptr };
+QSettings* User::userData{ new QSettings( "userInfo.ini", QSettings::IniFormat ) };
 User* User::instance{ nullptr };
 QMutex User::mutex;
 
@@ -81,9 +100,6 @@ User::User(QWidget* parent) :
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
-
-    //Setup our QSettings Object.
-    userData = new QSettings( "userInfo.ini", QSettings::IniFormat );
 
     //Setup the Server TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>( UserCols::ColCount ), nullptr );
@@ -153,7 +169,7 @@ QString User::requestReason(QWidget* parent)
 
 PunishDurations User::requestDuration(QWidget* parent)
 {
-    const static QStringList items{ "No Duration", "30 Seconds", "1 Minute", "10 Minutes", "30 Minutes", "1 Hour",
+    static const QStringList items{ "No Duration", "30 Seconds", "1 Minute", "10 Minutes", "30 Minutes", "1 Hour",
                                     "24 Hours", "7 Days", "30 Days", "6 Months", "1 Year", "Permanent" };
 
     bool ok;
@@ -162,6 +178,16 @@ PunishDurations User::requestDuration(QWidget* parent)
         return punishDurations[ items.indexOf( item ) ];
 
     return PunishDurations::Invalid;
+}
+
+GMRanks User::requestRank(QWidget* parent)
+{
+    bool ok;
+    const QString item{ QInputDialog::getItem( parent, "ReMix", "Admin Rank:", adminRankStrings, 0, false, &ok) };
+    if ( ok && !item.isEmpty() )
+        return adminRanks[ adminRankStrings.indexOf( item ) ];
+
+    return GMRanks::Invalid;
 }
 
 QSettings* User::getUserData()
@@ -196,7 +222,7 @@ bool User::makeAdmin(const QString& sernum, const QString& pwd)
     if ( !sernum.isEmpty()
       && !pwd.isEmpty() )
     {
-        QString salt{ Helper::genPwdSalt( static_cast<int>( Globals::SALT_LENGTH ) ) };
+        QString salt{ genPwdSalt( static_cast<int>( Globals::SALT_LENGTH ) ) };
         QString hash{ salt + pwd };
                 hash = Helper::hashPassword( hash );
 
@@ -231,13 +257,11 @@ bool User::getHasPassword(const QString& sernum)
 
 bool User::cmpAdminPwd(const QString& sernum, const QString& value)
 {
-    QString recSalt{ getData( sernum, keys[ UserKeys::kSALT ] ).toString() };
-    QString recHash{ getData( sernum, keys[ UserKeys::kHASH ] ).toString() };
+    const QString recSalt{ getData( sernum, keys[ UserKeys::kSALT ] ).toString() };
+    const QString recHash{ getData( sernum, keys[ UserKeys::kHASH ] ).toString() };
+    const QString hash{ Helper::hashPassword( recSalt % value ) };
 
-    QString hash{ recSalt + value };
-            hash = Helper::hashPassword( hash );
-
-    return hash == recHash;
+    return ( hash == recHash );
 }
 
 qint32 User::getAdminRank(const QString& sernum)
@@ -245,15 +269,43 @@ qint32 User::getAdminRank(const QString& sernum)
     return getData( sernum, keys[ UserKeys::kRANK ] ).toInt();
 }
 
-void User::setAdminRank(const QString& sernum, const GMRanks& rank)
+void User::setAdminRank(const QString& sernum, const GMRanks& newRank)
 {
     User* user{ User::getInstance() };
-
-    setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( rank ) );
-
     QModelIndex index{ user->findModelIndex( sernum, UserCols::SerNum ) };
+
+    const GMRanks currentRank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
+    if ( newRank == GMRanks::User )
+    {
+        static const QString title{ "Remove Password:" };
+        static const QString promptTxt{ "Do you wish to remove this Admin's password information?" };
+
+        bool hasPassword{ getHasPassword( sernum ) };
+        bool removePassword{ false };
+
+        if ( ( currentRank != newRank )
+          && hasPassword )
+        {
+            removePassword = Helper::confirmAction( User::getInstance(), title, promptTxt );
+            if ( removePassword )
+            {
+                setData( sernum, keys[ UserKeys::kHASH ], "" );
+                setData( sernum, keys[ UserKeys::kSALT ], "" );
+            }
+        }
+        setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( newRank ) );
+    }
+    else
+        setData( sernum, keys[ UserKeys::kRANK ], static_cast<int>( newRank ) );
+
     if ( index.isValid() )
-        user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( rank ) );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( newRank ) );
+}
+
+void User::setAdminRank(const Player* plr, const GMRanks& rank, const bool&)
+{
+    if ( plr != nullptr )
+        setAdminRank( plr->getSernumHex_s(), rank );
 }
 
 quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum)
@@ -518,10 +570,8 @@ void User::updateCallCount(const QString& serNum)
         user->updateRowData( index.row(), static_cast<int>( UserCols::Calls ), callCount );
 }
 
-void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& bio)
+void User::logBIOSlot(const QString& serNum, const QHostAddress& ip, const QString& bio)
 {
-    QMutexLocker<QMutex> locker( &mutex );
-
     User* user{ User::getInstance() };
     QString sernum{ serNum };
     if ( Helper::strContainsStr( sernum, "SOUL" ) )
@@ -536,26 +586,65 @@ void User::logBIO(const QString& serNum, const QHostAddress& ip, const QString& 
     setData( sernum, keys[ UserKeys::kIP ], ip_s );
     setData( sernum, keys[ UserKeys::kSEEN ], date );
 
+    auto update = [=]( const QModelIndex& idx )
+    {
+        user->updateRowData( idx.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum, true ) );
+        user->updateRowData( idx.row(), static_cast<int>( UserCols::IPAddr ), ip_s );
+        //user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
+        user->updateRowData( idx.row(), static_cast<int>( UserCols::LastSeen ), date );
+    };
+
     QModelIndex index{ user->findModelIndex( sernum, UserCols::SerNum ) };
     if ( !index.isValid() )
     {
         qint32 row{ tblModel->rowCount() };
         tblModel->insertRow( row );
-        index = tblModel->index( row, static_cast<int>( UserCols::SerNum ) );
-    }
 
-    if ( index.isValid() )
-    {
-        user->updateRowData( index.row(), static_cast<int>( UserCols::SerNum ), Helper::serNumToIntStr( sernum, true ) );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::IPAddr ), ip_s );
-        //user->updateRowData( index.row(), static_cast<int>( UserCols::Pings ), pings );
-        user->updateRowData( index.row(), static_cast<int>( UserCols::LastSeen ), date );
+        update( tblModel->index( row, static_cast<int>( UserCols::SerNum ) ) );
     }
+    else
+        update( index );
 }
 
 QByteArray User::getBIOData(const QString& sernum)
 {
     return getData( sernum, keys[ UserKeys::kBIO ] ).toByteArray();
+}
+
+bool User::validateSalt(const QString& salt)
+{
+    QStringList groups{ userData->childGroups() };
+    QString j{ "" };
+
+    for ( int i = 0; i < groups.count(); ++i )
+    {
+        j = userData->value( groups.at( i ) % "/salt" ).toString();
+
+        if ( j == salt )
+            return false;
+    }
+    return true;
+}
+
+QString User::genPwdSalt(const qint32& length)
+{
+    QString salt{ "" };
+    static const QString charList
+    {
+        "0123456789 `~!@#$%^&*-_=+{([])}|;:'\"\\,./?<>"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
+    };
+
+    while ( salt.length() < length )
+    {
+        qint32 chrPos{ RandDev::getInstance().getGen( 0, static_cast<int>( charList.length() - 1 ) ) };
+        salt.append( charList.at( chrPos ) );
+    }
+
+    if ( !validateSalt( salt ) )
+        salt = genPwdSalt( length );
+
+    return salt;
 }
 
 //Private Functions.
@@ -569,9 +658,13 @@ QModelIndex User::findModelIndex(const QString& value, const UserCols& col)
     QModelIndex index;
     if ( !list.isEmpty() )
     {
-        index = list.value( 0 )->index();
-        if ( index.isValid() )
-            return index;
+        QStandardItem* item{ list.value( 0, nullptr ) };
+        if ( item != nullptr )
+        {
+            index = item->index();
+            if ( index.isValid() )
+                return index;
+        }
     }
     return QModelIndex{ };
 }
@@ -739,36 +832,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
     {
         case UserCols::Rank:
             {
-                QString title{ "Remove Password:" };
-                QString message{ "Do you wish to remove this Admin's password information?" };
-
-                GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };
-                bool hasPassword{ getHasPassword( sernum ) };
-                bool removePassword{ false };
-
-                value = tblModel->data( index );
-                if (( rank > GMRanks::User )
-                  && ( static_cast<GMRanks>( value.toInt() ) == GMRanks::User ) )
-                {
-                    if ( hasPassword )
-                        removePassword = Helper::confirmAction( this, title, message );
-                }
-                else if (( rank == GMRanks::User )
-                       && ( static_cast<GMRanks>( value.toInt() ) > GMRanks::User ) )
-                {
-                    if ( hasPassword )
-                    {
-                        message = "This user has a previous password stored. Do you wish to reset the password?";
-                        removePassword =  Helper::confirmAction( this, title, message );
-                    }
-                }
-
-                if ( removePassword )
-                {
-                    setData( sernum, keys[ UserKeys::kHASH ], "" );
-                    setData( sernum, keys[ UserKeys::kSALT ], "" );
-                }
-                setData( sernum, keys[ UserKeys::kRANK ], value );
+                setAdminRank( sernum, static_cast<GMRanks>( tblModel->data( index ).toInt() ) );
             }
         break;
         case UserCols::Banned:

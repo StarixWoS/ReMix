@@ -40,7 +40,7 @@ MOTDWidget::~MOTDWidget()
 
 MOTDWidget* MOTDWidget::getInstance(Server* server)
 {
-    MOTDWidget* widget{ motdWidgets.value( server ) };
+    MOTDWidget* widget{ motdWidgets.value( server, nullptr ) };
     if ( widget == nullptr )
     {
         widget = new MOTDWidget();

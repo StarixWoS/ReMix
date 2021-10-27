@@ -4,6 +4,35 @@ TODO:
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
 
+Version 2.8.0:
+    Change:
+      * Refined the ColorView widget UI to be more refined.
+      * Users can now change Player ranks (Remote Administrator roles) via the PlayerList View's context menu.
+        * Previously it was only possible to completely remove the Player rank.
+      * Correctly prevent the sysop SerNum[ 0x4637B6ED ] from connecting to ReMix.
+        * This SerNum will be unable to connect unless it is connecting from the MasterMix IP address.
+      * Deprecated the command syntax [ /cmd *cmd ].
+        * The currently supported syntaxes are now: [ `command ] and [ /command ].
+          * [ /command ] can only be used within the WoS[ /admin ] dialog.
+          * [ `command ] can be used via normal chat in all game types, and within the WoS[ /admin ] dialog.
+      
+
+
+
+    Bugfixes:
+      * Fixed a memory leak related to the WorldSelect dialog.
+        * The world select dialog is only used when a World Directory has been set within the Settings.
+      * Fixed a possible crash related to logging User BIO data to file via the User class.
+        * This has been changed to a signal/slot in order to be thread-safe.
+      * Fixed an issue where Invisible Remote Administrators were unable to use the alternative command syntax.
+      * Fixed an issue where Invisible Remote Adminsitrators when camped would be forced to send a Camp packet to a newly connected Player.
+      * Fixed an issue where ReMix would send an invalid SR slot to Warpath Players.
+      * Fixed the usage description for the command [ /version ].
+      * Fixed an issue where Warpath chat was not correctly handled within the ChatView.
+
+
+
+
 Version 2.7.9:
     Change:
       * Removed the Comments Dialog.

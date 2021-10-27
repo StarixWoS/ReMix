@@ -273,8 +273,8 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     if ( server == nullptr )
         return;
 
-    QString title{ "Disable AutoRestart?" };
-    QString prompt{ "Do you wish to disable the AutoRestart rule on the closed server?" };
+    static const QString title{ "Disable AutoRestart:" };
+    static const QString prompt{ "Do you wish to disable the AutoRestart rule on the closed server?" };
 
     QString gameName{ server->getGameName() };
     QString name{ server->getServerName() };

@@ -29,29 +29,60 @@
    <property name="spacing">
     <number>5</number>
    </property>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="resetColor">
-     <property name="text">
-      <string>Reset Color</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLabel" name="colorView">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0" colspan="3">
-    <widget class="QListWidget" name="colorWidget"/>
-   </item>
-   <item row="1" column="1">
-    <widget class="QPushButton" name="selectColor">
-     <property name="text">
-      <string>Select Color</string>
+    <widget class="QTableView" name="colorView">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
      </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectItems</enum>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideMiddle</enum>
+     </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>20</number>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>20</number>
+     </attribute>
     </widget>
+   </item>
+   <item row="1" column="0" colspan="3">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>5</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="resetColor">
+       <property name="text">
+        <string>Reset Color</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="selectColor">
+       <property name="text">
+        <string>Select Color</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

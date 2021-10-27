@@ -47,9 +47,6 @@ class Helper
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(const QString& password);
-        static QString genPwdSalt(const qint32& length = static_cast<int>( Globals::SALT_LENGTH ));
-
-        static bool validateSalt(const QString& salt);
 
         static QHostAddress getPrivateIP();
 

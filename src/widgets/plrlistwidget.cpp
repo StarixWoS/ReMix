@@ -86,8 +86,7 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
     [=,this]()
     {
-        auto pal{ Theme::getCurrentPal() };
-        ui->playerView->setPalette( pal );
+        ui->playerView->setPalette( Theme::getCurrentPal() );
     });
 }
 
@@ -96,9 +95,8 @@ PlrListWidget::~PlrListWidget()
     if ( messageDialog != nullptr )
     {
         if ( messageDialog->isVisible() )
-        {
             messageDialog->close();
-        }
+
         messageDialog->disconnect();
         messageDialog->deleteLater();
     }
@@ -114,7 +112,7 @@ PlrListWidget::~PlrListWidget()
 
 PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, Server* server)
 {
-    PlrListWidget* instance{ plrViewInstanceMap.value( server ) };
+    PlrListWidget* instance{ plrViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
         instance = new PlrListWidget( parent, server );
@@ -172,9 +170,7 @@ void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& colum
         QStandardItemModel* sModel = object->model();
         if ( sModel != nullptr )
         {
-            if ( isColor )
-                sModel->setData( sModel->index( object->row(), column ), Theme::getColorBrush( static_cast<Colors>( data.toInt() ) ), role );
-            else
+            if ( !isColor )
             {
                 if ( static_cast<PlrCols>( column ) == PlrCols::IPPort
                   && this->getCensorUIIPInfo() )
@@ -184,8 +180,11 @@ void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& colum
                 else
                     sModel->setData( sModel->index( object->row(), column ), data, role );
             }
+            else
+                sModel->setData( sModel->index( object->row(), column ), Theme::getColorBrush( static_cast<Colors>( data.toInt() ) ), role );
         }
     }
+    ui->playerView->resizeColumnToContents( column );
 }
 
 void PlrListWidget::plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data)
@@ -229,7 +228,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
                 ui->actionMuteNetwork->setText( "Mute Network" );
 
             if ( menuTarget->getIsAdmin() )
-                ui->actionMakeAdmin->setText( "Revoke Admin" );
+                ui->actionMakeAdmin->setText( "Change Admin" );
             else
                 ui->actionMakeAdmin->setText( "Make Admin" );
         }
@@ -283,22 +282,23 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
-                    "if you believe this was in error." };
-    QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
+    static const QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
+                                 "if you believe this was in error." };
+    static const QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
 
+    static const QString titleCreateStr{ "Create Admin:" };
+    static const QString titleRevokeStr{ "Change Admin:" };
     QString sernum{ menuTarget->getSernumHex_s() };
     QString prompt{ "" };
     if ( !User::getIsAdmin( sernum ) )
     {
-        QString title{ "Create Admin:" };
-        prompt =  "Are you certain you want to MAKE [ %1 ] a Remote Admin? \r\n\r\nPlease make sure you trust [ %1 ] as this will "
-                  "allow the them to utilize Admin commands that can remove the ability for other users to connect to the Server.";
+        prompt = "Are you certain you want to MAKE [ %1 ] a Remote Admin? \r\n\r\nPlease make sure you trust [ %1 ] as this will "
+                 "allow the them to utilize Admin commands that can remove the ability for other users to connect to the Server.";
         prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
-        if ( Helper::confirmAction( this, title, prompt ) )
+        if ( Helper::confirmAction( this, titleCreateStr, prompt ) )
         {
-            User::setAdminRank( sernum, GMRanks::GMaster );
+            User::setAdminRank( sernum, User::requestRank( this ) );
             if ( User::getHasPassword( sernum ) )
                 server->sendMasterMessage( reinstated, menuTarget, false );
             else
@@ -307,13 +307,12 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     }
     else
     {
-        QString title{ "Revoke Admin:" };
-        prompt = "Are you certain you want to REVOKE [ %1 ]'s powers?";
+        prompt = "Are you certain you want to CHANGE [ %1 ]'s rank?";
         prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
 
-        if ( Helper::confirmAction( this, title, prompt ) )
+        if ( Helper::confirmAction( this, titleRevokeStr, prompt ) )
         {
-            User::setAdminRank( sernum, GMRanks::User );
+            User::setAdminRank( sernum, User::requestRank( this ) );
             menuTarget->resetAdminAuth();
             server->sendMasterMessage( revoke, menuTarget, false );
         }
@@ -370,9 +369,9 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
             User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-        logMsg = logMsg.arg( reason )
-                       .arg( Helper::serNumToIntStr( sernum, true ) )
-                       .arg( menuTarget->getBioData() );
+                logMsg = logMsg.arg( reason )
+                               .arg( Helper::serNumToIntStr( sernum, true ) )
+                               .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
@@ -407,8 +406,8 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
 
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
-                         .arg( Helper::serNumToIntStr( sernum, true ) )
-                         .arg( menuTarget->getBioData() );
+                               .arg( Helper::serNumToIntStr( sernum, true ) )
+                               .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
     }
@@ -437,8 +436,8 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         User::addBan( nullptr, menuTarget, reason, false, User::requestDuration() );
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
-                         .arg( Helper::serNumToIntStr( sernum, true ) )
-                         .arg( menuTarget->getBioData() );
+                               .arg( Helper::serNumToIntStr( sernum, true ) )
+                               .arg( menuTarget->getBioData() );
 
         emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 

@@ -221,7 +221,7 @@ void Logger::filterLogs()
 
 void Logger::clearLogs()
 {
-    QString logMsg{ "The Log View has been cleared!" };
+    static const QString logMsg{ "The Log View has been cleared!" };
 
     ui->logView->setUpdatesEnabled( false );
 
@@ -249,9 +249,9 @@ void Logger::insertLogSlot(const QString& source, const QString& message, const 
 
 void Logger::on_websiteLabel_linkActivated(const QString&)
 {
-    QString title{ "Open Link?" };
+    static const QString title{ "Open Link:" };
     QString prompt{ "Do you wish to open the website [ %1 ] in a browser window?" };
-    prompt = prompt.arg( website );
+            prompt = prompt.arg( website );
 
     if ( Helper::confirmAction( this, title, prompt ) )
     {
@@ -259,7 +259,7 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
         QDesktopServices::openUrl( websiteLink );
 
         QString message{ "Opening a local Web Browser to the website [ %1 ] per user request." };
-        message = message.arg( website );
+                message = message.arg( website );
 
         this->insertLog( "Logger", message, LogTypes::MISC, true, true );
     }
@@ -283,8 +283,8 @@ void Logger::on_filterComboBox_currentIndexChanged(int)
 
 void Logger::on_clearLogsButton_clicked()
 {
-    QString title{ "Clear Logs?" };
-    QString prompt{ "Do you wish to erase the current Log View Data?" };
+    static const QString title{ "Clear Logs?" };
+    static const QString prompt{ "Do you wish to erase the current Log View Data?" };
 
     if ( Helper::confirmAction( this, title, prompt ) )
         this->clearLogs();

@@ -175,7 +175,9 @@ ReMixWidget::~ReMixWidget()
     MOTDWidget::deleteInstance( server );
     ChatView::deleteInstance( server );
 
-    delete server;
+    server->disconnect();
+    server->deleteLater();
+
     delete ui;
 }
 
@@ -499,7 +501,6 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr, const bool& timedOut)
 
     plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
     server->deletePlayer( plr, timedOut );
-    server->sendMasterInfo();
 }
 
 void ReMixWidget::updatePlayerTable(Player* plr)
@@ -583,7 +584,6 @@ void ReMixWidget::insertedRowItemSlot(QStandardItem* item, const qintptr& peer, 
             this->fwdUpdatePlrViewSlot( plr, 7, bio, Qt::DisplayRole, false );
         }
     }
-    server->sendMasterInfo();
 }
 
 void ReMixWidget::censorUIIPInfoSlot(const bool& state)

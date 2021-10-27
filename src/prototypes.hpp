@@ -145,6 +145,10 @@
             //an AFK icon. 5 minutes - 300,000 milliseconds.
             MAX_AFK_TIME = 300000,
 
+            //Maximum interval for ReMix to refresh the MasterMix Information.
+            //3 Hours in milliseconds. 3 * 60 * 60 * 1000
+            MASTER_MIX_UPDATE_INTERVAL = 10800000,
+
             //Maximum amount of time in MS (30 seconds) to allow for the
             //Master to respond to a checkin.
             MAX_MASTER_RESPONSE_TIME = 30000,
@@ -172,28 +176,6 @@
             //Maximum length annowed for a GameInfo String to be set and sent to
             //players that ping our servers.
             MAX_GAME_NAME_LENGTH = 256,
-
-            //Count of possible logging types that ReMix uses.
-            LOG_TYPE_COUNT = 11,
-
-            //Count of Settings Keys Accessed via the
-            //Settings/SettingsWidget class.
-            SETTINGS_KEY_COUNT = 6,
-
-            //Count of Rules Keys accesed via the Rules/RulesWidget class.
-            SETTINGS_SUBKEY_COUNT = 28,
-
-            //Count of Settings Sub-Kets Accessed via the Helper namespace.
-            RULES_SUBKEY_COUNT = 16,
-
-            //Count of currently supported Remote-Admin commands.
-            GM_COMMAND_COUNT = 22,
-
-            //Count of possible Sub-Commands each GM Command may posess.
-            GM_SUBCOMMAND_COUNT = 10,
-
-            //Count of Keys accessed via the User class.
-            USER_KEY_COUNT = 13,
 
             //Time interval for updating the server's Usage array.
             SERVER_USAGE_UPDATE = 600000,
@@ -239,26 +221,12 @@
             //0.5 seconds in milliseconds.
             UI_UPDATE_TIME = 500,
 
-            //Valid Count of usable "Themes".
-            UI_THEME_COUNT = 2,
-
-            //Valid count of colors the Theme class can use for certain
-            //UI and Chat roles.
-            UI_THEME_COLORS = 11,
-
             //Maximum time a User may remain connected after having a
             //"disconnect" initiated on their socket. (250MS|
             MAX_DISCONNECT_TTL = 250,
 
-            //Count of Ban durations available to use when banning a player.
-            PUNISH_DURATION_COUNT = 7,
-
             //Maximum Count that ReMix will allow a User to send a packet with the incorrect Packet ID.
             MAX_PKT_HEADER_EXEMPT = 5,
-
-            //Maximum interval for ReMix to refresh the MasterMix Information.
-            //3 Hours in milliseconds. 3 * 60 * 60 * 1000
-            MASTER_MIX_UPDATE_INTERVAL = 10800000,
         };
 
         //Valid Password types.

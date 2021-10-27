@@ -70,6 +70,9 @@
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
+        <property name="textElideMode">
+         <enum>Qt::ElideMiddle</enum>
+        </property>
         <property name="verticalScrollMode">
          <enum>QAbstractItemView::ScrollPerPixel</enum>
         </property>
@@ -82,11 +85,11 @@
         <property name="cornerButtonEnabled">
          <bool>false</bool>
         </property>
-        <attribute name="horizontalHeaderHighlightSections">
-         <bool>false</bool>
-        </attribute>
         <attribute name="horizontalHeaderMinimumSectionSize">
          <number>80</number>
+        </attribute>
+        <attribute name="horizontalHeaderHighlightSections">
+         <bool>false</bool>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>
@@ -94,10 +97,10 @@
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>
-        <attribute name="verticalHeaderDefaultSectionSize">
+        <attribute name="verticalHeaderMinimumSectionSize">
          <number>20</number>
         </attribute>
-        <attribute name="verticalHeaderMinimumSectionSize">
+        <attribute name="verticalHeaderDefaultSectionSize">
          <number>20</number>
         </attribute>
        </widget>

@@ -44,6 +44,7 @@ class UdpThread : public QThread
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSignal(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
         void recvPlayerGameInfoSignal(const QString& info, const QString& ip);
+        void logBIOSignal(const QString& serNum, const QHostAddress& ip, const QString& bio);
 
     public slots:
         void sendUdpDataSlot(const QHostAddress& addr, const quint16& port, const QString& data);

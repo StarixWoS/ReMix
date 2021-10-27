@@ -29,14 +29,10 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
 
         if ( column == COLS::SERNUM )
         {
-            if ( !vlStr.contains( "SOUL" ) )
-                vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );
-            else
+            if ( vlStr.contains( "SOUL" ) )
                 vlStr = vlStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
-            if ( !vrStr.contains( "SOUL" ) )
-                vrStr = Helper::intSToStr( vrStr, static_cast<int>( IntBase::DEC ) );
-            else
+            if ( vrStr.contains( "SOUL" ) )
                 vrStr = vrStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
             vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );

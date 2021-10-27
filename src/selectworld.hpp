@@ -3,8 +3,8 @@
 
 #include "prototypes.hpp"
 
-
 //Required Qt Includes.
+#include <QFileSystemModel>
 #include <QDialog>
 
 namespace Ui {
@@ -15,7 +15,8 @@ class SelectWorld : public QDialog
 {
         Q_OBJECT
 
-        QStringListModel* worldModel{ nullptr };
+        static QFileSystemModel* model;
+
         QString world{ "" };
         bool requireWorld{ false };
 

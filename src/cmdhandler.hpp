@@ -26,7 +26,8 @@ class CmdHandler : public QObject
 
         bool canUseAdminCommands(Player* admin, const GMRanks rank, const QString& cmdStr);
         void parseMix5Command(Player* plr, const QString& packet);
-        void parseMix6Command(Player* plr, const QString& packet);
+
+        static bool canParseCommand(const Player* admin, const QString& command);
         bool parseCommandImpl(Player* admin, QString& packet);
 
         bool canIssueAction(Player* admin, Player* target, const QString& arg1, const GMCmds& argIndex, const bool& all);

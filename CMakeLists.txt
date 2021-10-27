@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 2.7.9 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 2.8.0 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
