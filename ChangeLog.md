@@ -21,6 +21,14 @@ Version 2.8.0:
 
 
 
+    Ported Changes:
+      * develop_unstable, ReMix 3.0.0
+        * Reduced the complexity of the MasterMixThread class.
+        * Fixed a possible crash related to the MasterMixThread class.
+          * The crash was related to a dangling pointer to an invalid Server instance.
+
+
+
     Bugfixes:
       * Fixed a memory leak related to the WorldSelect dialog.
         * The world select dialog is only used when a World Directory has been set within the Settings.

@@ -264,8 +264,23 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
         if ( server == nullptr )
             return nullptr;
 
+        QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal,
+                          server, &Server::masterMixInfoSlot, Qt::UniqueConnection );
+
+        QObject::connect( this, &CreateInstance::getMasterMixInfoSignal,
+                          MasterMixThread::getInstance(), &MasterMixThread::getMasterMixInfoSlot, Qt::UniqueConnection );
+
+        Games gameID{ Games::Invalid };
+        if ( Helper::cmpStrings( gameName, "WoS" ) )
+            gameID = Games::WoS;
+        else if ( Helper::cmpStrings( gameName, "ToY" ) )
+            gameID = Games::ToY;
+        else if ( Helper::cmpStrings( gameName, "W97" ) )
+            gameID = Games::W97;
+
         server->setServerName( name );
         server->setGameName( gameName );
+        server->setGameId( gameID );
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );
         server->setUseUPNP( useUPNP );
@@ -275,7 +290,7 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
         else
             server->setIsPublic( isPublic, Helper::getPrivateIP().toString() );
 
-        MasterMixThread::getInstance()->getMasterMixInfo( server );
+        emit this->getMasterMixInfoSignal( gameID );
     }
     else
     {

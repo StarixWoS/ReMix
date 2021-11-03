@@ -641,18 +641,11 @@ Games Server::getGameId() const
     return gameId;
 }
 
-void Server::setGameId(const QString& gameName)
+void Server::setGameId(const Games& game)
 {
-    Games gameID{ Games::Invalid };
-    if ( Helper::cmpStrings( gameName, "WoS" ) )
-        gameID = Games::WoS;
-    else if ( Helper::cmpStrings( gameName, "ToY" ) )
-        gameID = Games::ToY;
-    else if ( Helper::cmpStrings( gameName, "W97" ) )
-        gameID = Games::W97;
-
-    gameId = gameID;
+    gameId = game;
 }
+
 
 QString Server::getGameName() const
 {
@@ -662,8 +655,6 @@ QString Server::getGameName() const
 void Server::setGameName(const QString& value)
 {
     gameName = value;
-    this->setGameId( value );
-
     Settings::setSetting( value, SKeys::Setting, SSubKeys::GameName, this->getServerName() );
 }
 
@@ -1222,6 +1213,28 @@ void Server::masterMixIPChangedSlot()
                              .arg( this->getMasterPort() );
             emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
         }
+    }
+}
+
+void Server::masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override)
+{
+    if ( game == this->getGameId() )
+    {
+        QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
+        if ( override )
+        {
+            msg= "Loaded Master Server Override [ %1:%2 ]." ;
+            msg = msg.arg( this->getMasterIP() )
+                     .arg( this->getMasterPort() );
+        }
+        else
+        {
+            msg = msg.arg( ip )
+                     .arg( port )
+                     .arg( this->getGameName() );
+        }
+        this->setMasterIP( ip, port );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
     }
 }
 

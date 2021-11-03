@@ -130,7 +130,7 @@ class Server : public QTcpServer
         void setGameWorld(const QString& value);
 
         Games getGameId() const;
-        void setGameId(const QString& gameName);
+        void setGameId(const Games& game);
 
         QString getGameName() const;
         void setGameName(const QString& value);
@@ -293,6 +293,7 @@ class Server : public QTcpServer
         void setVisibleStateSlot( const bool& state);
         void recvMasterInfoSlot();
         void setMaxPlayersSlot(const qint32& maxPlayers);
+        void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override);
 
     private slots:
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);

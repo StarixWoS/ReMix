@@ -55,6 +55,7 @@ class CreateInstance : public QDialog
         void on_useUPNP_clicked();
 
     signals:
+        void getMasterMixInfoSignal(const Games& game);
         void createServerAcceptedSignal(Server* server);
         void closeServerSignal();
         void restartServerListSignal(const QStringList& restartList);
