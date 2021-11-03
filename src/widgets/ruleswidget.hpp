@@ -47,6 +47,7 @@ class RulesWidget : public QWidget
     signals:
         void gameInfoChangedSignal(const QString& gameInfo);
         void setMaxIdleTimeSignal();
+        void setMaxPlayersSignal(const qint32& maxPlayers);
 
     public slots:
         void nameChangedSlot(const QString& name);

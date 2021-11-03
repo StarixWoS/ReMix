@@ -98,7 +98,8 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                                .arg( sGameInfo )
                                                .arg( Settings::getRuleSet( serverName ) )
                                                .arg( serverID )
-                                               .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toSecsSinceEpoch(), static_cast<int>( IntBase::HEX ), 8 ) )
+                                               .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toSecsSinceEpoch(),
+                                                                       static_cast<int>( IntBase::HEX ), 8 ) )
                                                .arg( this->getUsageString() )
                                                .arg( QString( REMIX_VERSION ) );
 
@@ -106,9 +107,9 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
 
                     QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
                             msg = msg.arg( ipAddr.toString() )
-                                  .arg( port )
-                                  .arg( Helper::serNumToIntStr( sernum, true ) )
-                                  .arg( data );
+                                     .arg( port )
+                                     .arg( Helper::serNumToIntStr( sernum, true ) )
+                                     .arg( data );
 
                     Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
 
@@ -193,7 +194,13 @@ void UdpThread::bindSocketSlot(const QHostAddress& addr, const quint16& port)
           && port != 0 )
         {
             socket->close();
-            socket->bind( addr, port );
+            while ( true )
+            {
+                if ( !socket->bind( addr, port ) )
+                    continue;
+                else
+                    break;
+            }
         }
     }
 }

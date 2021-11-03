@@ -149,9 +149,7 @@ void Player::setSernum_i(qint32 value)
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
 
-        quint64 muteDuration{ 0 };
-        muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
-
+        quint64 muteDuration{ User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s ) };
         if ( muteDuration == 0 )
             muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP, sernumHex_s );
 
@@ -280,16 +278,6 @@ QByteArray Player::getOutBuff() const
 void Player::setOutBuff(const QByteArray& value)
 {
     outBuff = value;
-}
-
-int Player::getSlotPos() const
-{
-    return slotPos;
-}
-
-void Player::setSlotPos(const int& value)
-{
-    slotPos = value;
 }
 
 qint32 Player::getPktHeaderExemptCount() const

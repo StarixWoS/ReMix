@@ -50,10 +50,8 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
 
     //Initialize the PlrListWidget.
     PlrListWidget* plrList{ PlrListWidget::getInstance( this, server ) };
-    QObject::connect( this, &ReMixWidget::fwdUpdatePlrViewSignal, plrList, &PlrListWidget::updatePlrViewSlot );
     QObject::connect( this, &ReMixWidget::plrViewInsertRowSignal, plrList, &PlrListWidget::plrViewInsertRowSlot );
     QObject::connect( this, &ReMixWidget::plrViewRemoveRowSignal, plrList, &PlrListWidget::plrViewRemoveRowSlot );
-    QObject::connect( plrList, &PlrListWidget::insertedRowItemSignal, this, &ReMixWidget::insertedRowItemSlot );
 
     //Fill the ReMix UI with the PlrListWidget.
     ui->plrListFill->setLayout( plrList->layout() );
@@ -175,9 +173,7 @@ ReMixWidget::~ReMixWidget()
     MOTDWidget::deleteInstance( server );
     ChatView::deleteInstance( server );
 
-    server->disconnect();
     server->deleteLater();
-
     delete ui;
 }
 
@@ -460,11 +456,14 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     if ( plr == nullptr )
         plr = server->createPlayer( socketDescriptor );
 
+    if ( plr == nullptr )
+        return;
+
     //Set the Player's reference to the Server class.
     plr->setServer( server );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
 
-    QObject::connect( plr, &Player::updatePlrViewSignal, this, &ReMixWidget::fwdUpdatePlrViewSlot, Qt::UniqueConnection );
+    QObject::connect( plr, &Player::updatePlrViewSignal, PlrListWidget::getInstance( this, server ), &PlrListWidget::updatePlrViewSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
     //Using a lambda to safely access the Plr Object within the Slot.
@@ -495,9 +494,7 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr, const bool& timedOut)
     if ( plr == nullptr )
         return;
 
-    QStandardItem* item{ plrTableItems.take( plr->socketDescriptor() ) };
-    if ( item != nullptr )
-        emit this->plrViewRemoveRowSignal( item );
+    emit this->plrViewRemoveRowSignal( plr );
 
     plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
     server->deletePlayer( plr, timedOut );
@@ -518,11 +515,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     }
 
     plr->setBioData( data );
-    qintptr peerSoc{ plr->socketDescriptor() };
-    if ( !plrTableItems.contains( peerSoc ) )
-        emit this->plrViewInsertRowSignal( peerSoc, data );
-    else
-        this->insertedRowItemSlot( plrTableItems.value( peerSoc, nullptr ), peerSoc, data );
+    emit this->plrViewInsertRowSignal( plr, plr->getIPPortAddress(), data );
 
     server->getPktHandle()->checkBannedInfo( plr );
 
@@ -533,57 +526,9 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
 }
 
-qintptr ReMixWidget::getPeerFromQItem(QStandardItem* item) const
-{
-    return plrTableItems.key( item );
-}
-
 bool ReMixWidget::getCensorUIIPInfo() const
 {
     return censorUIIPInfo;
-}
-
-void ReMixWidget::fwdUpdatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
-{
-    if ( plr != nullptr )
-    {
-        QStandardItem* object{ plrTableItems.value( plr->socketDescriptor(), nullptr ) };
-        if ( object != nullptr )
-            emit this->fwdUpdatePlrViewSignal( object, column, data, role, isColor );
-    }
-}
-
-void ReMixWidget::insertedRowItemSlot(QStandardItem* item, const qintptr& peer, const QByteArray& data)
-{
-    Player* plr{ server->getPlayer( peer ) };
-    if ( item != nullptr )
-    {
-        if ( plrTableItems.value( plr->socketDescriptor(), nullptr ) == nullptr )
-            plrTableItems[ plr->socketDescriptor() ] = item;
-    }
-
-    if ( plr != nullptr )
-    {
-        QString bio{ QString( data ) };
-        QString ip{ plr->getIPAddress() % ":%1" };
-                ip = ip.arg( plr->peerPort() );
-
-        this->fwdUpdatePlrViewSlot( plr, 0, ip, Qt::DisplayRole, false );
-
-        if ( !bio.isEmpty() )
-        {
-            QString sernum{ Helper::getStrStr( bio, "sernum", "=", "," ) };
-            QString alias{ Helper::getStrStr( bio, "alias", "=", "," ) };
-            QString age{ Helper::getStrStr( bio, "HHMM", "=", "," ) };
-
-            User::updateCallCount( Helper::serNumToHexStr( sernum ) );
-
-            this->fwdUpdatePlrViewSlot( plr, 1, sernum, Qt::DisplayRole, false );
-            this->fwdUpdatePlrViewSlot( plr, 2, age, Qt::DisplayRole, false );
-            this->fwdUpdatePlrViewSlot( plr, 3, alias, Qt::DisplayRole, false );
-            this->fwdUpdatePlrViewSlot( plr, 7, bio, Qt::DisplayRole, false );
-        }
-    }
 }
 
 void ReMixWidget::censorUIIPInfoSlot(const bool& state)

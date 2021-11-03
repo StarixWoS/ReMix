@@ -154,12 +154,20 @@ Server::Server(QWidget* parent)
 
 Server::~Server()
 {
-    QThread* thread{ udpThread->thread() };
-    emit this->closeUdpSocketSignal();
-    if ( thread != nullptr )
+    if ( udpThread != nullptr )
     {
-        thread->deleteLater();
-        thread->exit();
+        QThread* thread{ udpThread->thread() };
+        emit this->closeUdpSocketSignal();
+        if ( thread != nullptr )
+        {
+            thread->exit();
+            thread->deleteLater();
+        }
+
+        udpThread->exit();
+        udpThread->deleteLater();
+
+        thread = nullptr;
     }
 
     for ( Player* plr : this->getPlayerVector() )
@@ -169,8 +177,6 @@ Server::~Server()
     }
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
-
-    thread = nullptr;
 }
 
 void Server::incomingConnection(qintptr socketDescriptor)
@@ -226,7 +232,7 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
 
     //Hide any Userlist pings from the LogView if no Player's are found.
     bool emptyResponse{ true };
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ) && response.length() < 800; ++i )
+    for ( int i = 0; i < this->getMaxPlayerCount() && response.length() < 800; ++i )
     {
         const Player* plr = this->getPlayer( i );
         if ( plr != nullptr
@@ -242,7 +248,7 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
                 else if ( type == UserListResponse::R_Response ) //Non-Standard 'R' Response
                 {
                     response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) )
-                                        .arg( Helper::intToStr( plr->getSlotPos(), static_cast<int>( IntBase::HEX ), 8 ) );
+                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), static_cast<int>( IntBase::HEX ), 8 ) );
                 }
             }
             emptyResponse = false;
@@ -321,13 +327,12 @@ void Server::sendMasterInfo(const bool& disconnect)
 Player* Server::createPlayer(qintptr socketDescriptor)
 {
     int slot{ this->getEmptySlot() };
-    if ( slot >= 0 && slot < static_cast<int>( Globals::MAX_PLAYERS ) )
+    if ( slot >= 0 && slot < this->getMaxPlayerCount() )
     {
         Player* plr{ new Player( socketDescriptor ) };
         if ( plr != nullptr )
         {
-            players[ slot ] = plr;
-            plr->setSlotPos( slot );
+            players.insert( slot, plr );
             plr->setMaxIdleTimeSlot( this->getMaxIdleTime() );
 
             this->setPlayerCount( this->getPlayerCount() + 1 );
@@ -413,16 +418,23 @@ Player* Server::getPlayer(const QString& hexSerNum)
     return nullptr;
 }
 
-int Server::getSocketSlot(qintptr socketDescriptor)
+qint32 Server::getPlayerSlot(const Player* plr)
+{
+    return players.indexOf( plr );
+}
+
+int Server::getSocketSlot(const qintptr& socketDescriptor)
 {
     int slot{ -1 };
     for ( Player* plr : this->getPlayerVector() )
     {
-        if ( plr != nullptr
-          && plr->socketDescriptor() == socketDescriptor )
+        if ( plr != nullptr )
         {
-            slot = plr->getSlotPos();
-            break;
+            if ( plr->socketDescriptor() == socketDescriptor )
+            {
+                slot = this->getPlayerSlot( plr );
+                break;
+            }
         }
     }
     return slot;
@@ -433,8 +445,6 @@ void Server::deletePlayer(Player* plr, const bool& timedOut)
     Player* player{ plr };
     if ( player == nullptr )
         return;
-
-    int slot{ player->getSlotPos() };
 
     QString timeOut{ "" };
     if ( timedOut == true )
@@ -454,11 +464,11 @@ void Server::deletePlayer(Player* plr, const bool& timedOut)
                            .arg( player->getBioData() );
 
     plrSlotMap.remove( player->getPktHeaderSlot() );
+    players.removeOne( player );
+
     player->disconnect();
     player->deleteLater();
     player = nullptr;
-
-    players[ slot ] = nullptr;
 
     this->setPlayerCount( this->getPlayerCount() - 1 );
     emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
@@ -521,7 +531,7 @@ void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
     if ( this->getGameId() == Games::W97 )  //Warpath must start at slot 0.
         slot = 0;
 
-    for ( int i = slot; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = slot; i < this->getMaxPlayerCount(); ++i )
     {
         const Player* tmpPlr = plrSlotMap.value( i, nullptr );
         if ( tmpPlr == nullptr )
@@ -786,6 +796,16 @@ void Server::setServerID(const QString& value)
         serverID = value;
         emit this->serverIDChangedSignal( serverID );
     }
+}
+
+qint32 Server::getMaxPlayerCount() const
+{
+    return maxPlayerCount;
+}
+
+void Server::setMaxPlayerCount(const qint32& value)
+{
+    maxPlayerCount = value;
 }
 
 quint32 Server::getPlayerCount() const
@@ -1245,7 +1265,7 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
 {
     //Check if the IP Address is a properly connected User. Or at least is in the User list...
     bool connected{ false };
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = 0; i < this->getMaxPlayerCount(); ++i )
     {
         const Player* tmpPlr = this->getPlayer( i );
         if ( tmpPlr != nullptr )
@@ -1319,6 +1339,15 @@ void Server::setVisibleStateSlot(const bool& state)
 void Server::recvMasterInfoSlot()
 {
     this->startMasterCheckIn();
+}
+
+void Server::setMaxPlayersSlot(const qint32& maxPlayers)
+{
+    //Ensure all possible User slots are fillable.
+    this->setMaxPendingConnections( maxPlayers );
+    players.resize( maxPlayers );
+
+    this->setMaxPlayerCount( maxPlayers );
 }
 
 void Server::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)

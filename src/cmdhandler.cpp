@@ -161,7 +161,7 @@ void CmdHandler::parseMix5Command(Player* plr, const QString& packet)
                 message = message.arg( user )
                                  .arg( plr->getSernum_s() )
                                  .arg( msg );
-                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
                     Player* tmpPlr{ server->getPlayer( i ) };
                     if ( tmpPlr != nullptr
@@ -322,7 +322,7 @@ bool CmdHandler::parseCommandImpl(Player* admin, QString& packet)
                     qint32 adminCount{ 0 };
                     QString tmpMsg{ "Server Info: Up Time [ %1 ], Connected Users [ %2 ], Connected Admins [ %3 ]." };
 
-                    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                     {
                         Player* tmpPlr{ server->getPlayer( i ) };
                         if ( tmpPlr != nullptr )
@@ -642,7 +642,7 @@ void CmdHandler::banHandler(Player* admin, const QString& arg1, const QString& d
     Player* tmpPlr{ nullptr };
     bool ban{ false };
 
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
     {
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
@@ -719,7 +719,7 @@ void CmdHandler::kickHandler(Player* admin, const QString& arg1, const GMCmds& a
     reason = reason.arg( admin->getSernum_s() )
                    .arg( message );
 
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
     {
         Player* tmpPlr{ server->getPlayer( i ) };
         if ( tmpPlr != nullptr )
@@ -754,7 +754,7 @@ void CmdHandler::muteHandler(Player* admin, const QString& arg1, const QString& 
     Player* tmpPlr{ nullptr };
     bool mute{ false };
 
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
     {
         tmpPlr = server->getPlayer( i );
         if ( tmpPlr != nullptr )
@@ -818,7 +818,7 @@ void CmdHandler::unMuteHandler(Player* admin, const QString& subCmd, const QStri
     const bool isSernum{ Helper::cmpStrings( subCmd, "soul" ) };
     const bool isIP{ Helper::cmpStrings( subCmd, "ip" ) };
 
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
     {
         Player* tmpPlr{ server->getPlayer( i ) };
 
@@ -846,7 +846,7 @@ void CmdHandler::msgHandler(const QString& arg1, const QString& message, const b
     {
         if ( !all )
         {
-            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+            for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
             {
                 Player* tmpPlr{ server->getPlayer( i ) };
                 if ( tmpPlr != nullptr )
@@ -918,7 +918,7 @@ void CmdHandler::loginHandler(Player* admin, const QString& subCmd)
             if ( Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
             {
 
-                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
                     Player* tmpPlr{ server->getPlayer( i ) };
                     if ( tmpPlr != nullptr )
@@ -1006,7 +1006,7 @@ void CmdHandler::registerHandler(Player* admin, const QString& subCmd)
         QString registerStr{ "User [ %1 ] Registered as a Remote Administrator with the server." };
                 registerStr = registerStr.arg( admin->getSernum_s() );
 
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             Player* tmpPlr{ server->getPlayer( i ) };
             if ( tmpPlr != nullptr )
@@ -1176,7 +1176,7 @@ void CmdHandler::campHandler(Player* admin, const QString& serNum, const QString
     if ( soulSubCmd
       && !serNum.isEmpty() )
     {
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr )

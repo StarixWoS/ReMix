@@ -126,9 +126,6 @@ class Player : public QTcpSocket
         QByteArray getOutBuff() const;
         void setOutBuff(const QByteArray& value);
 
-        int getSlotPos() const;
-        void setSlotPos(const int& value);
-
         qint32 getPktHeaderSlot() const;
         void setPktHeaderSlot(const qint32& value);
 

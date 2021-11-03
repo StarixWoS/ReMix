@@ -41,6 +41,7 @@ class Server : public QTcpServer
     qint32 usageDays{ 0 };
     qint32 usageMins{ 0 };
 
+    qint32 maxPlayerCount{ static_cast<qint32>( Globals::MAX_PLAYERS ) };
     quint32 playerCount{ 0 };
     QString serverID{ "" };
 
@@ -108,11 +109,12 @@ class Server : public QTcpServer
         Player* getPlayer(const int& slot);
         Player* getPlayer(const qintptr& socketDescriptor);
         Player* getPlayer(const QString& hexSerNum);
+        qint32 getPlayerSlot( const Player* plr);
         void deletePlayer(Player* plr, const bool& timedOut = false);
 
         Player* getLastPlayerInStorage(Player* plr);
         int getEmptySlot();
-        int getSocketSlot(qintptr socketDescriptor);
+        int getSocketSlot(const qintptr& socketDescriptor);
 
         void sendPlayerSocketInfo();
         void sendPlayerSocketPosition(Player* plr, const bool& forceIssue);
@@ -251,6 +253,9 @@ class Server : public QTcpServer
         bool getUpnpTimedOut() const;
         void setUpnpTimedOut(bool newUpnpTimedOut);
 
+        qint32 getMaxPlayerCount() const;
+        void setMaxPlayerCount(const qint32& value);
+
     private:
         const inline QVector<Player*> getPlayerVector() const{ return players; }
 
@@ -287,6 +292,7 @@ class Server : public QTcpServer
         void ipDCIncreaseSlot(const DCTypes& type);
         void setVisibleStateSlot( const bool& state);
         void recvMasterInfoSlot();
+        void setMaxPlayersSlot(const qint32& maxPlayers);
 
     private slots:
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);

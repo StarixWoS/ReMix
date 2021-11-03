@@ -38,10 +38,12 @@ RulesWidget* RulesWidget::getInstance(Server* server)
         if ( widget != nullptr )
         {
             ruleWidgets.insert( server, widget );
-            widget->setServerName( server->getServerName() );
             QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server, &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
             QObject::connect( widget, &RulesWidget::gameInfoChangedSignal, server, &Server::gameInfoChangedSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::setMaxPlayersSignal, server, &Server::setMaxPlayersSlot, Qt::UniqueConnection );
             QObject::connect( server, &Server::serverNameChangedSignal, widget, &RulesWidget::nameChangedSlot, Qt::UniqueConnection );
+
+            widget->setServerName( server->getServerName() );
         }
     }
     return widget;
@@ -91,6 +93,8 @@ void RulesWidget::setServerName(const QString& name)
 
     if ( !val.isValid() )
         val = static_cast<quint32>( Globals::MAX_PLAYERS );
+
+    emit this->setMaxPlayersSignal( val.toInt() );
 
     ui->rulesView->item( static_cast<int>( RToggles::MaxPlayers ), 0 )->setText( rowText.arg( Helper::intToStr( val.toUInt() ) ) );
 
@@ -344,7 +348,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case RToggles::MaxPlayers:
             {
-                quint32 maxPlrs{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ).toUInt() };
+                qint32 maxPlrs{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, serverName ).toInt() };
                 bool ok{ false };
 
                 if (( maxPlrs == 0 )
@@ -371,10 +375,16 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 
                 rowText = "Max Players: [ %1 ]";
                 if ( maxPlrs > 0 )
+                {
                     rowText = rowText.arg( maxPlrs );
+                }
                 else
-                    rowText = rowText.arg( static_cast<int>( Globals::MAX_PLAYERS ) );
+                {
+                    maxPlrs = static_cast<int>( Globals::MAX_PLAYERS );
+                    rowText = rowText.arg( maxPlrs );
+                }
 
+                emit this->setMaxPlayersSignal( maxPlrs );
                 ui->rulesView->item( row, 0 )->setText( rowText );
             }
         break;

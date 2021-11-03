@@ -272,7 +272,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     //Send Camp packets to the newly connecting User.
                     if ( server->getGameId() == Games::WoS )
                     {
-                        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                         {
                             Player* tmpPlr{ server->getPlayer( i ) };
                             if ( tmpPlr != nullptr
@@ -284,7 +284,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                                       || plr->getSceneHost() <= 0 )
                                     {
                                         if ( !tmpPlr->getCampPacket().isEmpty()
-                                             && tmpPlr->getTargetType() == PktTarget::ALL )
+                                          && tmpPlr->getTargetType() == PktTarget::ALL )
                                         {
                                             tmpPlr->setTargetSerNum( plr->getSernum_i() );
                                             tmpPlr->setTargetType( PktTarget::PLAYER );
@@ -295,7 +295,6 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                             }
                         }
                     }
-
                 }
             }
             else if ( server->getGameId() == Games::WoS )
@@ -400,7 +399,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     case 'J':
                         {
                             Player* tmpPlr{ nullptr };
-                            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                            for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                             {
                                 tmpPlr = server->getPlayer( i );
                                 if ( tmpPlr != nullptr )
@@ -507,7 +506,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //Disconnect and ban duplicate IP's if required.
     if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() )
     {
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( tmpPlr != nullptr
@@ -562,7 +561,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     //Disconnect only the newly connected Player.
     if ( plr != nullptr )
     {
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             tmpPlr = server->getPlayer( i );
             if ( ( tmpPlr != nullptr )
@@ -821,7 +820,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
 
             if ( mode == SSVModes::Write )
             {
-                for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
                     Player* tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr

@@ -37,8 +37,6 @@ class ReMixWidget : public QWidget
         quint32 getPlayerCount() const;
         QString getServerName() const;
 
-        qintptr getPeerFromQItem(QStandardItem* item) const;
-
         bool getCensorUIIPInfo() const;
 
     private:
@@ -64,16 +62,13 @@ class ReMixWidget : public QWidget
         void updatePlayerTable(Player* plr);
 
     public slots:
-        void fwdUpdatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
-        void insertedRowItemSlot(QStandardItem* item, const qintptr& peer, const QByteArray& data);
         void censorUIIPInfoSlot(const bool& state);
 
     signals:
         void reValidateServerIPSignal(const QString& interfaceIP = "");
         void crossServerCommentSignal(Server* server, const QString& comment);
-        void fwdUpdatePlrViewSignal(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
-        void plrViewInsertRowSignal(const qintptr& peer, const QByteArray& data);
-        void plrViewRemoveRowSignal(QStandardItem* object);
+        void plrViewInsertRowSignal(Player* plr, const QString& ipPortStr, const QByteArray& data);
+        void plrViewRemoveRowSignal(Player* plr);
 
     private:
         Ui::ReMixWidget* ui;

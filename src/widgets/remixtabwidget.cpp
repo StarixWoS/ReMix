@@ -265,7 +265,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     if ( tabWidget == nullptr )
         return;
 
-    ReMixWidget* instance{ serverMap.value( index ) };
+    ReMixWidget* instance{ serverMap.value( index, nullptr ) };
     if ( instance == nullptr )
         return;
 

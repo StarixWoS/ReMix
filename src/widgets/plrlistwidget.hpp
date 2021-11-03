@@ -16,6 +16,7 @@ class PlrListWidget : public QWidget
     Q_OBJECT
 
     static QHash<Server*, PlrListWidget*> plrViewInstanceMap;
+    QHash<Player*, QStandardItem*> plrTableItems;
 
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
@@ -45,12 +46,13 @@ class PlrListWidget : public QWidget
         bool getCensorUIIPInfo() const;
 
     private:
+        void updatePlrView(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor);
         void initContextMenu();
 
     public slots:
-        void updatePlrViewSlot(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
-        void plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data);
-        void plrViewRemoveRowSlot(QStandardItem* object);
+        void updatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor);
+        void plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, const QByteArray& data);
+        void plrViewRemoveRowSlot(Player* plr);
         void censorUIIPInfoSlot(const bool& state);
 
     private slots:
@@ -60,12 +62,10 @@ class PlrListWidget : public QWidget
         void on_actionMuteNetwork_triggered();
         void on_actionDisconnectUser_triggered();
         void on_actionBANISHUser_triggered();
-
         void selectRowSlot(const qint32& row);
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
-        void insertedRowItemSignal(QStandardItem* item, const qintptr& peer, const QByteArray& data);
 
     private:
         Ui::PlrListWidget* ui;

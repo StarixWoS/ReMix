@@ -15,6 +15,8 @@ Version 2.8.0:
         * The currently supported syntaxes are now: [ `command ] and [ /command ].
           * [ /command ] can only be used within the WoS[ /admin ] dialog.
           * [ `command ] can be used via normal chat in all game types, and within the WoS[ /admin ] dialog.
+      * The Max Player rule is now correctly enforced.
+      * Reduced the complexity of Inserting and Updating data within the PlayerView widget.
       
 
 

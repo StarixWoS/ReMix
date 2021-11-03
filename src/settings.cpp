@@ -281,7 +281,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, cons
     QString path{ "%1/%2/%3" };
             path = path.arg( childSubKey.toString() )
                        .arg( Settings::pKeys[ static_cast<int>( key ) ] )
-                       .arg( sKeys[ static_cast<int>( subKey ) ] );
+                       .arg( Settings::sKeys[ static_cast<int>( subKey ) ] );
     return path;
 }
 
@@ -290,7 +290,7 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
     QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
-                       .arg( sKeys[ static_cast<int>( subKey ) ] );
+                       .arg( Settings::sKeys[ static_cast<int>( subKey ) ] );
     return path;
 }
 
@@ -304,7 +304,7 @@ QString Settings::makeSettingPath(const SKeys& key, const Themes& theme, const C
     QString path{ "%1/%2/%3" };
             path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
                        .arg( themeStr )
-                       .arg( cKeys[ static_cast<int>( subKey ) ] );
+                       .arg( Settings::cKeys[ static_cast<int>( subKey ) ] );
     return path;
 }
 

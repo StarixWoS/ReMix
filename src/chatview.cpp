@@ -215,7 +215,7 @@ bool ChatView::parseChatEffect(const QString& packet)
         {
             QString plrName{ "Unincarnated [ %1 ]" };
 
-            for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+            for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
             {
                 plr = server->getPlayer( i );
                 if ( plr != nullptr )
@@ -305,12 +305,12 @@ bool ChatView::parseChatEffect(const QString& packet)
     else
     {
         qint32 plrSlot{ Helper::strToInt( packet.left( 6 ).mid( 4 ) ) };
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_PLAYERS ); ++i )
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             plr = server->getPlayer( i );
             if ( plr != nullptr )
             {
-                if ( plr->getSlotPos() == plrSlot )
+                if ( server->getPlayerSlot( plr ) == plrSlot )
                 {
                     if ( plr->getIsGoldenSerNum() )
                         serNumColor = Colors::GoldenSoul;
@@ -500,7 +500,6 @@ void ChatView::on_autoScrollCheckBox_toggled(bool checked)
     Settings::setSetting( checked, SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() );
     ui->autoScrollCheckBox->setChecked( checked );
 }
-
 
 void ChatView::on_clearChat_clicked()
 {

@@ -163,7 +163,14 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
-void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
+void PlrListWidget::updatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
+{
+    QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
+    if ( item != nullptr )
+        this->updatePlrView( item, column, data, role, isColor );
+}
+
+void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
     if ( object != nullptr )
     {
@@ -187,20 +194,42 @@ void PlrListWidget::updatePlrViewSlot(QStandardItem* object, const qint32& colum
     ui->playerView->resizeColumnToContents( column );
 }
 
-void PlrListWidget::plrViewInsertRowSlot(const qintptr& peer, const QByteArray& data)
+void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, const QByteArray& data)
 {
-    int row{ plrModel->rowCount() };
+    QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
+    if ( item == nullptr )
+    {
+        item = new QStandardItem();
 
-    QStandardItem* item{ new QStandardItem() };
-    plrModel->insertRow( row, item );
+        if ( plrTableItems.value( plr, nullptr ) == nullptr )
+            plrTableItems[ plr ] = item;
 
-    emit this->insertedRowItemSignal( item, peer, data );
+        int row{ plrModel->rowCount() };
+        plrModel->insertRow( row, item );
+    }
+
+    this->updatePlrView( item, 0, ipPortStr, Qt::DisplayRole, false );
+
+    if ( !data.isEmpty() )
+    {
+        const QString sernum{ Helper::getStrStr( data, "sernum", "=", "," ) };
+        User::updateCallCount( Helper::serNumToHexStr( sernum ) );
+
+        this->updatePlrView( item, 1, sernum, Qt::DisplayRole, false );
+        this->updatePlrView( item, 2, Helper::getStrStr( data, "HHMM", "=", "," ), Qt::DisplayRole, false );
+        this->updatePlrView( item, 3, Helper::getStrStr( data, "alias", "=", "," ), Qt::DisplayRole, false );
+        this->updatePlrView( item, 7, data, Qt::DisplayRole, false );
+    }
 }
 
-void PlrListWidget::plrViewRemoveRowSlot(QStandardItem* object)
+void PlrListWidget::plrViewRemoveRowSlot(Player* plr)
 {
-    if ( object != nullptr )
-        plrModel->removeRow( object->row() );
+    QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
+     if ( item != nullptr )
+     {
+        plrModel->removeRow( item->row() );
+        plrTableItems.remove( plr );
+     }
 }
 
 void PlrListWidget::censorUIIPInfoSlot(const bool& state)
@@ -216,18 +245,16 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
     if ( menuIndex.row() >= 0
       && remixWidget != nullptr )
     {
-        Player* plr{ server->getPlayer( remixWidget->getPeerFromQItem( plrModel->item( menuIndex.row(), 0 ) ) ) };
+        Player* plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
         if ( plr != nullptr )
-            menuTarget = plr;
-
-        if ( menuTarget != nullptr )
         {
-            if ( menuTarget->getIsMuted() )
+            menuTarget = plr;
+            if ( plr->getIsMuted() )
                 ui->actionMuteNetwork->setText( "Un-Mute Network" );
             else
                 ui->actionMuteNetwork->setText( "Mute Network" );
 
-            if ( menuTarget->getIsAdmin() )
+            if ( plr->getIsAdmin() )
                 ui->actionMakeAdmin->setText( "Change Admin" );
             else
                 ui->actionMakeAdmin->setText( "Make Admin" );
