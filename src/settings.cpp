@@ -213,7 +213,7 @@ void Settings::setInstance(Settings* value)
     instance = value;
 }
 
-void Settings::updateTabBar(Server* server)
+void Settings::updateTabBar(QSharedPointer<Server> server)
 {
     qint32 index{ tabWidget->currentIndex() };
 
@@ -228,7 +228,7 @@ void Settings::updateTabBar(Server* server)
     tabWidget->setCurrentIndex( index );
 }
 
-void Settings::copyServerSettings(Server* server, const QString& newName)
+void Settings::copyServerSettings(QSharedPointer<Server> server, const QString& newName)
 {
     QString oldName{ server->getServerName() };
     if ( oldName != newName )

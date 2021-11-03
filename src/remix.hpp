@@ -36,7 +36,7 @@ class ReMix : public QMainWindow
         ~ReMix() override;
 
         static ReMix* getInstance();
-        static void updateTitleBars(Server* server);
+        static void updateTitleBars(QSharedPointer<Server> server);
 
     public slots:
         void quitSlot();

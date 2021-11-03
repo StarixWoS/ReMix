@@ -4,7 +4,6 @@
 #include "ui_remixwidget.h"
 
 //ReMix Widget includes.
-#include "thread/mastermixthread.hpp"
 #include "widgets/settingswidget.hpp"
 #include "widgets/plrlistwidget.hpp"
 #include "widgets/ruleswidget.hpp"
@@ -13,6 +12,7 @@
 //ReMix includes.
 #include "remixtabwidget.hpp"
 #include "packethandler.hpp"
+#include "cmdhandler.hpp"
 #include "chatview.hpp"
 #include "settings.hpp"
 #include "randdev.hpp"
@@ -27,19 +27,15 @@
 #include <QNetworkInterface>
 #include <QMenu>
 
-ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
+ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     QWidget(parent),
+    server( svrInfo ),
     ui(new Ui::ReMixWidget)
 {
     ui->setupUi( this );
-    server = svrInfo;
 
     censorUIIPInfo = Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool();
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::censorUIIPInfoSignal, this, &ReMixWidget::censorUIIPInfoSlot );
-
-    //Initialize the MasterMixThread Object.
-    masterMixThread = new QThread();
-    masterMixThread->moveToThread( MasterMixThread::getInstance() );
 
     //Setup Objects.
     motdWidget = MOTDWidget::getInstance( server );
@@ -63,8 +59,10 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     ui->openChatView->setText( "Hide Chat View" );
 
     //Connect Object Signals to Slots.
-    QObject::connect( server, &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
-    QObject::connect( server->getPktHandle(), &PacketHandler::newUserCommentSignal, ChatView::getInstance( server ), &ChatView::newUserCommentSlot );
+    QObject::connect( server.get(), &Server::plrConnectedSignal, this, &ReMixWidget::plrConnectedSlot );
+    QObject::connect( PacketHandler::getInstance( server ), &PacketHandler::newUserCommentSignal,
+                      ChatView::getInstance( server ), &ChatView::newUserCommentSlot );
+
     QObject::connect( ChatView::getInstance( server ), &ChatView::newUserCommentSignal, this,
     [=, this](const QString& comment)
     {
@@ -72,7 +70,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     });
 
     QObject::connect( ReMixTabWidget::getInstance(), &ReMixTabWidget::crossServerCommentSignal, this,
-    [=, this](Server* serverObj, const QString& comment)
+    [=, this](QSharedPointer<Server> serverObj, const QString& comment)
     {
         if ( server != serverObj
           && Settings::getSetting( SKeys::Setting, SSubKeys::EchoComments ).toBool() )
@@ -80,11 +78,11 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
             QString message{ "Comment from Server [ %1 ]: %2" };
                     message = message.arg( serverObj->getServerName() )
                                      .arg( comment );
-            server->sendMasterMessageToAdmins( message, nullptr );
+            server->sendMasterMessageToAdmins( message );
         }
     });
 
-    QObject::connect( server, &Server::initializeServerSignal, this, &ReMixWidget::initializeServerSlot );
+    QObject::connect( server.get(), &Server::initializeServerSignal, this, &ReMixWidget::initializeServerSlot );
 
     QObject::connect( this, &ReMixWidget::reValidateServerIPSignal, this,
     [=, this](const QString& interfaceIP)
@@ -101,7 +99,7 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
     } );
 
     QObject::connect( ChatView::getInstance( server ), &ChatView::sendChatSignal, this,
-    [=, this](QString msg)
+    [=, this](const QString& msg)
     {
         if ( !msg.isEmpty() )
             server->sendMasterMessage( msg, nullptr, true );
@@ -150,34 +148,33 @@ ReMixWidget::ReMixWidget(QWidget* parent, Server* svrInfo) :
 
     //Create Timer Lambda to update our UI.
     this->initUIUpdate();
-
-    //Start the MasterMix Thread.
-    masterMixThread->start();
 }
 
 ReMixWidget::~ReMixWidget()
 {
+    QObject::disconnect( this );
+    this->disconnect( this );
+
     server->sendMasterInfo( true );
 
     if ( ui->useUPNP->isChecked() )
         server->setupUPNP( false );
 
-    //Disconnect and Delete Objects.
-    masterMixThread->exit();
-    masterMixThread->disconnect();
-    masterMixThread->deleteLater();
-
     PlrListWidget::deleteInstance( server );
     PacketHandler::deleteInstance( server );
     RulesWidget::deleteInstance( server );
+    CmdHandler::deleteInstance( server );
     MOTDWidget::deleteInstance( server );
     ChatView::deleteInstance( server );
 
-    server->deleteLater();
+    server.get()->disconnect();
+//    server->deleteLater();
+    server = nullptr;
+
     delete ui;
 }
 
-Server* ReMixWidget::getServer() const
+QSharedPointer<Server> ReMixWidget::getServer() const
 {
     return server;
 }
@@ -213,7 +210,7 @@ QString ReMixWidget::getServerName() const
 void ReMixWidget::initUIUpdate()
 {
     //Create and Connect Lamda Objects
-    QObject::connect( server->getUpTimer(), &QTimer::timeout, server->getUpTimer(),
+    QObject::connect( server.get(), &Server::connectionTimeUpdateSignal, this,
     [=, this]()
     {
         ui->onlineTime->setText( Helper::getTimeFormat( server->getUpTime() ) );
@@ -452,44 +449,44 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
 {
     server->setUserCalls( server->getUserCalls() + 1 );
 
-    Player* plr{ server->getPlayer( socketDescriptor ) };
+    QSharedPointer<Player> plr{ server->getPlayer( socketDescriptor ) };
     if ( plr == nullptr )
-        plr = server->createPlayer( socketDescriptor );
+    {
+        plr = server->createPlayer( socketDescriptor, server );
+        QObject::connect( PacketHandler::getInstance( server ), &PacketHandler::sendPacketToPlayerSignal, plr.get(), &Player::sendPacketToPlayerSlot );
+    }
 
     if ( plr == nullptr )
         return;
 
-    //Set the Player's reference to the Server class.
-    plr->setServer( server );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
 
-    QObject::connect( plr, &Player::updatePlrViewSignal, PlrListWidget::getInstance( this, server ), &PlrListWidget::updatePlrViewSlot );
+    QObject::connect( plr.get(), &Player::updatePlrViewSignal, PlrListWidget::getInstance( this, server ), &PlrListWidget::updatePlrViewSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
     //Using a lambda to safely access the Plr Object within the Slot.
-    QObject::connect( plr, &Player::disconnected, plr,
+    QObject::connect( plr.get(), &Player::disconnected, plr.get(),
     [=, this]()
     {
         this->plrDisconnectedSlot( plr, false );
     }, Qt::UniqueConnection );
 
-    QObject::connect( plr, &Player::errorOccurred, this, [=, this](QAbstractSocket::SocketError socketError)
+    QObject::connect( plr.get(), &Player::errorOccurred, this,
+    [=, this](QAbstractSocket::SocketError socketError)
     {
-        if ( QAbstractSocket::RemoteHostClosedError == socketError )
-            this->plrDisconnectedSlot( plr, false );
-        else if ( QAbstractSocket::SocketTimeoutError == socketError )
+        if ( QAbstractSocket::SocketTimeoutError == socketError )
             this->plrDisconnectedSlot( plr, true );
 
     }, Qt::UniqueConnection );
 
-    QObject::connect( plr, &Player::parsePacketSignal, server->getPktHandle(), &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
+    QObject::connect( plr.get(), &Player::parsePacketSignal, PacketHandler::getInstance( server ),&PacketHandler::parsePacketSlot, Qt::UniqueConnection );
 
     server->sendServerGreeting( plr );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
     this->updatePlayerTable( plr );
 }
 
-void ReMixWidget::plrDisconnectedSlot(Player* plr, const bool& timedOut)
+void ReMixWidget::plrDisconnectedSlot(QSharedPointer<Player> plr, const bool& timedOut)
 {
     if ( plr == nullptr )
         return;
@@ -497,10 +494,10 @@ void ReMixWidget::plrDisconnectedSlot(Player* plr, const bool& timedOut)
     emit this->plrViewRemoveRowSignal( plr );
 
     plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
-    server->deletePlayer( plr, timedOut );
+    server->deletePlayer( plr, false, timedOut );
 }
 
-void ReMixWidget::updatePlayerTable(Player* plr)
+void ReMixWidget::updatePlayerTable(QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -517,7 +514,7 @@ void ReMixWidget::updatePlayerTable(Player* plr)
     plr->setBioData( data );
     emit this->plrViewInsertRowSignal( plr, plr->getIPPortAddress(), data );
 
-    server->getPktHandle()->checkBannedInfo( plr );
+    PacketHandler::getInstance( server )->checkBannedInfo( plr );
 
     QString logMsg{ "Client: [ %1: ] connected with BIO [ %2 ]" };
             logMsg = logMsg.arg( plr->getIPAddress() )

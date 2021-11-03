@@ -169,10 +169,9 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->netInterface->currentText(),
-                                                         ui->portNumber->text( ).toUShort(), ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
-
-                emit this->createServerAcceptedSignal( server );
+                emit this->createServerAcceptedSignal(
+                            this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->netInterface->currentText(),
+                                                    ui->portNumber->text( ).toUShort(), ui->useUPNP->isChecked(), ui->isPublic->isChecked() ) );
                 emit this->accept();
             }
             else //Warn the Server Host.
@@ -221,9 +220,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         //Verify that the server hasn't been initialized previously.
         if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            Server* server{ this->initializeServer( name, gameName, netInterface, port, useUPNP, isPublic ) };
-
-            emit this->createServerAcceptedSignal( server );
+            emit this->createServerAcceptedSignal( this->initializeServer( name, gameName, netInterface, port, useUPNP, isPublic ) );
             emit this->accept();
         }
         else //Warn the Server Host.
@@ -236,7 +233,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
     }
 }
 
-Server* CreateInstance::loadOldServer(const QString& name)
+QSharedPointer<Server> CreateInstance::loadOldServer(const QString& name)
 {
     if ( !name.isEmpty() )
     {
@@ -246,26 +243,36 @@ Server* CreateInstance::loadOldServer(const QString& name)
         bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
         bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
 
-        Server* server{ this->initializeServer( name, gameName, netInterface, svrPort.toUShort(), useUPNP, isPublic ) };
-        return server;
+        return this->initializeServer( name, gameName, netInterface, svrPort.toUShort(), useUPNP, isPublic );
     }
     return nullptr;
 }
 
-Server* CreateInstance::initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
-                                         const bool& useUPNP, const bool& isPublic)
+QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                                        const bool& useUPNP, const bool& isPublic)
 {
-    Server* server{ nullptr };
-
     //Verify Instance Count isn't above the maximum.
+    QSharedPointer<Server> server{ nullptr };
     if ( ReMixTabWidget::getInstanceCount() + 1 <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
     {
-        server = new Server();
-        if ( server == nullptr )
-            return nullptr;
+        server = QSharedPointer<Server>( new Server(), Server::customDeconstruct );
+        QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal,
+                          server.get(), &Server::masterMixInfoSlot, Qt::UniqueConnection );
+
+        QObject::connect( this, &CreateInstance::getMasterMixInfoSignal,
+                          MasterMixThread::getInstance(), &MasterMixThread::getMasterMixInfoSlot, Qt::UniqueConnection );
+
+        Games gameID{ Games::Invalid };
+        if ( Helper::cmpStrings( gameName, "WoS" ) )
+            gameID = Games::WoS;
+        else if ( Helper::cmpStrings( gameName, "ToY" ) )
+            gameID = Games::ToY;
+        else if ( Helper::cmpStrings( gameName, "W97" ) )
+            gameID = Games::W97;
 
         server->setServerName( name );
         server->setGameName( gameName );
+        server->setGameId( gameID );
         server->setPrivatePort( port );
         server->setServerID( Settings::getServerID( name ) );
         server->setUseUPNP( useUPNP );
@@ -275,7 +282,7 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
         else
             server->setIsPublic( isPublic, Helper::getPrivateIP().toString() );
 
-        MasterMixThread::getInstance()->getMasterMixInfo( server );
+        emit this->getMasterMixInfoSignal( gameID );
     }
     else
     {

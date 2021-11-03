@@ -5,6 +5,7 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
+#include <QSharedPointer>
 #include <QElapsedTimer>
 #include <QTcpServer>
 #include <QDateTime>
@@ -18,7 +19,10 @@ class Server : public QTcpServer
 {
     Q_OBJECT
 
+    QSharedPointer<Server> serverSharePtr;
+
     UdpThread* udpThread{ nullptr };
+    QThread* thread{ nullptr };
 
     qint64 initializeDate{ 0 };
 
@@ -77,8 +81,8 @@ class Server : public QTcpServer
 
     QString gameWorld{ "" };
 
-    QVector<Player*> players;
-    QMap<qint32, Player*> plrSlotMap;
+    QVector<QSharedPointer<Player>> players;
+    QMap<qint32, QSharedPointer<Player>> plrSlotMap;
 
     quint32 userCalls{ 0 };
     quint32 userPings{ 0 };
@@ -97,6 +101,9 @@ class Server : public QTcpServer
     public:
         Server(QWidget* parent = nullptr);
         ~Server() override;
+
+        static void customDeconstruct(Server* svr);
+
         void incomingConnection(qintptr socketDescriptor) override;
 
         void setupInfo(const QString& interfaceIP = "");
@@ -105,23 +112,24 @@ class Server : public QTcpServer
         void sendUserList(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void sendMasterInfo(const bool& disconnect = false);
 
-        Player* createPlayer(qintptr socketDescriptor);
-        Player* getPlayer(const int& slot);
-        Player* getPlayer(const qintptr& socketDescriptor);
-        Player* getPlayer(const QString& hexSerNum);
-        qint32 getPlayerSlot( const Player* plr);
-        void deletePlayer(Player* plr, const bool& timedOut = false);
+        QSharedPointer<Player> createPlayer(const qintptr& socketDescriptor, QSharedPointer<Server> server);
+        QSharedPointer<Player> getPlayer(const int& slot);
+        QSharedPointer<Player> getPlayer(const qintptr& socketDescriptor);
+        QSharedPointer<Player> getPlayer(const QString& hexSerNum);
+        qint32 getPlayerSlot(const QSharedPointer<Player> plr);
+        void deletePlayer(QSharedPointer<Player> plr, const bool& all, const bool& timedOut = false);
+        void deleteAllPlayers();
 
-        Player* getLastPlayerInStorage(Player* plr);
+        QSharedPointer<Player> getLastPlayerInStorage(const QSharedPointer<Player> plr);
         int getEmptySlot();
         int getSocketSlot(const qintptr& socketDescriptor);
 
         void sendPlayerSocketInfo();
-        void sendPlayerSocketPosition(Player* plr, const bool& forceIssue);
-        void sendServerRules(Player* plr);
-        void sendServerGreeting(Player* plr);
-        void sendMasterMessage(const QString& packet, Player* plr = nullptr, const bool toAll = false);
-        void sendMasterMessageToAdmins(const QString& message, Player* srcPlayer = nullptr);
+        void sendPlayerSocketPosition(QSharedPointer<Player> plr, const bool& forceIssue);
+        void sendServerRules(QSharedPointer<Player> plr);
+        void sendServerGreeting(QSharedPointer<Player> plr);
+        void sendMasterMessage(const QString& packet, QSharedPointer<Player> plr, const bool toAll = false);
+        void sendMasterMessageToAdmins(const QString& message);
 
         qint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -130,7 +138,7 @@ class Server : public QTcpServer
         void setGameWorld(const QString& value);
 
         Games getGameId() const;
-        void setGameId(const QString& gameName);
+        void setGameId(const Games& game);
 
         QString getGameName() const;
         void setGameName(const QString& value);
@@ -238,9 +246,7 @@ class Server : public QTcpServer
         qint32 getUsageDays() const;
         qint32 getUsageMins() const;
 
-        PacketHandler* getPktHandle();
-
-        void updateBytesOut(Player* plr, const qint64 bOut);
+        void updateBytesOut(QSharedPointer<Player> plr, const qint64 bOut);
 
         bool getUpnpPortAdded() const;
         void setUpnpPortAdded(bool value);
@@ -257,7 +263,7 @@ class Server : public QTcpServer
         void setMaxPlayerCount(const qint32& value);
 
     private:
-        const inline QVector<Player*> getPlayerVector() const{ return players; }
+        const inline QVector<QSharedPointer<Player>>& getPlayerVector() const{ return players; }
 
     signals:
         void plrConnectedSignal(qintptr socketDescriptor);
@@ -274,7 +280,7 @@ class Server : public QTcpServer
         void setMaxIdleTimeSignal(const qint64& maxAFK);
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
-        void sendMasterMsgToPlayerSignal(Player* plr, const bool& all, const QByteArray& packet);
+        void sendMasterMsgToPlayerSignal(QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
 
         void upnpPortForwardSignal(const QString& privateIP, const quint16& port, const bool& insert);
         void connectionTimeUpdateSignal();
@@ -284,6 +290,7 @@ class Server : public QTcpServer
         void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
         void masterMixIPChangedSlot();
+        void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override);
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
         void recvPlayerGameInfoSlot(const QString& info, const QString& ip);

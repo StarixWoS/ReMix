@@ -57,7 +57,7 @@ QString PacketForge::decryptPacket(const QByteArray& packet)
     return QString( "" );
 }
 
-bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
+bool PacketForge::validateSerNum(QSharedPointer<Player> plr, const QByteArray& packet)
 {
     QString pkt{ this->decryptPacket( packet ) };
 
@@ -86,7 +86,7 @@ bool PacketForge::validateSerNum(Player* plr, const QByteArray& packet)
                      .arg( Helper::serNumToIntStr( srcSerNum ) )
                      .arg( plr->getSernum_s() );
 
-    User::addMute( nullptr, plr, msg, false, true, PunishDurations::THIRTY_MINUTES );
+    User::addMute( plr, msg, true, PunishDurations::THIRTY_MINUTES );
     emit this->insertLogSignal( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );
 
     return false;

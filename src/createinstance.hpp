@@ -34,9 +34,9 @@ class CreateInstance : public QDialog
 
         void restartServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
                            const bool& useUPNP, const bool& isPublic);
-        Server* loadOldServer(const QString& name);
-        Server* initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
-                                 const bool& useUPNP, const bool& isPublic);
+        QSharedPointer<Server> loadOldServer(const QString& name);
+        QSharedPointer<Server> initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                                const bool& useUPNP, const bool& isPublic);
 
         bool getLoadingOldServers() const;
         void setLoadingOldServers(bool value);
@@ -55,7 +55,8 @@ class CreateInstance : public QDialog
         void on_useUPNP_clicked();
 
     signals:
-        void createServerAcceptedSignal(Server* server);
+        void getMasterMixInfoSignal(const Games& game);
+        void createServerAcceptedSignal(QSharedPointer<Server> server);
         void closeServerSignal();
         void restartServerListSignal(const QStringList& restartList);
         void quitSignal();

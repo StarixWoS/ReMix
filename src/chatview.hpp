@@ -17,19 +17,20 @@ class ChatView : public QWidget
 {
     Q_OBJECT
 
-    static QHash<Server*, ChatView*> chatViewInstanceMap;
+    static QHash<QSharedPointer<Server>, ChatView*> chatViewInstanceMap;
     static QVector<Colors> colors;
     static QStringList bleepList;
     static Themes currentTheme;
 
-    Server* server{ nullptr };
+    QSharedPointer<Server> server;
 
     public:
-        explicit ChatView(QWidget* parent = nullptr, Server* svr = nullptr);
+        explicit ChatView(QSharedPointer<Server> svr, QWidget* parent = nullptr);
         ~ChatView() override;
 
-        static ChatView* getInstance(Server* server);
-        static void deleteInstance(Server* server);
+        static QSharedPointer<Server> getServer(ChatView* chatView);
+        static ChatView* getInstance(QSharedPointer<Server> server);
+        static void deleteInstance(QSharedPointer<Server> server);
 
         bool parseChatEffect(const QString& packet);
         void bleepChat(QString& message);

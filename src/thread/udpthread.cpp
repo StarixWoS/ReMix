@@ -212,6 +212,7 @@ void UdpThread::closeUdpSocketSlot()
         socket->flush();
         socket->close();
         socket->deleteLater();
+        socket = nullptr;
     }
     this->disconnect();
     this->exit();

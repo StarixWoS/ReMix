@@ -33,25 +33,30 @@ class MasterMixThread : public QThread
         void startUpdateInfoTimer(const bool& start);
 
     private slots:
-        void obtainMasterData(Server* server);
+        void obtainMasterData(const Games& game);
 
     public slots:
+        void getMasterMixInfoSlot(const Games& game);
         void masterMixInfoChangedSlot();
 
     public:
         static UdpThread* getNewUdpThread(QObject* parent = nullptr);
+        static QString getMasterInfo(const Games& game);
+        void parseMasterInfo(const Games& game);
+
         void run() override;
 
         static MasterMixThread* getInstance();
         static void setInstance(MasterMixThread* value);
-        void getMasterMixInfo(Server* server);
         void updateMasterMixInfo(const bool& forceDownload = false);
 
         QString getDefaultHost() const;
         QString getModdedHost();
 
     signals:
-        void masterMixInfoSignal();
+        void obtainedMasterMixInfoSignal();
+        void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port, const bool& override );
+
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
 };
 

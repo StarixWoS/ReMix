@@ -18,7 +18,8 @@
 #include <QTcpSocket>
 #include <QDateTime>
 
-Player::Player(qintptr socketDescriptor)
+Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
+    : server( svr )
 {
     this->setSocketDescriptor( socketDescriptor );
 
@@ -73,9 +74,40 @@ Player::~Player()
 {
     killTimer.stop();
     killTimer.disconnect();
+    qDebug() << "Player Deconstructed.";
+}
 
+void Player::customDeconstruct(Player* plr)
+{
+    if ( plr != nullptr )
+    {
+        plr->disconnect();
+        plr->deleteLater();
+    }
+}
+
+QSharedPointer<Player> Player::createPlayer(qintptr socketDescriptor, QSharedPointer<Server> svr)
+{
+    QSharedPointer<Player> plr( new Player( socketDescriptor, svr ), customDeconstruct );
+    plr->setThisPlayer( plr );
+
+    return plr;
+}
+
+void Player::setThisPlayer(QSharedPointer<Player> plr)
+{
+    thisPlayer = plr;
+}
+
+QSharedPointer<Player> Player::getThisPlayer()
+{
+    return thisPlayer;
+}
+
+void Player::clearThisPlayer()
+{
     this->disconnect();
-    this->deleteLater();
+    thisPlayer = nullptr;
 }
 
 qint64 Player::getConnTime() const
@@ -83,14 +115,14 @@ qint64 Player::getConnTime() const
     return (( QDateTime::currentDateTime().currentSecsSinceEpoch() - this->getPlrConnectedTime() ) );
 }
 
-Server* Player::getServer() const
+QSharedPointer<Server> Player::getServer()
 {
     return server;
 }
 
-void Player::setServer(Server* value)
+void Player::clearServer()
 {
-    server = value;
+    server.clear();
 }
 
 bool Player::getIsVisible() const
@@ -125,7 +157,7 @@ void Player::setSernum_i(qint32 value)
 
         if ( !sernum_s.isEmpty() )
         {
-            emit this->updatePlrViewSignal( this, 1, sernum_s, Qt::DisplayRole, false );
+            emit this->updatePlrViewSignal( this->getThisPlayer(), 1, sernum_s, Qt::DisplayRole, false );
 
             //Correct the User's BIO Data based on their serNum. This will only succeed if the User is on file.
             bool newBioData{ false };
@@ -143,13 +175,15 @@ void Player::setSernum_i(qint32 value)
             }
 
             if ( newBioData && !data.isEmpty() )
-                emit this->updatePlrViewSignal( this, 7, data, Qt::DisplayRole, false );
+                emit this->updatePlrViewSignal( this->getThisPlayer(), 7, data, Qt::DisplayRole, false );
         }
 
         this->setSernum_s( sernum_s );
         this->setSernumHex_s( sernumHex_s );
 
-        quint64 muteDuration{ User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s ) };
+        quint64 muteDuration{ 0 };
+        muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
+
         if ( muteDuration == 0 )
             muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP, sernumHex_s );
 
@@ -179,7 +213,7 @@ void Player::setSernumHex_s(const QString& value)
 {
     sernumHex_s = value;
 
-    emit this->hexSerNumSetSignal( this );
+    emit this->hexSerNumSetSignal( this->getThisPlayer() );
 }
 
 qint32 Player::getTargetScene() const
@@ -246,13 +280,14 @@ void Player::setCampPacket(const QByteArray& value)
 
 void Player::forceSendCampPacket()
 {
-    Server* svr{ this->getServer() };
+    QSharedPointer<Server> svr{ this->getServer() };
     if ( svr != nullptr )
     {
-        PacketHandler* pktHandle{ svr->getPktHandle() };
+        PacketHandler* pktHandle{ PacketHandler::getInstance( svr ) };
         if ( pktHandle != nullptr )
-            emit this->parsePacketSignal( this->getCampPacket(), this );
+            emit this->parsePacketSignal( this->getCampPacket(), this->getThisPlayer() );
     }
+    svr = nullptr;
 }
 
 QString Player::getBioData() const
@@ -433,11 +468,11 @@ void Player::setNewAdminPwdRequested(const bool& value)
     newAdminPwdRequested = value;
     if ( newAdminPwdRequested )
     {
-        QString msg{ "The Server Host is attempting to register you as an Admin with the server. Please reply to this message with "
-                     "(/register *YOURPASS). Note: The server Host and other Admins will not have access to this information." };
+        static const QString msg{ "The Server Host is attempting to register you as an Admin with the server. Please reply to this message with "
+                                  "(/register *YOURPASS). Note: The server Host and other Admins will not have access to this information." };
 
         if ( this->getIsAdmin() )
-            this->getServer()->sendMasterMessage( msg, this, false );
+            this->getServer()->sendMasterMessage( msg, this->getThisPlayer(), false );
     }
 }
 
@@ -614,7 +649,7 @@ void Player::setAfkIcon(const QString& value)
     afkIcon = QIcon( ":/icon/" + value + ".png" );
 }
 
-void Player::validateSerNum(Server* server, const qint32& id)
+void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
 {
     if ( server == nullptr )
         return;
@@ -723,7 +758,7 @@ void Player::validateSerNum(Server* server, const qint32& id)
 
             if ( disconnect == true )
             {
-                server->sendMasterMessage( reason, this, false );
+                server->sendMasterMessage( reason, this->getThisPlayer(), false );
 
                 reason.append( ", [ %1 ]" );
                 reason = reason.arg( this->getBioData() );
@@ -742,7 +777,7 @@ bool Player::getIsGoldenSerNum()
 }
 
 //Slots
-void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet)
+void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
     if ( plr == this )
@@ -783,12 +818,12 @@ void Player::sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSe
     }
 
     if ( send && isAuth )
-        server->updateBytesOut( this, this->write( packet, packet.length() ) );
+        server->updateBytesOut( this->getThisPlayer(), this->write( packet, packet.length() ) );
 
     return;
 }
 
-void Player::sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet)
+void Player::sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet)
 {
     qint64 bOut{ 0 };
     if ( !all
@@ -801,7 +836,7 @@ void Player::sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByte
         bOut = this->write( packet, packet.length() );
 
     if ( bOut >= 0 )
-        server->updateBytesOut( this, bOut );
+        server->updateBytesOut( this->getThisPlayer(), bOut );
 }
 
 void Player::setMaxIdleTimeSlot(const qint64& maxAFK)
@@ -827,16 +862,16 @@ void Player::connectionTimeUpdateSlot()
     Helper::sanitizeToFriendlyUnits( this->getBytesIn(), bytesIn, bytesInUnit );
 
     baudIn = baudIn.arg( bytesIn )
-                    .arg( bytesInUnit )
-                    .arg( this->getPacketsIn() );
+                   .arg( bytesInUnit )
+                   .arg( this->getPacketsIn() );
 
     baudOut = baudOut.arg( bytesOut )
                      .arg( bytesOutUnit )
                      .arg( this->getPacketsOut() );
 
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
 
     //Color the User's IP address Green if the Admin is authed Otherwise, color as Red.
     Colors color{ Colors::Default };
@@ -854,7 +889,7 @@ void Player::connectionTimeUpdateSlot()
             color = Colors::GoldenSoul;
     }
 
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
     //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
     if ( !this->getIsMuted() )
@@ -868,11 +903,11 @@ void Player::connectionTimeUpdateSlot()
         color = Colors::IPInvalid;
 
     //Color the User's IP/Port.
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::IPPort ), this->getIPPortAddress(), Qt::DisplayRole, false );
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), this->getIPPortAddress(), Qt::DisplayRole, false );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
 
     //Set the NPK/AFK icon.
-    emit this->updatePlrViewSignal( this, static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
       && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously aisconnected user.
@@ -914,13 +949,13 @@ void Player::connectionTimeUpdateSlot()
             {
                 if ( !this->getAdminPwdReceived() )
                 {
-                    const QString msg{ "Remote Administrators are required to authenticate themselves before using commands. "
-                                       "Please enter your password with the command (/login *PASS). Thank you!" };
+                    static const QString msg{ "Remote Administrators are required to authenticate themselves before using commands. "
+                                              "Please enter your password with the command (/login *PASS). Thank you!" };
 
                     if ( this->getIsAdmin() )
                     {
                         this->setAdminPwdRequested( true );
-                        server->sendMasterMessage( msg, this, false );
+                        server->sendMasterMessage( msg, this->getThisPlayer(), false );
                     }
                 }
             }
@@ -958,7 +993,7 @@ void Player::readyReadSlot()
             this->setBytesIn( this->getBytesIn() + static_cast<quint64>( packet.length() ) );
 
             //Only parse Packets if the Player is not muted.
-            emit this->parsePacketSignal( packet, this );
+            emit this->parsePacketSignal( packet, this->getThisPlayer() );
 
             if ( this->bytesAvailable() > 0
               || this->getOutBuff().size() > 0 )

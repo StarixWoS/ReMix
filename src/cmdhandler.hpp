@@ -12,54 +12,54 @@ class CmdHandler : public QObject
     Q_OBJECT
 
     CmdTable* cmdTable{ nullptr };
-    Server* server{ nullptr };
+    QSharedPointer<Server> server;
     QTimer* shutdownTimer{ nullptr };
 
-    static QHash<Server*, CmdHandler*> cmdInstanceMap;
+    static QHash<QSharedPointer<Server>, CmdHandler*> cmdInstanceMap;
 
     public:
-        explicit CmdHandler(QObject* parent = nullptr, Server* svr = nullptr);
+        explicit CmdHandler(QSharedPointer<Server> svr, QObject* parent = nullptr);
         ~CmdHandler() override;
 
-        static CmdHandler* getInstance(Server* server);
-        static void deleteInstance(Server* server);
+        static CmdHandler* getInstance(QSharedPointer<Server> server);
+        static void deleteInstance(QSharedPointer<Server> server);
 
-        bool canUseAdminCommands(Player* admin, const GMRanks rank, const QString& cmdStr);
-        void parseMix5Command(Player* plr, const QString& packet);
+        bool canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks rank, const QString& cmdStr);
+        void parseMix5Command(QSharedPointer<Player> plr, const QString& packet);
 
-        static bool canParseCommand(const Player* admin, const QString& command);
-        bool parseCommandImpl(Player* admin, QString& packet);
+        static bool canParseCommand(QSharedPointer<Player> admin, const QString& command);
+        bool parseCommandImpl(QSharedPointer<Player> admin, QString& packet);
 
-        bool canIssueAction(Player* admin, Player* target, const QString& arg1, const GMCmds& argIndex, const bool& all);
-        bool isTargetingSelf(Player* admin, Player* target);
+        bool canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all);
+        bool isTargetingSelf(QSharedPointer<Player> admin, QSharedPointer<Player> target);
 
-        void cannotIssueAction(Player* admin, Player* target, const GMCmds& argIndex, const bool& isAll = false);
+        void cannotIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const GMCmds& argIndex, const bool& isAll = false);
 
-        bool isTarget(Player* target, const QString& arg1, const bool isAll = false);
+        bool isTarget(QSharedPointer<Player> target, const QString& arg1, const bool isAll = false);
 
     private:
-        bool validateAdmin(Player* admin, GMRanks& rank, const QString& cmdStr);
-        GMRanks getAdminRank(Player* admin);
+        bool validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr);
+        GMRanks getAdminRank(QSharedPointer<Player> admin);
 
-        void motdHandler(Player* admin, const QString& subCmd, const QString& arg1, const QString& msg);
+        void motdHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1, const QString& msg);
 
-        void banHandler(Player* admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
+        void banHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
         void unBanHandler(const QString& subCmd, const QString& arg1);
 
-        void kickHandler(Player* admin, const QString& arg1, const GMCmds& argIndex, const QString& message, const bool& all);
-        void muteHandler(Player* admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
-        void unMuteHandler(Player* admin, const QString& subCmd, const QString& arg1);
+        void kickHandler(QSharedPointer<Player> admin, const QString& arg1, const GMCmds& argIndex, const QString& message, const bool& all);
+        void muteHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
+        void unMuteHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1);
 
         void msgHandler(const QString& arg1, const QString& message, const bool& all);
 
-        void loginHandler(Player* admin, const QString& subCmd);
-        void registerHandler(Player* admin, const QString& subCmd);
+        void loginHandler(QSharedPointer<Player> admin, const QString& subCmd);
+        void registerHandler(QSharedPointer<Player> admin, const QString& subCmd);
 
-        void shutDownHandler(Player* admin, const QString& duration, const QString& reason, bool& stop, bool& restart);
+        void shutDownHandler(QSharedPointer<Player> admin, const QString& duration, const QString& reason, bool& stop, bool& restart);
 
-        void vanishHandler(Player* admin, const QString& subCmd);
+        void vanishHandler(QSharedPointer<Player> admin, const QString& subCmd);
 
-        void campHandler(Player* admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd);
+        void campHandler(QSharedPointer<Player> admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd);
 
         void parseTimeArgs(const QString& str, QString& timeArg, QString& reason);
         qint32 getTimePeriodFromString(const QString& str, QString& timeTxt);

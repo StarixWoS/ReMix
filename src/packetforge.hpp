@@ -21,7 +21,7 @@ class PacketForge : public QObject
         //Wrappers for our imported functions.
         QString decryptPacket(const QByteArray& packet);
 
-        bool validateSerNum(Player* plr, const QByteArray& packet);
+        bool validateSerNum(QSharedPointer<Player> plr, const QByteArray& packet);
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;

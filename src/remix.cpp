@@ -39,6 +39,8 @@ ReMix::ReMix(QWidget* parent) :
     qRegisterMetaType<UserListResponse>("UserListResponse");
     //Register the type for use within signals and slots.
     qRegisterMetaType<QVector<int>>("QVector<int>");
+    //Register the type for use within signals and slots.
+    qRegisterMetaType<QSharedPointer<Server>>("QSharedPointer<Server>");
 
     ui->setupUi(this);
 
@@ -107,7 +109,7 @@ ReMix* ReMix::getInstance()
     return instance;
 }
 
-void ReMix::updateTitleBars(Server* server)
+void ReMix::updateTitleBars(QSharedPointer<Server> server)
 {
     Settings* settings{ Settings::getInstance() };
     if ( settings != nullptr )

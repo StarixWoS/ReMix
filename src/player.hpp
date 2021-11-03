@@ -5,6 +5,7 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes.
+#include <QSharedPointer>
 #include <QElapsedTimer>
 #include <QTcpSocket>
 #include <QObject>
@@ -16,7 +17,7 @@ class Player : public QTcpSocket
     Q_OBJECT
 
     QStandardItem* tableRow{ nullptr };
-    Server* server{ nullptr };
+    QSharedPointer<Server> server;
     User* userUIObject{ nullptr };
 
     bool newAdminPwdRequested{ false };
@@ -76,15 +77,23 @@ class Player : public QTcpSocket
 
     QIcon afkIcon;
 
+    QSharedPointer<Player> thisPlayer;
+
     public:
-        explicit Player(qintptr socketDescriptor);
+        explicit Player(qintptr socketDescriptor, QSharedPointer<Server> svr);
         ~Player() override;
+        static void customDeconstruct(Player* plr);
+
+        static QSharedPointer<Player> createPlayer(qintptr socketDescriptor, QSharedPointer<Server> svr);
+        void setThisPlayer(QSharedPointer<Player> plr);
+        QSharedPointer<Player> getThisPlayer();
+        void clearThisPlayer();
 
         qint64 getConnTime() const;
         void startConnTimer();
 
-        Server* getServer() const;
-        void setServer(Server* value);
+        QSharedPointer<Server> getServer();
+        void clearServer();
 
         bool getIsVisible() const;
         void setIsVisible(const bool& value);
@@ -191,7 +200,7 @@ class Player : public QTcpSocket
 
         void setIsAFK(bool value);
 
-        void validateSerNum(Server* server, const qint32& id);
+        void validateSerNum(QSharedPointer<Server> server, const qint32& id);
         bool getIsGoldenSerNum();
 
         qint64 getPlrConnectedTime() const;
@@ -219,8 +228,8 @@ class Player : public QTcpSocket
         void setIsGhosting(bool newIsGhosting);
 
     public slots:
-        void sendPacketToPlayerSlot(Player* plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
-        void sendMasterMsgToPlayerSlot(Player* plr, const bool& all, const QByteArray& packet);
+        void sendPacketToPlayerSlot(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
+        void sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
         void setMaxIdleTimeSlot(const qint64& maxAFK);
         void connectionTimeUpdateSlot();
 
@@ -229,9 +238,9 @@ class Player : public QTcpSocket
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
-        void parsePacketSignal(const QByteArray& packet, Player* plr);
-        void hexSerNumSetSignal(Player* plr);
-        void updatePlrViewSignal(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
+        void parsePacketSignal(const QByteArray& packet, QSharedPointer<Player> plr);
+        void hexSerNumSetSignal(QSharedPointer<Player> plr);
+        void updatePlrViewSignal(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
         void ipDCIncreaseSignal(const DCTypes& type);
         void setVisibleStateSignal(const bool& state);
 };

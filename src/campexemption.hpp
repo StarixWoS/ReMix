@@ -42,7 +42,7 @@ class CampExemption : public QObject
         static QString getWhiteListedUsers(const QString& srcSerNum);
 
     public slots:
-        void hexSerNumSetSlot(Player* plr);
+        void hexSerNumSetSlot(QSharedPointer<Player> plr);
 };
 
 #endif // CAMPEXEMPTION_HPP

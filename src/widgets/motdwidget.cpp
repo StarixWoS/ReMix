@@ -11,7 +11,7 @@
 //Qt Includes.
 #include <QTimer>
 
-QHash<Server*, MOTDWidget*> MOTDWidget::motdWidgets;
+QHash<QSharedPointer<Server>, MOTDWidget*> MOTDWidget::motdWidgets;
 
 MOTDWidget::MOTDWidget() :
     ui(new Ui::MOTDWidget)
@@ -38,20 +38,20 @@ MOTDWidget::~MOTDWidget()
     delete ui;
 }
 
-MOTDWidget* MOTDWidget::getInstance(Server* server)
+MOTDWidget* MOTDWidget::getInstance(QSharedPointer<Server> server)
 {
     MOTDWidget* widget{ motdWidgets.value( server, nullptr ) };
     if ( widget == nullptr )
     {
         widget = new MOTDWidget();
         widget->setServerName( server->getServerName() );
-        QObject::connect( server, &Server::serverNameChangedSignal, widget, &MOTDWidget::nameChangedSlot );
+        QObject::connect( server.get(), &Server::serverNameChangedSignal, widget, &MOTDWidget::nameChangedSlot );
         motdWidgets.insert( server, widget );
     }
     return widget;
 }
 
-void MOTDWidget::deleteInstance(Server* server)
+void MOTDWidget::deleteInstance(QSharedPointer<Server> server)
 {
     MOTDWidget* widget{ motdWidgets.take( server ) };
     if ( widget != nullptr )

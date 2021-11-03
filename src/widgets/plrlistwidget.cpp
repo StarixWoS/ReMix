@@ -30,9 +30,10 @@
 #include <QMenu>
 #include <QMap>
 
-QHash<Server*, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
+QHash<QSharedPointer<Server>, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
 
-PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
+PlrListWidget::PlrListWidget(QSharedPointer<Server> svr, ReMixWidget* parent) :
+    server( svr ),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
@@ -40,8 +41,6 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
-
-    server = svr;
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
@@ -92,6 +91,7 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
 
 PlrListWidget::~PlrListWidget()
 {
+    this->disconnect();
     if ( messageDialog != nullptr )
     {
         if ( messageDialog->isVisible() )
@@ -101,28 +101,36 @@ PlrListWidget::~PlrListWidget()
         messageDialog->deleteLater();
     }
 
+    for ( auto plr : plrTableItems.keys() )
+    {
+        this->disconnect( plr.get() );
+        plrTableItems.remove( plr );
+    }
+
     contextMenu->deleteLater();
 
     tblEvFilter->deleteLater();
     plrModel->deleteLater();
     plrProxy->deleteLater();
 
+    server = nullptr;
+
     delete ui;
 }
 
-PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, Server* server)
+PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, QSharedPointer<Server> server)
 {
     PlrListWidget* instance{ plrViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new PlrListWidget( parent, server );
+        instance = new PlrListWidget( server, parent );
         if ( instance != nullptr )
             plrViewInstanceMap.insert( server, instance );
     }
     return instance;
 }
 
-void PlrListWidget::deleteInstance(Server* server)
+void PlrListWidget::deleteInstance(QSharedPointer<Server> server)
 {
     PlrListWidget* instance{ plrViewInstanceMap.take( server ) };
     if ( instance != nullptr )
@@ -163,7 +171,7 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
-void PlrListWidget::updatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
+void PlrListWidget::updatePlrViewSlot(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
     if ( item != nullptr )
@@ -194,7 +202,7 @@ void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, c
     ui->playerView->resizeColumnToContents( column );
 }
 
-void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, const QByteArray& data)
+void PlrListWidget::plrViewInsertRowSlot(QSharedPointer<Player> plr, const QString& ipPortStr, const QByteArray& data)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
     if ( item == nullptr )
@@ -202,7 +210,7 @@ void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, 
         item = new QStandardItem();
 
         if ( plrTableItems.value( plr, nullptr ) == nullptr )
-            plrTableItems[ plr ] = item;
+            plrTableItems.insert( plr, item );
 
         int row{ plrModel->rowCount() };
         plrModel->insertRow( row, item );
@@ -222,14 +230,14 @@ void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, 
     }
 }
 
-void PlrListWidget::plrViewRemoveRowSlot(Player* plr)
+void PlrListWidget::plrViewRemoveRowSlot(QSharedPointer<Player> plr)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
-     if ( item != nullptr )
-     {
+    if ( item != nullptr )
+    {
         plrModel->removeRow( item->row() );
         plrTableItems.remove( plr );
-     }
+    }
 }
 
 void PlrListWidget::censorUIIPInfoSlot(const bool& state)
@@ -245,7 +253,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
     if ( menuIndex.row() >= 0
       && remixWidget != nullptr )
     {
-        Player* plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
+        QSharedPointer<Player> plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
         if ( plr != nullptr )
         {
             menuTarget = plr;
@@ -390,7 +398,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         if ( mute )
         {
             muteDuration = User::requestDuration();
-            User::addMute( nullptr, menuTarget, reason, false, false, muteDuration );
+            User::addMute( menuTarget, reason, false, muteDuration );
         }
         else
             User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
@@ -460,7 +468,7 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         reason = reason.arg( User::requestReason( this ) );
         inform = inform.arg( reason );
 
-        User::addBan( nullptr, menuTarget, reason, false, User::requestDuration() );
+        User::addBan( menuTarget, reason, User::requestDuration() );
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
                                .arg( Helper::serNumToIntStr( sernum, true ) )

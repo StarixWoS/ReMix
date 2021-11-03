@@ -36,7 +36,7 @@ Server::Server(QWidget* parent)
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Server::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
-    QThread* thread{ new QThread() };
+    thread = new QThread();
     udpThread = UdpThread::getNewUdpThread( nullptr );
     udpThread->moveToThread( thread );
 
@@ -74,7 +74,6 @@ Server::Server(QWidget* parent)
     } );
 
     players.resize( static_cast<int>( Globals::MAX_PLAYERS ) );
-    players.fill( nullptr );
 
     upTimer.start( static_cast<int>( Globals::UI_UPDATE_TIME ) );
 
@@ -156,27 +155,34 @@ Server::~Server()
 {
     if ( udpThread != nullptr )
     {
-        QThread* thread{ udpThread->thread() };
-        emit this->closeUdpSocketSignal();
+        udpThread->exit();
+        udpThread->deleteLater();
+
         if ( thread != nullptr )
         {
             thread->exit();
             thread->deleteLater();
         }
-
-        udpThread->exit();
-        udpThread->deleteLater();
-
+        udpThread = nullptr;
         thread = nullptr;
     }
 
-    for ( Player* plr : this->getPlayerVector() )
-    {
-        if ( plr != nullptr )
-            plr->deleteLater();
-    }
+    this->deleteAllPlayers();
+
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
+
+    this->disconnect();
+    qDebug() << "Server Deconstructed." << this;
+}
+
+void Server::customDeconstruct(Server* svr)
+{
+    if ( svr != nullptr )
+    {
+        svr->disconnect();
+        svr->deleteLater();
+    }
 }
 
 void Server::incomingConnection(qintptr socketDescriptor)
@@ -234,7 +240,7 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
     bool emptyResponse{ true };
     for ( int i = 0; i < this->getMaxPlayerCount() && response.length() < 800; ++i )
     {
-        const Player* plr = this->getPlayer( i );
+        QSharedPointer<Player> plr{ this->getPlayer( i ) };
         if ( plr != nullptr
           && plr->getSernum_i() != 0 )
         {
@@ -324,12 +330,12 @@ void Server::sendMasterInfo(const bool& disconnect)
     }
 }
 
-Player* Server::createPlayer(qintptr socketDescriptor)
+QSharedPointer<Player> Server::createPlayer(const qintptr& socketDescriptor, QSharedPointer<Server> server)
 {
     int slot{ this->getEmptySlot() };
     if ( slot >= 0 && slot < this->getMaxPlayerCount() )
     {
-        Player* plr{ new Player( socketDescriptor ) };
+        QSharedPointer<Player> plr{ Player::createPlayer( socketDescriptor, server ) };
         if ( plr != nullptr )
         {
             players.insert( slot, plr );
@@ -337,12 +343,11 @@ Player* Server::createPlayer(qintptr socketDescriptor)
 
             this->setPlayerCount( this->getPlayerCount() + 1 );
 
-            QObject::connect( this->getPktHandle(), &PacketHandler::sendPacketToPlayerSignal, plr, &Player::sendPacketToPlayerSlot );
-            QObject::connect( this, &Server::setMaxIdleTimeSignal, plr, &Player::setMaxIdleTimeSlot );
-            QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr, &Player::sendMasterMsgToPlayerSlot );
-            QObject::connect( this, &Server::connectionTimeUpdateSignal, plr, &Player::connectionTimeUpdateSlot );
-            QObject::connect( plr, &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot, Qt::DirectConnection );
-            QObject::connect( plr, &Player::setVisibleStateSignal, this, &Server::setVisibleStateSlot );
+            QObject::connect( this, &Server::setMaxIdleTimeSignal, plr.get(), &Player::setMaxIdleTimeSlot );
+            QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr.get(), &Player::sendMasterMsgToPlayerSlot );
+            QObject::connect( this, &Server::connectionTimeUpdateSignal, plr.get(), &Player::connectionTimeUpdateSlot );
+            QObject::connect( plr.get(), &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot );
+            QObject::connect( plr.get(), &Player::setVisibleStateSignal, this, &Server::setVisibleStateSlot );
 
             return plr;
         }
@@ -350,10 +355,10 @@ Player* Server::createPlayer(qintptr socketDescriptor)
     return nullptr;
 }
 
-Player* Server::getLastPlayerInStorage(Player* plr)
+QSharedPointer<Player> Server::getLastPlayerInStorage(const QSharedPointer<Player> plr)
 {
-    Player* tmpPlayer{ nullptr };
-    for ( Player* tmpPlr : this->getPlayerVector() )
+    QSharedPointer<Player> tmpPlayer{ nullptr };
+    for ( QSharedPointer<Player> tmpPlr : this->getPlayerVector() )
     {
         if ( tmpPlr == nullptr )
             break;
@@ -367,7 +372,7 @@ Player* Server::getLastPlayerInStorage(Player* plr)
 int Server::getEmptySlot()
 {
     int slot{ -1 };
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         ++slot;
         if ( plr == nullptr )
@@ -376,12 +381,12 @@ int Server::getEmptySlot()
     return slot;
 }
 
-Player* Server::getPlayer(const int& slot)
+QSharedPointer<Player> Server::getPlayer(const int& slot)
 {
     //Return the Player object within the position [ slot ] of the Players vector.
     //Do not return Player objects which are 'valid' but in a disconnected state.
 
-    Player* plr{ nullptr };
+    QSharedPointer<Player> plr{ nullptr };
     if ( slot >= 0 )
         plr = this->getPlayerVector().at( slot );
 
@@ -394,10 +399,10 @@ Player* Server::getPlayer(const int& slot)
     return plr;
 }
 
-Player* Server::getPlayer(const qintptr& socketDescriptor)
+QSharedPointer<Player> Server::getPlayer(const qintptr& socketDescriptor)
 {
     //Return the Player object within the position [ slot ] of the Players vector.
-    Player* plr{ nullptr };
+    QSharedPointer<Player> plr{ nullptr };
     int slot{ this->getSocketSlot( socketDescriptor ) };
     if ( slot >= 0 )
         plr = this->getPlayerVector().at( slot );
@@ -405,9 +410,9 @@ Player* Server::getPlayer(const qintptr& socketDescriptor)
     return plr;
 }
 
-Player* Server::getPlayer(const QString& hexSerNum)
+QSharedPointer<Player> Server::getPlayer(const QString& hexSerNum)
 {
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
           && Helper::cmpStrings( plr->getSernumHex_s(), hexSerNum ) )
@@ -418,7 +423,7 @@ Player* Server::getPlayer(const QString& hexSerNum)
     return nullptr;
 }
 
-qint32 Server::getPlayerSlot(const Player* plr)
+qint32 Server::getPlayerSlot(const QSharedPointer<Player> plr)
 {
     return players.indexOf( plr );
 }
@@ -426,7 +431,7 @@ qint32 Server::getPlayerSlot(const Player* plr)
 int Server::getSocketSlot(const qintptr& socketDescriptor)
 {
     int slot{ -1 };
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         if ( plr != nullptr )
         {
@@ -440,10 +445,9 @@ int Server::getSocketSlot(const qintptr& socketDescriptor)
     return slot;
 }
 
-void Server::deletePlayer(Player* plr, const bool& timedOut)
+void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const bool& timedOut)
 {
-    Player* player{ plr };
-    if ( player == nullptr )
+    if ( plr == nullptr )
         return;
 
     QString timeOut{ "" };
@@ -452,26 +456,35 @@ void Server::deletePlayer(Player* plr, const bool& timedOut)
 
     QString bytesUnit{ "" };
     QString bytesSec{ "" };
-    Helper::sanitizeToFriendlyUnits( player->getBytesIn(), bytesSec, bytesUnit );
+    Helper::sanitizeToFriendlyUnits( plr->getBytesIn(), bytesSec, bytesUnit );
 
     QString logMsg{ "Client%1: [ %2 ] was on for %3 minutes and sent %4 %5 in %6 packets, [ %7 ]" };
             logMsg = logMsg.arg( timeOut )
-                           .arg( player->getIPAddress() )
-                           .arg( Helper::getTimeIntFormat( player->getConnTime(), TimeFormat::Minutes ) )
+                           .arg( plr->getIPAddress() )
+                           .arg( Helper::getTimeIntFormat( plr->getConnTime(), TimeFormat::Minutes ) )
                            .arg( bytesSec )
                            .arg( bytesUnit )
-                           .arg( player->getPacketsIn() )
-                           .arg( player->getBioData() );
+                           .arg( plr->getPacketsIn() )
+                           .arg( plr->getBioData() );
 
-    plrSlotMap.remove( player->getPktHeaderSlot() );
-    players.removeOne( player );
+    plrSlotMap.remove( plr->getPktHeaderSlot() );
+    players.removeOne( plr );
 
-    player->disconnect();
-    player->deleteLater();
-    player = nullptr;
+    plr->clearThisPlayer();
+    plr.clear();
 
-    this->setPlayerCount( this->getPlayerCount() - 1 );
+    if ( !all )
+        this->setPlayerCount( this->getPlayerCount() - 1 );
+
     emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
+}
+
+void Server::deleteAllPlayers()
+{
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
+    {
+        this->deletePlayer( plr, true, false );
+    }
 }
 
 void Server::sendPlayerSocketInfo()
@@ -481,8 +494,7 @@ void Server::sendPlayerSocketInfo()
 
     QHostAddress ipAddr;
 
-
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         if ( plr != nullptr && plr->getHasSernum() )
         {
@@ -496,7 +508,7 @@ void Server::sendPlayerSocketInfo()
     response = response.append( "\r\n" );
 
     qint64 bOut{ 0 };
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         if ( plr != nullptr )
         {
@@ -506,7 +518,7 @@ void Server::sendPlayerSocketInfo()
     }
 }
 
-void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
+void Server::sendPlayerSocketPosition(QSharedPointer<Player> plr, const bool& forceIssue)
 {
     if ( plr == nullptr )
         return;
@@ -526,20 +538,19 @@ void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
         return;
     }
 
-    Player* lastPlr{ this->getLastPlayerInStorage( plr ) };
+    QSharedPointer<Player> lastPlr{ this->getLastPlayerInStorage( plr ) };
     qint32 slot{ 1 }; //Slot must be above 1 to be valid.
     if ( this->getGameId() == Games::W97 )  //Warpath must start at slot 0.
         slot = 0;
 
     for ( int i = slot; i < this->getMaxPlayerCount(); ++i )
     {
-        const Player* tmpPlr = plrSlotMap.value( i, nullptr );
+        const QSharedPointer<Player> tmpPlr = plrSlotMap.value( i );
         if ( tmpPlr == nullptr )
         {
             slot = i;
             break;
         }
-        tmpPlr = nullptr;
     }
 
     if ( lastPlr == nullptr )
@@ -556,7 +567,7 @@ void Server::sendPlayerSocketPosition(Player* plr, const bool& forceIssue)
     this->updateBytesOut( plr, bOut );
 }
 
-void Server::sendServerRules(Player* plr)
+void Server::sendServerRules(QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -569,7 +580,7 @@ void Server::sendServerRules(Player* plr)
     this->updateBytesOut( plr, bOut );
 }
 
-void Server::sendServerGreeting(Player* plr)
+void Server::sendServerGreeting(QSharedPointer<Player> plr)
 {
     QString serverName{ this->getServerName() };
     QString greeting{ Settings::getSetting( SKeys::Setting, SSubKeys::MOTD, serverName ).toString() };
@@ -588,7 +599,7 @@ void Server::sendServerGreeting(Player* plr)
         this->sendServerRules( plr );
 }
 
-void Server::sendMasterMessage(const QString& packet, Player* plr, const bool toAll)
+void Server::sendMasterMessage(const QString& packet, QSharedPointer<Player> plr, const bool toAll)
 {
     QString msg{ ":SR@M%1\r\n" };
             msg = msg.arg( packet );
@@ -596,15 +607,14 @@ void Server::sendMasterMessage(const QString& packet, Player* plr, const bool to
     emit this->sendMasterMsgToPlayerSignal( plr, toAll, msg.toLatin1() );
 }
 
-void Server::sendMasterMessageToAdmins(const QString& message, Player* srcPlayer)
+void Server::sendMasterMessageToAdmins(const QString& message)
 {
     QString msg{ ":SR@M%1\r\n" };
             msg = msg.arg( message );
 
-    for ( Player* plr : this->getPlayerVector() )
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
         if ( plr != nullptr
-          && plr != srcPlayer
           && plr->getAdminPwdReceived() )
         {
             emit this->sendMasterMsgToPlayerSignal( plr, false, msg.toLatin1() );
@@ -641,17 +651,9 @@ Games Server::getGameId() const
     return gameId;
 }
 
-void Server::setGameId(const QString& gameName)
+void Server::setGameId(const Games& game)
 {
-    Games gameID{ Games::Invalid };
-    if ( Helper::cmpStrings( gameName, "WoS" ) )
-        gameID = Games::WoS;
-    else if ( Helper::cmpStrings( gameName, "ToY" ) )
-        gameID = Games::ToY;
-    else if ( Helper::cmpStrings( gameName, "W97" ) )
-        gameID = Games::W97;
-
-    gameId = gameID;
+    gameId = game;
 }
 
 QString Server::getGameName() const
@@ -662,8 +664,6 @@ QString Server::getGameName() const
 void Server::setGameName(const QString& value)
 {
     gameName = value;
-    this->setGameId( value );
-
     Settings::setSetting( value, SKeys::Setting, SSubKeys::GameName, this->getServerName() );
 }
 
@@ -1135,12 +1135,7 @@ qint32 Server::getUsageMins() const
     return usageMins;
 }
 
-PacketHandler* Server::getPktHandle()
-{
-    return PacketHandler::getInstance( this );
-}
-
-void Server::updateBytesOut(Player* plr, const qint64 bOut)
+void Server::updateBytesOut(QSharedPointer<Player> plr, const qint64 bOut)
 {
     if ( plr == nullptr )
         return;
@@ -1225,6 +1220,28 @@ void Server::masterMixIPChangedSlot()
     }
 }
 
+void Server::masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override)
+{
+    if ( game == this->getGameId() )
+    {
+        QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
+        if ( override )
+        {
+            msg= "Loaded Master Server Override [ %1:%2 ]." ;
+            msg = msg.arg( this->getMasterIP() )
+                     .arg( this->getMasterPort() );
+        }
+        else
+        {
+            msg = msg.arg( ip )
+                     .arg( port )
+                     .arg( this->getGameName() );
+        }
+        this->setMasterIP( ip, port );
+        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+    }
+}
+
 void Server::setBytesInSignal(const quint64& bytes)
 {
     this->setBytesIn( this->getBytesIn() + bytes );
@@ -1267,7 +1284,7 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
     bool connected{ false };
     for ( int i = 0; i < this->getMaxPlayerCount(); ++i )
     {
-        const Player* tmpPlr = this->getPlayer( i );
+        const QSharedPointer<Player> tmpPlr = this->getPlayer( i );
         if ( tmpPlr != nullptr )
         {
             if ( Helper::cmpStrings( tmpPlr->getIPAddress(), ip ) )

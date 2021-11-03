@@ -302,7 +302,7 @@ void User::setAdminRank(const QString& sernum, const GMRanks& newRank)
         user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( newRank ) );
 }
 
-void User::setAdminRank(const Player* plr, const GMRanks& rank, const bool&)
+void User::setAdminRank(QSharedPointer<Player> plr, const GMRanks& rank, const bool&)
 {
     if ( plr != nullptr )
         setAdminRank( plr->getSernumHex_s(), rank );
@@ -446,7 +446,7 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
     }
 }
 
-bool User::addBan(const Player* admin, const Player* target, const QString& reason, const bool remote, const PunishDurations duration)
+bool User::addBan(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool remote, const PunishDurations duration)
 {
     User* user{ User::getInstance() };
     if ( user == nullptr )
@@ -473,6 +473,25 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
             msg = msg.arg( target->getSernum_s() );
         }
     }
+    return addBanImpl( target, msg, duration );
+}
+
+bool User::addBan(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration)
+{
+    QString msg{ reason };
+    if ( msg.isEmpty() )
+    {
+        msg = "Manual-Banish; Unknown reason: [ %1 ]";
+        msg = msg.arg( target->getSernum_s() );
+    }
+    return addBanImpl( target, msg, duration );
+}
+
+bool User::addBanImpl(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration)
+{
+    User* user{ User::getInstance() };
+    if ( user == nullptr )
+        return false;
 
     quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     quint64 banDuration{ date + static_cast<quint64>( duration ) };
@@ -480,14 +499,14 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
 
     if ( !serNum.isEmpty() )
     {
-        setData( serNum, keys[ UserKeys::kBANREASON ], msg );
+        setData( serNum, keys[ UserKeys::kBANREASON ], reason );
         setData( serNum, keys[ UserKeys::kBANDURATION ], banDuration );
         setData( serNum, keys[ UserKeys::kBANNED ], date );
 
         QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
         if ( index.isValid() )
         {
-            user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), msg );
+            user->updateRowData( index.row(), static_cast<int>( UserCols::BanReason ), reason );
             user->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), date );
             user->updateRowData( index.row(), static_cast<int>( UserCols::Banned ), ( date > 0 ) );
             user->updateRowData( index.row(), static_cast<int>( UserCols::BanDuration ), banDuration );
@@ -496,7 +515,8 @@ bool User::addBan(const Player* admin, const Player* target, const QString& reas
     return true;
 }
 
-bool User::addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute, const PunishDurations duration)
+bool User::addMute(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool& remote, const bool& autoMute,
+                   const PunishDurations& duration)
 {
     User* user{ User::getInstance() };
     if ( user == nullptr )
@@ -529,6 +549,33 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
             msg = msg.arg( target->getSernum_s() );
         }
     }
+    return addMuteImpl( target, msg, duration );
+}
+
+bool User::addMute(QSharedPointer<Player> target, const QString& reason, const bool& autoMute, const PunishDurations& duration)
+{
+    QString msg{ reason };
+    if ( msg.isEmpty() )
+    {
+        if ( autoMute == true )
+        {
+            msg = "Automatic-Mute; Unknown reason: [ %1 ]";
+            msg = msg.arg( target->getSernum_s() );
+        }
+        else
+        {
+            msg = "Manual-Banish; Unknown reason: [ %1 ]";
+            msg = msg.arg( target->getSernum_s() );
+        }
+    }
+    return addMuteImpl( target, msg, duration );
+}
+
+bool User::addMuteImpl(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration)
+{
+    User* user{ User::getInstance() };
+    if ( user == nullptr )
+        return false;
 
     quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     quint64 muteDuration{ date + static_cast<quint64>( duration ) };
@@ -538,14 +585,14 @@ bool User::addMute(const Player* admin, Player* target, const QString& reason, c
         serNum = "00000000"; //Special case.
 
     target->setMuteDuration( muteDuration );
-    setData( serNum, keys[ UserKeys::kMUTEREASON ], msg );
+    setData( serNum, keys[ UserKeys::kMUTEREASON ], reason );
     setData( serNum, keys[ UserKeys::kMUTEDURATION ], muteDuration );
     setData( serNum, keys[ UserKeys::kMUTED ], date );
 
     QModelIndex index{ user->findModelIndex( serNum, UserCols::SerNum ) };
     if ( index.isValid() )
     {
-        user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), msg );
+        user->updateRowData( index.row(), static_cast<int>( UserCols::MuteReason ), reason );
         user->updateRowData( index.row(), static_cast<int>( UserCols::Muted ), ( date > 0 ) );
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDate ), date );
         user->updateRowData( index.row(), static_cast<int>( UserCols::MuteDuration ), muteDuration );
@@ -866,7 +913,6 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                 {
                     setReason = true;
                     reason.clear();
-                    value = 0;
 
                     setData( sernum, keys[ UserKeys::kBANNED ], banDate );
                     this->updateRowData( index.row(), static_cast<int>( UserCols::BanDate ), banDate );

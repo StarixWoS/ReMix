@@ -55,15 +55,23 @@ class User : public QDialog
 
         static qint32 getAdminRank(const QString& sernum);
         static void setAdminRank(const QString& sernum, const GMRanks& rank);
-        static void setAdminRank(const Player* plr, const GMRanks& rank, const bool& remote);
+        static void setAdminRank(QSharedPointer<Player> plr, const GMRanks& rank, const bool& remote);
 
         static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum = "" );
         static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
 
-        static bool addBan(const Player* admin, const Player* target, const QString& reason, const bool remote,
+        static bool addBan(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool remote,
                            const PunishDurations duration);
-        static bool addMute(const Player* admin, Player* target, const QString& reason, const bool& remote, const bool& autoMute,
-                            const PunishDurations duration);
+        static bool addBan(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration);
+
+        static bool addBanImpl(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration);
+
+        static bool addMute(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool& remote, const bool& autoMute,
+                            const PunishDurations& duration);
+        static bool addMute(QSharedPointer<Player> target, const QString& reason, const bool& autoMute, const PunishDurations& duration);
+
+        static bool addMuteImpl(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration);
+
         static QString getMuteReason(const QString& serNum);
 
         static void updateCallCount(const QString& serNum);

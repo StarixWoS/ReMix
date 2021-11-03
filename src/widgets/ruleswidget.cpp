@@ -15,7 +15,7 @@
 #include <QtCore>
 #include <QDir>
 
-QHash<Server*, RulesWidget*> RulesWidget::ruleWidgets;
+QHash<QSharedPointer<Server>, RulesWidget*> RulesWidget::ruleWidgets;
 QMutex RulesWidget::mutex;
 
 RulesWidget::RulesWidget() :
@@ -29,7 +29,7 @@ RulesWidget::~RulesWidget()
     delete ui;
 }
 
-RulesWidget* RulesWidget::getInstance(Server* server)
+RulesWidget* RulesWidget::getInstance(QSharedPointer<Server> server)
 {
     RulesWidget* widget{ ruleWidgets.value( server, nullptr ) };
     if ( widget == nullptr )
@@ -38,10 +38,10 @@ RulesWidget* RulesWidget::getInstance(Server* server)
         if ( widget != nullptr )
         {
             ruleWidgets.insert( server, widget );
-            QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server, &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
-            QObject::connect( widget, &RulesWidget::gameInfoChangedSignal, server, &Server::gameInfoChangedSlot, Qt::UniqueConnection );
-            QObject::connect( widget, &RulesWidget::setMaxPlayersSignal, server, &Server::setMaxPlayersSlot, Qt::UniqueConnection );
-            QObject::connect( server, &Server::serverNameChangedSignal, widget, &RulesWidget::nameChangedSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server.get(), &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::gameInfoChangedSignal, server.get(), &Server::gameInfoChangedSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::setMaxPlayersSignal, server.get(), &Server::setMaxPlayersSlot, Qt::UniqueConnection );
+            QObject::connect( server.get(), &Server::serverNameChangedSignal, widget, &RulesWidget::nameChangedSlot, Qt::UniqueConnection );
 
             widget->setServerName( server->getServerName() );
         }
@@ -49,7 +49,7 @@ RulesWidget* RulesWidget::getInstance(Server* server)
     return widget;
 }
 
-void RulesWidget::deleteInstance(Server* server)
+void RulesWidget::deleteInstance(QSharedPointer<Server> server)
 {
     RulesWidget* widget{ ruleWidgets.take( server ) };
     if ( widget != nullptr )

@@ -20,9 +20,9 @@
 #include <QTime>
 #include <QHash>
 
-QHash<Server*, PacketHandler*> PacketHandler::pktHandleInstanceMap;
+QHash<QSharedPointer<Server>, PacketHandler*> PacketHandler::pktHandleInstanceMap;
 
-PacketHandler::PacketHandler(Server* svr, ChatView* chat)
+PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
 {
     chatView = chat;
     server = svr;
@@ -36,11 +36,10 @@ PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 
 PacketHandler::~PacketHandler()
 {
-    if ( server != nullptr )
-        CmdHandler::deleteInstance( server );
+    server = nullptr;
 }
 
-PacketHandler* PacketHandler::getInstance(Server* server)
+PacketHandler* PacketHandler::getInstance(QSharedPointer<Server> server)
 {
     PacketHandler* instance{ pktHandleInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
@@ -52,18 +51,17 @@ PacketHandler* PacketHandler::getInstance(Server* server)
     return instance;
 }
 
-void PacketHandler::deleteInstance(Server* server)
+void PacketHandler::deleteInstance(QSharedPointer<Server> server)
 {
     PacketHandler* instance{ pktHandleInstanceMap.take( server ) };
     if ( instance != nullptr )
     {
         instance->disconnect();
-        instance->setParent( nullptr );
         instance->deleteLater();
     }
 }
 
-void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
+void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Player> plr)
 {
     //Do not parse packets from Muted, Disconnected, or Null Users.
     if ( plr == nullptr
@@ -177,7 +175,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
     return;
 }
 
-bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
+bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Player> plr)
 {
     //The Player object is invalid, return.
     if ( plr == nullptr )
@@ -274,7 +272,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     {
                         for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                         {
-                            Player* tmpPlr{ server->getPlayer( i ) };
+                            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
                             if ( tmpPlr != nullptr
                               && plr != tmpPlr )
                             {
@@ -300,7 +298,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
             else if ( server->getGameId() == Games::WoS )
             {
                 QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
-                Player* targetPlayer{ server->getPlayer( trgSerNum ) };
+                QSharedPointer<Player> targetPlayer{ server->getPlayer( trgSerNum ) };
 
                 switch ( pkt.at( 3 ).toLatin1() )
                 {
@@ -340,7 +338,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                                 isJoining = false;
                             }
 
-                            Player* partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
+                            QSharedPointer<Player> partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
                             if ( partyLeader != nullptr )
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
@@ -398,7 +396,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     break;
                     case 'J':
                         {
-                            Player* tmpPlr{ nullptr };
+                            QSharedPointer<Player> tmpPlr{ nullptr };
                             for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                             {
                                 tmpPlr = server->getPlayer( i );
@@ -468,7 +466,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
     return retn;
 }
 
-bool PacketHandler::checkBannedInfo(Player* plr) const
+bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
 {
     if ( plr == nullptr )
         return true;
@@ -477,7 +475,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     if ( plr->getIsDisconnected() )
         return true;
 
-    Player* tmpPlr{ nullptr };
+    QSharedPointer<Player> tmpPlr{ nullptr };
 
     bool badInfo{ false };
 
@@ -516,7 +514,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                   && !plr->getIsDisconnected() )
                 {
                     auto disconnect =
-                    [=, this]( Player* plr, const QString& logMsg, QString& plrMessage )
+                    [=, this]( QSharedPointer<Player> plr, const QString& logMsg, QString& plrMessage )
                     {
                         QString reason{ logMsg };
                         reason = reason.arg( "Duplicate IP" )
@@ -532,7 +530,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                            .arg( plr->getBioData() );
 
                             //Ban for only half an hour.
-                            User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
+                            User::addBan( plr, reason, PunishDurations::THIRTY_MINUTES );
 
                             emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
 
@@ -600,7 +598,7 @@ bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr, co
     return ( banned >= 1 );
 }
 
-void PacketHandler::detectFlooding(Player* plr)
+void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -620,7 +618,7 @@ void PacketHandler::detectFlooding(Player* plr)
                                .arg( time )
                                .arg( plr->getBioData() );
 
-                User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
+                User::addMute( plr, logMsg, true, PunishDurations::THIRTY_MINUTES );
                 emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding." };
@@ -635,7 +633,7 @@ void PacketHandler::detectFlooding(Player* plr)
     }
 }
 
-bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
+bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByteArray& pkt)
 {
     bool disconnect{ false };
     QString message{ "" };
@@ -689,7 +687,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
     return false;
 }
 
-void PacketHandler::readMIX0(const QString& packet, Player* plr)
+void PacketHandler::readMIX0(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -698,19 +696,19 @@ void PacketHandler::readMIX0(const QString& packet, Player* plr)
     plr->setTargetType( PktTarget::SCENE );
 }
 
-void PacketHandler::readMIX1(const QString& packet, Player* plr)
+void PacketHandler::readMIX1(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     plr->setSceneHost( Helper::serNumtoInt( sernum, true ) );
 }
 
-void PacketHandler::readMIX2(const QString&, Player* plr)
+void PacketHandler::readMIX2(const QString&, QSharedPointer<Player> plr)
 {
     plr->setSceneHost( 0 );
     plr->setTargetType( PktTarget::ALL );
 }
 
-void PacketHandler::readMIX3(const QString& packet, Player* plr)
+void PacketHandler::readMIX3(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -718,7 +716,7 @@ void PacketHandler::readMIX3(const QString& packet, Player* plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX4(const QString& packet, Player* plr)
+void PacketHandler::readMIX4(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -726,7 +724,7 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
     plr->setTargetType( PktTarget::PLAYER );
 }
 
-void PacketHandler::readMIX5(const QString& packet, Player* plr)
+void PacketHandler::readMIX5(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     if ( plr != nullptr )
@@ -740,7 +738,7 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::readMIX6(const QString& packet, Player* plr)
+void PacketHandler::readMIX6(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     if ( plr != nullptr )
@@ -757,7 +755,7 @@ void PacketHandler::readMIX6(const QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::readMIX7(const QString& packet, Player* plr)
+void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -771,17 +769,17 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX8(const QString& packet, Player* plr)
+void PacketHandler::readMIX8(const QString& packet, QSharedPointer<Player> plr)
 {
     this->handleSSVReadWrite( packet, plr, SSVModes::Read );
 }
 
-void PacketHandler::readMIX9(const QString& packet, Player* plr)
+void PacketHandler::readMIX9(const QString& packet, QSharedPointer<Player> plr)
 {
     this->handleSSVReadWrite( packet, plr, SSVModes::Write );
 }
 
-void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const SSVModes mode)
+void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVModes mode)
 {
     if ( plr == nullptr || packet.isEmpty() )
         return;
@@ -822,7 +820,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
             {
                 for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
-                    Player* tmpPlr = server->getPlayer( i );
+                    QSharedPointer<Player> tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr
                       && plr != tmpPlr )
                     {

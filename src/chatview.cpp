@@ -92,7 +92,7 @@ QStringList ChatView::bleepList
 };
 
 Themes ChatView::currentTheme;
-QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
+QHash<QSharedPointer<Server>, ChatView*> ChatView::chatViewInstanceMap;
 QVector<Colors> ChatView::colors
 {
     Colors::GossipTxt,
@@ -117,13 +117,13 @@ QVector<Colors> ChatView::colors
     Colors::SoulLeftWorld,
 };
 
-ChatView::ChatView(QWidget* parent, Server* svr) :
+ChatView::ChatView(QSharedPointer<Server> svr, QWidget* parent) :
     QWidget(parent),
+    server( svr ),
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
     currentTheme = Theme::getThemeType();
-    server = svr;
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -156,23 +156,29 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
 
 ChatView::~ChatView()
 {
+    server = nullptr;
     this->disconnect();
     delete ui;
 }
 
-ChatView* ChatView::getInstance(Server* server)
+QSharedPointer<Server> ChatView::getServer(ChatView* chatView)
+{
+    return chatViewInstanceMap.key( chatView );
+}
+
+ChatView* ChatView::getInstance(QSharedPointer<Server> server)
 {
     ChatView* instance{ chatViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new ChatView( ReMix::getInstance(), server );
+        instance = new ChatView( server, ReMix::getInstance() );
         if ( instance != nullptr )
             chatViewInstanceMap.insert( server, instance );
     }
     return instance;
 }
 
-void ChatView::deleteInstance(Server* server)
+void ChatView::deleteInstance(QSharedPointer<Server> server)
 {
     ChatView* instance{ chatViewInstanceMap.take( server ) };
     if ( instance != nullptr )
@@ -188,7 +194,7 @@ bool ChatView::parseChatEffect(const QString& packet)
     bool retn{ true };
     QString srcSerNum{ Helper::serNumToIntStr( packet.left( 12 ).mid( 4 ), true ) };
     Colors serNumColor{ Colors::WhiteSoul };
-    Player* plr{ nullptr };
+    QSharedPointer<Player> plr{ nullptr };
     QString message{ "" };
 
     if ( server->getGameId() != Games::W97 )
