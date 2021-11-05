@@ -75,12 +75,7 @@ ColorWidget::ColorWidget() :
     this->loadColors();
 
     QObject::connect( this, &ColorWidget::colorOverrideSignal, Theme::getInstance(), &Theme::colorOverrideSlot );
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
-    [=]()
-    {
-        this->loadColors();
-        ui->colorView->setPalette( Theme::getCurrentPal() );
-    } );
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ColorWidget::themeChangedSlot );
 
     ui->colorView->setAutoFillBackground( true );
 }
@@ -159,4 +154,10 @@ void ColorWidget::on_colorView_doubleClicked(const QModelIndex& index)
 void ColorWidget::on_selectColor_clicked()
 {
     this->selectColor( ui->colorView->currentIndex().row() );
+}
+
+void ColorWidget::themeChangedSlot()
+{
+    this->loadColors();
+    ui->colorView->setPalette( Theme::getCurrentPal() );
 }

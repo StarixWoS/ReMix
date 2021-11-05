@@ -23,9 +23,9 @@
 QHash<QSharedPointer<Server>, PacketHandler*> PacketHandler::pktHandleInstanceMap;
 
 PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
+    : server( svr )
 {
     chatView = chat;
-    server = svr;
 
     QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
     QObject::connect( this, &PacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot );
@@ -234,27 +234,28 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                     {
                         case 1:
                             {
-                                msg = " has incarnated into this world! ";
+                                msg = "has incarnated into this world! ";
                             }
                         break;
                         case 2:
                             {
                                 plr->setIsGhosting( true );
-                                msg = " walks the land as an apparition! ";
+                                msg = "walks the land as an apparition! ";
                             }
                         break;
                         case 4:
                             {
                                 plr->setIsIncarnated( false );
                                 isIncarnated = false;
-                                msg = " has returned to the Well of Souls! ";
+                                msg = "has returned to the Well of Souls! ";
                             }
                         break;
                         default:
                         break;
                     }
 
-                    if ( !msg.isEmpty() && !isIncarnated )
+                    if ( !msg.isEmpty()
+                      && !isIncarnated )
                     {
                         emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                         emit this->insertChatMsgSignal( "*** ", Colors::SoulIncarnated, false );
@@ -491,7 +492,7 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
                        .arg( plr->getIPAddress() )
                        .arg( plr->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
         plrMessage = plrMessage.arg( "Disconnect" )
                                .arg( "Banned Info" );
@@ -521,7 +522,7 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
                                        .arg( plr->getIPAddress() )
                                        .arg( plr->getBioData() );
 
-                        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                        emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                         if ( Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() )
                         {
@@ -532,7 +533,7 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
                             //Ban for only half an hour.
                             User::addBan( plr, reason, PunishDurations::THIRTY_MINUTES );
 
-                            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                             plrMessage = plrMessage.arg( "Banish" )
                                                    .arg( "Duplicate IP" );
@@ -573,7 +574,7 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
                                    .arg( plr->getIPAddress() )
                                    .arg( plr->getBioData() );
 
-                    emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                     plrMessage = plrMessage.arg( "Disconnect" )
                                            .arg( "Duplicate SerNum" );
@@ -619,7 +620,7 @@ void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
                                .arg( plr->getBioData() );
 
                 User::addMute( plr, logMsg, true, PunishDurations::THIRTY_MINUTES );
-                emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+                emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding." };
                 server->sendMasterMessage( plrMessage, plr, false );
@@ -659,7 +660,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
                            .arg( plr->getBioData() )
                            .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
         }
         else
         {
@@ -846,6 +847,6 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
                  .arg( vars.value( 2 ) ) //variable
                  .arg( value ); //value
 
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::QUEST, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::SSVLog, true, true );
     }
 }

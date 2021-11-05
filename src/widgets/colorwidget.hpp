@@ -35,6 +35,7 @@ class ColorWidget : public QWidget
         void on_resetColor_clicked();
         void on_colorView_doubleClicked(const QModelIndex &index);
         void on_selectColor_clicked();
+        void themeChangedSlot();
 
     private:
         Ui::ColorWidget *ui;

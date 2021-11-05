@@ -366,26 +366,21 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
     switch ( format )
     {
         case TimeFormat::Days:
-            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
-                     / static_cast<int>( TimeFormat::DaysDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
+                     / static_cast<int>( TimeDivide::Days ) );
         break;
         case TimeFormat::Hours:
-            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
-                     % static_cast<int>( TimeFormat::DaysDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
+                     % static_cast<int>( TimeDivide::Days ) );
         break;
         case TimeFormat::Minutes:
-            retn = ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
-                     % static_cast<int>( TimeFormat::SecDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Minutes ) )
+                     % static_cast<int>( TimeDivide::Seconds ) );
         break;
         case TimeFormat::Seconds:
-            retn = ( time % static_cast<int>( TimeFormat::SecDiv ) );
+            retn = ( time % static_cast<int>( TimeDivide::Seconds ) );
         break;
         case TimeFormat::Default:
-            retn = time;
-        break;
-        case TimeFormat::HoursDiv:
-        case TimeFormat::DaysDiv:
-        case TimeFormat::SecDiv:
             retn = time;
         break;
     }

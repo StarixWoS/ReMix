@@ -76,7 +76,10 @@ void RulesWidget::setServerName(const QString& name)
     rowText = "Max Idle: [ %1 ] Minutes";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name );
     if ( !val.isValid() )
-        val = static_cast<qint64>( Globals::MAX_IDLE_TIME ) / 1000 / 60;
+    {
+        val = ( static_cast<qint64>( Globals::MAX_IDLE_TIME ) / static_cast<int>( TimeDivide::Miliseconds ) )
+                                                              / static_cast<int>( TimeDivide::Minutes );
+    }
 
     ui->rulesView->item( static_cast<int>( RToggles::MaxIdle ), 0 )->setText( rowText.arg( val.toUInt() ) );
 
@@ -417,7 +420,10 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 rowText = "Max Idle: [ %1 ] Minutes";
                 QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
                 if ( !val.isValid() )
-                    val = static_cast<qint64>( static_cast<int>( Globals::MAX_IDLE_TIME ) ) / 1000 / 60;
+                {
+                    val = ( static_cast<qint64>( Globals::MAX_IDLE_TIME ) / static_cast<int>( TimeDivide::Miliseconds ) )
+                                                                          / static_cast<int>( TimeDivide::Minutes );
+                }
 
                 rowText = rowText.arg( val.toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );

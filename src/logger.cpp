@@ -25,23 +25,23 @@
 
 QStandardItemModel* Logger::tblModel{ nullptr };
 
-QMap<QModelIndex, LogTypes> Logger::logMap;
+QMap<QModelIndex, LKeys> Logger::logMap;
 Logger* Logger::logInstance{ nullptr };
 
 const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
-const QStringList Logger::logType =
+const QMap<LKeys, QString> Logger::logType =
 {
-    "AllLogs", //Unused, placeholder.
-    "AdminUsageLog",
-    "CommentLog",
-    "ClientLog",
-    "MasterMixLog",
-    "UPNPLog",
-    "PunishmentLog",
-    "MiscLog",
-    "ChatLog",
-    "QuestLog",
-    "PingLog",
+    { LKeys::AllLogs,       "AllLogs"       }, //Unused, placeholder.
+    { LKeys::AdminLog,      "AdminUsageLog" },
+    { LKeys::CommentLog,    "CommentLog"    },
+    { LKeys::ClientLog,     "ClientLog"     },
+    { LKeys::MasterMixLog,  "MasterMixLog"  },
+    { LKeys::UPNPLog,       "UPNPLog"       },
+    { LKeys::PunishmentLog, "PunishmentLog" },
+    { LKeys::MiscLog,       "MiscLog"       },
+    { LKeys::ChatLog,       "ChatLog"       },
+    { LKeys::SSVLog,        "QuestLog"      },
+    { LKeys::PingLog,       "PingLog"       },
 };
 
 Logger::Logger(QWidget *parent) :
@@ -55,6 +55,8 @@ Logger::Logger(QWidget *parent) :
     writeThread->moveToThread( logThread );
 
     //Connect Objects to Slots.
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &Logger::themeChangedSlot );
+    QObject::connect( &autoClearTimer, &QTimer::timeout, this, &Logger::autoClearTimeOutSlot );
     QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot );
     QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot );
 
@@ -83,23 +85,10 @@ Logger::Logger(QWidget *parent) :
 
     //Restore the AutoClear Logs setting.
     ui->autoClear->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoClear ).toBool() );
-    autoClearTimer.setInterval( 86400 * 1000 );
-    QObject::connect( &autoClearTimer, &QTimer::timeout, this, [=, this]()
-    {
-        this->clearLogs();
-    });
+    autoClearTimer.setInterval( static_cast<int>( TimeInterval::Day ) * static_cast<int>( TimeMultiply::Milliseconds ) );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
-
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
-    [=,this]()
-    {
-        auto pal{ Theme::getCurrentPal() };
-        ui->logView->setPalette( pal );
-        ui->autoScroll->setPalette( pal );
-        ui->autoClear->setPalette( pal );
-    });
 
     logThread->start();
 }
@@ -145,32 +134,30 @@ void Logger::scrollToBottom(const bool& forceScroll)
 {
     if ( ui->autoScroll->isChecked() )
     {
-        QListView* obj{ ui->logView };
-
         //Detect when the user is scrolling upwards. And prevent scrolling.
-        if ( obj->verticalScrollBar()->sliderPosition() == obj->verticalScrollBar()->maximum()
+        if ( ( ui->logView->verticalScrollBar()->sliderPosition() == ui->logView->verticalScrollBar()->maximum() )
           || forceScroll )
         {
-            obj->scrollToBottom();
+            ui->logView->scrollToBottom();
         }
     }
 }
 
-void Logger::insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine)
+void Logger::insertLog(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine)
 {
     QAbstractItemModel* tblModel{ ui->logView->model() };
     QString time{ Helper::getTimeAsString() };
     QString format{ "%1 - %2 - %3 - %4" }; //Format string. - Easier to modify.
 
     if ( tblModel != nullptr
-      && type != LogTypes::CHAT ) //Hide the Chat from the Log View.
+      && type != LKeys::ChatLog ) //Hide the Chat from the Log View.
     {
-        qint32 row{ tblModel->rowCount() };
+        const qint32 row{ tblModel->rowCount() };
         tblModel->insertRows( row, 1 );
 
-        auto idx{ tblModel->index( row, 0 ) };
+        const auto idx{ tblModel->index( row, 0 ) };
         format = format.arg( time )
-                       .arg( logType.at( static_cast<int>( type ) ) )
+                       .arg( logType.value( type ) )
                        .arg( source )
                        .arg( message.simplified() );
         tblModel->setData( idx, format, Qt::DisplayRole );
@@ -191,20 +178,20 @@ void Logger::filterLogs()
 {
     //qint32 rowCount{ tblModel->rowCount() };
     qint32 index{ ui->filterComboBox->currentIndex() };
-    if ( static_cast<LogTypes>( index ) >= LogTypes::CHAT ) //This log type is not valid for filtering.
+    if ( static_cast<LKeys>( index ) >= LKeys::ChatLog ) //This log type is not valid for filtering.
         ++index;                                            //Adjust the index to the next valid log type.
 
     ui->logView->setUpdatesEnabled( false );
 
-    bool filteringLogs{ index != static_cast<int>( LogTypes::ALL ) };
+    bool filteringLogs{ index != static_cast<int>( LKeys::AllLogs ) };
     for ( const QModelIndex& idx : logMap.keys() )
     {
         if ( idx.isValid() )
         {
             if ( filteringLogs )
             {
-                LogTypes type{ logMap.value( idx ) };
-                if ( type == static_cast<LogTypes>( index ) )
+                const LKeys type{ logMap.value( idx ) };
+                if ( type == static_cast<LKeys>( index ) )
                     ui->logView->setRowHidden( idx.row(), false );
                 else
                     ui->logView->setRowHidden( idx.row(), true );
@@ -230,7 +217,7 @@ void Logger::clearLogs()
 
     ui->logView->setUpdatesEnabled( true );
 
-    this->insertLog( "Logger", logMsg, LogTypes::MISC, true, true );
+    this->insertLog( "Logger", logMsg, LKeys::MiscLog, true, true );
 }
 
 void Logger::startAutoClearingLogs(const bool& start)
@@ -242,7 +229,7 @@ void Logger::startAutoClearingLogs(const bool& start)
 }
 
 //Slots
-void Logger::insertLogSlot(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine)
+void Logger::insertLogSlot(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine)
 {
     this->insertLog( source, message, type, logToFile, newLine );
 }
@@ -255,13 +242,13 @@ void Logger::on_websiteLabel_linkActivated(const QString&)
 
     if ( Helper::confirmAction( this, title, prompt ) )
     {
-        QUrl websiteLink( website );
+        const QUrl websiteLink( website );
         QDesktopServices::openUrl( websiteLink );
 
         QString message{ "Opening a local Web Browser to the website [ %1 ] per user request." };
                 message = message.arg( website );
 
-        this->insertLog( "Logger", message, LogTypes::MISC, true, true );
+        this->insertLog( "Logger", message, LKeys::MiscLog, true, true );
     }
 }
 
@@ -296,7 +283,15 @@ void Logger::on_autoClear_toggled(bool checked)
     this->startAutoClearingLogs( checked );
 }
 
-void Logger::on_logView_customContextMenuRequested(const QPoint& pos)
+void Logger::themeChangedSlot()
 {
-    qDebug() << pos;
+    const auto pal{ Theme::getCurrentPal() };
+    ui->logView->setPalette( pal );
+    ui->autoScroll->setPalette( pal );
+    ui->autoClear->setPalette( pal );
+}
+
+void Logger::autoClearTimeOutSlot()
+{
+    this->clearLogs();
 }

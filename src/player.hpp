@@ -237,7 +237,7 @@ class Player : public QTcpSocket
         void readyReadSlot();
 
     signals:
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void parsePacketSignal(const QByteArray& packet, QSharedPointer<Player> plr);
         void hexSerNumSetSignal(QSharedPointer<Player> plr);
         void updatePlrViewSignal(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);

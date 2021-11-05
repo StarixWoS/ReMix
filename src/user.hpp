@@ -21,16 +21,11 @@ class User : public QDialog
     static User* instance;
     static QMutex mutex;
 
-    static const QStringList keys;
-    static const QVector<PunishDurations> punishDurations;
-    static const QVector<GMRanks> adminRanks;
-    static const QStringList adminRankStrings;
+    static const QMap<UKeys, QString> uKeys;
+    static const QMap<PunishDurations, QString> punishDurations;
+    static const QMap<GMRanks, QString> adminRanks;
 
     public:
-        enum UserKeys{ kSEEN = 0, kBIO, kIP, kDV, kWV, kRANK, kHASH, kSALT,
-                       kMUTED, kMUTEDURATION, kMUTEREASON,
-                       kBANNED, kBANDURATION, kBANREASON, kPINGS, kCALLS = 15 };
-
         explicit User(QWidget* parent = nullptr);
         ~User() override;
 
@@ -88,7 +83,7 @@ class User : public QDialog
 
     signals:
         void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void removePunishmentSignal(const QString& value, const PunishTypes& type);
 
     public slots:

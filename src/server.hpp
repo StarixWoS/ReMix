@@ -279,7 +279,7 @@ class Server : public QTcpServer
         void serverIDChangedSignal(const QString& serverID);
         void setMaxIdleTimeSignal(const qint64& maxAFK);
 
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void sendMasterMsgToPlayerSignal(QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
 
         void upnpPortForwardSignal(const QString& privateIP, const quint16& port, const bool& insert);
@@ -290,7 +290,7 @@ class Server : public QTcpServer
         void dataOutSizeSlot(const quint64& size);
         void setMaxIdleTimeSlot();
         void masterMixIPChangedSlot();
-        void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override);
+        void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port);
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSlot(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);
         void recvPlayerGameInfoSlot(const QString& info, const QString& ip);

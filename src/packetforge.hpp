@@ -24,7 +24,7 @@ class PacketForge : public QObject
         bool validateSerNum(QSharedPointer<Player> plr, const QByteArray& packet);
 
     signals:
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
 };
 
 #endif // PACKETFORGE_HPP

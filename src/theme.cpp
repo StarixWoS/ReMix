@@ -17,51 +17,51 @@
 #include <QMap>
 
 //Declare Class Static Objects.
-QVector<QStringList> Theme::defaultColors =
+QVector<QMap<Colors, QString>> Theme::defaultColors =
 {
     {   //Light.
-        "#daa521", //Gossip Chat.
-        "#b8860b", //Shout Chat.
-        "#556b2f", //Emote Chat.
-        "#00008b", //Player Chat.
-        "#008b8b", //Owner Chat.
-        "#0000ff", //Player Comment.
-        "#daa408", //Golden Soul.
-        "#000000", //White Soul.
-        "#006401", //Player Name.
-        "#006400", //Owner Name.
-        "#800080", //Time Stamp
-        "#006402", //Admin Valid.
-        "#8b0606", //Admin Invalid.
-        "#006403", //IP Valid.
-        "#8b0505", //IP Invalid.
-        "#ff8c00", //IP Vanished.
-        "#8b0404", //Party Join.
-        "#8b0303", //PK Challenge.
-        "#8b0202", //Soul Incarnated.
-        "#8b0101", //Soul Left World.
+        { Colors::GossipTxt,        "#daa521" }, //Gossip Chat.
+        { Colors::ShoutTxt,         "#b8860b" }, //Shout Chat.
+        { Colors::EmoteTxt,         "#556b2f" }, //Emote Chat.
+        { Colors::PlayerTxt,        "#00008b" }, //Player Chat.
+        { Colors::OwnerTxt,         "#008b8b" }, //Owner Chat.
+        { Colors::CommentTxt,       "#0000ff" }, //Player Comment.
+        { Colors::GoldenSoul,       "#daa408" }, //Golden Soul.
+        { Colors::WhiteSoul,        "#000000" }, //White Soul.
+        { Colors::PlayerName,       "#006401" }, //Player Name.
+        { Colors::OwnerName,        "#006400" }, //Owner Name.
+        { Colors::TimeStamp,        "#800080" }, //Time Stamp
+        { Colors::AdminValid,       "#006402" }, //Admin Valid.
+        { Colors::AdminInvalid,     "#8b0606" }, //Admin Invalid.
+        { Colors::IPValid,          "#006403" }, //IP Valid.
+        { Colors::IPInvalid,        "#8b0505" }, //IP Invalid.
+        { Colors::IPVanished,       "#ff8c00" }, //IP Vanished.
+        { Colors::PartyJoin,        "#8b0404" }, //Party Join.
+        { Colors::PKChallenge,      "#8b0303" }, //PK Challenge.
+        { Colors::SoulIncarnated,   "#8b0202" }, //Soul Incarnated.
+        { Colors::SoulLeftWorld,    "#8b0101" }, //Soul Left World.
     },
     {   //Dark.
-        "#daa520", //Gossip Chat.
-        "#a0522d", //Shout Chat.
-        "#2e8b57", //Emote Chat.
-        "#ffff00", //Player Chat.
-        "#00ffff", //Owner Chat.
-        "#d6c540", //Player Comment.
-        "#dba515", //Golden Soul.
-        "#ffffff", //White Soul.
-        "#32cd33", //Player Name.
-        "#32cd32", //Owner Name.
-        "#ff8080", //Time Stamp
-        "#32cd35", //Admin Valid.
-        "#ff0606", //Admin Invalid.
-        "#32cd34", //IP Valid.
-        "#ff0505", //IP Invalid.
-        "#ffa500", //IP Vanished.
-        "#ff0404", //Party Join.
-        "#ff0303", //PK Challenge.
-        "#ff0202", //Soul Incarnated.
-        "#ff0101", //Soul Left World.
+        { Colors::GossipTxt,        "#daa520" }, //Gossip Chat.
+        { Colors::ShoutTxt,         "#a0522d" }, //Shout Chat.
+        { Colors::EmoteTxt,         "#2e8b57" }, //Emote Chat.
+        { Colors::PlayerTxt,        "#ffff00" }, //Player Chat.
+        { Colors::OwnerTxt,         "#00ffff" }, //Owner Chat.
+        { Colors::CommentTxt,       "#d6c540" }, //Player Comment.
+        { Colors::GoldenSoul,       "#dba515" }, //Golden Soul.
+        { Colors::WhiteSoul,        "#ffffff" }, //White Soul.
+        { Colors::PlayerName,       "#32cd33" }, //Player Name.
+        { Colors::OwnerName,        "#32cd32" }, //Owner Name.
+        { Colors::TimeStamp,        "#ff8080" }, //Time Stamp
+        { Colors::AdminValid,       "#32cd35" }, //Admin Valid.
+        { Colors::AdminInvalid,     "#ff0606" }, //Admin Invalid.
+        { Colors::IPValid,          "#32cd34" }, //IP Valid.
+        { Colors::IPInvalid,        "#ff0505" }, //IP Invalid.
+        { Colors::IPVanished,       "#ffa500" }, //IP Vanished.
+        { Colors::PartyJoin,        "#ff0404" }, //Party Join.
+        { Colors::PKChallenge,      "#ff0303" }, //PK Challenge.
+        { Colors::SoulIncarnated,   "#ff0202" }, //Soul Incarnated.
+        { Colors::SoulLeftWorld,    "#ff0101" }, //Soul Left World.
     }
 };
 
@@ -175,7 +175,7 @@ void Theme::applyTheme(const Themes& type)
 
 QString Theme::getDefaultColor(const Themes& theme, const Colors& color)
 {
-    return QColor( defaultColors[ static_cast<int>( theme ) ][ static_cast<int>( color ) ] ).name();
+    return QColor( defaultColors[ static_cast<int>( theme ) ].value( color ) ).name();
 }
 
 QBrush Theme::getColorBrush(const Colors& color)

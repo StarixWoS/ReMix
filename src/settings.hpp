@@ -34,9 +34,9 @@ class Settings : public QDialog
         static QHash<QHostAddress, QByteArray> bioHash;
         static QSettings* prefs;
 
-        static const QStringList pKeys;
-        static const QStringList sKeys;
-        static const QStringList cKeys;
+        static const QMap<SKeys, QString> pKeys;
+        static const QMap<SSubKeys, QString> sKeys;
+        static const QMap<Colors, QString> cKeys;
 
     public: //Static-Free functions. Ported from Helper and Admin.
         static void setSettingFromPath(const QString& path, const QVariant& value);

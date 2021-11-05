@@ -16,7 +16,7 @@ class CreateInstance : public QDialog
 {
         Q_OBJECT
 
-        static const QStringList gameNames;
+        static const QMap<Games, QString> gameNames;
         static QStringList restartServerList;
         static CreateInstance* instance;
         QCollator collator;

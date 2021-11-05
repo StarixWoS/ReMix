@@ -63,9 +63,12 @@ class PlrListWidget : public QWidget
         void on_actionDisconnectUser_triggered();
         void on_actionBANISHUser_triggered();
         void selectRowSlot(const qint32& row);
+        void themeChangedSlot();
+        void forwardMessageSlot(const QString& message);
 
     signals:
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
+        void insertMasterMessageSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll);
 
     private:
         Ui::PlrListWidget* ui;

@@ -39,7 +39,7 @@ class UdpThread : public QThread
         void dataOutSizeSignal(const quint64& size);
         void dataInSizeSignal(const quint64& size);
         void increaseServerPingsSignal();
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
 
         void setBytesInSignal(const quint64& bytes);
         void recvMasterInfoResponseSignal(const QString& masterIP, const quint16& masterPort, const QString& userIP, const quint16& userPort);

@@ -18,6 +18,15 @@
 #include <QtCore>
 
 QHash<QSharedPointer<Server>, CmdHandler*> CmdHandler::cmdInstanceMap;
+const QMap<TimePeriods, QString> CmdHandler::tPeriods =
+{
+    { TimePeriods::Years,   "years"   },
+    { TimePeriods::Days,    "days"    },
+    { TimePeriods::Hours,   "hours"   },
+    { TimePeriods::Minutes, "minutes" },
+    { TimePeriods::Seconds, "seconds" },
+    { TimePeriods::Default, "seconds" },
+};
 
 CmdHandler::CmdHandler(QSharedPointer<Server> svr, QObject* parent)
     : QObject(parent),
@@ -116,7 +125,7 @@ bool CmdHandler::canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks
             reason.append( append );
 
             User::addBan( admin, reason, PunishDurations::THIRTY_DAYS );
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
             admin->setDisconnected( true, DCTypes::IPDC );
         }
@@ -512,7 +521,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                      .arg( message );
 
     if ( logMsg )
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::ADMIN, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::AdminLog, true, true );
 
     return retn;
 }
@@ -582,8 +591,7 @@ bool CmdHandler::isTarget(QSharedPointer<Player> target, const QString& arg1, co
     return false;
 }
 
-bool CmdHandler::validateAdmin(QSharedPointer<Player> admin, GMRanks& rank,
-                               const QString& cmdStr)
+bool CmdHandler::validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr)
 {
     return ( ( this->getAdminRank( admin ) >= rank )
             && this->canUseAdminCommands( admin, rank, cmdStr ) );
@@ -640,6 +648,7 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
 {
     QString reasonMsg{ "Remote-Admin [ %1 ] has [ Banned ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
+    QPair<qint64, TimePeriods> pair;
 
     QSharedPointer<Player> tmpPlr{ nullptr };
     bool ban{ false };
@@ -664,17 +673,18 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
     {
         QString dateString{ "" };
         quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint32 banDuration{ static_cast<qint32>( PunishDurations::SEVEN_DAYS ) };
+        qint64 banDuration{ static_cast<qint32>( PunishDurations::SEVEN_DAYS ) };
 
         if ( !duration.isEmpty() )
         {
-            QString timeText{ "seconds" };
-            banDuration = this->getTimePeriodFromString( duration, timeText );
+            pair = this->getTimePeriodFromString( duration );
+
+            banDuration = pair.first;
             if ( banDuration == 0 )
                 banDuration = static_cast<qint32>( PunishDurations::SEVEN_DAYS );
         }
 
-        date += static_cast<quint64>( banDuration );
+        date += banDuration;
         dateString = Helper::getTimeAsString( date );
 
         if ( msg.isEmpty() )
@@ -695,7 +705,7 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
                  .arg( admin->getSernum_s() )
                  .arg( admin->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::PunishmentLog, true, true );
 
         tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -739,7 +749,7 @@ void CmdHandler::kickHandler(QSharedPointer<Player> admin, const QString& arg1, 
                                    .arg( tmpPlr->getSernum_s() )
                                    .arg( tmpPlr->getBioData() );
 
-                    emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                     tmpPlr->setDisconnected( true, DCTypes::IPDC );
                 }
@@ -752,6 +762,7 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
 {
     QString reasonMsg{ "Remote-Admin [ %1 ] has [ Muted ] you until [ %2 ]. Reason: [ %3 ]." };
     QString msg{ reason };
+    QPair<qint64, TimePeriods> pair;
 
     QSharedPointer<Player> tmpPlr{ nullptr };
     bool mute{ false };
@@ -776,17 +787,18 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
     {
         QString dateString{ "" };
         quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint32 muteDuration{ static_cast<qint32>( PunishDurations::TEN_MINUTES ) };
+        qint64 muteDuration{ static_cast<qint32>( PunishDurations::TEN_MINUTES ) };
 
         if ( !duration.isEmpty() )
         {
-            QString timeText{ "seconds" };
-            muteDuration = this->getTimePeriodFromString( duration, timeText );
+            pair = this->getTimePeriodFromString( duration );
+
+            muteDuration = pair.first;
             if ( muteDuration == 0 )
                 muteDuration = static_cast<qint32>( PunishDurations::TEN_MINUTES );
         }
 
-        date += static_cast<quint64>( muteDuration );
+        date += muteDuration;
         dateString = Helper::getTimeAsString( date );
 
         if ( msg.isEmpty() )
@@ -807,7 +819,7 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
                  .arg( tmpPlr->getSernum_s() )
                  .arg( tmpPlr->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::PunishmentLog, true, true );
     }
 }
 
@@ -935,7 +947,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
                     }
                 }
             }
-            emit this->insertLogSignal( server->getServerName(), loginStr, LogTypes::ADMIN, true, true );
+            emit this->insertLogSignal( server->getServerName(), loginStr, LKeys::AdminLog, true, true );
         }
         else
         {
@@ -957,7 +969,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
                                    .arg( admin->getSernum_s() )
                                    .arg( admin->getBioData() );
 
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
         }
         admin->setDisconnected( true, DCTypes::IPDC );
     }
@@ -1022,7 +1034,7 @@ void CmdHandler::registerHandler(QSharedPointer<Player> admin, const QString& su
                 }
             }
         }
-        emit this->insertLogSignal( server->getServerName(), registerStr, LogTypes::ADMIN, true, true );
+        emit this->insertLogSignal( server->getServerName(), registerStr, LKeys::AdminLog, true, true );
     }
 
     if ( !response.isEmpty() )
@@ -1031,8 +1043,9 @@ void CmdHandler::registerHandler(QSharedPointer<Player> admin, const QString& su
 
 void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& duration, const QString& reason, bool& stop, bool& restart)
 {
+    QPair<qint64, TimePeriods> pair;
     bool sendMsg{ true };
-    qint32 time{ 0 };
+    auto time{ 0 };
 
     QString message{ "Admin [ %1 ]: The Server will %2 in [ %3 ] < %4 >..." };
     QString timeText{ "seconds" };
@@ -1042,7 +1055,9 @@ void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& du
 
     if ( !duration.isEmpty() )
     {
-        time = getTimePeriodFromString( duration, timeText );
+        pair = getTimePeriodFromString( duration );
+
+        time = pair.first;
         if ( time == 0 )
             stop = true;
     }
@@ -1070,7 +1085,7 @@ void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& du
                          .arg( duration )
                          .arg( timeText );
 
-        shutdownTimer->start( time * 1000 );
+        shutdownTimer->start( time * static_cast<int>( TimeMultiply::Milliseconds ) );
     }
     else
     {
@@ -1364,10 +1379,10 @@ void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& re
     timeArg = duration;
 }
 
-qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
+QPair<qint64, TimePeriods> CmdHandler::getTimePeriodFromString(const QString& str)
 {
-    qint32 duration{ 0 };
-    qint32 time{ 0 };
+    TimePeriods time{ TimePeriods::Default };
+    qint64 duration{ 0 };
     QString pStr;
             pStr.reserve( str.length() );
 
@@ -1375,64 +1390,49 @@ qint32 CmdHandler::getTimePeriodFromString(const QString& str, QString& timeTxt)
 
     while ( itr != nullptr )
     {
-        // always starts with a number.
-        if( !itr->isDigit() )
+        //Always starts with a number.
+        if ( !itr->isDigit() )
             break;
 
         pStr.clear();
-        while( itr->isDigit() && *itr != nullptr )
+        while( itr->isDigit()
+            && *itr != nullptr )
         {
             pStr += *itr;
             ++itr;
         }
-        // try to find a letter
-        if( *itr != nullptr )
+
+        //Try to find a letter.
+        if ( *itr != nullptr )
         {
             // check the type
             switch( itr->toLower().toLatin1() )
             {
                 case 'y': //Year
-                    {
-                        timeTxt = "years";
-                        time = 365*24*60*60;
-                    }
+                    time = TimePeriods::Years;
                 break;
                 case 'd': //Days
-                    {
-                        timeTxt = "days";
-                        time = 24*60*60;
-                    }
+                    time = TimePeriods::Days;
                 break;
                 case 'h': //Hours
-                    {
-                        timeTxt = "hours";
-                        time = 60*60;
-                    }
+                    time = TimePeriods::Hours;
                 break;
                 case 'm': //Minutes
-                    {
-                        timeTxt = "minutes";
-                        time = 60;
-                    }
+                    time = TimePeriods::Minutes;
                 break;
                 case 's': //Seconds
-                    {
-                        timeTxt = "seconds";
-                        time = 1;
-                    }
+                    time = TimePeriods::Seconds;
                 break;
                 default: //Default, no duration.
-                    time = 0;
+                    time = TimePeriods::Default;
                 break;
             }
             ++itr;
         }
-        else //Minutes if no letter is given.
-        {
-            timeTxt = "seconds";
-            time = 1;
-        }
-        duration = time * Helper::strToInt( pStr, static_cast<int>( IntBase::DEC ) );
+        else //Seconds if no letter is given.
+            time = TimePeriods::Seconds;
+
+        duration = static_cast<qint32>( time ) * Helper::strToInt( pStr, static_cast<int>( IntBase::DEC ) );
     }
-    return duration;
+    return QPair<qint64, TimePeriods>( duration, time );
 }

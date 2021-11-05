@@ -32,7 +32,7 @@ ReMix::ReMix(QWidget* parent) :
     instance = this;
 
     //Register the LogTypes type for use within signals and slots.
-    qRegisterMetaType<LogTypes>("LogTypes");
+    qRegisterMetaType<LKeys>("LogTypes");
     //Register the QHostAddress type for use within signals and slots.
     qRegisterMetaType<QHostAddress>("QHostAddress");
     //Register the UserListResponse type for use within signals and slots.
@@ -148,14 +148,8 @@ void ReMix::initSysTray()
 
         QObject::connect( restoreAction, &QAction::triggered, this, &QMainWindow::showNormal );
         QObject::connect( minimizeAction, &QAction::triggered, this, &QMainWindow::hide );
-
-        QObject::connect( quitAction, &QAction::triggered, quitAction,
-        [=, this]()
-        {
-            //Allow Rejection of a Global CloseEvent.
-            if ( !this->rejectCloseEvent() )
-                qApp->quit();
-        } );
+        QObject::connect( trayObject, &QSystemTrayIcon::activated, this, &ReMix::trayObjectActivatedSlot );
+        QObject::connect( quitAction, &QAction::triggered, this, &ReMix::quitActionTriggeredSlot );
 
         trayMenu = new QMenu( this );
         trayMenu->addSeparator();
@@ -163,29 +157,6 @@ void ReMix::initSysTray()
         trayMenu->addAction( restoreAction );
         trayMenu->addAction( quitAction );
 
-        QObject::connect( trayObject, &QSystemTrayIcon::activated, trayObject,
-        [=, this]( QSystemTrayIcon::ActivationReason reason )
-        {
-            if ( reason == QSystemTrayIcon::Trigger )
-            {
-                if ( this->isHidden() )
-                {
-                    this->show();
-                    this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
-                    this->activateWindow();
-                }
-                else
-                {
-                    this->hide();
-                    this->setWindowState( Qt::WindowMinimized );
-                }
-            }
-            else if ( reason == QSystemTrayIcon::Context )
-            {
-                if ( trayMenu != nullptr )
-                    trayMenu->popup( QCursor::pos() );
-            }
-        });
         hasSysTray = true;
     }
 }
@@ -252,4 +223,34 @@ bool ReMix::rejectCloseEvent()
         return true;
     }
     return false;
+}
+
+void ReMix::quitActionTriggeredSlot()
+{
+    //Allow Rejection of a Global CloseEvent.
+    if ( !this->rejectCloseEvent() )
+        qApp->quit();
+}
+
+void ReMix::trayObjectActivatedSlot(QSystemTrayIcon::ActivationReason reason)
+{
+    if ( reason == QSystemTrayIcon::Trigger )
+    {
+        if ( this->isHidden() )
+        {
+            this->show();
+            this->setWindowState( this->windowState() & ~Qt::WindowMinimized );
+            this->activateWindow();
+        }
+        else
+        {
+            this->hide();
+            this->setWindowState( Qt::WindowMinimized );
+        }
+    }
+    else if ( reason == QSystemTrayIcon::Context )
+    {
+        if ( trayMenu != nullptr )
+            trayMenu->popup( QCursor::pos() );
+    }
 }

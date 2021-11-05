@@ -22,15 +22,7 @@ SelectWorld::SelectWorld(QWidget* parent) :
     if ( model == nullptr )
     {
         model = new QFileSystemModel( this );
-        QObject::connect( model, &QFileSystemModel::directoryLoaded, model,
-        [=, this]()
-        {
-            ui->worldViewer->setModel( model );
-            for (int i = 1; i < model->columnCount(); ++i)
-                ui->worldViewer->hideColumn( i );
-
-            ui->worldViewer->setRootIndex( model->index( Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() ) );
-        } );
+        QObject::connect( model, &QFileSystemModel::directoryLoaded, this, &SelectWorld::directoryLoadedSlot );
 
         model->setFilter( QDir::NoDotAndDotDot | QDir::Dirs );
         model->setRootPath( Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() );
@@ -107,4 +99,13 @@ void SelectWorld::on_okButton_clicked()
         this->reject();
         this->close();
     }
+}
+
+void SelectWorld::directoryLoadedSlot(const QString&)
+{
+    ui->worldViewer->setModel( model );
+    for (int i = 1; i < model->columnCount(); ++i)
+        ui->worldViewer->hideColumn( i );
+
+    ui->worldViewer->setRootIndex( model->index( Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() ) );
 }

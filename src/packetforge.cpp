@@ -87,7 +87,7 @@ bool PacketForge::validateSerNum(QSharedPointer<Player> plr, const QByteArray& p
                      .arg( plr->getSernum_s() );
 
     User::addMute( plr, msg, true, PunishDurations::THIRTY_MINUTES );
-    emit this->insertLogSignal( "PacketForge", msg, LogTypes::PUNISHMENT, true, true );
+    emit this->insertLogSignal( "PacketForge", msg, LKeys::PunishmentLog, true, true );
 
     return false;
 }

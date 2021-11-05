@@ -16,6 +16,7 @@ class CmdHandler : public QObject
     QTimer* shutdownTimer{ nullptr };
 
     static QHash<QSharedPointer<Server>, CmdHandler*> cmdInstanceMap;
+    static const QMap<TimePeriods, QString> tPeriods;
 
     public:
         explicit CmdHandler(QSharedPointer<Server> svr, QObject* parent = nullptr);
@@ -62,12 +63,12 @@ class CmdHandler : public QObject
         void campHandler(QSharedPointer<Player> admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd);
 
         void parseTimeArgs(const QString& str, QString& timeArg, QString& reason);
-        qint32 getTimePeriodFromString(const QString& str, QString& timeTxt);
+        QPair<qint64, TimePeriods> getTimePeriodFromString(const QString& str);
 
     signals:
         void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
 
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
 };
 
 #endif // CMDHANDLER_HPP

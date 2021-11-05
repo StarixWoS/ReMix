@@ -34,6 +34,7 @@ class MOTDWidget : public QWidget
 
     private slots:
         void on_motdEdit_textChanged();
+        void motdUpdateTimeOutSlot();
 
     private:
         Ui::MOTDWidget* ui;

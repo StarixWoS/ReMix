@@ -305,7 +305,7 @@ bool ChatView::parseChatEffect(const QString& packet)
             }
 
             if ( !message.isEmpty() && log )
-                emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
+                emit this->insertLogSignal( server->getServerName(), message, LKeys::ChatLog, true, true );
         }
     }
     else
@@ -442,7 +442,7 @@ void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, c
 
     //Log comments only when enabled.
     if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
-        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), comment, LKeys::CommentLog, true, true );
 
     emit this->newUserCommentSignal( comment.simplified() );
 }
@@ -457,26 +457,45 @@ void ChatView::colorOverrideSlot(const QString& oldColor, const QString& newColo
     this->scrollToBottom( true );
 }
 
-void ChatView::on_chatInput_returnPressed()
+void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll)
 {
     static const QString ownerStr{ "Owner: " };
-    QString message{ ui->chatInput->text() };
+    static const QString ownerToStr{ "Owner to User < " };
+
+    Colors serNumColor{ Colors::WhiteSoul };
+    QString msg{ message };
 
     this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-    this->insertChat( ownerStr, Colors::OwnerName, false );
-    this->insertChat( message, Colors::OwnerTxt, false );
-
-    if ( server->getGameId() == Games::W97 )
+    if ( target != nullptr
+      && toAll == false )
     {
-        //TODO: Emulate a Warpath Chat packet.
+        if ( target->getIsGoldenSerNum() )
+            serNumColor = Colors::GoldenSoul;
+
+        this->insertChat( ownerToStr, Colors::OwnerName, false );
+        this->insertChat( target->getPlrName(), Colors::PlayerName, false );
+        this->insertChat( " [ " % target->getSernum_s() % " ]", serNumColor, false );
+        this->insertChat( " >: ", Colors::OwnerName, false );
+
+        msg = ownerToStr % target->getPlrName() % " [ " % target->getSernum_s() % " ] >: " % message;
     }
     else
-        message.prepend( ownerStr );
+    {
+        this->insertChat( ownerStr, Colors::OwnerName, false );
+        msg.prepend( ownerStr );
+    }
 
-    if ( !message.isEmpty() )
-        emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
+    this->insertChat( message, Colors::OwnerTxt, false );
 
-    emit this->sendChatSignal( message );
+    if ( !msg.isEmpty() )
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::ChatLog, true, true );
+
+    emit this->sendChatSignal( msg, target, toAll );
+}
+
+void ChatView::on_chatInput_returnPressed()
+{
+    this->insertMasterMessageSlot( ui->chatInput->text(), nullptr, true );
     ui->chatInput->clear();
 }
 

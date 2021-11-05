@@ -48,6 +48,8 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     PlrListWidget* plrList{ PlrListWidget::getInstance( this, server ) };
     QObject::connect( this, &ReMixWidget::plrViewInsertRowSignal, plrList, &PlrListWidget::plrViewInsertRowSlot );
     QObject::connect( this, &ReMixWidget::plrViewRemoveRowSignal, plrList, &PlrListWidget::plrViewRemoveRowSlot );
+    QObject::connect( plrList, &PlrListWidget::insertMasterMessageSignal,
+                      ChatView::getInstance( server ), &ChatView::insertMasterMessageSlot, Qt::UniqueConnection );
 
     //Fill the ReMix UI with the PlrListWidget.
     ui->plrListFill->setLayout( plrList->layout() );
@@ -99,10 +101,10 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     } );
 
     QObject::connect( ChatView::getInstance( server ), &ChatView::sendChatSignal, this,
-    [=, this](const QString& msg)
+    [=, this](const QString& message, QSharedPointer<Player> target, const bool& toAll)
     {
-        if ( !msg.isEmpty() )
-            server->sendMasterMessage( msg, nullptr, true );
+        if ( !message.isEmpty() )
+            server->sendMasterMessage( message, target, toAll );
     } );
 
     //Initialize the TCP Server if we're starting as a public instance.
@@ -520,7 +522,7 @@ void ReMixWidget::updatePlayerTable(QSharedPointer<Player> plr)
             logMsg = logMsg.arg( plr->getIPAddress() )
                            .arg( plr->getBioData() );
 
-    Logger::getInstance()->insertLog( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
+    Logger::getInstance()->insertLog( this->getServerName(), logMsg, LKeys::ClientLog, true, true );
 }
 
 bool ReMixWidget::getCensorUIIPInfo() const

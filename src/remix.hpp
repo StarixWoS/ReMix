@@ -5,6 +5,7 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes..
+#include <QSystemTrayIcon>
 #include <QMainWindow>
 #include <QModelIndex>
 
@@ -49,6 +50,8 @@ class ReMix : public QMainWindow
 
         void closeEvent(QCloseEvent* event) override;
         bool rejectCloseEvent();
+        void quitActionTriggeredSlot();
+        void trayObjectActivatedSlot(QSystemTrayIcon::ActivationReason reason);
 
     private:
         Ui::ReMix* ui;

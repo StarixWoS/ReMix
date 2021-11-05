@@ -17,10 +17,13 @@ class MasterMixThread : public QThread
     QString defaultHost{ "http://synthetic-reality.com/synreal.ini" };
     QTimer updateInfoTimer;
 
+    static const QMap<Games, QString> gameNames;
     static QSettings* masterMixPref;
     static QTcpSocket* tcpSocket;
     static bool download;
     static QMutex mutex;
+
+    QList<Games> connectedGames;
 
     private:
         MasterMixThread();
@@ -55,9 +58,9 @@ class MasterMixThread : public QThread
 
     signals:
         void obtainedMasterMixInfoSignal();
-        void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port, const bool& override );
+        void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port);
 
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
 };
 
 #endif // MASTERMIXTHREAD_HPP

@@ -7,6 +7,7 @@
 #include "widgets/userdelegate.hpp"
 
 //ReMix Threaded Includes.
+#include "thread/mastermixthread.hpp"
 #include "thread/udpthread.hpp"
 
 //ReMix includes.
@@ -56,6 +57,9 @@ Server::Server(QWidget* parent)
     QObject::connect( this, &Server::closeUdpSocketSignal, udpThread, &UdpThread::closeUdpSocketSlot, Qt::BlockingQueuedConnection );
     QObject::connect( this, &Server::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot );
     QObject::connect( this, &Server::bindSocketSignal, udpThread, &UdpThread::bindSocketSlot );
+
+    //Connect Signals from the MasterMixThread class to the slots within the Server class.
+    QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal, this, &Server::masterMixInfoSlot, Qt::UniqueConnection );
 
     QObject::connect( this, &Server::recvMasterInfoSignal, this, &Server::recvMasterInfoSlot );
 
@@ -167,8 +171,6 @@ Server::~Server()
         thread = nullptr;
     }
 
-    this->deleteAllPlayers();
-
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
 
@@ -180,6 +182,7 @@ void Server::customDeconstruct(Server* svr)
 {
     if ( svr != nullptr )
     {
+        svr->deleteAllPlayers();
         svr->disconnect();
         svr->deleteLater();
     }
@@ -268,7 +271,7 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
                 msg = msg.arg( addr.toString() )
                          .arg( port )
                          .arg( response );
-        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::PING, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LKeys::PingLog, true, true );
     }
 }
 
@@ -317,7 +320,7 @@ void Server::sendMasterInfo(const bool& disconnect)
         else
             msg.append( " [ Disconnect ]." );
 
-        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LKeys::MasterMixLog, true, true );
         emit this->sendUdpDataSignal( addr, port, response );
     }
     else
@@ -476,7 +479,7 @@ void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const boo
     if ( !all )
         this->setPlayerCount( this->getPlayerCount() - 1 );
 
-    emit this->insertLogSignal( this->getServerName(), logMsg, LogTypes::CLIENT, true, true );
+    emit this->insertLogSignal( this->getServerName(), logMsg, LKeys::ClientLog, true, true );
 }
 
 void Server::deleteAllPlayers()
@@ -739,8 +742,12 @@ void Server::setIsPublic(const bool& value, const QString& netInterface)
             this->setupInfo( netInterface );
 
         if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
-          || ( this->getUpnpPortAdded() && this->getUseUPNP() ) )
+          || ( this->getUpnpPortAdded() && this->getUseUPNP() )
+          || ( !this->getUpnpPortAdded() && this->getUseUPNP() ) )
         {
+            if ( masterCheckIn.isActive() )
+                this->startMasterCheckIn();
+
             emit this->initializeServerSignal();
         }
     }
@@ -749,6 +756,7 @@ void Server::setIsPublic(const bool& value, const QString& netInterface)
         //Disconnect from the Master Server if applicable.
         this->stopMasterCheckIn();
         this->sendMasterInfo( true );
+        this->setUpnpPortAdded( false );
     }
 
     Settings::setSetting( isPublic, SKeys::Setting, SSubKeys::IsRunning, serverName );
@@ -1176,8 +1184,8 @@ qint64 Server::getMaxIdleTime()
     qint64 maxIdle{ static_cast<qint64>( Globals::MAX_IDLE_TIME ) };
     if ( val.isValid() && val.toBool() )
     {
-        maxIdle = val.toUInt() * static_cast<qint64>( MultiplyTime::Seconds )
-                               * static_cast<qint64>( MultiplyTime::Miliseconds );
+        maxIdle = val.toUInt() * static_cast<qint64>( TimeMultiply::Seconds )
+                               * static_cast<qint64>( TimeMultiply::Milliseconds );
     }
     return maxIdle;
 }
@@ -1215,31 +1223,15 @@ void Server::masterMixIPChangedSlot()
             QString msg{ "Loading Master Server Override [ %1:%2 ]." };
                     msg = msg.arg( this->getMasterIP() )
                              .arg( this->getMasterPort() );
-            emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+            emit this->insertLogSignal( this->getServerName(), msg, LKeys::MasterMixLog, true, true );
         }
     }
 }
 
-void Server::masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override)
+void Server::masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port)
 {
     if ( game == this->getGameId() )
-    {
-        QString msg{ "Got Master Server [ %1:%2 ] for Game [ %3 ]." };
-        if ( override )
-        {
-            msg= "Loaded Master Server Override [ %1:%2 ]." ;
-            msg = msg.arg( this->getMasterIP() )
-                     .arg( this->getMasterPort() );
-        }
-        else
-        {
-            msg = msg.arg( ip )
-                     .arg( port )
-                     .arg( this->getGameName() );
-        }
         this->setMasterIP( ip, port );
-        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
-    }
 }
 
 void Server::setBytesInSignal(const quint64& bytes)
@@ -1274,7 +1266,7 @@ void Server::recvMasterInfoResponseSlot(const QString& masterIP, const quint16& 
                          .arg( this->getMasterPingTrend() )
                          .arg( this->getMasterPingFailCount() );
 
-        emit this->insertLogSignal( this->getServerName(), msg, LogTypes::MASTERMIX, true, true );
+        emit this->insertLogSignal( this->getServerName(), msg, LKeys::MasterMixLog, true, true );
     }
 }
 

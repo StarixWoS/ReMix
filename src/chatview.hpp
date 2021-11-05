@@ -43,21 +43,20 @@ class ChatView : public QWidget
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
         void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
         void colorOverrideSlot(const QString& oldColor, const QString& newColor);
+        void insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll);
 
     private slots:
         void on_chatInput_returnPressed();
         void themeChangedSlot(const Themes& theme);
-
         void on_autoScrollCheckBox_toggled(bool checked);
-
         void on_clearChat_clicked();
 
     private:
         Ui::ChatView* ui;
 
     signals:
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
-        void sendChatSignal(const QString&);
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
+        void sendChatSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll);
         void newUserCommentSignal(const QString& message);
 };
 

@@ -23,14 +23,7 @@ MOTDWidget::MOTDWidget() :
     motdUpdate.setInterval( 2000 ); //Update the file after 2seconds.
     motdUpdate.setSingleShot( true );
 
-    QObject::connect( &motdUpdate, &QTimer::timeout, &motdUpdate,
-    [=, this]()
-    {
-        QString strVar{ ui->motdEdit->toPlainText() };
-        Helper::stripNewlines( strVar );
-
-        Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
-    } );
+    QObject::connect( &motdUpdate, &QTimer::timeout, this, &MOTDWidget::motdUpdateTimeOutSlot );
 }
 
 MOTDWidget::~MOTDWidget()
@@ -89,4 +82,12 @@ void MOTDWidget::nameChangedSlot(const QString& name)
 void MOTDWidget::on_motdEdit_textChanged()
 {
     motdUpdate.start();
+}
+
+void MOTDWidget::motdUpdateTimeOutSlot()
+{
+    QString strVar{ ui->motdEdit->toPlainText() };
+    Helper::stripNewlines( strVar );
+
+    Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
 }

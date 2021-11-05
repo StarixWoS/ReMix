@@ -24,9 +24,9 @@ class Logger : public QDialog
     QThread* logThread{ nullptr };
     QThread* thread{ nullptr };
 
-    static const QStringList logType;
+    static const QMap<LKeys, QString> logType;
     static const QString website;
-    static QMap<QModelIndex, LogTypes> logMap;
+    static QMap<QModelIndex, LKeys> logMap;
     static QStandardItemModel* tblModel;
     static Logger* logInstance;
 
@@ -42,7 +42,7 @@ class Logger : public QDialog
         static void setInstance(Logger* logger = nullptr);
 
         void scrollToBottom(const bool& forceScroll = false);
-        void insertLog(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
+        void insertLog(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
 
     private:
         void filterLogs();
@@ -50,7 +50,7 @@ class Logger : public QDialog
         void startAutoClearingLogs(const bool& start);
 
     public slots:
-        void insertLogSlot(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
+        void insertLogSlot(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
 
     private slots:
         void on_websiteLabel_linkActivated(const QString&);
@@ -59,11 +59,11 @@ class Logger : public QDialog
         void on_filterComboBox_currentIndexChanged(int index);
         void on_clearLogsButton_clicked();
         void on_autoClear_toggled(bool checked);
-
-        void on_logView_customContextMenuRequested(const QPoint &pos);
+        void themeChangedSlot();
+        void autoClearTimeOutSlot();
 
     signals:
-        void insertLogSignal(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine);
+        void insertLogSignal(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine);
         void resizeColumnsSignal(const LogCols& column);
 
     private:

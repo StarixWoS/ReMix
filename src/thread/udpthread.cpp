@@ -114,7 +114,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                     Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
 
                     emit this->logBIOSignal( sernum, ipAddr, data );
-                    emit this->insertLogSignal( serverName, msg, LogTypes::PING, true, true );
+                    emit this->insertLogSignal( serverName, msg, LKeys::PingLog, true, true );
                 }
                 emit this->increaseServerPingsSignal();
             }

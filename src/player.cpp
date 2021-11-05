@@ -763,7 +763,7 @@ void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
                 reason.append( ", [ %1 ]" );
                 reason = reason.arg( this->getBioData() );
 
-                emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                 this->setDisconnected( true, DCTypes::IPDC );
             }
@@ -925,7 +925,7 @@ void Player::connectionTimeUpdateSlot()
                     reason = reason.arg( this->getSernum_s() )
                                    .arg( this->getBioData() );
 
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
             this->setDisconnected( true, DCTypes::IPDC );
         }

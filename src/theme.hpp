@@ -13,7 +13,7 @@ class Theme : public QObject
 {
     Q_OBJECT
 
-    static QVector<QStringList> defaultColors;
+    static QVector<QMap<Colors, QString>> defaultColors;
     static QMap<Colors, QString> darkOverrides;
     static QMap<Colors, QString> lightOverrides;
     static QPalette currentPal;

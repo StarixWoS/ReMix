@@ -285,12 +285,15 @@
         //Valid columns within the Logger Dialog.
         enum class LogCols: int{ Date = 0, Source, Type, Message = 3, ColCount = 4 };
 
-        //Valid Log types available to the Logger Class.
-        enum class LogTypes: int{ ALL = 0, ADMIN, COMMENT, CLIENT, MASTERMIX, UPNP, PUNISHMENT, MISC, CHAT, QUEST, PING };
+        //Valid Key values for use within the Logger and WriteThread Classes.
+        enum class LKeys: int{ AllLogs = 0, AdminLog, CommentLog, ClientLog, MasterMixLog, UPNPLog, PunishmentLog, MiscLog, ChatLog, SSVLog, PingLog };
 
         //Used for converting time in seconds to a human readable format.
-        enum class TimeFormat{ Days = 0, Hours = 1, Minutes = 2, Seconds = 3, Default = -1, HoursDiv = 3600, MinsDiv = 60, SecDiv = 60, DaysDiv = 24 };
-        enum class MultiplyTime: int{ Hours = 60, Minutes = 60, Seconds = 60, Miliseconds = 1000 };
+        enum class TimePeriods: int{ Years = 365*24*60*60, Days = 24*60*60, Hours = 60*60, Minutes = 60, Seconds = 1, Default = 0 };
+        enum class TimeFormat: int{ Days = 0, Hours = 1, Minutes = 2, Seconds = 3, Default = -1 };
+        enum class TimeDivide: int{ Days = 24, Hours = 3600, Minutes = 60, Seconds = 60, Miliseconds = 1000 };
+        enum class TimeMultiply: int{ Hours = 60, Minutes = 60, Seconds = 60, Milliseconds = 1000 };
+        enum class TimeInterval: int{ Day = 86400, Hour = 3600, Minute = 60, Second = 1, Millisecond = 1000 };
 
         //Valid Ban Durations in seconds.
         //1_Day, 7 Days, 30 Days, 6 Months, 1 Year, Permanent
@@ -310,11 +313,16 @@
         //Valid target specifiers for packets. Used by the MIX packet type.
         enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
 
+        //Valid Key values for use within the User Class.
+        enum class UKeys: int{ Seen = 0, Bio, IP, DV, WV, Rank, Hash, Salt,
+                               Muted, MuteDuration, MuteReason,
+                               Banned, BanDuration, BanReason, Pings, Calls = 15 };
+
         //Valid Key values for use within the Rules and Settings Classes.
         enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors = 5 };
 
         //Valid Sub-Key values for use within the Settings Class.
-        enum class SSubKeys: int{ Extension = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,
+        enum class SSubKeys: int{ ServerID = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
                                   LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, HidePlayerView, HideChatView, NetInterface, HasSvrPassword,
