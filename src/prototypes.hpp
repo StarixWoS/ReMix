@@ -268,9 +268,9 @@
         enum class Themes: int{ Light = 0, Dark = 1 };
 
         //Valid Theme Colors
-        enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, PlayerTxt, OwnerTxt, CommentTxt,
-                                GoldenSoul, WhiteSoul, PlayerName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
-                                IPInvalid, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 19, ColorCount = 19, Default = -1 };
+        enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
+                                GoldenSoul, WhiteSoul, PlayerName, AdminName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
+                                IPInvalid, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 22, ColorCount = 22, Default = -1 };
 
         //Valid columns within the PlrListWidget.
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,

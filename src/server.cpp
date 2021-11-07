@@ -366,7 +366,7 @@ QSharedPointer<Player> Server::getLastPlayerInStorage(const QSharedPointer<Playe
         if ( tmpPlr == nullptr )
             break;
 
-        if ( tmpPlayer != plr )
+        if ( tmpPlr != plr )
             tmpPlayer = tmpPlr;
     }
     return tmpPlayer;

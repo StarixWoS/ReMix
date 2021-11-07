@@ -177,7 +177,7 @@ class Player : public QTcpSocket
         void setNewAdminPwdReceived(const bool& value);
 
         bool getIsAdmin() const;
-        qint32 getAdminRank() const;
+        GMRanks getAdminRank() const;
 
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);

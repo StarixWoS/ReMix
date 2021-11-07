@@ -16,6 +16,7 @@ class ReMixTabWidget : public QTabWidget
 {
     Q_OBJECT
 
+    static QList<Games> activeGames;
     static QMap<int, ReMixWidget*> serverMap;
     static CreateInstance* createDialog;
     static ReMixTabWidget* tabInstance;
@@ -42,7 +43,7 @@ class ReMixTabWidget : public QTabWidget
         static qint32 getInstanceCount();
         static ReMixTabWidget* getInstance(QWidget* parent = nullptr);
 
-        static void remoteCloseServer(QSharedPointer<Server> server, const bool restart = false);
+        void remoteCloseServer(QSharedPointer<Server> server, const bool restart = false);
         static void setToolTipString(ReMixWidget* widget);
 
         Theme* getThemeInstance() const;
@@ -59,7 +60,7 @@ class ReMixTabWidget : public QTabWidget
 
     private:
         mutable QMutex mutex;
-        static void removeServer(const qint32& index, const bool& remote = false, const bool& restart = false);
+        void removeServer(const qint32& index, const bool& remote = false, const bool& restart = false);
         void repositionServerIndices();
         void createTabButtons();
         void createServer();
@@ -81,6 +82,7 @@ class ReMixTabWidget : public QTabWidget
     signals:
         void crossServerCommentSignal(QSharedPointer<Server> server, const QString& comment);
         void themeChangedSignal(const Themes& theme);
+        void removeConnectedGameSignal(const Games& game);
 };
 
 #endif // REMIXTABWIDGET_H

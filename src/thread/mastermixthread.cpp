@@ -29,6 +29,7 @@ const QMap<Games, QString> MasterMixThread::gameNames =
     { Games::W97, "W97" },
 };
 
+QMap<Games, QMetaObject::Connection> MasterMixThread::connectedGames;
 QTcpSocket* MasterMixThread::tcpSocket{ nullptr };
 bool MasterMixThread::download;
 QMutex MasterMixThread::mutex;
@@ -193,12 +194,14 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
 {
     if ( !connectedGames.contains( game ) )
     {
-        QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
+        auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
         [=, this]()
         {
             this->obtainMasterData( game );
         }, Qt::ConnectionType::UniqueConnection );
-        connectedGames.append( game );
+
+        if ( connection )
+            connectedGames.insert( game, connection );
     }
 
     if ( !download )
@@ -210,6 +213,15 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
 void MasterMixThread::masterMixInfoChangedSlot()
 {
     this->updateMasterMixInfo( true );
+}
+
+void MasterMixThread::removeConnectedGameSlot(const Games& game)
+{
+    if ( connectedGames.contains( game ) )
+    {
+        auto connection = connectedGames.take( game );
+        QObject::disconnect( connection );
+    }
 }
 
 void MasterMixThread::parseMasterInfo(const Games& game)

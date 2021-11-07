@@ -1,5 +1,5 @@
 TODO:
-  * MasterMixThread or relevant classes: Moniter which GameTypes are still in an active state.
+  * 
 
 Version 3.0.0:
     Change:
@@ -11,6 +11,9 @@ Version 3.0.0:
       * Messages sent to specific Users via the SendMsg dialog/class will now be reflected within the Chat View.
       * Explicitly map enum values to their string counterparts.
       * Converted the UserKeys enum to a global Class Enum.
+      * Messages sent via the Remote Administrator command "/msg" are now shown within the Chat View.
+      * Properly disconnect Game Types within the MasterMixThread Class.
+      * Added color customizations for Admin Chat, Admin Names, and Admin Messages (Sent via the `msg command).
       
 
 
@@ -26,4 +29,4 @@ Version 3.0.0:
       * Fixed an issue where the MasterMixThread class would have multiple connections for individual GameTypes.
         * This resulted in the Information being parsed more often than required.
         * The MasterMixThread class now maps which game types have been used.
-        * TODO: Moniter which GameTypes are still in an active state.
+        * Moniter which GameTypes are still in an active state.

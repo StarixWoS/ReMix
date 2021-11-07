@@ -11,7 +11,7 @@
 class Helper
 {
     static const QList<qint32> blueCodedList;
-    static const QStringList byteUnits;
+    static const QMap<ByteUnits, QString> byteUnits;
 
     public:
         static QInputDialog* createInputDialog(QWidget* parent, const QString& label, const QInputDialog::InputMode& mode, const int& width, const int& height);

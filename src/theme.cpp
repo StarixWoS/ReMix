@@ -24,11 +24,14 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::ShoutTxt,         "#b8860b" }, //Shout Chat.
         { Colors::EmoteTxt,         "#556b2f" }, //Emote Chat.
         { Colors::PlayerTxt,        "#00008b" }, //Player Chat.
+        { Colors::AdminTxt,         "#00008c" }, //Admin Chat.
+        { Colors::AdminMessage,     "#018b8b" }, //Axmin messages.
         { Colors::OwnerTxt,         "#008b8b" }, //Owner Chat.
         { Colors::CommentTxt,       "#0000ff" }, //Player Comment.
         { Colors::GoldenSoul,       "#daa408" }, //Golden Soul.
         { Colors::WhiteSoul,        "#000000" }, //White Soul.
         { Colors::PlayerName,       "#006401" }, //Player Name.
+        { Colors::AdminName,        "#016401" }, //Admin Name.
         { Colors::OwnerName,        "#006400" }, //Owner Name.
         { Colors::TimeStamp,        "#800080" }, //Time Stamp
         { Colors::AdminValid,       "#006402" }, //Admin Valid.
@@ -46,11 +49,14 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::ShoutTxt,         "#a0522d" }, //Shout Chat.
         { Colors::EmoteTxt,         "#2e8b57" }, //Emote Chat.
         { Colors::PlayerTxt,        "#ffff00" }, //Player Chat.
+        { Colors::AdminTxt,         "#ffff01" }, //Admin Chat.
+        { Colors::AdminMessage,     "#01ffff" }, //Axmin messages.
         { Colors::OwnerTxt,         "#00ffff" }, //Owner Chat.
         { Colors::CommentTxt,       "#d6c540" }, //Player Comment.
         { Colors::GoldenSoul,       "#dba515" }, //Golden Soul.
         { Colors::WhiteSoul,        "#ffffff" }, //White Soul.
         { Colors::PlayerName,       "#32cd33" }, //Player Name.
+        { Colors::AdminName,        "#33cd32" }, //Admin Name.
         { Colors::OwnerName,        "#32cd32" }, //Owner Name.
         { Colors::TimeStamp,        "#ff8080" }, //Time Stamp
         { Colors::AdminValid,       "#32cd35" }, //Admin Valid.

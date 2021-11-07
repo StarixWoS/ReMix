@@ -40,7 +40,6 @@ class CmdHandler : public QObject
 
     private:
         bool validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr);
-        GMRanks getAdminRank(QSharedPointer<Player> admin);
 
         void motdHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1, const QString& msg);
 
@@ -51,7 +50,7 @@ class CmdHandler : public QObject
         void muteHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
         void unMuteHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1);
 
-        void msgHandler(const QString& arg1, const QString& message, const bool& all);
+        void msgHandler(QSharedPointer<Player> admin, const QString& message, const QString& target, const bool& all);
 
         void loginHandler(QSharedPointer<Player> admin, const QString& subCmd);
         void registerHandler(QSharedPointer<Player> admin, const QString& subCmd);
@@ -66,7 +65,8 @@ class CmdHandler : public QObject
         QPair<qint64, TimePeriods> getTimePeriodFromString(const QString& str);
 
     signals:
-        void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
+        void newUserCommentSignal(QSharedPointer<Player> plr, const QString& message);
+        void insertAdminMessageSignal(const QString& msg, const bool& toAll, QSharedPointer<Player> admin, QSharedPointer<Player> target);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
 };

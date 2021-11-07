@@ -491,9 +491,9 @@ bool Player::getIsAdmin() const
     return User::getIsAdmin( this->getSernumHex_s() );
 }
 
-qint32 Player::getAdminRank() const
+GMRanks Player::getAdminRank() const
 {
-    return User::getAdminRank( this->getSernumHex_s() );
+    return static_cast<GMRanks>( User::getAdminRank( this->getSernumHex_s() ) );
 }
 
 qint32 Player::getCmdAttempts() const

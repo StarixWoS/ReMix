@@ -6,6 +6,7 @@
 #include "widgets/remixtabwidget.hpp"
 #include "widgets/motdwidget.hpp"
 #include "campexemption.hpp"
+#include "chatview.hpp"
 #include "cmdtable.hpp"
 #include "settings.hpp"
 #include "server.hpp"
@@ -36,6 +37,8 @@ CmdHandler::CmdHandler(QSharedPointer<Server> svr, QObject* parent)
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &CmdHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
+
+    QObject::connect( this, &CmdHandler::insertAdminMessageSignal, ChatView::getInstance( server ), &ChatView::insertAdminMessageSlot );
 }
 
 CmdHandler::~CmdHandler()
@@ -77,7 +80,7 @@ bool CmdHandler::canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks
     QString invalid{ "Error: You do not have access to the command [ %1 ]. Please refrain from attempting to use Remote Admin "
                      "commands as you will automatically be banned after [ %2 ] attempts." };
 
-    GMRanks plrRank{ this->getAdminRank( admin ) };
+    GMRanks plrRank{ admin->getAdminRank() };
     if ( admin->getIsAdmin() )
     {
         retn = false;
@@ -167,7 +170,7 @@ void CmdHandler::parseMix5Command(QSharedPointer<Player> plr, const QString& pac
                 QString message{ "Server comment from %1 [ %2 ]: %3" };
                 QString user{ "User" };
 
-                if ( this->getAdminRank( plr ) >= GMRanks::GMaster )
+                if ( plr->getAdminRank() >= GMRanks::GMaster )
                     user = "Admin";
 
                 message = message.arg( user )
@@ -179,7 +182,7 @@ void CmdHandler::parseMix5Command(QSharedPointer<Player> plr, const QString& pac
                     if ( tmpPlr != nullptr
                       && tmpPlr != plr )
                     {
-                        if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
+                        if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
                           && tmpPlr->getAdminPwdReceived() )
                         {
                             server->sendMasterMessage( message, tmpPlr, false );
@@ -192,7 +195,7 @@ void CmdHandler::parseMix5Command(QSharedPointer<Player> plr, const QString& pac
                 server->sendMasterMessage( "Echo: " % msg, plr, false );
 
             QString sernum{ plr->getSernum_s() };
-            emit newUserCommentSignal( sernum, alias, msg );
+            emit newUserCommentSignal( plr, msg );
         }
         else
         {
@@ -271,7 +274,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         {
             //Correctly handle "all" command reason/message.
             message = packet.mid( Helper::getStrIndex( packet, arg1 ) );
-            if ( this->getAdminRank( admin ) >= GMRanks::Admin
+            if ( admin->getAdminRank() >= GMRanks::Admin
               || argIndex == GMCmds::Message )
             {
                 all = true;
@@ -316,7 +319,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         break;
         case GMCmds::List:
             {
-                server->sendMasterMessage( cmdTable->collateCmdList( this->getAdminRank( admin ) ), admin, false );
+                server->sendMasterMessage( cmdTable->collateCmdList( admin->getAdminRank() ), admin, false );
             }
         break;
         case GMCmds::MotD:
@@ -412,19 +415,10 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         break;
         case GMCmds::Message:
             {
-                QString tmpMsg{ "" };
-                if ( !message.isEmpty() )
-                {
-                    tmpMsg = message;
-                    tmpMsg.prepend( "Admin [ %1 ] to [ %2 ]: " );
-                    tmpMsg = tmpMsg.arg( admin->getSernum_s() )
-                                   .arg( all ? "Everyone" : arg1 );
-                }
-
                 if ( this->validateAdmin( admin, cmdRank, cmd )
                   && !arg1.isEmpty() )
                 {
-                    this->msgHandler( arg1, tmpMsg, all );
+                    this->msgHandler( admin, message, arg1, all );
                 }
                 retn = true;
             }
@@ -593,13 +587,8 @@ bool CmdHandler::isTarget(QSharedPointer<Player> target, const QString& arg1, co
 
 bool CmdHandler::validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr)
 {
-    return ( ( this->getAdminRank( admin ) >= rank )
+    return ( ( admin->getAdminRank() >= rank )
             && this->canUseAdminCommands( admin, rank, cmdStr ) );
-}
-
-GMRanks CmdHandler::getAdminRank(QSharedPointer<Player> admin)
-{
-    return static_cast<GMRanks>( admin->getAdminRank() );
 }
 
 void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1, const QString& msg)
@@ -854,27 +843,40 @@ void CmdHandler::unMuteHandler(QSharedPointer<Player> admin, const QString& subC
         User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 }
 
-void CmdHandler::msgHandler(const QString& arg1, const QString& message, const bool& all)
+void CmdHandler::msgHandler(QSharedPointer<Player> admin, const QString& message, const QString& target, const bool& all)
 {
+    QString tmpMsg{ "" };
+    if ( !message.isEmpty() )
+    {
+        tmpMsg = message;
+        tmpMsg.prepend( "Admin [ %1 ] to [ %2 ]: " );
+        tmpMsg = tmpMsg.arg( admin->getSernum_s() )
+                       .arg( all ? "Everyone" : target );
+    }
+
+    QSharedPointer<Player> tmpPlr{ nullptr };
     if ( !message.isEmpty() )
     {
         if ( !all )
         {
             for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
             {
-                QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
+                tmpPlr = server->getPlayer( i );
                 if ( tmpPlr != nullptr )
                 {
-                    if ( tmpPlr->getIPAddress() == arg1
-                      || tmpPlr->getSernum_s() == arg1 )
+                    if ( tmpPlr->getIPAddress() == target
+                      || tmpPlr->getSernum_s() == target )
                     {
-                        server->sendMasterMessage( message, tmpPlr, false );
+                        server->sendMasterMessage( tmpMsg, tmpPlr, false );
+                        break;
                     }
                 }
             }
         }
         else
-            server->sendMasterMessage( message, nullptr, all );
+            server->sendMasterMessage( tmpMsg, nullptr, all );
+
+        emit this->insertAdminMessageSignal( message, all, admin, tmpPlr );
     }
 }
 
@@ -937,7 +939,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
                     QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
                     if ( tmpPlr != nullptr )
                     {
-                        if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
+                        if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
                           && tmpPlr->getAdminPwdReceived() )
                         {
                             //Do not Inform our own Admin.. --Redundant..
@@ -1025,7 +1027,7 @@ void CmdHandler::registerHandler(QSharedPointer<Player> admin, const QString& su
             QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
             if ( tmpPlr != nullptr )
             {
-                if ( this->getAdminRank( tmpPlr ) >= GMRanks::GMaster
+                if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
                   && tmpPlr->getAdminPwdReceived() )
                 {
                     //Do not Inform our own Admin.. --Redundant..
@@ -1072,7 +1074,7 @@ void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& du
         QObject::connect( shutdownTimer, &QTimer::timeout, shutdownTimer,
         [=, this]()
         {
-            ReMixTabWidget::remoteCloseServer( admin->getServer(), restart );
+            ReMixTabWidget::getInstance()->remoteCloseServer( admin->getServer(), restart );
 
             shutdownTimer->disconnect();
             shutdownTimer->deleteLater();
@@ -1221,7 +1223,8 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         if ( idx >= 0 )
             msg = lockMsg;
 
-        if ( soulSubCmd && tmpPlr == nullptr )
+        if ( soulSubCmd
+          && tmpPlr == nullptr )
         {
             return;
         }

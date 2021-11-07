@@ -55,7 +55,7 @@ class PacketHandler : public QObject
         void parsePacketSlot(const QByteArray& packet, QSharedPointer<Player> plr);
 
     signals:
-        void newUserCommentSignal(const QString& sernum, const QString& alias, const QString& message);
+        void newUserCommentSignal(QSharedPointer<Player> plr, const QString& message);
         void sendPacketToPlayerSignal(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;

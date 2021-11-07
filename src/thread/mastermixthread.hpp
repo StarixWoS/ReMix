@@ -4,6 +4,7 @@
 #include "prototypes.hpp"
 
 //Required QT Includes.
+#include <QMetaObject>
 #include <QUdpSocket>
 #include <QObject>
 #include <QThread>
@@ -18,12 +19,11 @@ class MasterMixThread : public QThread
     QTimer updateInfoTimer;
 
     static const QMap<Games, QString> gameNames;
+    static QMap<Games, QMetaObject::Connection> connectedGames;
     static QSettings* masterMixPref;
     static QTcpSocket* tcpSocket;
     static bool download;
     static QMutex mutex;
-
-    QList<Games> connectedGames;
 
     private:
         MasterMixThread();
@@ -41,6 +41,7 @@ class MasterMixThread : public QThread
     public slots:
         void getMasterMixInfoSlot(const Games& game);
         void masterMixInfoChangedSlot();
+        void removeConnectedGameSlot(const Games& game);
 
     public:
         static UdpThread* getNewUdpThread(QObject* parent = nullptr);

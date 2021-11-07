@@ -20,6 +20,7 @@
 #include <QTabBar>
 #include <QMenu>
 
+QList<Games> ReMixTabWidget::activeGames;
 CreateInstance* ReMixTabWidget::createDialog{ nullptr };
 ReMixTabWidget* ReMixTabWidget::tabInstance{ nullptr };
 Theme* ReMixTabWidget::themeInstance{ nullptr };
@@ -92,6 +93,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     //Initialize the MasterMixThread Object.
     masterMixThread = new QThread();
     masterMixThread->moveToThread( MasterMixThread::getInstance() );
+    QObject::connect( this, &ReMixTabWidget::removeConnectedGameSignal, MasterMixThread::getInstance(), &MasterMixThread::removeConnectedGameSlot );
 
     //Start the MasterMix Thread.
     masterMixThread->start();
@@ -358,7 +360,7 @@ void ReMixTabWidget::repositionServerIndices()
 
 void ReMixTabWidget::createTabButtons()
 {
-    QToolButton* button = this->getNewTabButton();
+    QToolButton* button{ this->getNewTabButton() };
     if ( button != nullptr )
     {
         this->setCornerWidget( button, Qt::TopLeftCorner );

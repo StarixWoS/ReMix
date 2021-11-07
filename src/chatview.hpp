@@ -39,9 +39,14 @@ class ChatView : public QWidget
         void scrollToBottom(const bool& forceScroll = false);
         static QString getTimeStr();
 
+    private:
+        void insertColoredSerNum(QSharedPointer<Player> plr);
+        void insertColoredName(QSharedPointer<Player> plr);
+
     public slots:
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
-        void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
+        void insertAdminMessageSlot(const QString& msg, const bool& toAll, QSharedPointer<Player> admin, QSharedPointer<Player> target);
+        void newUserCommentSlot(QSharedPointer<Player> plr, const QString& message);
         void colorOverrideSlot(const QString& oldColor, const QString& newColor);
         void insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll);
 
