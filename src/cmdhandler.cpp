@@ -226,7 +226,10 @@ bool CmdHandler::canParseCommand(QSharedPointer<Player> admin, const QString& co
         return false;
     }
 
-    //Ignore Deprecated command method.
+    if ( command.at( 1 ).isSpace() ) //Delimiter must not be followed by "space".
+        return false;
+
+    //Ignore Deprecated method.
     if ( Helper::strStartsWithStr( command, "/cmd" ) )
         return false;
 
@@ -264,6 +267,9 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         return false;
 
     GMRanks cmdRank{ cmdTable->getCmdRank( argIndex ) };
+    if ( cmdRank == GMRanks::Invalid )
+        return false;
+
     if ( !this->canUseAdminCommands( admin, cmdRank, cmd ) )
         return false;
 
@@ -331,36 +337,11 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         case GMCmds::Info:
             {
                 if ( this->validateAdmin( admin, cmdRank, cmd ) )
-                {
-                    //Server UpTime, Connected Users, Connected Admins.
-                    qint32 adminCount{ 0 };
-                    QString tmpMsg{ "Server Info: Up Time [ %1 ], Connected Users [ %2 ], Connected Admins [ %3 ]." };
+                    this->infoHandler( admin, index, subCmd, arg1 );
 
-                    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
-                    {
-                        QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-                        if ( tmpPlr != nullptr )
-                        {
-                            //Only Track Admins that are logged in and are visible.
-                            if ( tmpPlr->getAdminPwdReceived()
-                              && tmpPlr->getIsVisible() )
-                            {
-                                ++adminCount;
-                            }
-                        }
-                    }
-
-                    tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
-                                   .arg( server->getPlayerCount() )
-                                   .arg( adminCount );
-                    server->sendMasterMessage( tmpMsg, admin, false );
-                }
+                retn = true;
             }
         break;
-//        case GMCmds::NetStatus:
-//            {
-//            }
-//        break;
         case GMCmds::Ban:
             {
                 this->parseTimeArgs( message, duration, reason );
@@ -501,6 +482,10 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 this->campHandler( admin, serNum, subCmd, index, soulSubCmd );
             }
         break;
+        case GMCmds::Guild:
+            {
+            }
+        break;
         case GMCmds::Invalid:
         default:
         break;
@@ -630,6 +615,55 @@ void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd
     {
         //Invalid argument listing. Send the command syntax.
         server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ), admin, false );
+    }
+}
+
+void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1)
+{
+    GMSubCmds subIdx{ GMSubCmds::Invalid };
+    if ( !subCmd.isEmpty() )
+        subIdx = cmdTable->getSubCmdIndex( cmdIdx, subCmd, false );
+
+    QString tmpMsg{ "" };
+    if ( subIdx == GMSubCmds::Zero )
+    {
+        //Server UpTime, Connected Users, Connected Admins.
+        qint32 adminCount{ 0 };
+
+        tmpMsg = "Server Info: Up Time [ %1 ], MasterMix Ping [ %2 ms, Avg: %3 ms, Trend: %4 ms ], Users [ %5 ]";
+        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        {
+            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
+            if ( tmpPlr != nullptr )
+            {
+                //Only Track Admins that are logged in and are visible.
+                if ( tmpPlr->getAdminPwdReceived()
+                  && tmpPlr->getIsVisible() )
+                {
+                    ++adminCount;
+                }
+            }
+        }
+
+        tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
+                       .arg( server->getMasterPing() )
+                       .arg( server->getMasterPingAvg() )
+                       .arg( server->getMasterPingTrend() )
+                       .arg( server->getPlayerCount() );
+
+        if ( admin->getIsAdmin() )
+        {
+            QString adminList{ ", Admins [ %1 ]." };
+            tmpMsg = tmpMsg % adminList.arg( adminCount );
+        }
+        else
+            tmpMsg = tmpMsg % ".";
+
+        server->sendMasterMessage( tmpMsg, admin, false );
+    }
+    else if ( subIdx == GMSubCmds::One )
+    {
+        //Player Information.
     }
 }
 
@@ -1184,7 +1218,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
     QSharedPointer<Player> tmpPlr{ nullptr };
     bool override{ false };
 
-    qint32 idx{ -1 };
+    GMSubCmds idx{ GMSubCmds::Invalid };
     if ( !subCmd.isEmpty() )
         idx = cmdTable->getSubCmdIndex( index, subCmd, false );
 
@@ -1218,9 +1252,9 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         }
     }
 
-    if ( idx != -1 )
+    if ( idx != GMSubCmds::Invalid )
     {
-        if ( idx >= 0 )
+        if ( idx >= GMSubCmds::Zero )
             msg = lockMsg;
 
         if ( soulSubCmd

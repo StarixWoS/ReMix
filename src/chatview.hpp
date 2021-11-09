@@ -42,6 +42,7 @@ class ChatView : public QWidget
     private:
         void insertColoredSerNum(QSharedPointer<Player> plr);
         void insertColoredName(QSharedPointer<Player> plr);
+        void insertTimeStamp();
 
     public slots:
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
@@ -55,6 +56,8 @@ class ChatView : public QWidget
         void themeChangedSlot(const Themes& theme);
         void on_autoScrollCheckBox_toggled(bool checked);
         void on_clearChat_clicked();
+
+        void on_timeStampCheckBox_clicked(bool checked);
 
     private:
         Ui::ChatView* ui;

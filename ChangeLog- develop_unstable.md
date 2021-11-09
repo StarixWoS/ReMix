@@ -1,5 +1,16 @@
 TODO:
-  * 
+  * Add a Settings Tab to customize the ChatView settings.
+
+Version 3.0.1:
+    Change:
+      * Expanded the information sent in response to the Remote Admin command "/info server".
+      * Properly parse and customize more chat packet types.
+
+    Bugfixes:
+      * Remote Administrator commands are no longer parsed if the command delimiter is followed by a space.
+
+
+
 
 Version 3.0.0:
     Change:
@@ -14,6 +25,9 @@ Version 3.0.0:
       * Messages sent via the Remote Administrator command "/msg" are now shown within the Chat View.
       * Properly disconnect Game Types within the MasterMixThread Class.
       * Added color customizations for Admin Chat, Admin Names, and Admin Messages (Sent via the `msg command).
+      * Expanded the information sent in response to the Remote Admin command "/info server".
+      * Properly parse and customize more chat packet types.
+
       
 
 
@@ -30,3 +44,4 @@ Version 3.0.0:
         * This resulted in the Information being parsed more often than required.
         * The MasterMixThread class now maps which game types have been used.
         * Moniter which GameTypes are still in an active state.
+      * Remote Administrator commands are no longer parsed if the command delimiter is followed by a space.

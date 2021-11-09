@@ -216,7 +216,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                 plr->setIsAFK( false );
                 retn = chatView->parseChatEffect( pkt );
             }
-            else if ( pkt.at( 3 ) == '3'
+            else if ( pkt.at( 3 ) == '3' //Warpath uses Packet '4'.
                    || ( ( server->getGameId() == Games::ToY ) && ( pkt.at( 3 ) == 'N' ) ) )
             {
                 QStringList varList;
@@ -310,22 +310,26 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                 QSharedPointer<Player> targetPlayer{ server->getPlayer( trgSerNum ) };
 
                 Colors targetNameColor{ Colors::PlayerName };
+                Colors targetSerNumColor{ Colors::WhiteSoul };
                 if ( targetPlayer != nullptr )
                 {
                     targetNameColor = Colors::AdminName;
                     if ( targetPlayer->getAdminRank() > GMRanks::Admin )
                         targetNameColor = Colors::OwnerName;
+
+                    if ( targetPlayer->getIsGoldenSerNum() )
+                        targetSerNumColor = Colors::GoldenSoul;
                 }
 
                 switch ( pkt.at( 3 ).toLatin1() )
                 {
-                    case '5': //Player Leaves Server.
+                    case '5': //Player Leaves Server. //Arcadia uses packet 'B'.
                         {
                             emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                             emit this->insertChatMsgSignal( "*** ", Colors::SoulLeftWorld, false );
                             emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
                             emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
-                            emit this->insertChatMsgSignal( " has left this world! ***", Colors::SoulLeftWorld, false );
+                            emit this->insertChatMsgSignal( "has left this world! ***", Colors::SoulLeftWorld, false );
                         }
                     break;
                     case 'k': //PK Attack.
@@ -335,9 +339,11 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                                 emit this->insertChatMsgSignal( "*** ", Colors::PKChallenge, false );
                                 emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
-                                emit this->insertChatMsgSignal( " has challenged ", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                                emit this->insertChatMsgSignal( "has challenged ", Colors::PKChallenge, false );
                                 emit this->insertChatMsgSignal( targetPlayer->getPlrName(), targetNameColor, false );
-                                emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( " [ " % targetPlayer->getSernum_s() % " ] ", targetSerNumColor, false );
+                                emit this->insertChatMsgSignal( "to a PK fight! ***", Colors::PKChallenge, false );
                             }
                         }
                     break;
@@ -363,16 +369,19 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                                     targetNameColor = Colors::AdminName;
                                     if ( partyLeader->getAdminRank() > GMRanks::Admin )
                                         targetNameColor = Colors::OwnerName;
+
+                                    if ( partyLeader->getIsGoldenSerNum() )
+                                        targetSerNumColor = Colors::GoldenSoul;
                                 }
 
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                                 emit this->insertChatMsgSignal( "*** ", Colors::PartyJoin, false );
                                 emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
                                 emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
-                                emit this->insertChatMsgSignal( ( isJoining ? " joins " : " leaves " ), Colors::PartyJoin, false );
+                                emit this->insertChatMsgSignal( ( isJoining ? "joins " : "leaves " ), Colors::PartyJoin, false );
 
-                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s [ " % partyLeader->getSernum_s() % " ] ",
-                                                                targetNameColor, false );
+                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s", targetNameColor, false );
+                                emit this->insertChatMsgSignal( " [ " % partyLeader->getSernum_s() % " ] ", targetSerNumColor, false );
                                 emit this->insertChatMsgSignal( "party. ***", Colors::PartyJoin, false );
                             }
                         }

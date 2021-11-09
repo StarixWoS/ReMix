@@ -21,8 +21,11 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
 {
     {   //Light.
         { Colors::GossipTxt,        "#daa521" }, //Gossip Chat.
-        { Colors::ShoutTxt,         "#b8860b" }, //Shout Chat.
+        { Colors::ShoutTxt,         "#b8850b" }, //Shout Chat.
         { Colors::EmoteTxt,         "#556b2f" }, //Emote Chat.
+        { Colors::DeathTxt,         "#b8860b" }, //Death Text.
+        { Colors::SpellTxt,         "#b9870b" }, //Learned Spell Text.
+        { Colors::DiceAndLevel,     "#ba880b" }, //Level Up and Dice Roll Text.
         { Colors::PlayerTxt,        "#00008b" }, //Player Chat.
         { Colors::AdminTxt,         "#00008c" }, //Admin Chat.
         { Colors::AdminMessage,     "#018b8b" }, //Axmin messages.
@@ -48,6 +51,9 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::GossipTxt,        "#daa520" }, //Gossip Chat.
         { Colors::ShoutTxt,         "#a0522d" }, //Shout Chat.
         { Colors::EmoteTxt,         "#2e8b57" }, //Emote Chat.
+        { Colors::DeathTxt,         "#a1522d" }, //Death Text.
+        { Colors::SpellTxt,         "#a2522d" }, //Learned Spell Text.
+        { Colors::DiceAndLevel,     "#a3532d" }, //Level Up and Dice Roll Text.
         { Colors::PlayerTxt,        "#ffff00" }, //Player Chat.
         { Colors::AdminTxt,         "#ffff01" }, //Admin Chat.
         { Colors::AdminMessage,     "#01ffff" }, //Axmin messages.
@@ -56,7 +62,7 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::GoldenSoul,       "#dba515" }, //Golden Soul.
         { Colors::WhiteSoul,        "#ffffff" }, //White Soul.
         { Colors::PlayerName,       "#32cd33" }, //Player Name.
-        { Colors::AdminName,        "#33cd32" }, //Admin Name.
+        { Colors::AdminName,        "#33cc32" }, //Admin Name.
         { Colors::OwnerName,        "#32cd32" }, //Owner Name.
         { Colors::TimeStamp,        "#ff8080" }, //Time Stamp
         { Colors::AdminValid,       "#32cd35" }, //Admin Valid.
@@ -153,7 +159,7 @@ void Theme::applyTheme(const Themes& type)
         customPalette.setColor( QPalette::Button, QColor( 53, 53, 53 ) );
         customPalette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
         customPalette.setColor( QPalette::Window, QColor( 53, 53, 53 ));
-        customPalette.setColor( QPalette::Dark, QColor( 35, 35, 35 ) );
+        customPalette.setColor( QPalette::Dark, QColor( 66, 66, 66 ) );
         customPalette.setColor( QPalette::Base, QColor( 42, 42, 42 ) );
         customPalette.setColor( QPalette::HighlightedText, Qt::white);
         customPalette.setColor( QPalette::ToolTipBase, Qt::white );

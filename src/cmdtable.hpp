@@ -36,7 +36,7 @@ class CmdTable
 
         QString getCmdName(const GMCmds& index);
         GMCmds getCmdIndex(const QString& cmd);
-        qint32 getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time = false);
+        GMSubCmds getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time = false);
         GMRanks getCmdRank(const GMCmds& index);
         QString collateCmdList(const GMRanks& rank);
         QString getCommandInfo(const GMCmds& index, const bool& syntax);

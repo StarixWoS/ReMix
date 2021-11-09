@@ -237,11 +237,11 @@
                                  Creator = 5, Invalid = -1 };
 
         //Valid Remote Administrator commands.
-        enum class GMCmds: int{ Help = 0, List, MotD, Info, NetStatus, Ban,
+        enum class GMCmds: int{ Help = 0, List, MotD, Info, Ban,
                                 UnBan, Kick, Mute, UnMute, Message, Login,
                                 Register, ShutDown, ReStart, MKAdmin, RMAdmin,
                                 CHAdmin, CHRules, CHSettings, Vanish, Version,
-                                Camp, Invalid = -1 };
+                                Camp, Guild, Invalid = -1 };
         //Valid Remote Administrator sub-commands.
         enum class GMSubCmds: int{ Zero = 0, One, Two, Three, Four, Five,
                                    Six, Seven = 7, Invalid = -1 };
@@ -268,9 +268,10 @@
         enum class Themes: int{ Light = 0, Dark = 1 };
 
         //Valid Theme Colors
-        enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
+        enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, DeathTxt, SpellTxt, DiceAndLevel, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
                                 GoldenSoul, WhiteSoul, PlayerName, AdminName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
-                                IPInvalid, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 22, ColorCount = 22, Default = -1 };
+                                IPInvalid, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 25,
+                                ColorCount = 25, Default = -1 };
 
         //Valid columns within the PlrListWidget.
         enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
@@ -325,9 +326,9 @@
         enum class SSubKeys: int{ ServerID = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
-                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, HidePlayerView, HideChatView, NetInterface, HasSvrPassword,
-                                  SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate,
-                                  NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface,
+                                  HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat,
+                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
 
         //Valid Toggles for the Settings Widget.
         enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
@@ -352,6 +353,11 @@
                                    PebiByte,   // 1024^5,
                                    ExbiByte,    // 1024^6
                                  };
+
+        //Valid forms of a Chat Packet.
+        enum class ChatType: int{ Normal = 0, DiceAndLevelUp, Unk1 = 2, LearnSpell = 3,
+                                  Unk2 = 4, Unk3 = 5, PetCmd = 6, SceneMsg = 10, DeathMsg = 11 };
+
         //Valid SSV Modes. Read/Write.
         enum class SSVModes: int{ Read = 0, Write = 1, Invalid = -1,  };
 
