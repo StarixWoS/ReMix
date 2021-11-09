@@ -42,6 +42,9 @@ void UserDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, 
                     case 4:
                         text = "Owner";
                     break;
+                    case 5:
+                        text = "Creator";
+                    break;
                     default:
                         text = "User";
                     break;
@@ -128,6 +131,7 @@ QWidget* UserDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&
         editor->addItem( "Co-Admin" );
         editor->addItem( "Admin" );
         editor->addItem( "Owner" );
+        editor->addItem( "Creator" );
     }
     else if ( index.column() == static_cast<int>( UserCols::Muted ) )
     {
@@ -166,6 +170,9 @@ void UserDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, cons
         break;
         case 4:
             model->setData( index, 4 ); //Owner
+        break;
+        case 5:
+            model->setData( index, 5 ); //Creator
         break;
         default:
             model->setData( index, 0 ); //User -- Default

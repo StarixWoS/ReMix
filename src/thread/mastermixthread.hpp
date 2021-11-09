@@ -4,6 +4,7 @@
 #include "prototypes.hpp"
 
 //Required QT Includes.
+#include <QMetaObject>
 #include <QUdpSocket>
 #include <QObject>
 #include <QThread>
@@ -17,6 +18,8 @@ class MasterMixThread : public QThread
     QString defaultHost{ "http://synthetic-reality.com/synreal.ini" };
     QTimer updateInfoTimer;
 
+    static const QMap<Games, QString> gameNames;
+    static QMap<Games, QMetaObject::Connection> connectedGames;
     static QSettings* masterMixPref;
     static QTcpSocket* tcpSocket;
     static bool download;
@@ -38,6 +41,7 @@ class MasterMixThread : public QThread
     public slots:
         void getMasterMixInfoSlot(const Games& game);
         void masterMixInfoChangedSlot();
+        void removeConnectedGameSlot(const Games& game);
 
     public:
         static UdpThread* getNewUdpThread(QObject* parent = nullptr);
@@ -55,9 +59,15 @@ class MasterMixThread : public QThread
 
     signals:
         void obtainedMasterMixInfoSignal();
+<<<<<<< HEAD
         void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port, const bool& override );
 
         void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
+=======
+        void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port);
+
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
+>>>>>>> develop_unstable
 };
 
 #endif // MASTERMIXTHREAD_HPP

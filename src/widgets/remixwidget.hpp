@@ -5,8 +5,9 @@
 
 //Required Qt Includes..
 #include <QModelIndex>
-#include <QWidget>
 #include <QSplitter>
+#include <QWidget>
+
 namespace Ui {
     class ReMixWidget;
 }
@@ -19,18 +20,17 @@ class ReMixWidget : public QWidget
     MOTDWidget* motdWidget{ nullptr };
     RulesWidget* rules{ nullptr };
 
-    QThread* masterMixThread{ nullptr };
-    Server* server{ nullptr };
+    QSharedPointer<Server> server;
 
     //Setup Objects.
     QMenu* contextMenu{ nullptr };
 
     bool censorUIIPInfo{ false };
     public:
-        explicit ReMixWidget(QWidget* parent = nullptr, Server* svrInfo = nullptr);
+        explicit ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent = nullptr);
         ~ReMixWidget() override;
 
-        Server* getServer() const;
+        QSharedPointer<Server> getServer() const;
         void renameServer(const QString& newName);
 
         void sendServerMessage(const QString& msg) const;
@@ -58,17 +58,17 @@ class ReMixWidget : public QWidget
         void initializeServerSlot();
 
         void plrConnectedSlot(qintptr socketDescriptor);
-        void plrDisconnectedSlot(Player* plr, const bool& timedOut = false);
-        void updatePlayerTable(Player* plr);
+        void plrDisconnectedSlot(QSharedPointer<Player> plr, const bool& timedOut = false);
+        void updatePlayerTable(QSharedPointer<Player> plr);
 
     public slots:
         void censorUIIPInfoSlot(const bool& state);
 
     signals:
         void reValidateServerIPSignal(const QString& interfaceIP = "");
-        void crossServerCommentSignal(Server* server, const QString& comment);
-        void plrViewInsertRowSignal(Player* plr, const QString& ipPortStr, const QByteArray& data);
-        void plrViewRemoveRowSignal(Player* plr);
+        void crossServerCommentSignal(const QSharedPointer<Server> server, const QString& comment);
+        void plrViewInsertRowSignal(QSharedPointer<Player> plr, const QString& ipPortStr, const QByteArray& data);
+        void plrViewRemoveRowSignal(QSharedPointer<Player> plr);
 
     private:
         Ui::ReMixWidget* ui;

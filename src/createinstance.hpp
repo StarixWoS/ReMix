@@ -16,7 +16,7 @@ class CreateInstance : public QDialog
 {
         Q_OBJECT
 
-        static const QStringList gameNames;
+        static const QMap<Games, QString> gameNames;
         static QStringList restartServerList;
         static CreateInstance* instance;
         QCollator collator;
@@ -34,9 +34,9 @@ class CreateInstance : public QDialog
 
         void restartServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
                            const bool& useUPNP, const bool& isPublic);
-        Server* loadOldServer(const QString& name);
-        Server* initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
-                                 const bool& useUPNP, const bool& isPublic);
+        QSharedPointer<Server> loadOldServer(const QString& name);
+        QSharedPointer<Server> initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                                const bool& useUPNP, const bool& isPublic);
 
         bool getLoadingOldServers() const;
         void setLoadingOldServers(bool value);
@@ -56,7 +56,11 @@ class CreateInstance : public QDialog
 
     signals:
         void getMasterMixInfoSignal(const Games& game);
+<<<<<<< HEAD
         void createServerAcceptedSignal(Server* server);
+=======
+        void createServerAcceptedSignal(QSharedPointer<Server> server);
+>>>>>>> develop_unstable
         void closeServerSignal();
         void restartServerListSignal(const QStringList& restartList);
         void quitSignal();

@@ -143,7 +143,7 @@ QString CampExemption::getWhiteListedUsers(const QString& srcSerNum)
     return list;
 }
 
-void CampExemption::hexSerNumSetSlot(Player* plr)
+void CampExemption::hexSerNumSetSlot(QSharedPointer<Player> plr)
 {
     if ( plr != nullptr )
     {

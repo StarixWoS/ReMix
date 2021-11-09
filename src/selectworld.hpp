@@ -33,6 +33,7 @@ class SelectWorld : public QDialog
         void on_worldViewer_entered(const QModelIndex& index);
         void on_cancelButton_clicked();
         void on_okButton_clicked();
+        void directoryLoadedSlot(const QString&);
 
     private:
         Ui::SelectWorld* ui;

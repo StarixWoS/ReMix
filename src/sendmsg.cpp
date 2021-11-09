@@ -58,7 +58,6 @@ void SendMsg::on_sendMsg_clicked()
         return;
     }
 
-    message = message.prepend( "Owner: " );
     Helper::stripNewlines( message );
 
     emit this->forwardMessageSignal( message );

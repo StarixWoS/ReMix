@@ -17,19 +17,20 @@ class ChatView : public QWidget
 {
     Q_OBJECT
 
-    static QHash<Server*, ChatView*> chatViewInstanceMap;
+    static QHash<QSharedPointer<Server>, ChatView*> chatViewInstanceMap;
     static QVector<Colors> colors;
     static QStringList bleepList;
     static Themes currentTheme;
 
-    Server* server{ nullptr };
+    QSharedPointer<Server> server;
 
     public:
-        explicit ChatView(QWidget* parent = nullptr, Server* svr = nullptr);
+        explicit ChatView(QSharedPointer<Server> svr, QWidget* parent = nullptr);
         ~ChatView() override;
 
-        static ChatView* getInstance(Server* server);
-        static void deleteInstance(Server* server);
+        static QSharedPointer<Server> getServer(ChatView* chatView);
+        static ChatView* getInstance(QSharedPointer<Server> server);
+        static void deleteInstance(QSharedPointer<Server> server);
 
         bool parseChatEffect(const QString& packet);
         void bleepChat(QString& message);
@@ -38,25 +39,32 @@ class ChatView : public QWidget
         void scrollToBottom(const bool& forceScroll = false);
         static QString getTimeStr();
 
+    private:
+        void insertColoredSerNum(QSharedPointer<Player> plr);
+        void insertColoredName(QSharedPointer<Player> plr);
+        void insertTimeStamp();
+
     public slots:
         void insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine);
-        void newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message);
+        void insertAdminMessageSlot(const QString& msg, const bool& toAll, QSharedPointer<Player> admin, QSharedPointer<Player> target);
+        void newUserCommentSlot(QSharedPointer<Player> plr, const QString& message);
         void colorOverrideSlot(const QString& oldColor, const QString& newColor);
+        void insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll);
 
     private slots:
         void on_chatInput_returnPressed();
         void themeChangedSlot(const Themes& theme);
-
         void on_autoScrollCheckBox_toggled(bool checked);
-
         void on_clearChat_clicked();
+
+        void on_timeStampCheckBox_clicked(bool checked);
 
     private:
         Ui::ChatView* ui;
 
     signals:
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine) const;
-        void sendChatSignal(const QString&);
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
+        void sendChatSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll);
         void newUserCommentSignal(const QString& message);
 };
 

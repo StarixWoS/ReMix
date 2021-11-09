@@ -12,7 +12,7 @@
 #include <QtCore>
 #include <QDebug>
 
-WriteThread::WriteThread(const QStringList& types, QObject *parent)
+WriteThread::WriteThread(const QMap<LKeys, QString>& types, QObject *parent)
     : QThread(parent), logType( types )
 {
 }
@@ -40,12 +40,12 @@ void WriteThread::run()
     this->exec();
 }
 
-WriteThread* WriteThread::getNewWriteThread(const QStringList& types, QObject* parent)
+WriteThread* WriteThread::getNewWriteThread(const QMap<LKeys, QString>& types, QObject* parent)
 {
     return new WriteThread( types, parent );
 }
 
-void WriteThread::logToFile(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine)
+void WriteThread::logToFile(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine)
 {
     QString logTxt{ text };
 
@@ -74,50 +74,50 @@ void WriteThread::logToFile(const LogTypes& type, const QString& text, const QSt
     }
 }
 
-bool WriteThread::isLogOpen(const LogTypes& type)
+bool WriteThread::isLogOpen(const LKeys& type)
 {
     switch ( type )
     {
-        case LogTypes::PUNISHMENT: return punishmentLog.isOpen();
-        case LogTypes::MASTERMIX: return masterMix.isOpen();
-        case LogTypes::COMMENT: return commentLog.isOpen();
-        case LogTypes::CLIENT: return usageLog.isOpen();
-        case LogTypes::QUEST: return questLog.isOpen();
-        case LogTypes::ADMIN: return adminLog.isOpen();
-        case LogTypes::UPNP: return upnpLog.isOpen();
-        case LogTypes::MISC: return miscLog.isOpen();
-        case LogTypes::CHAT: return chatLog.isOpen();
-        case LogTypes::PING: return pingLog.isOpen();
-        case LogTypes::ALL: break;
+        case LKeys::PunishmentLog: return punishmentLog.isOpen();
+        case LKeys::MasterMixLog: return masterMix.isOpen();
+        case LKeys::CommentLog: return commentLog.isOpen();
+        case LKeys::ClientLog: return usageLog.isOpen();
+        case LKeys::SSVLog: return questLog.isOpen();
+        case LKeys::AdminLog: return adminLog.isOpen();
+        case LKeys::UPNPLog: return upnpLog.isOpen();
+        case LKeys::MiscLog: return miscLog.isOpen();
+        case LKeys::ChatLog: return chatLog.isOpen();
+        case LKeys::PingLog: return pingLog.isOpen();
+        case LKeys::AllLogs: break;
     }
     return false;
 }
 
-QFile& WriteThread::getLogFile(const LogTypes& type)
+QFile& WriteThread::getLogFile(const LKeys& type)
 {
     QFile invalid;
     switch ( type )
     {
-        case LogTypes::PUNISHMENT: return punishmentLog;
-        case LogTypes::MASTERMIX: return masterMix;
-        case LogTypes::COMMENT: return commentLog;
-        case LogTypes::CLIENT: return usageLog;
-        case LogTypes::QUEST: return questLog;
-        case LogTypes::ADMIN: return adminLog;
-        case LogTypes::UPNP: return upnpLog;
-        case LogTypes::MISC: return miscLog;
-        case LogTypes::CHAT: return chatLog;
-        case LogTypes::PING: return pingLog;
-        case LogTypes::ALL: break;
+        case LKeys::PunishmentLog: return punishmentLog;
+        case LKeys::MasterMixLog: return masterMix;
+        case LKeys::CommentLog: return commentLog;
+        case LKeys::ClientLog: return usageLog;
+        case LKeys::SSVLog: return questLog;
+        case LKeys::AdminLog: return adminLog;
+        case LKeys::UPNPLog: return upnpLog;
+        case LKeys::MiscLog: return miscLog;
+        case LKeys::ChatLog: return chatLog;
+        case LKeys::PingLog: return pingLog;
+        case LKeys::AllLogs: break;
     }
     return miscLog; //Use Misc log as fallthrough.
 }
 
-void WriteThread::openLogFile(const LogTypes& type)
+void WriteThread::openLogFile(const LKeys& type)
 {
     QString log{ "logs/%1/%2.txt" };
             log = log.arg( logDate )
-                     .arg( logType.at( static_cast<int>( type ) ) );
+                     .arg( logType.value( type ) );
 
     QFileInfo logInfo( log );
     if ( !logInfo.dir().exists() )
@@ -125,67 +125,67 @@ void WriteThread::openLogFile(const LogTypes& type)
 
     switch ( type )
     {
-        case LogTypes::PUNISHMENT:
+        case LKeys::PunishmentLog:
         {
             punishmentLog.setFileName( log );
             punishmentLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::COMMENT:
+        case LKeys::CommentLog:
         {
             commentLog.setFileName( log );
             commentLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::MASTERMIX:
+        case LKeys::MasterMixLog:
         {
             masterMix.setFileName( log );
             masterMix.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::CLIENT:
+        case LKeys::ClientLog:
         {
             usageLog.setFileName( log );
             usageLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::QUEST:
+        case LKeys::SSVLog:
         {
             questLog.setFileName( log );
             questLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::ADMIN:
+        case LKeys::AdminLog:
         {
             adminLog.setFileName( log );
             adminLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::UPNP:
+        case LKeys::UPNPLog:
         {
             upnpLog.setFileName( log );
             upnpLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::MISC:
+        case LKeys::MiscLog:
         {
             miscLog.setFileName( log );
             miscLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::CHAT:
+        case LKeys::ChatLog:
         {
             chatLog.setFileName( log );
             chatLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::PING:
+        case LKeys::PingLog:
         {
             pingLog.setFileName( log );
             pingLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
-        case LogTypes::ALL: break;
+        case LKeys::AllLogs: break;
     }
 }
 
@@ -213,7 +213,7 @@ void WriteThread::closeAllLogFiles()
 }
 
 //Slots
-void WriteThread::insertLogSlot(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine)
+void WriteThread::insertLogSlot(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine)
 {
     this->logToFile( type, text, timeStamp, newLine );
 }

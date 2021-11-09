@@ -20,12 +20,12 @@
 #include <QTime>
 #include <QHash>
 
-QHash<Server*, PacketHandler*> PacketHandler::pktHandleInstanceMap;
+QHash<QSharedPointer<Server>, PacketHandler*> PacketHandler::pktHandleInstanceMap;
 
-PacketHandler::PacketHandler(Server* svr, ChatView* chat)
+PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
+    : server( svr )
 {
     chatView = chat;
-    server = svr;
 
     QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
     QObject::connect( this, &PacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot );
@@ -36,11 +36,10 @@ PacketHandler::PacketHandler(Server* svr, ChatView* chat)
 
 PacketHandler::~PacketHandler()
 {
-    if ( server != nullptr )
-        CmdHandler::deleteInstance( server );
+    server = nullptr;
 }
 
-PacketHandler* PacketHandler::getInstance(Server* server)
+PacketHandler* PacketHandler::getInstance(QSharedPointer<Server> server)
 {
     PacketHandler* instance{ pktHandleInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
@@ -52,18 +51,17 @@ PacketHandler* PacketHandler::getInstance(Server* server)
     return instance;
 }
 
-void PacketHandler::deleteInstance(Server* server)
+void PacketHandler::deleteInstance(QSharedPointer<Server> server)
 {
     PacketHandler* instance{ pktHandleInstanceMap.take( server ) };
     if ( instance != nullptr )
     {
         instance->disconnect();
-        instance->setParent( nullptr );
         instance->deleteLater();
     }
 }
 
-void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
+void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Player> plr)
 {
     //Do not parse packets from Muted, Disconnected, or Null Users.
     if ( plr == nullptr
@@ -177,13 +175,21 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, Player* plr)
     return;
 }
 
-bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
+bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Player> plr)
 {
     //The Player object is invalid, return.
     if ( plr == nullptr )
         return false;
 
     Colors serNumColor{ Colors::WhiteSoul };
+    Colors nameColor{ Colors::PlayerName };
+    if ( plr->getAdminRank() >= GMRanks::GMaster )
+    {
+        nameColor = Colors::AdminName;
+        if ( plr->getAdminRank() > GMRanks::Admin )
+            nameColor = Colors::OwnerName;
+    }
+
     if ( plr->getIsGoldenSerNum() )
         serNumColor = Colors::GoldenSoul;
 
@@ -210,7 +216,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                 plr->setIsAFK( false );
                 retn = chatView->parseChatEffect( pkt );
             }
-            else if ( pkt.at( 3 ) == '3'
+            else if ( pkt.at( 3 ) == '3' //Warpath uses Packet '4'.
                    || ( ( server->getGameId() == Games::ToY ) && ( pkt.at( 3 ) == 'N' ) ) )
             {
                 QStringList varList;
@@ -236,31 +242,32 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     {
                         case 1:
                             {
-                                msg = " has incarnated into this world! ";
+                                msg = "has incarnated into this world! ";
                             }
                         break;
                         case 2:
                             {
                                 plr->setIsGhosting( true );
-                                msg = " walks the land as an apparition! ";
+                                msg = "walks the land as an apparition! ";
                             }
                         break;
                         case 4:
                             {
                                 plr->setIsIncarnated( false );
                                 isIncarnated = false;
-                                msg = " has returned to the Well of Souls! ";
+                                msg = "has returned to the Well of Souls! ";
                             }
                         break;
                         default:
                         break;
                     }
 
-                    if ( !msg.isEmpty() && !isIncarnated )
+                    if ( !msg.isEmpty()
+                      && !isIncarnated )
                     {
                         emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                         emit this->insertChatMsgSignal( "*** ", Colors::SoulIncarnated, false );
-                        emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                        emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
                         emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
                         emit this->insertChatMsgSignal( msg, Colors::SoulIncarnated, false );
                         emit this->insertChatMsgSignal( "***", Colors::SoulIncarnated, false );
@@ -274,7 +281,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     {
                         for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                         {
-                            Player* tmpPlr{ server->getPlayer( i ) };
+                            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
                             if ( tmpPlr != nullptr
                               && plr != tmpPlr )
                             {
@@ -300,17 +307,29 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
             else if ( server->getGameId() == Games::WoS )
             {
                 QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
-                Player* targetPlayer{ server->getPlayer( trgSerNum ) };
+                QSharedPointer<Player> targetPlayer{ server->getPlayer( trgSerNum ) };
+
+                Colors targetNameColor{ Colors::PlayerName };
+                Colors targetSerNumColor{ Colors::WhiteSoul };
+                if ( targetPlayer != nullptr )
+                {
+                    targetNameColor = Colors::AdminName;
+                    if ( targetPlayer->getAdminRank() > GMRanks::Admin )
+                        targetNameColor = Colors::OwnerName;
+
+                    if ( targetPlayer->getIsGoldenSerNum() )
+                        targetSerNumColor = Colors::GoldenSoul;
+                }
 
                 switch ( pkt.at( 3 ).toLatin1() )
                 {
-                    case '5': //Player Leaves Server.
+                    case '5': //Player Leaves Server. //Arcadia uses packet 'B'.
                         {
                             emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                             emit this->insertChatMsgSignal( "*** ", Colors::SoulLeftWorld, false );
-                            emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                            emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
                             emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
-                            emit this->insertChatMsgSignal( " has left this world! ***", Colors::SoulLeftWorld, false );
+                            emit this->insertChatMsgSignal( "has left this world! ***", Colors::SoulLeftWorld, false );
                         }
                     break;
                     case 'k': //PK Attack.
@@ -319,10 +338,12 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                                 emit this->insertChatMsgSignal( "*** ", Colors::PKChallenge, false );
-                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
-                                emit this->insertChatMsgSignal( " has challenged ", Colors::PKChallenge, false );
-                                emit this->insertChatMsgSignal( targetPlayer->getPlrName(), Colors::PlayerName, false );
-                                emit this->insertChatMsgSignal( " to a PK fight! ***", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
+                                emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                                emit this->insertChatMsgSignal( "has challenged ", Colors::PKChallenge, false );
+                                emit this->insertChatMsgSignal( targetPlayer->getPlrName(), targetNameColor, false );
+                                emit this->insertChatMsgSignal( " [ " % targetPlayer->getSernum_s() % " ] ", targetSerNumColor, false );
+                                emit this->insertChatMsgSignal( "to a PK fight! ***", Colors::PKChallenge, false );
                             }
                         }
                     break;
@@ -340,17 +361,27 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                                 isJoining = false;
                             }
 
-                            Player* partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
+                            QSharedPointer<Player> partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
                             if ( partyLeader != nullptr )
                             {
+                                if ( partyLeader->getAdminRank() >= GMRanks::GMaster )
+                                {
+                                    targetNameColor = Colors::AdminName;
+                                    if ( partyLeader->getAdminRank() > GMRanks::Admin )
+                                        targetNameColor = Colors::OwnerName;
+
+                                    if ( partyLeader->getIsGoldenSerNum() )
+                                        targetSerNumColor = Colors::GoldenSoul;
+                                }
+
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                                 emit this->insertChatMsgSignal( "*** ", Colors::PartyJoin, false );
-                                emit this->insertChatMsgSignal( plr->getPlrName(), Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
                                 emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
-                                emit this->insertChatMsgSignal( ( isJoining ? " joins " : " leaves " ), Colors::PartyJoin, false );
+                                emit this->insertChatMsgSignal( ( isJoining ? "joins " : "leaves " ), Colors::PartyJoin, false );
 
-                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s [ " % partyLeader->getSernum_s() % " ] ",
-                                                                Colors::PlayerName, false );
+                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s", targetNameColor, false );
+                                emit this->insertChatMsgSignal( " [ " % partyLeader->getSernum_s() % " ] ", targetSerNumColor, false );
                                 emit this->insertChatMsgSignal( "party. ***", Colors::PartyJoin, false );
                             }
                         }
@@ -398,7 +429,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
                     break;
                     case 'J':
                         {
-                            Player* tmpPlr{ nullptr };
+                            QSharedPointer<Player> tmpPlr{ nullptr };
                             for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                             {
                                 tmpPlr = server->getPlayer( i );
@@ -468,7 +499,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, Player* plr)
     return retn;
 }
 
-bool PacketHandler::checkBannedInfo(Player* plr) const
+bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
 {
     if ( plr == nullptr )
         return true;
@@ -477,7 +508,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
     if ( plr->getIsDisconnected() )
         return true;
 
-    Player* tmpPlr{ nullptr };
+    QSharedPointer<Player> tmpPlr{ nullptr };
 
     bool badInfo{ false };
 
@@ -493,7 +524,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                        .arg( plr->getIPAddress() )
                        .arg( plr->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
         plrMessage = plrMessage.arg( "Disconnect" )
                                .arg( "Banned Info" );
@@ -516,14 +547,14 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                   && !plr->getIsDisconnected() )
                 {
                     auto disconnect =
-                    [=, this]( Player* plr, const QString& logMsg, QString& plrMessage )
+                    [=, this]( QSharedPointer<Player> plr, const QString& logMsg, QString& plrMessage )
                     {
                         QString reason{ logMsg };
                         reason = reason.arg( "Duplicate IP" )
                                        .arg( plr->getIPAddress() )
                                        .arg( plr->getBioData() );
 
-                        emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                        emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                         if ( Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() )
                         {
@@ -532,9 +563,9 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                            .arg( plr->getBioData() );
 
                             //Ban for only half an hour.
-                            User::addBan( nullptr, plr, reason, false, PunishDurations::THIRTY_MINUTES );
+                            User::addBan( plr, reason, PunishDurations::THIRTY_MINUTES );
 
-                            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                             plrMessage = plrMessage.arg( "Banish" )
                                                    .arg( "Duplicate IP" );
@@ -575,7 +606,7 @@ bool PacketHandler::checkBannedInfo(Player* plr) const
                                    .arg( plr->getIPAddress() )
                                    .arg( plr->getBioData() );
 
-                    emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+                    emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
                     plrMessage = plrMessage.arg( "Disconnect" )
                                            .arg( "Duplicate SerNum" );
@@ -600,7 +631,7 @@ bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr, co
     return ( banned >= 1 );
 }
 
-void PacketHandler::detectFlooding(Player* plr)
+void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -620,8 +651,8 @@ void PacketHandler::detectFlooding(Player* plr)
                                .arg( time )
                                .arg( plr->getBioData() );
 
-                User::addMute( nullptr, plr, logMsg, false, true, PunishDurations::THIRTY_MINUTES );
-                emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+                User::addMute( plr, logMsg, true, PunishDurations::THIRTY_MINUTES );
+                emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
 
                 QString plrMessage{ "Auto-Mute; Packet Flooding." };
                 server->sendMasterMessage( plrMessage, plr, false );
@@ -635,7 +666,7 @@ void PacketHandler::detectFlooding(Player* plr)
     }
 }
 
-bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
+bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByteArray& pkt)
 {
     bool disconnect{ false };
     QString message{ "" };
@@ -661,7 +692,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
                            .arg( plr->getBioData() )
                            .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
 
-            emit this->insertLogSignal( server->getServerName(), reason, LogTypes::PUNISHMENT, true, true );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
         }
         else
         {
@@ -689,7 +720,7 @@ bool PacketHandler::validatePacketHeader(Player* plr, const QByteArray& pkt)
     return false;
 }
 
-void PacketHandler::readMIX0(const QString& packet, Player* plr)
+void PacketHandler::readMIX0(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -698,19 +729,19 @@ void PacketHandler::readMIX0(const QString& packet, Player* plr)
     plr->setTargetType( PktTarget::SCENE );
 }
 
-void PacketHandler::readMIX1(const QString& packet, Player* plr)
+void PacketHandler::readMIX1(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     plr->setSceneHost( Helper::serNumtoInt( sernum, true ) );
 }
 
-void PacketHandler::readMIX2(const QString&, Player* plr)
+void PacketHandler::readMIX2(const QString&, QSharedPointer<Player> plr)
 {
     plr->setSceneHost( 0 );
     plr->setTargetType( PktTarget::ALL );
 }
 
-void PacketHandler::readMIX3(const QString& packet, Player* plr)
+void PacketHandler::readMIX3(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -718,7 +749,7 @@ void PacketHandler::readMIX3(const QString& packet, Player* plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX4(const QString& packet, Player* plr)
+void PacketHandler::readMIX4(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
 
@@ -726,7 +757,7 @@ void PacketHandler::readMIX4(const QString& packet, Player* plr)
     plr->setTargetType( PktTarget::PLAYER );
 }
 
-void PacketHandler::readMIX5(const QString& packet, Player* plr)
+void PacketHandler::readMIX5(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     if ( plr != nullptr )
@@ -740,7 +771,7 @@ void PacketHandler::readMIX5(const QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::readMIX6(const QString& packet, Player* plr)
+void PacketHandler::readMIX6(const QString& packet, QSharedPointer<Player> plr)
 {
     QString sernum = packet.mid( 2 ).left( 8 );
     if ( plr != nullptr )
@@ -757,7 +788,7 @@ void PacketHandler::readMIX6(const QString& packet, Player* plr)
     }
 }
 
-void PacketHandler::readMIX7(const QString& packet, Player* plr)
+void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
 {
     if ( plr == nullptr )
         return;
@@ -771,17 +802,17 @@ void PacketHandler::readMIX7(const QString& packet, Player* plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX8(const QString& packet, Player* plr)
+void PacketHandler::readMIX8(const QString& packet, QSharedPointer<Player> plr)
 {
     this->handleSSVReadWrite( packet, plr, SSVModes::Read );
 }
 
-void PacketHandler::readMIX9(const QString& packet, Player* plr)
+void PacketHandler::readMIX9(const QString& packet, QSharedPointer<Player> plr)
 {
     this->handleSSVReadWrite( packet, plr, SSVModes::Write );
 }
 
-void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const SSVModes mode)
+void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVModes mode)
 {
     if ( plr == nullptr || packet.isEmpty() )
         return;
@@ -822,7 +853,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
             {
                 for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
-                    Player* tmpPlr = server->getPlayer( i );
+                    QSharedPointer<Player> tmpPlr = server->getPlayer( i );
                     if ( tmpPlr != nullptr
                       && plr != tmpPlr )
                     {
@@ -848,6 +879,6 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, Player* plr, const
                  .arg( vars.value( 2 ) ) //variable
                  .arg( value ); //value
 
-        emit this->insertLogSignal( server->getServerName(), msg, LogTypes::QUEST, true, true );
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::SSVLog, true, true );
     }
 }

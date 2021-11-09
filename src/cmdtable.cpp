@@ -36,7 +36,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "change", "remove", },
         2,
         "MotD Description: Sets the Server's Message of the Day.",
-        "MotD Usage: /motd change|remove *Message. "
+        "MotD Usage: /motd change | remove *Message. "
         "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
         GMRanks::CoAdmin,
         true,
@@ -45,24 +45,13 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {
         //Server UpTime, Connected Users, Connected Admins.
         "info",
-        { },
-        0,
-        "Info Description: Shows the Server Information.",
-        "Info Usage: /info",
+        { "server", "soul" },
+        2,
+        "Info Description: Shows the Server or User Information.",
+        "Info Usage: /info server | soul e.g. \"/info soul 4000\".",
         GMRanks::GMaster,
         true,
         GMCmds::Info,
-    },
-    {   //Command Unimplemented.
-        //Server Network information. IP, Ping, Bandwidth Used.
-        "netstatus",
-        { },
-        0,
-        "NetStatus Description: Shows the Server's network status.",
-        "",
-        GMRanks::Admin,
-        false,
-        GMCmds::Invalid,
     },
     {   //Command Implemented.
         //TODO: Allow the Admin to select a duration for the ban.
@@ -70,8 +59,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all"  },
         3,
         "Ban Description: Bans the selected user and prevents their future connection to the server.",
-        "Ban Usage: /ban Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default to 30 Days if not provided). "
-        "e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
+        "Ban Usage: /ban Soul | IP | All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
+        "(Duration is default to 30 Days if not provided). e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
         GMRanks::CoAdmin,
         true,
         GMCmds::Ban,
@@ -80,8 +69,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "unban",
         { "soul", "ip", "all" },
         3,
-        "UnBan Description: Removes a ban from the selected user and reallows them to connect.",
-        "Unban Usage: /unban Soul|IP|All(Permission Required) *Reason (Optional). "
+        "Unban Description: Removes a ban from the selected user and reallows them to connect.",
+        "Unban Usage: /unban Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
         GMRanks::CoAdmin,
         true,
@@ -92,7 +81,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all" },
         3,
         "Kick Description: Disconnects the selected user from the server.",
-        "Kick Usage: /kick Soul|IP|All(Permission Required) *Reason (Optional). "
+        "Kick Usage: /kick Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
         GMRanks::GMaster,
         true,
@@ -104,8 +93,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all" },
         3,
         "Mute Description: Adds a network mute to the selected User.",
-        "Mute Usage: /mute Soul|IP|All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. (Duration is default 10 Minutes if not provided). "
-        "e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
+        "Mute Usage: /mute Soul | IP | All (Permission Required) <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
+        "(Duration is default 10 Minutes if not provided). e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
         GMRanks::GMaster,
         true,
         GMCmds::Mute,
@@ -114,8 +103,8 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "unmute",
         { "soul", "ip", "all" },
         3,
-        "UnMute Description: Removes a network mute imposed on the selected User.",
-        "Unmute Usage: /unmute Soul|IP|All(Permission Required) *Reason (Optional). "
+        "Unmute Description: Removes a network mute imposed on the selected User.",
+        "Unmute Usage: /unmute Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
         GMRanks::GMaster,
         true,
@@ -127,7 +116,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "soul", "ip", "all" },
         3,
         "Msg Description: Sends a message to the selected User.",
-        "Message Usage: /msg Soul|IP|All(Permission Required) *Message. "
+        "Message Usage: /msg Soul | IP | All (Permission Required) *Message. "
         "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
         GMRanks::GMaster,
         true,
@@ -230,7 +219,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "hide", "show", "status" },
         3,
         "Vanish Description: Makes the Admin invisible to others. Poof!",
-        "Vanish Usage: /vanish hide|show|status. When no sub-command is "
+        "Vanish Usage: /vanish hide | show | status. When no sub-command is "
         "entered the command acts as an on|off toggle.",
         GMRanks::GMaster,
         true,
@@ -253,11 +242,21 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Camp Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. "
         "If enabling \"allowcurrent\" then only Players online when the Scene was created can enter and the command \"allowall\" reverses that limitation. "
         "Using the command syntax \"/camp allow soul 4000\" or \"/camp remove soul 4000\" you may exempt specific Players from any limitations.",
-        "Camp Usage: /camp lock|unlock|allowcurrent|allowall|allow. Remote Administrators may append \"soul *PlayerSerNum\" to override a Player's status. "
-        "e.g. \"/camp lock soul 4000\".",
+        "Camp Usage: /camp lock | unlock | allowcurrent | allowall | allow. Remote Administrators may append \"soul *PlayerSerNum\" to override a "
+        "Player's status. e.g. \"/camp lock soul 4000\".",
         GMRanks::User,
         true,
         GMCmds::Camp,
+    },
+    {
+        "guild",
+        { "create", "join", "kick", "leave" },
+        3,
+        "Guild Description: ",
+        "Guild Usage: /camp *message | create | join | leave.",
+        GMRanks::User,
+        false,
+        GMCmds::Guild,
     },
 };
 
@@ -322,7 +321,7 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
     return index;
 }
 
-qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
+GMSubCmds CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
 {
     qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };
     qint32 cmdIdx{ static_cast<qint32>( cmdIndex ) };
@@ -337,7 +336,7 @@ qint32 CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, c
                 index = sCmdIdx;
         }
     }
-    return index;
+    return static_cast<GMSubCmds>( index );
 }
 
 GMRanks CmdTable::getCmdRank(const GMCmds& index)

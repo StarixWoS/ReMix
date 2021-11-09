@@ -38,15 +38,15 @@ const QList<qint32> Helper::blueCodedList =
     3191, 3149, 3,
 };
 
-const QStringList Helper::byteUnits
+const QMap<ByteUnits, QString> Helper::byteUnits
 {
-    "B",    // Bytes 1024^0
-    "KiB",  // KibiBytes 1024^1
-    "MiB",  // MebiBytes 1024^2
-    "GiB",  // GibiBytes 1024^3
-    "TiB",  // TebiBytes 1024^4
-    "PiB",  // PebiBytes 1024^5
-    "EiB",  // ExbiBytes 1024^6
+    { ByteUnits::Byte,     "B"   },  // Bytes 1024^0
+    { ByteUnits::KibiByte, "KiB" },  // KibiBytes 1024^1
+    { ByteUnits::MebiByte, "MiB" },  // MebiBytes 1024^2
+    { ByteUnits::GibiByte, "GiB" },  // GibiBytes 1024^3
+    { ByteUnits::TebiByte, "TiB" },  // TebiBytes 1024^4
+    { ByteUnits::PebiByte, "PiB" },  // PebiBytes 1024^5
+    { ByteUnits::ExbiByte, "EiB" },  // ExbiBytes 1024^6
 };
 
 QInputDialog* Helper::createInputDialog(QWidget* parent, const QString& label, const QInputDialog::InputMode& mode, const int& width, const int& height)
@@ -366,26 +366,21 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
     switch ( format )
     {
         case TimeFormat::Days:
-            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
-                     / static_cast<int>( TimeFormat::DaysDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
+                     / static_cast<int>( TimeDivide::Days ) );
         break;
         case TimeFormat::Hours:
-            retn = ( ( time / static_cast<int>( TimeFormat::HoursDiv ) )
-                     % static_cast<int>( TimeFormat::DaysDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
+                     % static_cast<int>( TimeDivide::Days ) );
         break;
         case TimeFormat::Minutes:
-            retn = ( ( time / static_cast<int>( TimeFormat::MinsDiv ) )
-                     % static_cast<int>( TimeFormat::SecDiv ) );
+            retn = ( ( time / static_cast<int>( TimeDivide::Minutes ) )
+                     % static_cast<int>( TimeDivide::Seconds ) );
         break;
         case TimeFormat::Seconds:
-            retn = ( time % static_cast<int>( TimeFormat::SecDiv ) );
+            retn = ( time % static_cast<int>( TimeDivide::Seconds ) );
         break;
         case TimeFormat::Default:
-            retn = time;
-        break;
-        case TimeFormat::HoursDiv:
-        case TimeFormat::DaysDiv:
-        case TimeFormat::SecDiv:
             retn = time;
         break;
     }
@@ -407,7 +402,7 @@ qint32 Helper::sanitizeToFriendlyUnits(const quint64& bytes, QString &retVal, QS
     }
 
     retVal = QString::number( val, 'f', sanitizeFriendlyPrecision( static_cast<ByteUnits>( iter ) ) );
-    unit = byteUnits.at( iter );
+    unit = byteUnits.value( static_cast<ByteUnits>( iter ), "B" );
     return true;
 }
 

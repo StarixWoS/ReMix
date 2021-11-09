@@ -20,6 +20,16 @@
 //Initialize our QSettings Object globally to make things more responsive.
 //Should be Thread safe.
 QSettings* MasterMixThread::masterMixPref{ new QSettings( "synReal.ini", QSettings::IniFormat ) };
+
+//Initialize our accepted Games List.
+const QMap<Games, QString> MasterMixThread::gameNames =
+{
+    { Games::WoS, "WoS" },
+    { Games::ToY, "TOY" },
+    { Games::W97, "W97" },
+};
+
+QMap<Games, QMetaObject::Connection> MasterMixThread::connectedGames;
 QTcpSocket* MasterMixThread::tcpSocket{ nullptr };
 bool MasterMixThread::download;
 QMutex MasterMixThread::mutex;
@@ -33,7 +43,7 @@ MasterMixThread::MasterMixThread()
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
         QString msg{ "Automatically refreshing the Master Mix Information." };
-        emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
+        emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
 
         masterMixPref->sync();
         this->updateMasterMixInfo( true );
@@ -49,6 +59,8 @@ MasterMixThread::MasterMixThread()
 
 MasterMixThread::~MasterMixThread()
 {
+    connectedGames.clear();
+
     updateInfoTimer.stop();
     masterMixPref->sync();
     masterMixPref->deleteLater();
@@ -71,7 +83,7 @@ void MasterMixThread::connectSlots()
     QObject::connect( tcpSocket, &QTcpSocket::readyRead, tcpSocket,
     [=, this]()
     {
-        QFile synreal( "synReal.ini" );
+        static QFile synreal( "synReal.ini" );
         if ( synreal.open( QIODevice::WriteOnly | QIODevice::Append ) )
         {
             synreal.resize( 0 ); //Erase the file by overwriting previous data.
@@ -96,8 +108,19 @@ void MasterMixThread::connectSlots()
 
         masterMixPref->sync();
 
+<<<<<<< HEAD
         emit this->insertLogSignal( "MasterMixThread", msg, LogTypes::MASTERMIX, true, true );
         emit this->obtainedMasterMixInfoSignal(); //Inform Listening Objects of a completed download.
+=======
+        emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+        emit this->obtainedMasterMixInfoSignal(); //Inform Listening Objects of a completed download.
+    }, Qt::UniqueConnection );
+
+    QObject::connect( tcpSocket, &QTcpSocket::errorOccurred, tcpSocket,
+    [](QAbstractSocket::SocketError socketError)
+    {
+        qDebug() << socketError;
+>>>>>>> develop_unstable
     }, Qt::UniqueConnection );
 }
 
@@ -111,16 +134,13 @@ void MasterMixThread::startUpdateInfoTimer(const bool& start)
 
 void MasterMixThread::updateMasterMixInfo(const bool& forceDownload)
 {
-    QString host{ this->getModdedHost() };
-    QFileInfo synRealFile( "synReal.ini" );
-
+    const QString host{ this->getModdedHost() };
     QString message{ "Fetching Master Info from [ %1 ]." };
             message = message.arg( host );
 
-    emit this->insertLogSignal( "MasterMixThread", message, LogTypes::MASTERMIX, true, true );
+    emit this->insertLogSignal( "MasterMixThread", message, LKeys::MasterMixLog, true, true );
 
-    QUrl url{ host };
-
+    const QUrl url{ host };
     if ( tcpSocket == nullptr )
     {
         tcpSocket = new QTcpSocket( this );
@@ -154,21 +174,34 @@ void MasterMixThread::obtainMasterData(const Games& game)
     QMutexLocker<QMutex> locker( &mutex ); //Ensure thread safety.
     masterMixPref->sync();
 
-    QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
+    const QString overrideIP{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
     if ( !overrideIP.isEmpty() )
     {
         qint32 index{ static_cast<int>( overrideIP.indexOf( ":" ) ) };
         if ( index > 0 )
         {
+<<<<<<< HEAD
             QString ip{ overrideIP.left( index ) };
             quint16 port{ static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) };
 
             emit this->masterMixInfoSignal( game, ip, port, true );
+=======
+            const QString ip{ overrideIP.left( index ) };
+            const quint16 port{ static_cast<quint16>( overrideIP.mid( index + 1 ).toInt() ) };
+
+            QString msg{ "Loaded Master Server Override [ %1:%2 ]." };
+                    msg = msg.arg( ip )
+                             .arg( port );
+
+            emit this->masterMixInfoSignal( game, ip, port );
+            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+>>>>>>> develop_unstable
         }
     }
     else
         this->parseMasterInfo( game );
 }
+<<<<<<< HEAD
 
 void MasterMixThread::getMasterMixInfoSlot(const Games& game)
 {
@@ -176,6 +209,22 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
     {
         this->obtainMasterData( game );
     }, Qt::ConnectionType::UniqueConnection );
+=======
+
+void MasterMixThread::getMasterMixInfoSlot(const Games& game)
+{
+    if ( !connectedGames.contains( game ) )
+    {
+        auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
+        [=, this]()
+        {
+            this->obtainMasterData( game );
+        }, Qt::ConnectionType::UniqueConnection );
+
+        if ( connection )
+            connectedGames.insert( game, connection );
+    }
+>>>>>>> develop_unstable
 
     if ( !download )
         this->updateMasterMixInfo( false );
@@ -188,6 +237,7 @@ void MasterMixThread::masterMixInfoChangedSlot()
     this->updateMasterMixInfo( true );
 }
 
+<<<<<<< HEAD
 void MasterMixThread::parseMasterInfo(const Games& game)
 {
     QString gameStr{ "" };
@@ -221,6 +271,43 @@ void MasterMixThread::run()
     masterMixPref->moveToThread( this );
     masterMixPref->sync();
 
+=======
+void MasterMixThread::removeConnectedGameSlot(const Games& game)
+{
+    if ( connectedGames.contains( game ) )
+    {
+        auto connection = connectedGames.take( game );
+        QObject::disconnect( connection );
+    }
+}
+
+void MasterMixThread::parseMasterInfo(const Games& game)
+{
+    const QString gameStr{ gameNames.value( game, "WoS" ) };
+    const QString info{ masterMixPref->value( gameStr % "/master" ).toString() };
+
+    int index{ static_cast<int>( info.indexOf( ":" ) ) };
+    if ( index > 0 )
+    {
+        const QString ip{ info.left( index ) };
+        const quint16 port{ static_cast<quint16>( info.mid( index + 1 ).toInt() ) };
+
+        QString msg{ "Obtained Master Server [ %1:%2 ] for Game [ %3 ]." };
+                msg = msg.arg( ip )
+                         .arg( port )
+                         .arg( gameStr );
+
+        emit this->masterMixInfoSignal( game, ip, port );
+        emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+    }
+}
+
+void MasterMixThread::run()
+{
+    masterMixPref->moveToThread( this );
+    masterMixPref->sync();
+
+>>>>>>> develop_unstable
     this->exec();
 }
 

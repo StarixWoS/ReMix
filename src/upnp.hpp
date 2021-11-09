@@ -72,7 +72,7 @@ class UPNP : public QObject
         void upnpTunnelSuccessSignal();
         void upnpErrorSignal(const QString& message);
 
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
+        void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
 };
 
 #endif // UPNP_HPP

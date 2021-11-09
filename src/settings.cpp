@@ -24,98 +24,104 @@
 #include <QtCore>
 
 //Initialize Settings keys/subKeys lists
-const QStringList Settings::pKeys =
+const QMap<SKeys, QString> Settings::pKeys =
 {
-    "Settings",
-    "Messages",
-    "Positions",
-    "Rules",
-    "Logger",
-    "Colors",
+    { SKeys::Setting,   "Settings"  },
+    { SKeys::Messages,  "Messages"  },
+    { SKeys::Positions, "Positions" },
+    { SKeys::Rules,     "Rules"     },
+    { SKeys::Logger,    "Logger"    },
+    { SKeys::Colors,    "Colors"    },
 };
 
-const QStringList Settings::sKeys =
+const QMap<SSubKeys, QString> Settings::sKeys =
 {
     //Settings.
-    "serverID",
-    "autoBanish",
-    "discIdle",
-    "reqSerNums",
-    "dupeOK",
-    "supportsSSV",
-    "banishDupeIP",
-    "censorUIIPInfo",
-    "MOTD",
-    "logComments",
-    "fwdComments",
-    "informAdminLogin",
-    "echoComments",
-    "minimizeToTray",
-    "saveWindowPositions",
-    "isRunning",
-    "worldDir",
-    "portNumber",
-    "isPublic",
-    "gameName",
-    "logFiles",
-    "darkMode",
-    "useUPNP",
-    "checkForUpdates",
-    "dcBlueCodedSerNums",
-    "loggerAutoScroll",
-    "overrideMasterIP",
-    "loggerAutoClear",
-    "overrideMasterHost",
-    "chatAutoScroll",
-    "hidePlayerView",
-    "hideChatView",
-    "netInterface",
+    { SSubKeys::ServerID,               "serverID"            },
+    { SSubKeys::AutoBan,                "autoBanish"          },
+    { SSubKeys::AllowIdle,              "discIdle"            },
+    { SSubKeys::ReqSerNum,              "reqSerNums"          },
+    { SSubKeys::AllowDupe,              "dupeOK"              },
+    { SSubKeys::AllowSSV,               "supportsSSV"         },
+    { SSubKeys::BanDupes,               "banishDupeIP"        },
+    { SSubKeys::CensorIPInfo,           "censorUIIPInfo"      },
+    { SSubKeys::MOTD,                   "MOTD"                },
+    { SSubKeys::LogComments,            "logComments"         },
+    { SSubKeys::FwdComments,            "fwdComments"         },
+    { SSubKeys::InformAdminLogin,       "informAdminLogin"    },
+    { SSubKeys::EchoComments,           "echoComments"        },
+    { SSubKeys::MinimizeToTray,         "minimizeToTray"      },
+    { SSubKeys::SaveWindowPositions,    "saveWindowPositions" },
+    { SSubKeys::IsRunning,              "isRunning"           },
+    { SSubKeys::WorldDir,               "worldDir"            },
+    { SSubKeys::PortNumber,             "portNumber"          },
+    { SSubKeys::IsPublic,               "isPublic"            },
+    { SSubKeys::GameName,               "gameName"            },
+    { SSubKeys::LogFiles,               "logFiles"            },
+    { SSubKeys::DarkMode,               "darkMode"            },
+    { SSubKeys::UseUPNP,                "useUPNP"             },
+    { SSubKeys::CheckForUpdates,        "checkForUpdates"     },
+    { SSubKeys::DCBlueCodedSerNums,     "dcBlueCodedSerNums"  },
+    { SSubKeys::LoggerAutoScroll,       "loggerAutoScroll"    },
+    { SSubKeys::OverrideMasterIP,       "overrideMasterIP"    },
+    { SSubKeys::LoggerAutoClear,        "loggerAutoClear"     },
+    { SSubKeys::OverrideMasterHost,     "overrideMasterHost"  },
+    { SSubKeys::ChatAutoScroll,         "chatAutoScroll"      },
+    { SSubKeys::ChatTimeStamp,          "chatTimeStampTxt"    },
+    { SSubKeys::HidePlayerView,         "hidePlayerView"      },
+    { SSubKeys::HideChatView,           "hideChatView"        },
+    { SSubKeys::NetInterface,           "netInterface"        },
 
     //Rules.
-    "hasSvrPassword",
-    "svrPassword",
-    "world",
-    "url",
-    "allPK",
-    "maxP",
-    "maxIdle",
-    "minV",
-    "ladder",
-    "noBleep",
-    "noCheat",
-    "noEavesdrop",
-    "noMigrate",
-    "noMod",
-    "noPets",
-    "noPK",
-    "arenaPK",
-    "autoRestart",
+    { SSubKeys::HasSvrPassword,         "hasSvrPassword" },
+    { SSubKeys::SvrPassword,            "svrPassword"    },
+    { SSubKeys::World,                  "world"          },
+    { SSubKeys::SvrUrl,                 "url"            },
+    { SSubKeys::AllPK,                  "allPK"          },
+    { SSubKeys::MaxPlayers,             "maxP"           },
+    { SSubKeys::MaxIdle,                "maxIdle"        },
+    { SSubKeys::MinVersion,             "minV"           },
+    { SSubKeys::PKLadder,               "ladder"         },
+    { SSubKeys::NoBleep,                "noBleep"        },
+    { SSubKeys::NoCheat,                "noCheat"        },
+    { SSubKeys::NoEavesdrop,            "noEavesdrop"    },
+    { SSubKeys::NoMigrate,              "noMigrate"      },
+    { SSubKeys::NoModding,              "noMod"          },
+    { SSubKeys::NoPets,                 "noPets"         },
+    { SSubKeys::NoPK,                   "noPK"           },
+    { SSubKeys::ArenaPK,                "arenaPK"        },
+    { SSubKeys::AutoRestart,            "autoRestart"    },
 };
 
-const QStringList Settings::cKeys =
+const QMap<Colors, QString> Settings::cKeys =
 {
     //Color Roles.
-    "colorGossipTxt",
-    "colorShoutTxt",
-    "colorEmoteTxt",
-    "colorPlayerTxt",
-    "colorOwnerTxt",
-    "colorCommentTxt",
-    "colorGoldenSoul",
-    "colorWhiteSoul",
-    "colorPlayerName",
-    "colorOwnerName",
-    "colorTimestamp",
-    "colorAdminValid",
-    "colorAdminInvalid",
-    "colorIPValid",
-    "colorIPInvalid",
-    "colorIPVanished",
-    "colorPartyJoin",
-    "colorPKChallenge",
-    "colorSoulIncarnated",
-    "colorSoulLeftWorld",
-    "colorSoulDisappeared",
+    { Colors::GossipTxt,        "colorGossipTxt"      },
+    { Colors::ShoutTxt,         "colorShoutTxt"       },
+    { Colors::EmoteTxt,         "colorEmoteTxt"       },
+    { Colors::DiceAndLevel,     "colorDiceAndLevel"   },
+    { Colors::SpellTxt,         "colorSpellTxt"       },
+    { Colors::DeathTxt,         "colorDeathTxt"       },
+    { Colors::PlayerTxt,        "colorPlayerTxt"      },
+    { Colors::AdminTxt,         "colorAdminTxt"       },
+    { Colors::AdminMessage,     "colorAdminMsg"       },
+    { Colors::OwnerTxt,         "colorOwnerTxt"       },
+    { Colors::CommentTxt,       "colorCommentTxt"     },
+    { Colors::GoldenSoul,       "colorGoldenSoul"     },
+    { Colors::WhiteSoul,        "colorWhiteSoul"      },
+    { Colors::PlayerName,       "colorPlayerName"     },
+    { Colors::AdminName,        "colorPlayerName"     },
+    { Colors::OwnerName,        "colorOwnerName"      },
+    { Colors::TimeStamp,        "colorTimestamp"      },
+    { Colors::AdminValid,       "colorAdminValid"     },
+    { Colors::AdminInvalid,     "colorAdminInvalid"   },
+    { Colors::IPValid,          "colorIPValid"        },
+    { Colors::IPInvalid,        "colorIPInvalid"      },
+    { Colors::IPVanished,       "colorIPVanished"     },
+    { Colors::PartyJoin,        "colorPartyJoin"      },
+    { Colors::PKChallenge,      "colorPKChallenge"    },
+    { Colors::SoulIncarnated,   "colorSoulIncarnated" },
+    { Colors::SoulLeftWorld,    "colorSoulLeftWorld"  },
 };
 
 QVector<SSubKeys> Settings::serverSettings //Settings Specific to a Server Instance.
@@ -213,7 +219,7 @@ void Settings::setInstance(Settings* value)
     instance = value;
 }
 
-void Settings::updateTabBar(Server* server)
+void Settings::updateTabBar(QSharedPointer<Server> server)
 {
     qint32 index{ tabWidget->currentIndex() };
 
@@ -228,7 +234,7 @@ void Settings::updateTabBar(Server* server)
     tabWidget->setCurrentIndex( index );
 }
 
-void Settings::copyServerSettings(Server* server, const QString& newName)
+void Settings::copyServerSettings(QSharedPointer<Server> server, const QString& newName)
 {
     QString oldName{ server->getServerName() };
     if ( oldName != newName )
@@ -280,8 +286,8 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey, cons
     QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2/%3" };
             path = path.arg( childSubKey.toString() )
-                       .arg( Settings::pKeys[ static_cast<int>( key ) ] )
-                       .arg( Settings::sKeys[ static_cast<int>( subKey ) ] );
+                       .arg( Settings::pKeys.value( key ) )
+                       .arg( Settings::sKeys.value( subKey ) );
     return path;
 }
 
@@ -289,8 +295,8 @@ QString Settings::makeSettingPath(const SKeys& key, const SSubKeys& subKey)
 {
     QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2" };
-            path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
-                       .arg( Settings::sKeys[ static_cast<int>( subKey ) ] );
+            path = path.arg( Settings::pKeys.value( key ) )
+                       .arg( Settings::sKeys.value( subKey ) );
     return path;
 }
 
@@ -302,9 +308,9 @@ QString Settings::makeSettingPath(const SKeys& key, const Themes& theme, const C
         themeStr = "Dark";
 
     QString path{ "%1/%2/%3" };
-            path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
+            path = path.arg( Settings::pKeys.value( key ) )
                        .arg( themeStr )
-                       .arg( Settings::cKeys[ static_cast<int>( subKey ) ] );
+                       .arg( Settings::cKeys.value( subKey ) );
     return path;
 }
 
@@ -312,7 +318,7 @@ QString Settings::makeSettingPath(const SKeys& key, const QVariant& subKey)
 {
     QMutexLocker<QMutex> locker( &mutex );
     QString path{ "%1/%2" };
-            path = path.arg( Settings::pKeys[ static_cast<int>( key ) ] )
+            path = path.arg( Settings::pKeys.value( key ) )
                        .arg( subKey.toString() );
     return path;
 }
@@ -381,11 +387,11 @@ QVariant Settings::getSetting(const SKeys& key, const QString& subKey)
 //Retain function for ease of use.
 QString Settings::getServerID(const QString& svrID)
 {
-    qint32 id{ getSetting( SKeys::Setting, SSubKeys::Extension, svrID ).toInt() };
+    qint32 id{ getSetting( SKeys::Setting, SSubKeys::ServerID, svrID ).toInt() };
     if ( id <= 0 )
     {
         id = RandDev::getInstance().getGen( 1, 0x7FFFFFFE );
-        setSetting( id, SKeys::Setting, SSubKeys::Extension, svrID );
+        setSetting( id, SKeys::Setting, SSubKeys::ServerID, svrID );
     }
     return Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 );
 }
@@ -394,7 +400,7 @@ QString Settings::getRuleSet(const QString& svrID)
 {
     QMutexLocker<QMutex> locker( &mutex );
     prefs->sync();
-    prefs->beginGroup( svrID % "/" % pKeys[ static_cast<int>( SKeys::Rules ) ] );
+    prefs->beginGroup( svrID % "/" % Settings::pKeys.value( SKeys::Rules ) );
 
     QStringList ruleList{ prefs->allKeys() };
     QString rules{ "" };

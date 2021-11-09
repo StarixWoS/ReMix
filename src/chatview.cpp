@@ -92,18 +92,21 @@ QStringList ChatView::bleepList
 };
 
 Themes ChatView::currentTheme;
-QHash<Server*, ChatView*> ChatView::chatViewInstanceMap;
+QHash<QSharedPointer<Server>, ChatView*> ChatView::chatViewInstanceMap;
 QVector<Colors> ChatView::colors
 {
     Colors::GossipTxt,
     Colors::ShoutTxt,
     Colors::EmoteTxt,
     Colors::PlayerTxt,
+    Colors::AdminTxt,
+    Colors::AdminMessage,
     Colors::OwnerTxt,
     Colors::CommentTxt,
     Colors::GoldenSoul,
     Colors::WhiteSoul,
     Colors::PlayerName,
+    Colors::AdminName,
     Colors::OwnerName,
     Colors::TimeStamp,
     Colors::AdminValid,
@@ -117,13 +120,13 @@ QVector<Colors> ChatView::colors
     Colors::SoulLeftWorld,
 };
 
-ChatView::ChatView(QWidget* parent, Server* svr) :
+ChatView::ChatView(QSharedPointer<Server> svr, QWidget* parent) :
     QWidget(parent),
+    server( svr ),
     ui(new Ui::ChatView)
 {
     ui->setupUi(this);
     currentTheme = Theme::getThemeType();
-    server = svr;
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -152,27 +155,34 @@ ChatView::ChatView(QWidget* parent, Server* svr) :
     });
 
     ui->autoScrollCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() ).toBool() );
+    ui->timeStampCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatTimeStamp, server->getServerName() ).toBool() );
 }
 
 ChatView::~ChatView()
 {
+    server = nullptr;
     this->disconnect();
     delete ui;
 }
 
-ChatView* ChatView::getInstance(Server* server)
+QSharedPointer<Server> ChatView::getServer(ChatView* chatView)
+{
+    return chatViewInstanceMap.key( chatView );
+}
+
+ChatView* ChatView::getInstance(QSharedPointer<Server> server)
 {
     ChatView* instance{ chatViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new ChatView( ReMix::getInstance(), server );
+        instance = new ChatView( server, ReMix::getInstance() );
         if ( instance != nullptr )
             chatViewInstanceMap.insert( server, instance );
     }
     return instance;
 }
 
-void ChatView::deleteInstance(Server* server)
+void ChatView::deleteInstance(QSharedPointer<Server> server)
 {
     ChatView* instance{ chatViewInstanceMap.take( server ) };
     if ( instance != nullptr )
@@ -187,24 +197,21 @@ bool ChatView::parseChatEffect(const QString& packet)
 {
     bool retn{ true };
     QString srcSerNum{ Helper::serNumToIntStr( packet.left( 12 ).mid( 4 ), true ) };
-    Colors serNumColor{ Colors::WhiteSoul };
-    Player* plr{ nullptr };
+    Colors msgColor{ Colors::PlayerTxt };
+
+    QSharedPointer<Player> plr{ nullptr };
+    QString plrName{ "" };
     QString message{ "" };
 
     if ( server->getGameId() != Games::W97 )
     {
 
         QString fltrCode{ packet.mid( 13 ).left( 2 ) };
-        qint32 code{ (fltrCode.at( 0 ).toLatin1() - 'A') & 0xFF };
-        if ( code == 3 || code == 5 || code == 6 || code == 10 )
+        ChatType code{ static_cast<ChatType>( ( fltrCode.at( 0 ).toLatin1() - 'A' ) & 0xFF ) };
+        if ( code == ChatType::Unk3
+          || code == ChatType::PetCmd
+          || code == ChatType::SceneMsg )
         {
-            //0 = Normal Chat.
-            //1 = Level-Up and Dice Roll
-            //3 = Learn Spell.
-            //6 = Pet Command.
-            //5 = Unknown
-            //10 = Scene Message
-            //11 = PK Attack
             return true;
         }
 
@@ -223,9 +230,12 @@ bool ChatView::parseChatEffect(const QString& packet)
                     if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
                     {
                         plrName = plr->getPlrName();
-                        if ( plr->getIsGoldenSerNum() )
-                            serNumColor = Colors::GoldenSoul;
-
+                        if ( plr->getAdminRank() >= GMRanks::GMaster )
+                        {
+                            msgColor = Colors::AdminTxt;
+                            if ( plr->getAdminRank() > GMRanks::Admin )
+                                msgColor = Colors::OwnerTxt;
+                        }
                         break;
                     }
                     else
@@ -241,36 +251,38 @@ bool ChatView::parseChatEffect(const QString& packet)
                     this->bleepChat( message );
             }
 
-            bool log{ true };
-
             if ( type.toLatin1() != '`' )
-                this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+            {
+                this->insertTimeStamp();
+                if ( code != ChatType::DiceAndLevelUp
+                  && code != ChatType::LearnSpell
+                  && code != ChatType::DeathMsg )
+                {
+                    this->insertColoredName( plr );
+                    this->insertColoredSerNum( plr );
+                }
+            }
 
+            bool log{ true };
             switch ( type.toLatin1() )
             {
                 case '\'': //Gossip Chat Effect.
                     {
                         message = message.mid( 1 );
-                        this->insertChat( plrName, Colors::PlayerName, false );
-                        this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
-                        this->insertChat( " gossips: " % message, Colors::GossipTxt, false );
+                        this->insertChat( "gossips: " % message, Colors::GossipTxt, false );
                         message = plrName % " gossips: " % message;
                     }
                 break;
                 case '!': //Shout Chat Effect.
                     {
                         message = message.mid( 1 );
-                        this->insertChat( plrName, Colors::PlayerName, false );
-                        this->insertChat( " [ " % srcSerNum % " ]", serNumColor, false );
-                        this->insertChat( " shouts: " % message, Colors::ShoutTxt, false );
+                        this->insertChat( "shouts: " % message, Colors::ShoutTxt, false );
                         message = plrName % " shouts: " % message;
                     }
                 break;
                 case '/': //Emote Chat Effect.
                     {
                         message = message.mid( 2 );
-                        this->insertChat( plrName, Colors::PlayerName, false );
-                        this->insertChat( " [ " % srcSerNum % " ] ", serNumColor, false );
                         this->insertChat( message, Colors::EmoteTxt, false );
                         message = plrName % message;
                     }
@@ -279,7 +291,14 @@ bool ChatView::parseChatEffect(const QString& packet)
                     {
                         if ( plr != nullptr )
                         {
-                            if ( CmdHandler::canParseCommand( plr, message ) )
+                            if ( !CmdHandler::canParseCommand( plr, message ) )
+                            {
+                                this->insertTimeStamp();
+                                this->insertColoredName( plr );
+                                this->insertColoredSerNum( plr );
+                                this->insertChat( message, msgColor, false );
+                            }
+                            else
                                 CmdHandler::getInstance( server )->parseCommandImpl( plr, message );
                         }
 
@@ -289,17 +308,53 @@ bool ChatView::parseChatEffect(const QString& packet)
                 break;
                 default:
                     {
-                        this->insertChat( plrName, Colors::PlayerName, false );
-                        this->insertChat( " [ " % srcSerNum % " ]: ", serNumColor, false );
-                        this->insertChat( message, Colors::PlayerTxt, false );
-
+                        if ( !plrName.isEmpty()
+                          && server->getGameId() == Games::WoS )
+                        {
+                            QString msg{ message.mid( message.indexOf( plrName ) + plrName.length() ).simplified() };
+                            switch ( code )
+                            {
+                                case ChatType::DiceAndLevelUp:
+                                    {
+                                        this->insertChat( "***", Colors::DiceAndLevel, false );
+                                        this->insertColoredName( plr );
+                                        this->insertColoredSerNum( plr );
+                                        this->insertChat( msg, Colors::DiceAndLevel, false );
+                                    }
+                                break;
+                                case ChatType::LearnSpell:
+                                    {
+                                        this->insertColoredName( plr );
+                                        this->insertColoredSerNum( plr );
+                                        this->insertChat( msg, Colors::SpellTxt, false );
+                                    }
+                                break;
+                                case ChatType::DeathMsg:
+                                    {
+                                        this->insertChat( "*", Colors::DeathTxt, false );
+                                        this->insertColoredName( plr );
+                                        this->insertColoredSerNum( plr );
+                                        this->insertChat( msg, Colors::DeathTxt, false );
+                                    }
+                                break;
+                                default:
+                                    this->insertChat( message, msgColor, false );
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            this->insertColoredName( plr );
+                            this->insertColoredSerNum( plr );
+                            this->insertChat( message, msgColor, false );
+                        }
                         message = plrName % ": " % message;
                     }
                 break;
             }
 
             if ( !message.isEmpty() && log )
-                emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
+                emit this->insertLogSignal( server->getServerName(), message, LKeys::ChatLog, true, true );
         }
     }
     else
@@ -312,8 +367,12 @@ bool ChatView::parseChatEffect(const QString& packet)
             {
                 if ( server->getPlayerSlot( plr ) == plrSlot )
                 {
-                    if ( plr->getIsGoldenSerNum() )
-                        serNumColor = Colors::GoldenSoul;
+                    if ( plr->getAdminRank() >= GMRanks::GMaster )
+                    {
+                        msgColor = Colors::AdminTxt;
+                        if ( plr->getAdminRank() > GMRanks::Admin )
+                            msgColor = Colors::OwnerTxt;
+                    }
                     break;
                 }
                 else
@@ -329,10 +388,10 @@ bool ChatView::parseChatEffect(const QString& packet)
                 message = packet.mid( 8 );
                 if ( packet.at( 8 ) != '`' )
                 {
-                    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-                    this->insertChat( plr->getPlrName(), Colors::PlayerName, false );
-                    this->insertChat( " [ " % plr->getSernum_s() % " ]: ", serNumColor, false );
-                    this->insertChat( message, Colors::PlayerTxt, false );
+                    this->insertTimeStamp();
+                    this->insertColoredName( plr );
+                    this->insertColoredSerNum( plr );
+                    this->insertChat( message, msgColor, false );
                 }
                 else
                 {
@@ -412,31 +471,110 @@ QString ChatView::getTimeStr()
     return QString( "[ " % Helper::getTimeAsString( date ) % " ] " );
 }
 
+void ChatView::insertColoredSerNum(QSharedPointer<Player> plr)
+{
+    if ( plr != nullptr )
+    {
+        Colors color{ Colors::WhiteSoul };
+        if ( plr->getIsGoldenSerNum() )
+            color = Colors::GoldenSoul;
+
+        this->insertChat( " [ " % plr->getSernum_s() % " ] ", color, false );
+    }
+}
+
+void ChatView::insertColoredName(QSharedPointer<Player> plr)
+{
+    if ( plr != nullptr )
+    {
+        Colors color{ Colors::PlayerName };
+        if ( plr->getAdminRank() >= GMRanks::GMaster )
+            color = Colors::AdminName;
+
+        if ( plr->getAdminRank() > GMRanks::Admin )
+            color = Colors::OwnerName;
+
+        this->insertChat( plr->getPlrName(), color, false );
+    }
+}
+
+void ChatView::insertTimeStamp()
+{
+    if ( ui->timeStampCheckBox->isChecked() )
+        this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
+    else
+        this->insertChat( "", Colors::Default, true );
+
+}
+
 void ChatView::insertChatMsgSlot(const QString& msg, const Colors& color, const bool& newLine)
 {
     if ( !msg.isEmpty() )
-        this->insertChat( msg, color, newLine );
+    {
+        if ( color == Colors::TimeStamp )
+            this->insertTimeStamp();
+        else
+            this->insertChat( msg, color, newLine );
+    }
 }
 
-void ChatView::newUserCommentSlot(const QString& sernum, const QString& alias, const QString& message)
+void ChatView::insertAdminMessageSlot(const QString& msg, const bool& toAll, QSharedPointer<Player> admin, QSharedPointer<Player> target)
 {
+    if ( msg.isEmpty() )
+        return;
+
+    if ( admin == nullptr )
+        return;
+
+    if ( toAll == false )
+    {
+        if ( target == nullptr )
+            return;
+    }
+
+    this->insertTimeStamp();
+    this->insertChat( "Admin < ", Colors::AdminMessage, false );
+    this->insertColoredName( admin );
+    this->insertColoredSerNum( admin );
+    this->insertChat( ">", Colors::AdminMessage, false );
+
+    if ( target != nullptr
+      && toAll == false )
+    {
+        this->insertChat( " to User < ", Colors::AdminMessage, false );
+
+        this->insertColoredName( target );
+        this->insertColoredSerNum( target );
+        this->insertChat( ">: ", Colors::AdminMessage, false );
+    }
+    else
+        this->insertChat( " to [ Everyone ]: ", Colors::AdminMessage, false );
+
+    this->insertChat( msg, Colors::CommentTxt, false );
+}
+
+void ChatView::newUserCommentSlot(QSharedPointer<Player> plr, const QString& message)
+{
+    if ( plr == nullptr )
+        return;
+
     QString name{ "%1 [ %2 ]: " };
-            name = name.arg( alias )
-                       .arg( sernum );
+            name = name.arg( plr->getPlrName() )
+                       .arg( plr->getSernumHex_s() );
+
     QString comment{ "%1%2" };
             comment = comment.arg( name )
                              .arg( message );
 
-    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-
-    static const QString commentStr{ "USER COMMENT: " };
-    this->insertChat( commentStr, Colors::CommentTxt, false );
-    this->insertChat( name, Colors::PlayerName, false );
+    this->insertTimeStamp();
+    this->insertChat( "USER COMMENT: ", Colors::CommentTxt, false );
+    this->insertColoredName( plr );
+    this->insertColoredSerNum( plr );
     this->insertChat( message, Colors::CommentTxt, false );
 
     //Log comments only when enabled.
     if ( Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() )
-        emit this->insertLogSignal( server->getServerName(), comment, LogTypes::COMMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), comment, LKeys::CommentLog, true, true );
 
     emit this->newUserCommentSignal( comment.simplified() );
 }
@@ -451,26 +589,41 @@ void ChatView::colorOverrideSlot(const QString& oldColor, const QString& newColo
     this->scrollToBottom( true );
 }
 
-void ChatView::on_chatInput_returnPressed()
+void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll)
 {
     static const QString ownerStr{ "Owner: " };
-    QString message{ ui->chatInput->text() };
+    static const QString ownerToStr{ "Owner to User < " };
 
-    this->insertChat( this->getTimeStr(), Colors::TimeStamp, true );
-    this->insertChat( ownerStr, Colors::OwnerName, false );
-    this->insertChat( message, Colors::OwnerTxt, false );
+    QString msg{ message };
 
-    if ( server->getGameId() == Games::W97 )
+    this->insertTimeStamp();
+    if ( target != nullptr
+      && toAll == false )
     {
-        //TODO: Emulate a Warpath Chat packet.
+        this->insertChat( ownerToStr, Colors::OwnerName, false );
+        this->insertColoredName( target );
+        this->insertColoredSerNum( target );
+        this->insertChat( " >: ", Colors::OwnerName, false );
+
+        msg = ownerToStr % target->getPlrName() % " [ " % target->getSernum_s() % " ] >: " % message;
     }
     else
-        message.prepend( ownerStr );
+    {
+        this->insertChat( ownerStr, Colors::OwnerName, false );
+        msg.prepend( ownerStr );
+    }
 
-    if ( !message.isEmpty() )
-        emit this->insertLogSignal( server->getServerName(), message, LogTypes::CHAT, true, true );
+    this->insertChat( message, Colors::OwnerTxt, false );
 
-    emit this->sendChatSignal( message );
+    if ( !msg.isEmpty() )
+        emit this->insertLogSignal( server->getServerName(), msg, LKeys::ChatLog, true, true );
+
+    emit this->sendChatSignal( msg, target, toAll );
+}
+
+void ChatView::on_chatInput_returnPressed()
+{
+    this->insertMasterMessageSlot( ui->chatInput->text(), nullptr, true );
     ui->chatInput->clear();
 }
 
@@ -511,4 +664,10 @@ void ChatView::on_clearChat_clicked()
         ui->chatView->clear();
         ui->chatInput->clear();
     }
+}
+
+void ChatView::on_timeStampCheckBox_clicked(bool checked)
+{
+    Settings::setSetting( checked, SKeys::Setting, SSubKeys::ChatTimeStamp, server->getServerName() );
+    ui->timeStampCheckBox->setChecked( checked );
 }

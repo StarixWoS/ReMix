@@ -21,12 +21,12 @@
 #include <QTcpSocket>
 #include <QSettings>
 
-//Initialize our accepted Command List.
-const QStringList CreateInstance::gameNames =
+//Initialize our accepted Games List.
+const QMap<Games, QString> CreateInstance::gameNames =
 {
-    "WoS",
-    "TOY",
-    "W97"
+    { Games::WoS, "WoS" },
+    { Games::ToY, "TOY" },
+    { Games::W97, "W97" },
 };
 
 //Storage for restarting improperly shut-down servers.
@@ -42,6 +42,9 @@ CreateInstance::CreateInstance(QWidget* parent) :
     ui->setupUi(this);
     collator.setNumericMode( true );
     collator.setCaseSensitivity( Qt::CaseInsensitive );
+
+    QObject::connect( this, &CreateInstance::getMasterMixInfoSignal,
+                      MasterMixThread::getInstance(), &MasterMixThread::getMasterMixInfoSlot, Qt::UniqueConnection );
 
     //Load the Network Interface List.
     QList<QHostAddress> ipList{ QNetworkInterface::allAddresses() };
@@ -169,10 +172,10 @@ void CreateInstance::on_initializeServer_clicked()
             //Verify that the server hasn't been initialized previously.
             if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, svrName ).toBool() )
             {
-                Server* server = this->initializeServer( svrName, gameNames[ ui->gameName->currentIndex() ], ui->netInterface->currentText(),
-                                                         ui->portNumber->text( ).toUShort(), ui->useUPNP->isChecked(), ui->isPublic->isChecked() );
-
-                emit this->createServerAcceptedSignal( server );
+                const QString game{ gameNames.value( static_cast<Games>( ui->gameName->currentIndex() ), "WoS" ) };
+                emit this->createServerAcceptedSignal(
+                            this->initializeServer( svrName, game, ui->netInterface->currentText(),
+                                                    ui->portNumber->text( ).toUShort(), ui->useUPNP->isChecked(), ui->isPublic->isChecked() ) );
                 emit this->accept();
             }
             else //Warn the Server Host.
@@ -221,9 +224,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
         //Verify that the server hasn't been initialized previously.
         if ( !Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool() )
         {
-            Server* server{ this->initializeServer( name, gameName, netInterface, port, useUPNP, isPublic ) };
-
-            emit this->createServerAcceptedSignal( server );
+            emit this->createServerAcceptedSignal( this->initializeServer( name, gameName, netInterface, port, useUPNP, isPublic ) );
             emit this->accept();
         }
         else //Warn the Server Host.
@@ -236,7 +237,7 @@ void CreateInstance::restartServer(const QString& name, const QString& gameName,
     }
 }
 
-Server* CreateInstance::loadOldServer(const QString& name)
+QSharedPointer<Server> CreateInstance::loadOldServer(const QString& name)
 {
     if ( !name.isEmpty() )
     {
@@ -246,24 +247,21 @@ Server* CreateInstance::loadOldServer(const QString& name)
         bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, name ).toBool() };
         bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, name ).toBool() };
 
-        Server* server{ this->initializeServer( name, gameName, netInterface, svrPort.toUShort(), useUPNP, isPublic ) };
-        return server;
+        return this->initializeServer( name, gameName, netInterface, svrPort.toUShort(), useUPNP, isPublic );
     }
     return nullptr;
 }
 
-Server* CreateInstance::initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
-                                         const bool& useUPNP, const bool& isPublic)
+QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, const QString& gameName, const QString& netInterface, const quint16& port,
+                                                        const bool& useUPNP, const bool& isPublic)
 {
-    Server* server{ nullptr };
-
     //Verify Instance Count isn't above the maximum.
+    QSharedPointer<Server> server{ nullptr };
     if ( ReMixTabWidget::getInstanceCount() + 1 <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
     {
-        server = new Server();
-        if ( server == nullptr )
-            return nullptr;
+        Games gameID{ gameNames.key( gameName, Games::WoS ) };
 
+<<<<<<< HEAD
         QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal,
                           server, &Server::masterMixInfoSlot, Qt::UniqueConnection );
 
@@ -278,6 +276,9 @@ Server* CreateInstance::initializeServer(const QString& name, const QString& gam
         else if ( Helper::cmpStrings( gameName, "W97" ) )
             gameID = Games::W97;
 
+=======
+        server = QSharedPointer<Server>( new Server( nullptr ), Server::customDeconstruct );
+>>>>>>> develop_unstable
         server->setServerName( name );
         server->setGameName( gameName );
         server->setGameId( gameID );
@@ -379,20 +380,15 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, svrName ).toString() };
         if ( !gameName.isEmpty() )
         {
-            bool notFound{ true };
-            for ( const QString& el : gameNames )
-            {
-                if ( Helper::cmpStrings( el, gameName ) )
-                {
-                    ui->gameName->setCurrentIndex( static_cast<int>( gameNames.indexOf( el ) ) );
-                    notFound = false;
-                }
-            }
-
-            if ( notFound )
+            Games game{ static_cast<int>( gameNames.key( gameName, Games::Invalid ) ) };
+            if ( game == Games::Invalid )
                 ui->gameName->setCurrentIndex( 0 );
+            else
+                ui->gameName->setCurrentIndex( static_cast<int>( game ) );
         }
     }
+    else
+        ui->gameName->setCurrentIndex( 0 );
 
 
     QString netInterface{ Settings::getSetting( SKeys::Setting, SSubKeys::NetInterface, svrName ).toString() };

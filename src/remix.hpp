@@ -5,6 +5,7 @@
 #include "prototypes.hpp"
 
 //Required Qt Includes..
+#include <QSystemTrayIcon>
 #include <QMainWindow>
 #include <QModelIndex>
 
@@ -36,7 +37,7 @@ class ReMix : public QMainWindow
         ~ReMix() override;
 
         static ReMix* getInstance();
-        static void updateTitleBars(Server* server);
+        static void updateTitleBars(QSharedPointer<Server> server);
 
     public slots:
         void quitSlot();
@@ -49,6 +50,8 @@ class ReMix : public QMainWindow
 
         void closeEvent(QCloseEvent* event) override;
         bool rejectCloseEvent();
+        void quitActionTriggeredSlot();
+        void trayObjectActivatedSlot(QSystemTrayIcon::ActivationReason reason);
 
     private:
         Ui::ReMix* ui;

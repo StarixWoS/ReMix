@@ -14,7 +14,7 @@ class WriteThread : public QThread
 {
     Q_OBJECT
 
-    QStringList logType{};
+    QMap<LKeys, QString> logType;
 
     QString logDate{ "" };
     QFile punishmentLog;
@@ -29,22 +29,22 @@ class WriteThread : public QThread
     QFile pingLog;
 
     public:
-        WriteThread(const QStringList& types, QObject *parent = nullptr);
+        WriteThread(const QMap<LKeys, QString>& types, QObject *parent = nullptr);
         ~WriteThread() override;
 
         void run() override;
 
-        static WriteThread* getNewWriteThread(const QStringList& types, QObject* parent = nullptr);
+        static WriteThread* getNewWriteThread(const QMap<LKeys, QString>& types, QObject* parent = nullptr);
 
-        void logToFile(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine);
-        bool isLogOpen(const LogTypes& type);
-        QFile& getLogFile(const LogTypes& type);
-        void openLogFile(const LogTypes& type);
+        void logToFile(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine);
+        bool isLogOpen(const LKeys& type);
+        QFile& getLogFile(const LKeys& type);
+        void openLogFile(const LKeys& type);
         void closeLogFile(QFile& log);
         void closeAllLogFiles();
 
     public slots:
-        void insertLogSlot(const LogTypes& type, const QString& text, const QString& timeStamp, const bool& newLine);
+        void insertLogSlot(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine);
 
 };
 

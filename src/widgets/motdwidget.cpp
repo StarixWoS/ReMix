@@ -11,7 +11,7 @@
 //Qt Includes.
 #include <QTimer>
 
-QHash<Server*, MOTDWidget*> MOTDWidget::motdWidgets;
+QHash<QSharedPointer<Server>, MOTDWidget*> MOTDWidget::motdWidgets;
 
 MOTDWidget::MOTDWidget() :
     ui(new Ui::MOTDWidget)
@@ -23,14 +23,7 @@ MOTDWidget::MOTDWidget() :
     motdUpdate.setInterval( 2000 ); //Update the file after 2seconds.
     motdUpdate.setSingleShot( true );
 
-    QObject::connect( &motdUpdate, &QTimer::timeout, &motdUpdate,
-    [=, this]()
-    {
-        QString strVar{ ui->motdEdit->toPlainText() };
-        Helper::stripNewlines( strVar );
-
-        Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
-    } );
+    QObject::connect( &motdUpdate, &QTimer::timeout, this, &MOTDWidget::motdUpdateTimeOutSlot );
 }
 
 MOTDWidget::~MOTDWidget()
@@ -38,20 +31,20 @@ MOTDWidget::~MOTDWidget()
     delete ui;
 }
 
-MOTDWidget* MOTDWidget::getInstance(Server* server)
+MOTDWidget* MOTDWidget::getInstance(QSharedPointer<Server> server)
 {
     MOTDWidget* widget{ motdWidgets.value( server, nullptr ) };
     if ( widget == nullptr )
     {
         widget = new MOTDWidget();
         widget->setServerName( server->getServerName() );
-        QObject::connect( server, &Server::serverNameChangedSignal, widget, &MOTDWidget::nameChangedSlot );
+        QObject::connect( server.get(), &Server::serverNameChangedSignal, widget, &MOTDWidget::nameChangedSlot );
         motdWidgets.insert( server, widget );
     }
     return widget;
 }
 
-void MOTDWidget::deleteInstance(Server* server)
+void MOTDWidget::deleteInstance(QSharedPointer<Server> server)
 {
     MOTDWidget* widget{ motdWidgets.take( server ) };
     if ( widget != nullptr )
@@ -89,4 +82,12 @@ void MOTDWidget::nameChangedSlot(const QString& name)
 void MOTDWidget::on_motdEdit_textChanged()
 {
     motdUpdate.start();
+}
+
+void MOTDWidget::motdUpdateTimeOutSlot()
+{
+    QString strVar{ ui->motdEdit->toPlainText() };
+    Helper::stripNewlines( strVar );
+
+    Settings::setSetting( strVar, SKeys::Setting, SSubKeys::MOTD, serverName );
 }

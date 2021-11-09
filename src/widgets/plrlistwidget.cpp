@@ -30,9 +30,10 @@
 #include <QMenu>
 #include <QMap>
 
-QHash<Server*, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
+QHash<QSharedPointer<Server>, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
 
-PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
+PlrListWidget::PlrListWidget(QSharedPointer<Server> svr, ReMixWidget* parent) :
+    server( svr ),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
@@ -40,8 +41,6 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
-
-    server = svr;
 
     //Create our Context Menus
     contextMenu = new QMenu( this );
@@ -83,15 +82,12 @@ PlrListWidget::PlrListWidget(ReMixWidget* parent, Server* svr) :
     tblEvFilter = new TblEventFilter( ui->playerView );
     ui->playerView->viewport()->installEventFilter( tblEvFilter );
 
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
-    [=,this]()
-    {
-        ui->playerView->setPalette( Theme::getCurrentPal() );
-    });
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &PlrListWidget::themeChangedSlot );
 }
 
 PlrListWidget::~PlrListWidget()
 {
+    this->disconnect();
     if ( messageDialog != nullptr )
     {
         if ( messageDialog->isVisible() )
@@ -101,28 +97,37 @@ PlrListWidget::~PlrListWidget()
         messageDialog->deleteLater();
     }
 
+    for ( auto plr : plrTableItems.keys() )
+    {
+        this->disconnect( plr.get() );
+        plrTableItems.remove( plr );
+    }
+
     contextMenu->deleteLater();
 
     tblEvFilter->deleteLater();
     plrModel->deleteLater();
     plrProxy->deleteLater();
 
+    menuTarget = nullptr;
+    server = nullptr;
+
     delete ui;
 }
 
-PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, Server* server)
+PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, QSharedPointer<Server> server)
 {
     PlrListWidget* instance{ plrViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new PlrListWidget( parent, server );
+        instance = new PlrListWidget( server, parent );
         if ( instance != nullptr )
             plrViewInstanceMap.insert( server, instance );
     }
     return instance;
 }
 
-void PlrListWidget::deleteInstance(Server* server)
+void PlrListWidget::deleteInstance(QSharedPointer<Server> server)
 {
     PlrListWidget* instance{ plrViewInstanceMap.take( server ) };
     if ( instance != nullptr )
@@ -163,7 +168,7 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
-void PlrListWidget::updatePlrViewSlot(Player* plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
+void PlrListWidget::updatePlrViewSlot(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
     if ( item != nullptr )
@@ -194,7 +199,7 @@ void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, c
     ui->playerView->resizeColumnToContents( column );
 }
 
-void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, const QByteArray& data)
+void PlrListWidget::plrViewInsertRowSlot(QSharedPointer<Player> plr, const QString& ipPortStr, const QByteArray& data)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
     if ( item == nullptr )
@@ -202,7 +207,7 @@ void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, 
         item = new QStandardItem();
 
         if ( plrTableItems.value( plr, nullptr ) == nullptr )
-            plrTableItems[ plr ] = item;
+            plrTableItems.insert( plr, item );
 
         int row{ plrModel->rowCount() };
         plrModel->insertRow( row, item );
@@ -222,14 +227,14 @@ void PlrListWidget::plrViewInsertRowSlot(Player* plr, const QString& ipPortStr, 
     }
 }
 
-void PlrListWidget::plrViewRemoveRowSlot(Player* plr)
+void PlrListWidget::plrViewRemoveRowSlot(QSharedPointer<Player> plr)
 {
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
-     if ( item != nullptr )
-     {
+    if ( item != nullptr )
+    {
         plrModel->removeRow( item->row() );
         plrTableItems.remove( plr );
-     }
+    }
 }
 
 void PlrListWidget::censorUIIPInfoSlot(const bool& state)
@@ -245,7 +250,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
     if ( menuIndex.row() >= 0
       && remixWidget != nullptr )
     {
-        Player* plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
+        QSharedPointer<Player> plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
         if ( plr != nullptr )
         {
             menuTarget = plr;
@@ -276,26 +281,12 @@ void PlrListWidget::on_actionSendMessage_triggered()
     if ( menuTarget != nullptr )
     {
         if ( messageDialog == nullptr )
-            messageDialog = new SendMsg();
-
-        messageDialog->setTitle( Helper::serNumToIntStr( menuTarget->getSernumHex_s(), true ) );
-
-        QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, messageDialog,
-        [=, this](QString message)
         {
-            if ( !message.isEmpty() )
-            {
-                if ( server != nullptr )
-                {
-                    bool sendToAll{ messageDialog->sendToAll() };
-                    if ( sendToAll )
-                        menuTarget = nullptr;
+            messageDialog = new SendMsg();
+            QObject::connect( messageDialog, &SendMsg::forwardMessageSignal, this, &PlrListWidget::forwardMessageSlot, Qt::UniqueConnection );
+        }
 
-                    server->sendMasterMessage( message, menuTarget, sendToAll );
-                }
-            }
-            menuTarget = nullptr;
-        }, Qt::UniqueConnection );
+        messageDialog->setTitle( menuTarget->getSernum_s() );
 
         if ( !messageDialog->isVisible() )
             messageDialog->exec();
@@ -310,6 +301,8 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         return;
 
     static const QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
+                                 "if you believe this was in error." };
+    static const QString changed{ "Your Remote Administrator privileges have been altered by the Server Host. Please contact the Server Host "
                                  "if you believe this was in error." };
     static const QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
 
@@ -339,9 +332,13 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
 
         if ( Helper::confirmAction( this, titleRevokeStr, prompt ) )
         {
-            User::setAdminRank( sernum, User::requestRank( this ) );
+            GMRanks rank{ User::requestRank( this ) };
+            User::setAdminRank( sernum, rank );
             menuTarget->resetAdminAuth();
-            server->sendMasterMessage( revoke, menuTarget, false );
+            if ( rank > GMRanks::User )
+                server->sendMasterMessage( changed, menuTarget, false );
+            else
+                server->sendMasterMessage( revoke, menuTarget, false );
         }
     }
     menuTarget = nullptr;
@@ -390,7 +387,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         if ( mute )
         {
             muteDuration = User::requestDuration();
-            User::addMute( nullptr, menuTarget, reason, false, false, muteDuration );
+            User::addMute( menuTarget, reason, false, muteDuration );
         }
         else
             User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
@@ -400,7 +397,7 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
                                .arg( Helper::serNumToIntStr( sernum, true ) )
                                .arg( menuTarget->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
 
         server->sendMasterMessage( inform, menuTarget, false );
     }
@@ -436,7 +433,7 @@ void PlrListWidget::on_actionDisconnectUser_triggered()
                                .arg( Helper::serNumToIntStr( sernum, true ) )
                                .arg( menuTarget->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
     }
     menuTarget = nullptr;
 }
@@ -460,13 +457,13 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         reason = reason.arg( User::requestReason( this ) );
         inform = inform.arg( reason );
 
-        User::addBan( nullptr, menuTarget, reason, false, User::requestDuration() );
+        User::addBan( menuTarget, reason, User::requestDuration() );
         QString logMsg{ "%1: [ %2 ], [ %3 ]" };
                 logMsg = logMsg.arg( reason )
                                .arg( Helper::serNumToIntStr( sernum, true ) )
                                .arg( menuTarget->getBioData() );
 
-        emit this->insertLogSignal( server->getServerName(), logMsg, LogTypes::PUNISHMENT, true, true );
+        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
 
         server->sendMasterMessage( inform, menuTarget, false );
         if ( menuTarget->waitForBytesWritten() )
@@ -479,4 +476,25 @@ void PlrListWidget::selectRowSlot(const qint32& row)
 {
     if ( row >= 0 )
         ui->playerView->selectRow( row );
+}
+
+void PlrListWidget::themeChangedSlot()
+{
+    ui->playerView->setPalette( Theme::getCurrentPal() );
+}
+
+void PlrListWidget::forwardMessageSlot(const QString& message)
+{
+    if ( !message.isEmpty() )
+    {
+        if ( server != nullptr )
+        {
+            bool sendToAll{ messageDialog->sendToAll() };
+            if ( sendToAll )
+                menuTarget = nullptr;
+
+            emit this->insertMasterMessageSignal( message, menuTarget, sendToAll );
+        }
+    }
+    menuTarget = nullptr;
 }

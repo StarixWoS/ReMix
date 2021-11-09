@@ -21,11 +21,17 @@ const QStringList ColorWidget::rowList
     "Shout Chat",
     "Emote Chat",
     "Player Chat",
+    "Death Message Txt",
+    "Learned Spell Txt",
+    "Dice and Level Txt",
+    "Admin Chat",
+    "Admin Messages",
     "Owner Chat",
     "Comment Text",
     "Golden Soul",
     "White Soul",
     "Player Name",
+    "Admin Name",
     "Owner Name",
     "Timestamp",
     "Admin Valid",
@@ -75,12 +81,7 @@ ColorWidget::ColorWidget() :
     this->loadColors();
 
     QObject::connect( this, &ColorWidget::colorOverrideSignal, Theme::getInstance(), &Theme::colorOverrideSlot );
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
-    [=]()
-    {
-        this->loadColors();
-        ui->colorView->setPalette( Theme::getCurrentPal() );
-    } );
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ColorWidget::themeChangedSlot );
 
     ui->colorView->setAutoFillBackground( true );
 }
@@ -159,4 +160,10 @@ void ColorWidget::on_colorView_doubleClicked(const QModelIndex& index)
 void ColorWidget::on_selectColor_clicked()
 {
     this->selectColor( ui->colorView->currentIndex().row() );
+}
+
+void ColorWidget::themeChangedSlot()
+{
+    this->loadColors();
+    ui->colorView->setPalette( Theme::getCurrentPal() );
 }
