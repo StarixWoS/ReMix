@@ -42,7 +42,7 @@ class CmdHandler : public QObject
         bool validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr);
 
         void motdHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1, const QString& msg);
-        void infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& sernum);
+        void infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1);
 
         void banHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
         void unBanHandler(const QString& subCmd, const QString& arg1);

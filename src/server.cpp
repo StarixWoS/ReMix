@@ -745,7 +745,7 @@ void Server::setIsPublic(const bool& value, const QString& netInterface)
           || ( this->getUpnpPortAdded() && this->getUseUPNP() )
           || ( !this->getUpnpPortAdded() && this->getUseUPNP() ) )
         {
-            if ( !masterCheckIn.isActive() )
+            if ( masterCheckIn.isActive() )
                 this->startMasterCheckIn();
 
             emit this->initializeServerSignal();
