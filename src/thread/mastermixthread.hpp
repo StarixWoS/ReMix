@@ -59,15 +59,9 @@ class MasterMixThread : public QThread
 
     signals:
         void obtainedMasterMixInfoSignal();
-<<<<<<< HEAD
-        void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port, const bool& override );
-
-        void insertLogSignal(const QString& source, const QString& message, const LogTypes& type, const bool& logToFile, const bool& newLine);
-=======
         void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
->>>>>>> develop_unstable
 };
 
 #endif // MASTERMIXTHREAD_HPP

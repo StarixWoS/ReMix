@@ -300,7 +300,6 @@ class Server : public QTcpServer
         void setVisibleStateSlot( const bool& state);
         void recvMasterInfoSlot();
         void setMaxPlayersSlot(const qint32& maxPlayers);
-        void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port, const bool& override);
 
     private slots:
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);

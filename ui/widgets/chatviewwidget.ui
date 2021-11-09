@@ -34,6 +34,9 @@
      <property name="title">
       <string>Chat View:</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
      <property name="flat">
       <bool>false</bool>
      </property>
@@ -56,16 +59,23 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="0" column="0" colspan="5">
-       <widget class="QTextEdit" name="chatView">
-        <property name="readOnly">
-         <bool>true</bool>
+      <item row="1" column="3">
+       <widget class="QPushButton" name="clearChat">
+        <property name="text">
+         <string>Clear Chat</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QLineEdit" name="chatInput">
         <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="6">
+       <widget class="QTextEdit" name="chatView">
+        <property name="readOnly">
          <bool>true</bool>
         </property>
        </widget>
@@ -77,17 +87,17 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
+      <item row="1" column="5">
        <widget class="QCheckBox" name="autoScrollCheckBox">
         <property name="text">
          <string>Auto Scroll</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QPushButton" name="clearChat">
+      <item row="1" column="4">
+       <widget class="QCheckBox" name="timeStampCheckBox">
         <property name="text">
-         <string>Clear Chat</string>
+         <string>Timestamp Text</string>
         </property>
        </widget>
       </item>

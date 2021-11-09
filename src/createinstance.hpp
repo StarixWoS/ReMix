@@ -56,11 +56,7 @@ class CreateInstance : public QDialog
 
     signals:
         void getMasterMixInfoSignal(const Games& game);
-<<<<<<< HEAD
-        void createServerAcceptedSignal(Server* server);
-=======
         void createServerAcceptedSignal(QSharedPointer<Server> server);
->>>>>>> develop_unstable
         void closeServerSignal();
         void restartServerListSignal(const QStringList& restartList);
         void quitSignal();
