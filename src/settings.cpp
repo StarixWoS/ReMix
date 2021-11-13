@@ -393,7 +393,7 @@ QString Settings::getServerID(const QString& svrID)
         id = RandDev::getInstance().getGen( 1, 0x7FFFFFFE );
         setSetting( id, SKeys::Setting, SSubKeys::ServerID, svrID );
     }
-    return Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 );
+    return Helper::intToStr( id, IntBase::HEX, IntFills::DblWord );
 }
 
 QString Settings::getRuleSet(const QString& svrID)
@@ -445,6 +445,12 @@ void Settings::insertBioHash(const QHostAddress& addr, const QByteArray& value)
 {
     QMutexLocker<QMutex> locker( &mutex );
     bioHash.insert( addr, value );
+}
+
+bool Settings::removeBioHash(const QHostAddress& addr)
+{
+    QMutexLocker<QMutex> locker( &mutex );
+    return static_cast<bool>( bioHash.remove( addr ) );
 }
 
 QByteArray Settings::getBioHashValue(const QHostAddress& addr)

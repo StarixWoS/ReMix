@@ -176,10 +176,10 @@ QString Helper::sanitizeSerNum(const QString& value)
     if ( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) )
         return value;
 
-    return serNumToHexStr( sernum, 8 );
+    return serNumToHexStr( sernum, IntFills::DblWord );
 }
 
-QString Helper::serNumToHexStr(QString sernum, const int& fillAmt)
+QString Helper::serNumToHexStr(QString sernum, const IntFills& fillAmt)
 {
     sernum = stripSerNumHeader( sernum );
 
@@ -190,12 +190,12 @@ QString Helper::serNumToHexStr(QString sernum, const int& fillAmt)
     {
         bool ok{ false };
 
-        result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) ), static_cast<int>( IntBase::HEX ), fillAmt );
+        result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) ), IntBase::HEX, fillAmt );
         if ( !ok )
-            result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::HEX ) ), static_cast<int>( IntBase::HEX ), fillAmt );
+            result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::HEX ) ), IntBase::HEX, fillAmt );
     }
     else
-        result = intToStr( sernum_i, static_cast<int>( IntBase::HEX ), fillAmt );
+        result = intToStr( sernum_i, IntBase::HEX, fillAmt );
 
     if ( result.length() > 8 )
         result = result.mid( result.length() - 8 );
@@ -216,9 +216,9 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
     QString retn{ "" };
 
     if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) || !isHex )
-        retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, static_cast<int>( IntBase::DEC ) ) );
+        retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, IntBase::DEC ) );
     else
-        retn = QString( "%1" ).arg( intToStr( sernum_i, static_cast<int>( IntBase::HEX ) ) );
+        retn = QString( "%1" ).arg( intToStr( sernum_i, IntBase::HEX ) );
 
     if ( !strStartsWithStr( retn, "SOUL" )
       && retn.length() > 8 )
@@ -270,6 +270,12 @@ QString Helper::getTextResponse(QWidget* parent, const QString& title, const QSt
         response = QInputDialog::getMultiLineText( parent, title, prompt, defaultInput, ok );
 
     return response;
+}
+
+qint32 Helper::getIntResponse(QWidget* parent, const QString& title, const QString& prompt, const qint32& defaultValue,
+                              const qint32& maxValue, const qint32& minValue, bool* ok)
+{
+    return QInputDialog::getInt( parent, title, prompt, defaultValue, minValue, maxValue, 1, ok );
 }
 
 QString Helper::getDisconnectReason(QWidget* parent)

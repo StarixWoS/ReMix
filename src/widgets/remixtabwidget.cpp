@@ -298,6 +298,7 @@ void ReMixTabWidget::removeServer(const qint32& index, const bool& remote, const
     bool isPublic{ server->getIsPublic() };
 
     Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
+    emit this->removeConnectedGameSignal( server->getGameId() );
 
     tabWidget->removeTab( index );
     instance->disconnect();

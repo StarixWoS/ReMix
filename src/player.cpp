@@ -74,16 +74,24 @@ Player::~Player()
 {
     killTimer.stop();
     killTimer.disconnect();
-    qDebug() << "Player Deconstructed.";
+
+    //Connect LogFile Signals to the Logger Class.
+    QObject::connect( this, &Player::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
+
+    QString msg{ "Player( 0x%1 ) < %2 [ %3 ] > deconstructed." };
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::DblWord ) )
+                     .arg( this->getPlrName() )
+                     .arg( this->getSernum_s() );
+
+    emit this->insertLogSignal( server->getServerName(), msg, LKeys::MiscLog, true, true );
+
+    this->disconnect();
 }
 
 void Player::customDeconstruct(Player* plr)
 {
     if ( plr != nullptr )
-    {
-        plr->disconnect();
         plr->deleteLater();
-    }
 }
 
 QSharedPointer<Player> Player::createPlayer(qintptr socketDescriptor, QSharedPointer<Server> svr)
@@ -152,7 +160,7 @@ void Player::setSernum_i(qint32 value)
     if ( value != this->getSernum_i() )
     {
         sernum_i = value;
-        QString sernum_s{ Helper::serNumToIntStr( Helper::intToStr( value, static_cast<int>( IntBase::HEX ), 8 ), true ) };
+        QString sernum_s{ Helper::serNumToIntStr( Helper::intToStr( value, IntBase::HEX, IntFills::DblWord ), true ) };
         QString sernumHex_s{ Helper::serNumToHexStr( sernum_s ) };
 
         if ( !sernum_s.isEmpty() )
@@ -630,23 +638,26 @@ void Player::setIsAFK(bool value)
 {
     isAFK = value;
 
-    if ( isAFK )
-        this->setAfkIcon( "AFK" );
-    else
+    if ( !isAFK )
     {
         afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
-        this->setAfkIcon( "NPK" );
+        this->setAfkRole( AFKRoles::NPK );
     }
+    else
+        this->setAfkRole( AFKRoles::AFK );
 }
 
-QIcon Player::getAfkIcon() const
+AFKRoles Player::getAfkRole() const
 {
-    return afkIcon;
+    return afkRole;
 }
 
-void Player::setAfkIcon(const QString& value)
+void Player::setAfkRole(AFKRoles newAfkRole)
 {
-    afkIcon = QIcon( ":/icon/" + value + ".png" );
+    afkRole = newAfkRole;
+
+    //Set the NPK/AFK icon.
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( afkRole ), Qt::DecorationRole, false );
 }
 
 void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
@@ -696,7 +707,7 @@ void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
 
         if ( type != PlrDisconnectType::InvalidSerNum )
         {
-            QString sernum{ Helper::serNumToIntStr( Helper::intToStr( id, static_cast<int>( IntBase::HEX ), 8 ), true ) };
+            QString sernum{ Helper::serNumToIntStr( Helper::intToStr( id, IntBase::HEX, IntFills::DblWord ), true ) };
             QString reason{ "Auto-Disconnect; %1: [ %2 ]" };
 
             bool disconnect{ false };
@@ -905,9 +916,6 @@ void Player::connectionTimeUpdateSlot()
     //Color the User's IP/Port.
     emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), this->getIPPortAddress(), Qt::DisplayRole, false );
     emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
-
-    //Set the NPK/AFK icon.
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), this->getAfkIcon(), Qt::DecorationRole, false );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
       && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously aisconnected user.

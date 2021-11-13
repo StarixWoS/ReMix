@@ -168,7 +168,8 @@
             MAX_CMD_ATTEMPTS = 3,
 
             //Amount of Players that are able to connect to the server.
-            MAX_PLAYERS = 256,
+            //Reduced from 256 to 255 due to Packet Header Slot Limitations.
+            MAX_PLAYERS = 255,
 
             //Length of a Remote Admin's password salt.
             SALT_LENGTH = 12,
@@ -267,6 +268,9 @@
         //Valid Theme ID's.
         enum class Themes: int{ Light = 0, Dark = 1 };
 
+        //Valid AFK-state Icons for use in the PlrListWidget.
+        enum class AFKRoles: int { AFK = 0, NPK = 1 };
+
         //Valid Theme Colors
         enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, DeathTxt, SpellTxt, DiceAndLevel, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
                                 GoldenSoul, WhiteSoul, PlayerName, AdminName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
@@ -341,17 +345,24 @@
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };
 
+        //Valid Filler lengths for IntBase::Hex conversions.
+        enum class IntFills: int{ Bit = 0,
+                                  Word = 2,      //Byte
+                                  DblWord = 8,   //Int
+                                  QuadWord = 16, //Int64
+                                };
+
         //Valid MessageBox types.
         enum class MessageBox: int{ SingleLine = 0, MultiLine = 1, Invalid = -1 };
 
         //Valid Units for conversion within the function Helper::sanitizeToFriendlyUnits
-        enum class ByteUnits: int{ Byte,       // 1024^0,
-                                   KibiByte,   // 1024^1,
-                                   MebiByte,   // 1024^2,
-                                   GibiByte,   // 1024^3,
-                                   TebiByte,   // 1024^4,
-                                   PebiByte,   // 1024^5,
-                                   ExbiByte,    // 1024^6
+        enum class ByteUnits: int{ Byte,     // 1024^0,
+                                   KibiByte, // 1024^1,
+                                   MebiByte, // 1024^2,
+                                   GibiByte, // 1024^3,
+                                   TebiByte, // 1024^4,
+                                   PebiByte, // 1024^5,
+                                   ExbiByte, // 1024^6
                                  };
 
         //Valid forms of a Chat Packet.

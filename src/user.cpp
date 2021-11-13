@@ -609,7 +609,7 @@ void User::logBIOSlot(const QString& serNum, const QHostAddress& ip, const QStri
     User* user{ User::getInstance() };
     QString sernum{ serNum };
     if ( Helper::strContainsStr( sernum, "SOUL" ) )
-        sernum = Helper::serNumToHexStr( serNum, 8 );
+        sernum = Helper::serNumToHexStr( serNum, IntFills::DblWord );
 
     //quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
     quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };

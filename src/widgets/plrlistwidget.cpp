@@ -189,6 +189,17 @@ void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, c
                 {
                     sModel->setData( sModel->index( object->row(), column ), "***.***.***.***", role );
                 }
+                else if ( static_cast<PlrCols>( column ) == PlrCols::SerNum
+                       && role == Qt::DecorationRole )
+                {
+                    QVariant newData;
+                    if ( static_cast<AFKRoles>( data.toInt() ) == AFKRoles::AFK )
+                        newData = afkIcon;
+                    else
+                        newData = npkIcon;
+
+                    sModel->setData( sModel->index( object->row(), column ), newData, role );
+                }
                 else
                     sModel->setData( sModel->index( object->row(), column ), data, role );
             }

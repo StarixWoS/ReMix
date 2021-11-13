@@ -361,7 +361,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                                 isJoining = false;
                             }
 
-                            QSharedPointer<Player> partyLeader{ server->getPlayer( Helper::intToStr( leader, static_cast<int>( IntBase::HEX ), 8 ) ) };
+                            QSharedPointer<Player> partyLeader{ server->getPlayer( Helper::intToStr( leader, IntBase::HEX, IntFills::DblWord ) ) };
                             if ( partyLeader != nullptr )
                             {
                                 if ( partyLeader->getAdminRank() >= GMRanks::GMaster )
@@ -700,7 +700,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
 
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
-                             .arg( Helper::intToStr( plrPktSlot, static_cast<int>( IntBase::HEX ), 2 ) )
+                             .arg( Helper::intToStr( plrPktSlot, IntBase::HEX, IntFills::Word ) )
                              .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.

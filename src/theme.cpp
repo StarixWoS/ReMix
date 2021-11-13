@@ -32,7 +32,7 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::OwnerTxt,         "#008b8b" }, //Owner Chat.
         { Colors::CommentTxt,       "#0000ff" }, //Player Comment.
         { Colors::GoldenSoul,       "#daa408" }, //Golden Soul.
-        { Colors::WhiteSoul,        "#000000" }, //White Soul.
+        { Colors::WhiteSoul,        "#010101" }, //White Soul.
         { Colors::PlayerName,       "#006401" }, //Player Name.
         { Colors::AdminName,        "#016401" }, //Admin Name.
         { Colors::OwnerName,        "#006400" }, //Owner Name.
@@ -160,7 +160,7 @@ void Theme::applyTheme(const Themes& type)
         customPalette.setColor( QPalette::Link, QColor( 42, 130, 218 ) );
         customPalette.setColor( QPalette::Window, QColor( 53, 53, 53 ));
         customPalette.setColor( QPalette::Dark, QColor( 66, 66, 66 ) );
-        customPalette.setColor( QPalette::Base, QColor( 42, 42, 42 ) );
+        customPalette.setColor( QPalette::Base, QColor( 60, 60, 60 ) );
         customPalette.setColor( QPalette::HighlightedText, Qt::white);
         customPalette.setColor( QPalette::ToolTipBase, Qt::white );
         customPalette.setColor( QPalette::WindowText, Qt::white );

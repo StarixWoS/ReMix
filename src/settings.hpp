@@ -69,6 +69,8 @@ class Settings : public QDialog
         static bool cmpServerPassword(const QString& serverName, const QString& value);
 
         static void insertBioHash(const QHostAddress& addr, const QByteArray& value);
+        static bool removeBioHash(const QHostAddress& addr);
+
         static QByteArray getBioHashValue(const QHostAddress& addr);
         static QHostAddress getBioHashKey(const QByteArray& bio);
 

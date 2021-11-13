@@ -169,8 +169,6 @@ ReMixWidget::~ReMixWidget()
     MOTDWidget::deleteInstance( server );
     ChatView::deleteInstance( server );
 
-    server.get()->disconnect();
-//    server->deleteLater();
     server = nullptr;
 
     delete ui;
@@ -514,6 +512,7 @@ void ReMixWidget::updatePlayerTable(QSharedPointer<Player> plr)
     }
 
     plr->setBioData( data );
+
     emit this->plrViewInsertRowSignal( plr, plr->getIPPortAddress(), data );
 
     PacketHandler::getInstance( server )->checkBannedInfo( plr );

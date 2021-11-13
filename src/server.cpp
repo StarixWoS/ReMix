@@ -77,7 +77,7 @@ Server::Server(QWidget* parent)
         emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), this->getUseUPNP() );
     } );
 
-    players.resize( static_cast<int>( Globals::MAX_PLAYERS ) );
+    //players.resize( static_cast<int>( Globals::MAX_PLAYERS ) );
 
     upTimer.start( static_cast<int>( Globals::UI_UPDATE_TIME ) );
 
@@ -107,8 +107,9 @@ Server::Server(QWidget* parent)
     {
         if ( this->getMasterInfoRecv() )
         {
-            if ( ( this->getUseUPNP() && this->getUpnpPortAdded() )
-              || ( !this->getUseUPNP() && !this->getUpnpPortAdded() )
+            if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
+              || ( this->getUpnpPortAdded() && this->getUseUPNP() )
+              || ( !this->getUpnpPortAdded() && this->getUseUPNP() )
               || this->getUpnpTimedOut() )
             {
                 this->sendMasterInfo();
@@ -157,25 +158,24 @@ Server::Server(QWidget* parent)
 
 Server::~Server()
 {
-    if ( udpThread != nullptr )
-    {
-        udpThread->exit();
-        udpThread->deleteLater();
+    thread->exit();
+    udpThread->exit();
 
-        if ( thread != nullptr )
-        {
-            thread->exit();
-            thread->deleteLater();
-        }
-        udpThread = nullptr;
-        thread = nullptr;
-    }
+    thread->deleteLater();
+    udpThread->deleteLater();
+
+    thread = nullptr;
+    udpThread = nullptr;
 
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
 
+    QString msg{ "Server [ Server( 0x%1 ) ] deconstructed." };
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::DblWord ) );
+
+    emit this->insertLogSignal( this->getServerName(), msg, LKeys::MiscLog, true, true );
+
     this->disconnect();
-    qDebug() << "Server Deconstructed." << this;
 }
 
 void Server::customDeconstruct(Server* svr)
@@ -183,7 +183,6 @@ void Server::customDeconstruct(Server* svr)
     if ( svr != nullptr )
     {
         svr->deleteAllPlayers();
-        svr->disconnect();
         svr->deleteLater();
     }
 }
@@ -252,12 +251,12 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
             {
                 if ( type == UserListResponse::Q_Response ) //Standard 'Q' Response.
                 {
-                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) );
+                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX, IntFills::DblWord ) );
                 }
                 else if ( type == UserListResponse::R_Response ) //Non-Standard 'R' Response
                 {
-                    response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) )
-                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), static_cast<int>( IntBase::HEX ), 8 ) );
+                    response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX ) )
+                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), IntBase::HEX, IntFills::DblWord ) );
                 }
             }
             emptyResponse = false;
@@ -470,6 +469,9 @@ void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const boo
                            .arg( plr->getPacketsIn() )
                            .arg( plr->getBioData() );
 
+    //Do not retain the Players BIO Data in storage.
+    Settings::removeBioHash( plr->peerAddress() );
+
     plrSlotMap.remove( plr->getPktHeaderSlot() );
     players.removeOne( plr );
 
@@ -502,9 +504,8 @@ void Server::sendPlayerSocketInfo()
         if ( plr != nullptr && plr->getHasSernum() )
         {
             ipAddr = QHostAddress( plr->getIPAddress() );
-            response = response.append( filler.arg( Helper::intToStr( plr->getSernum_i(), static_cast<int>( IntBase::HEX ) ) )
-                                              .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543,
-                                                                      static_cast<int>( IntBase::HEX ) ) ) );
+            response = response.append( filler.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX ) )
+                                              .arg( Helper::intToStr( qFromBigEndian( ipAddr.toIPv4Address() ) ^ 0xA9876543, IntBase::HEX ) ) );
         }
     }
 
@@ -563,7 +564,7 @@ void Server::sendPlayerSocketPosition(QSharedPointer<Player> plr, const bool& fo
     plrSlotMap.insert( slot, plr );
     QString slotResponse{ ":SR!%1%2%3\r\n" };
             slotResponse = slotResponse.arg( plr->getSernumHex_s() )
-                                       .arg( Helper::intToStr( slot, static_cast<int>( IntBase::HEX ), 2 ) )
+                                       .arg( Helper::intToStr( slot, IntBase::HEX, IntFills::Word ) )
                                        .arg( lastPlr->getSernumHex_s() );
 
     qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };
@@ -745,7 +746,7 @@ void Server::setIsPublic(const bool& value, const QString& netInterface)
           || ( this->getUpnpPortAdded() && this->getUseUPNP() )
           || ( !this->getUpnpPortAdded() && this->getUseUPNP() ) )
         {
-            if ( masterCheckIn.isActive() )
+            if ( !masterCheckIn.isActive() )
                 this->startMasterCheckIn();
 
             emit this->initializeServerSignal();

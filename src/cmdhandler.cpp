@@ -618,7 +618,7 @@ void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd
     }
 }
 
-void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1)
+void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString&)
 {
     GMSubCmds subIdx{ GMSubCmds::Invalid };
     if ( !subCmd.isEmpty() )

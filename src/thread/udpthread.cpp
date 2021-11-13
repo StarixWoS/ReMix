@@ -98,8 +98,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                                .arg( sGameInfo )
                                                .arg( Settings::getRuleSet( serverName ) )
                                                .arg( serverID )
-                                               .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toSecsSinceEpoch(),
-                                                                       static_cast<int>( IntBase::HEX ), 8 ) )
+                                               .arg( Helper::intToStr( QDateTime::currentDateTimeUtc().toSecsSinceEpoch(), IntBase::HEX, IntFills::DblWord ) )
                                                .arg( this->getUsageString() )
                                                .arg( QString( REMIX_VERSION ) );
 

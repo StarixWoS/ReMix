@@ -17,10 +17,10 @@ class Helper
         static QInputDialog* createInputDialog(QWidget* parent, const QString& label, const QInputDialog::InputMode& mode, const int& width, const int& height);
 
         template<typename T>
-        static QString intToStr(const T& val, const int& base = 10, const int& fill = 0, const QChar& filler = '0')
+        static QString intToStr(const T& val, const IntBase& base = IntBase::DEC, const IntFills& fill = IntFills::Bit, const QChar& filler = '0')
         {
             QString str{ "%1" };
-                    str = str.arg( ( val & 0xffffffff ), fill, base, filler ).toUpper();
+                    str = str.arg( ( val & 0xffffffff ), static_cast<int>( fill ), static_cast<int>( base ), filler ).toUpper();
 
             if ( str.length() > 8 )
                 str = str.mid( str.length() - 8 );
@@ -33,7 +33,7 @@ class Helper
         static void stripNewlines(QString& string);
         static QString stripSerNumHeader(const QString& sernum);
         static QString sanitizeSerNum(const QString& value);
-        static QString serNumToHexStr(QString sernum, const int& fillAmt = 8);
+        static QString serNumToHexStr(QString sernum, const IntFills& fillAmt = IntFills::DblWord );
         static QString serNumToIntStr(const QString& sernum, const bool& isHex = false);
         static qint32 serNumtoInt(const QString& sernum, const bool& isHex = false);
 
@@ -43,7 +43,8 @@ class Helper
         static qint32 warningMessage(QWidget* parent, const QString& title, const QString& prompt);
         static QString getTextResponse(QWidget* parent, const QString& title, const QString& prompt, const QString& defaultInput, bool* ok,
                                        const MessageBox& type);
-
+        static qint32 getIntResponse(QWidget* parent, const QString& title, const QString& prompt, const qint32& defaultValue,
+                                     const qint32& maxValue, const qint32& minValue, bool* ok);
         static QString getDisconnectReason(QWidget* parent = nullptr);
 
         static QString hashPassword(const QString& password);

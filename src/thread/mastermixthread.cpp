@@ -50,7 +50,6 @@ MasterMixThread::MasterMixThread()
     }, Qt::UniqueConnection );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::UniqueConnection );
-    QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::UniqueConnection );
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixInfoChangedSignal,
                       this, &MasterMixThread::masterMixInfoChangedSlot, Qt::UniqueConnection );
 
@@ -197,6 +196,11 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
         auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
         [=, this]()
         {
+            QString msg{ "Connecting the [ %1 ] Master Mix." };
+                    msg = msg.arg( gameNames.value( game ) );
+
+            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+
             this->obtainMasterData( game );
         }, Qt::ConnectionType::UniqueConnection );
 
@@ -220,7 +224,13 @@ void MasterMixThread::removeConnectedGameSlot(const Games& game)
     if ( connectedGames.contains( game ) )
     {
         auto connection = connectedGames.take( game );
-        QObject::disconnect( connection );
+        if( QObject::disconnect( connection ) )
+        {
+            QString msg{ "Disconnecting from the [ %1 ] Master Mix." };
+                    msg = msg.arg( gameNames.value( game ) );
+
+            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+        }
     }
 }
 

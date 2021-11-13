@@ -282,7 +282,7 @@ bool ChatView::parseChatEffect(const QString& packet)
                 break;
                 case '/': //Emote Chat Effect.
                     {
-                        message = message.mid( 2 );
+                        message = message.mid( 2 ).simplified();
                         this->insertChat( message, Colors::EmoteTxt, false );
                         message = plrName % message;
                     }
@@ -430,6 +430,7 @@ void ChatView::insertChat(const QString& msg, const Colors& color, const bool& n
 
     QTextCharFormat format;
                     format.setForeground( Theme::getColor( color ) );
+
     cursor.setCharFormat( format );
     if ( newLine )
         cursor.insertText( "\r\n" );
@@ -467,7 +468,7 @@ void ChatView::scrollToBottom(const bool& forceScroll)
 
 QString ChatView::getTimeStr()
 {
-    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
+    const quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
     return QString( "[ " % Helper::getTimeAsString( date ) % " ] " );
 }
 

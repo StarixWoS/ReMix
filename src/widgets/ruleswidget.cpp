@@ -361,7 +361,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     {
                         title = "Max-Players:";
                         prompt = "Value:";
-                        maxPlrs = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine ).toUInt();
+                        maxPlrs = Helper::getIntResponse( this, title, prompt, static_cast<qint32>( Globals::MAX_PLAYERS ),
+                                                          static_cast<qint32>( Globals::MAX_PLAYERS ), 1, &ok );
                     }
 
                     if ( maxPlrs == 0 || !ok )
@@ -401,9 +402,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 {
                     if ( maxIdle == 0 )
                     {
+                        auto defaultIdle = ( static_cast<qint32>( Globals::MAX_IDLE_TIME ) / static_cast<qint32>( TimeDivide::Miliseconds ) )
+                                                                                           / static_cast<qint32>( TimeDivide::Minutes );
                         title = "Max-Idle:";
                         prompt = "Value:";
-                        maxIdle = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine ).toUInt();
+                        maxIdle = Helper::getIntResponse( this, title, prompt, defaultIdle,
+                                                          static_cast<qint32>( Globals::MAX_IDLE_TIME ), 1, &ok );
                     }
 
                     if ( maxIdle == 0 || !ok )
@@ -421,8 +425,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
                 if ( !val.isValid() )
                 {
-                    val = ( static_cast<qint64>( Globals::MAX_IDLE_TIME ) / static_cast<int>( TimeDivide::Miliseconds ) )
-                                                                          / static_cast<int>( TimeDivide::Minutes );
+                    val = ( static_cast<qint32>( Globals::MAX_IDLE_TIME ) / static_cast<qint32>( TimeDivide::Miliseconds ) )
+                                                                          / static_cast<qint32>( TimeDivide::Minutes );
                 }
 
                 rowText = rowText.arg( val.toUInt() );

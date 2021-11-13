@@ -6,6 +6,7 @@
 //Required Qt Includes..
 #include <QModelIndex>
 #include <QWidget>
+#include <QIcon>
 
 namespace Ui {
     class PlrListWidget;
@@ -30,6 +31,9 @@ class PlrListWidget : public QWidget
     QSharedPointer<Player> menuTarget{ nullptr };
 
     QSharedPointer<Server> server;
+
+    QIcon afkIcon{ ":/icon/AFK.png" };
+    QIcon npkIcon{ ":/icon/NPK.png" };
 
     bool censorUIIPInfo{ false };
 

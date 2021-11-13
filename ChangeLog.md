@@ -5,10 +5,33 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.2:
+    Change:
+      * Properly use Qt's "QInputDialog::getInt" when obtaining integers within the Rules Settings tab.
+      * Log when a Player Object or Server Object is deconstructed within the MISC log file.
+      * Log when the MaxterMixThread disconnects from a GameType signal/slot.
+
+
+
+
+    Bugfixes:
+      * Corrected the spacing between a User's sernum and emote chat text.
+      * Attempt to negate a crash within the QPixmapCleanup code (Qt runs this automatically.) by removing the AFK/NPK icons from the Player class.
+        * The icon images are now only accessed via the PlrListWidget class.
+      * Reduced the Max Players count from 256 to 255.
+        * This is due to the Packet Slot Positions being unable to exceed 255 when converted to Hex (0xFF).
+      * Fixed another issue where disabling and enabling the "Public" toggle would not correctly restart the MasterMix check-in timers.
+
+
+
+
 Version 3.0.1:
     Change:
       * Expanded the information sent in response to the Remote Admin command "/info server".
       * Properly parse and customize more chat packet types.
+
+
+
 
     Bugfixes:
       * Remote Administrator commands are no longer parsed if the command delimiter is followed by a space.
@@ -66,7 +89,7 @@ Version 2.8.0:
           * [ `command ] can be used via normal chat in all game types, and within the WoS[ /admin ] dialog.
       * The Max Player rule is now correctly enforced.
       * Reduced the complexity of Inserting and Updating data within the PlayerView widget.
-      
+
 
 
 

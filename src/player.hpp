@@ -75,7 +75,7 @@ class Player : public QTcpSocket
 
     PktTarget targetType{ PktTarget::ALL };
 
-    QIcon afkIcon;
+    AFKRoles afkRole{ AFKRoles::NPK };
 
     QSharedPointer<Player> thisPlayer;
 
@@ -195,10 +195,10 @@ class Player : public QTcpSocket
         void setMuteDuration(const quint64& value);
         bool getIsMuted();
 
-        QIcon getAfkIcon() const;
-        void setAfkIcon(const QString& value);
-
         void setIsAFK(bool value);
+
+        AFKRoles getAfkRole() const;
+        void setAfkRole(AFKRoles newAfkRole);
 
         void validateSerNum(QSharedPointer<Server> server, const qint32& id);
         bool getIsGoldenSerNum();
