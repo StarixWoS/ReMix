@@ -96,7 +96,8 @@ void CreateInstance::updateServerList(const bool& firstRun)
     QStringList validServers;
 
     quint32 serverCount{ 0 };
-    bool running{ false };
+    bool isRunning{ false };
+    bool restart{ false };
 
     for ( int i = 0; i < servers.count(); ++i )
     {
@@ -112,21 +113,24 @@ void CreateInstance::updateServerList(const bool& firstRun)
 
         if ( !skip )
         {
-            running = Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool();
+            isRunning = Settings::getSetting( SKeys::Setting, SSubKeys::IsRunning, name ).toBool();
+            restart = Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool();
+
             if ( firstRun )
             {
                 Settings::setSetting( false, SKeys::Setting, SSubKeys::IsRunning, name );
-                if ( running ) //Initial Startup of ReMix, and a server is found as being 'online'.
+                if ( restart ) //Initial Startup of ReMix, and a server is found as being 'online'.
                     restartServerList.append( name );  //Store Server Name.
             }
         }
 
-        if ( !skip && !running )
+        if ( !skip
+          && ( !restart || !isRunning ) )
         {
             validServers.append( name );
             ++serverCount;
         }
-        running = false;
+        restart = false;
     }
 
     if ( serverCount != 0 )

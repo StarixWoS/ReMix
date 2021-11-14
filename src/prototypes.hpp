@@ -268,8 +268,9 @@
         //Valid Theme ID's.
         enum class Themes: int{ Light = 0, Dark = 1 };
 
-        //Valid AFK-state Icons for use in the PlrListWidget.
-        enum class AFKRoles: int { AFK = 0, NPK = 1 };
+        //Valid Icons for use in the PlrListWidget SerNum DecorationRole.
+        enum class IconRoles: int { Invalid = -1, SoulAFK = 0, SoulAFKWell, SoulGhost, SoulNPK, SoulPK, SoulWell, GSoulGhost,
+                                    GSoulNPK, GSoulPK = 9, RoleCount = 9 };
 
         //Valid Theme Colors
         enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, DeathTxt, SpellTxt, DiceAndLevel, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,

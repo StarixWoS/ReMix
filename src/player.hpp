@@ -33,6 +33,7 @@ class Player : public QTcpSocket
     bool isGhosting{ false };
     bool isVisible{ true };
     bool isAFK{ false };
+    bool isPK{ false };
 
     QString plrName{ "Unincarnated" };
     QString sernumHex_s{ "" };
@@ -74,9 +75,6 @@ class Player : public QTcpSocket
     QTimer afkTimer;
 
     PktTarget targetType{ PktTarget::ALL };
-
-    AFKRoles afkRole{ AFKRoles::NPK };
-
     QSharedPointer<Player> thisPlayer;
 
     public:
@@ -195,10 +193,11 @@ class Player : public QTcpSocket
         void setMuteDuration(const quint64& value);
         bool getIsMuted();
 
+        void updateIconState();
         void setIsAFK(bool value);
 
-        AFKRoles getAfkRole() const;
-        void setAfkRole(AFKRoles newAfkRole);
+        bool getIsPK();
+        void setIsPK(bool value);
 
         void validateSerNum(QSharedPointer<Server> server, const qint32& id);
         bool getIsGoldenSerNum();

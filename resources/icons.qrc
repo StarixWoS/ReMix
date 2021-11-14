@@ -3,9 +3,16 @@
         <file>ReMix.ico</file>
         <file>ReMix.png</file>
         <file>newtab.png</file>
-        <file>AFK.png</file>
-        <file>NPK.png</file>
+        <file>soulAFK.png</file>
+        <file>soulNPK.png</file>
         <file>newtabdark.png</file>
         <file>newtablight.png</file>
+        <file>soulAFKWell.png</file>
+        <file>soulGhost.png</file>
+        <file>gSoulGhost.png</file>
+        <file>gSoulNPK.png</file>
+        <file>gSoulPK.png</file>
+        <file>soulPK.png</file>
+        <file>soulWell.png</file>
     </qresource>
 </RCC>

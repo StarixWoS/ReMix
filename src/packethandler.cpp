@@ -262,6 +262,10 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                         break;
                     }
 
+                    //Arcadia does not use PK/NPK States/
+                    if ( server->getGameId() == Games::WoS )
+                        plr->setIsPK( Helper::strToInt( pkt.mid( 23 ).left( 8 ) ) <= 0 ? true : false );
+
                     if ( !msg.isEmpty()
                       && !isIncarnated )
                     {

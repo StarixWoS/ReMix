@@ -45,7 +45,7 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     server->setGameWorld( rules->getGameInfo() );
 
     //Initialize the PlrListWidget.
-    PlrListWidget* plrList{ PlrListWidget::getInstance( this, server ) };
+    PlrListWidget* plrList{ PlrListWidget::getInstance( server ) };
     QObject::connect( this, &ReMixWidget::plrViewInsertRowSignal, plrList, &PlrListWidget::plrViewInsertRowSlot );
     QObject::connect( this, &ReMixWidget::plrViewRemoveRowSignal, plrList, &PlrListWidget::plrViewRemoveRowSlot );
     QObject::connect( plrList, &PlrListWidget::insertMasterMessageSignal,
@@ -277,7 +277,7 @@ void ReMixWidget::initUIUpdate()
                 }
             }
 
-            PlrListWidget::getInstance( this, server )->resizeColumns();
+            PlrListWidget::getInstance( server )->resizeColumns();
         }
         ui->networkStatus->setText( msg );
     } );
@@ -460,8 +460,6 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
         return;
 
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );
-
-    QObject::connect( plr.get(), &Player::updatePlrViewSignal, PlrListWidget::getInstance( this, server ), &PlrListWidget::updatePlrViewSlot );
 
     //Connect the pending Connection to a Disconnected lambda.
     //Using a lambda to safely access the Plr Object within the Slot.

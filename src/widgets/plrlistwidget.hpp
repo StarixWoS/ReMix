@@ -22,7 +22,6 @@ class PlrListWidget : public QWidget
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
     TblEventFilter* tblEvFilter{ nullptr };
-    ReMixWidget* remixWidget{ nullptr };
 
     QModelIndex prevIndex;
 
@@ -32,16 +31,23 @@ class PlrListWidget : public QWidget
 
     QSharedPointer<Server> server;
 
-    QIcon afkIcon{ ":/icon/AFK.png" };
-    QIcon npkIcon{ ":/icon/NPK.png" };
-
     bool censorUIIPInfo{ false };
 
+    QIcon soulAFKWellIcon{ ":/icon/soulAFKWell.png" };
+    QIcon gSoulGhostIcon{ ":/icon/gSoulGhost.png" };
+    QIcon soulGhostIcon{ ":/icon/soulGhost.png" };
+    QIcon soulWellIcon{ ":/icon/soulWell.png" };
+    QIcon gSoulNPKIcon{ ":/icon/gSoulNPK.png" };
+    QIcon soulAFKIcon{ ":/icon/soulAFK.png" };
+    QIcon gSoulPKIcon{ ":/icon/gSoulPK.png" };
+    QIcon soulNPKIcon{ ":/icon/soulNPK.png" };
+    QIcon soulPKIcon{ ":/icon/soulPK.png" };
+
     public:
-        explicit PlrListWidget(QSharedPointer<Server> svr, ReMixWidget* parent = nullptr);
+        explicit PlrListWidget(QSharedPointer<Server> svr);
         ~PlrListWidget() override;
 
-        static PlrListWidget* getInstance(ReMixWidget* parent, QSharedPointer<Server> server);
+        static PlrListWidget* getInstance(QSharedPointer<Server> server);
         static void deleteInstance(QSharedPointer<Server> server);
 
         QStandardItemModel* getPlrModel() const;
@@ -52,6 +58,8 @@ class PlrListWidget : public QWidget
     private:
         void updatePlrView(QStandardItem* object, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor);
         void initContextMenu();
+
+        const QIcon& getIcon(const IconRoles& role);
 
     public slots:
         void updatePlrViewSlot(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor);

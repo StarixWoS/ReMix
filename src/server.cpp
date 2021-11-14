@@ -350,7 +350,6 @@ QSharedPointer<Player> Server::createPlayer(const qintptr& socketDescriptor, QSh
             QObject::connect( this, &Server::connectionTimeUpdateSignal, plr.get(), &Player::connectionTimeUpdateSlot );
             QObject::connect( plr.get(), &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot );
             QObject::connect( plr.get(), &Player::setVisibleStateSignal, this, &Server::setVisibleStateSlot );
-
             return plr;
         }
     }

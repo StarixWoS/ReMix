@@ -181,8 +181,6 @@ void Theme::applyTheme(const Themes& type)
         currentPal = themeStyle->standardPalette();
 
     qApp->setPalette( currentPal );
-
-    QPixmapCache::clear();
 }
 
 QString Theme::getDefaultColor(const Themes& theme, const Colors& color)

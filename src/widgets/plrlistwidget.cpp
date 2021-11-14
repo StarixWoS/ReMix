@@ -11,7 +11,6 @@
 #include "views/tbleventfilter.hpp"
 
 //ReMix includes.
-#include "remixwidget.hpp"
 #include "settings.hpp"
 #include "sendmsg.hpp"
 #include "player.hpp"
@@ -32,12 +31,11 @@
 
 QHash<QSharedPointer<Server>, PlrListWidget*> PlrListWidget::plrViewInstanceMap;
 
-PlrListWidget::PlrListWidget(QSharedPointer<Server> svr, ReMixWidget* parent) :
+PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
     server( svr ),
     ui(new Ui::PlrListWidget)
 {
     ui->setupUi(this);
-    remixWidget = parent;
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PlrListWidget::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -115,12 +113,12 @@ PlrListWidget::~PlrListWidget()
     delete ui;
 }
 
-PlrListWidget* PlrListWidget::getInstance(ReMixWidget* parent, QSharedPointer<Server> server)
+PlrListWidget* PlrListWidget::getInstance(QSharedPointer<Server> server)
 {
     PlrListWidget* instance{ plrViewInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new PlrListWidget( server, parent );
+        instance = new PlrListWidget( server );
         if ( instance != nullptr )
             plrViewInstanceMap.insert( server, instance );
     }
@@ -168,10 +166,54 @@ void PlrListWidget::initContextMenu()
     contextMenu->insertSeparator( ui->actionMuteNetwork );
 }
 
+const QIcon& PlrListWidget::getIcon(const IconRoles& role)
+{
+    switch( role )
+    {
+        case IconRoles::GSoulGhost: return gSoulGhostIcon;
+        break;
+        case IconRoles::GSoulNPK: return gSoulNPKIcon;
+        break;
+        case IconRoles::GSoulPK: return gSoulPKIcon;
+        break;
+        case IconRoles::SoulAFK: return soulAFKIcon;
+        break;
+        case IconRoles::SoulAFKWell: return soulAFKWellIcon;
+        break;
+        case IconRoles::SoulGhost: return soulGhostIcon;
+        break;
+        case IconRoles::SoulNPK: return soulNPKIcon;
+        break;
+        case IconRoles::SoulPK: return soulPKIcon;
+        break;
+        case IconRoles::SoulWell: return soulWellIcon;
+        break;
+        case IconRoles::Invalid:
+        default:
+            {
+                return soulNPKIcon;
+            }
+        break;
+    }
+
+    //Fallthrough.
+    return soulNPKIcon;
+}
+
 void PlrListWidget::updatePlrViewSlot(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor)
 {
+    if ( plr == nullptr )
+        return;
+
     QStandardItem* item{ plrTableItems.value( plr, nullptr ) };
-    if ( item != nullptr )
+    if ( item == nullptr )
+    {
+        this->plrViewInsertRowSlot( plr, plr->getIPPortAddress(), plr->getBioData().toLatin1() );
+        item = plrTableItems.value( plr, nullptr );
+        if ( item != nullptr )
+            this->updatePlrView( item, column, data, role, isColor );
+    }
+    else
         this->updatePlrView( item, column, data, role, isColor );
 }
 
@@ -192,12 +234,7 @@ void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, c
                 else if ( static_cast<PlrCols>( column ) == PlrCols::SerNum
                        && role == Qt::DecorationRole )
                 {
-                    QVariant newData;
-                    if ( static_cast<AFKRoles>( data.toInt() ) == AFKRoles::AFK )
-                        newData = afkIcon;
-                    else
-                        newData = npkIcon;
-
+                    const QVariant newData{ this->getIcon( static_cast<IconRoles>( data.toInt() ) ) };
                     sModel->setData( sModel->index( object->row(), column ), newData, role );
                 }
                 else
@@ -258,8 +295,7 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
     QModelIndex menuIndex{ plrProxy->mapToSource( ui->playerView->indexAt( pos ) ) };
 
     this->initContextMenu();
-    if ( menuIndex.row() >= 0
-      && remixWidget != nullptr )
+    if ( menuIndex.row() >= 0 )
     {
         QSharedPointer<Player> plr{ plrTableItems.key( plrModel->item( menuIndex.row(), 0 ) ) };
         if ( plr != nullptr )

@@ -2,6 +2,9 @@
 //Class includes.
 #include "player.hpp"
 
+//ReMix Widget includes.
+#include "widgets/plrlistwidget.hpp"
+
 //ReMix includes.
 #include "packethandler.hpp"
 #include "campexemption.hpp"
@@ -22,6 +25,9 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     : server( svr )
 {
     this->setSocketDescriptor( socketDescriptor );
+
+    //Connect the Player to the PlrListWidget Slots.
+    QObject::connect( this, &Player::updatePlrViewSignal, PlrListWidget::getInstance( server ), &PlrListWidget::updatePlrViewSlot );
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Player::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -560,6 +566,7 @@ bool Player::getIsIncarnated() const
 void Player::setIsIncarnated(bool newIsIncarnated)
 {
     isIncarnated = newIsIncarnated;
+    this->updateIconState();
 }
 
 bool Player::getIsGhosting() const
@@ -570,6 +577,7 @@ bool Player::getIsGhosting() const
 void Player::setIsGhosting(bool newIsGhosting)
 {
     isGhosting = newIsGhosting;
+    this->updateIconState();
 }
 
 quint64 Player::getMuteDuration()
@@ -634,30 +642,70 @@ void Player::setPlrLevel(const qint32& value)
     plrLevel = value;
 }
 
-void Player::setIsAFK(bool value)
+void Player::updateIconState()
 {
-    isAFK = value;
+    const bool incarnated{ this->getIsIncarnated() };
 
+    IconRoles role{ IconRoles::SoulNPK };
     if ( !isAFK )
     {
         afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
-        this->setAfkRole( AFKRoles::NPK );
+        if ( incarnated )
+        {
+            const bool golden{ this->getIsGoldenSerNum() };
+            if ( !this->getIsGhosting() )
+            {
+                if ( this->getIsPK() )
+                {
+                    if ( golden )
+                        role = IconRoles::GSoulPK;
+                    else
+                        role = IconRoles::SoulPK;
+                }
+                else
+                {
+                    if ( golden )
+                        role = IconRoles::GSoulNPK;
+                    else
+                        role = IconRoles::SoulNPK;
+                }
+            }
+            else
+            {
+                if ( golden )
+                    role = IconRoles::GSoulGhost;
+                else
+                    role = IconRoles::SoulGhost;
+            }
+        }
+        else
+            role = IconRoles::SoulWell;
     }
     else
-        this->setAfkRole( AFKRoles::AFK );
+    {
+        if ( incarnated )
+            role = IconRoles::SoulAFK;
+        else
+            role = IconRoles::SoulAFKWell;
+    }
+    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( role ), Qt::DecorationRole, false );
 }
 
-AFKRoles Player::getAfkRole() const
+void Player::setIsAFK(bool value)
 {
-    return afkRole;
+    isAFK = value;
+    this->updateIconState();
 }
 
-void Player::setAfkRole(AFKRoles newAfkRole)
+bool Player::getIsPK()
 {
-    afkRole = newAfkRole;
+    return isPK;
+}
 
-    //Set the NPK/AFK icon.
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( afkRole ), Qt::DecorationRole, false );
+void Player::setIsPK(bool value)
+{
+    isPK = value;
+    this->updateIconState();
 }
 
 void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
@@ -901,6 +949,7 @@ void Player::connectionTimeUpdateSlot()
     }
 
     emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
+    this->updateIconState();
 
     //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
     if ( !this->getIsMuted() )

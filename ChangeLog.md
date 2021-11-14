@@ -1,5 +1,4 @@
 TODO:
-  * Change the IP re-selection to allow the User to select the active network interface and select the working IP address.
   * Implement other remote administrator commands and sub-commands.
   * TODO: Give more meaningful names to the settings stored within the preferences.ini -- Break away from Dan's short-hand naming scheme.
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
@@ -10,6 +9,11 @@ Version 3.0.2:
       * Properly use Qt's "QInputDialog::getInt" when obtaining integers within the Rules Settings tab.
       * Log when a Player Object or Server Object is deconstructed within the MISC log file.
       * Log when the MaxterMixThread disconnects from a GameType signal/slot.
+      * Added more Icons for use within the PlrListWidget.
+        * We now set the various Icon images based on more Soul states.
+      * We now detect when a User is a Player Killer.
+        * This may be useful information if the Server Instance is using the "No Pking" Rule
+        * To DO: Strictly enforce the "No PKing" rule within ReMix. Do not trust Users to adhere to the rule.
 
 
 
@@ -21,6 +25,7 @@ Version 3.0.2:
       * Reduced the Max Players count from 256 to 255.
         * This is due to the Packet Slot Positions being unable to exceed 255 when converted to Hex (0xFF).
       * Fixed another issue where disabling and enabling the "Public" toggle would not correctly restart the MasterMix check-in timers.
+      * Fixed an issue where Server Instances with the "Auto Restart" rule enabled would not correctly restart.
 
 
 
