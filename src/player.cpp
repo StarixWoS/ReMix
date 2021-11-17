@@ -649,14 +649,17 @@ qint32 Player::getPlrCheatCount() const
 
 void Player::setPlrCheatCount(const qint32& value)
 {
-    if ( value > 0
-      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    if ( this->getIsIncarnated() )
     {
-        static const QString msg{ "You have been disconnected due to to the Rule \"noCheat\" being *Strictly Enforced*." };
-        server->sendMasterMessage( msg, this->getThisPlayer(), false );
-        this->setDisconnected( true, DCTypes::PktDC );
+        if ( value > 0
+          && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+        {
+            static const QString msg{ "You have been disconnected due to to the Rule \"noCheat\" being *Strictly Enforced*." };
+            server->sendMasterMessage( msg, this->getThisPlayer(), false );
+            this->setDisconnected( true, DCTypes::PktDC );
+        }
+        plrCheatCount = value;
     }
-    plrCheatCount = value;
 }
 
 qint32 Player::getPlrModCount() const
@@ -666,14 +669,17 @@ qint32 Player::getPlrModCount() const
 
 void Player::setPlrModCount(const qint32& value)
 {
-    if ( ( value & 2 )
-      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    if ( this->getIsIncarnated() )
     {
-        const QString msg{ "You have been disconnected due to the Rule \"noMod\" being *Strictly Enforced*." };
-        server->sendMasterMessage( msg, this->getThisPlayer(), false );
-        this->setDisconnected( true, DCTypes::PktDC );
+        if ( ( value & 2 )
+          && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+        {
+            const QString msg{ "You have been disconnected due to the Rule \"noMod\" being *Strictly Enforced*." };
+            server->sendMasterMessage( msg, this->getThisPlayer(), false );
+            this->setDisconnected( true, DCTypes::PktDC );
+        }
+        plrModCount = value;
     }
-    plrModCount = value;
 }
 
 qint32 Player::getIsPartyLocked() const
@@ -753,30 +759,33 @@ bool Player::getIsPK()
 
 void Player::setIsPK(bool value)
 {
-    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    if ( this->getIsIncarnated() )
     {
-        if ( Settings::getSetting( SKeys::Rules, SSubKeys::AllPK, server->getServerName() ).toBool() )
+        if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
         {
-            if ( !value )
+            if ( Settings::getSetting( SKeys::Rules, SSubKeys::AllPK, server->getServerName() ).toBool() )
             {
-                static const QString msg{ "You have been disconnected due to the Rule \"allPK\" being *Strictly Enforced*." };
+                if ( !value )
+                {
+                    static const QString msg{ "You have been disconnected due to the Rule \"allPK\" being *Strictly Enforced*." };
+                    server->sendMasterMessage( msg, this->getThisPlayer(), false );
+                    this->setDisconnected( true, DCTypes::PktDC );
+                }
+            }
+        }
+        else if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoPK, server->getServerName() ).toBool() )
+        {
+            if ( value )
+            {
+                static const QString msg{ "You have been disconnected due to the Rule \"noPK\" being *Strictly Enforced*." };
                 server->sendMasterMessage( msg, this->getThisPlayer(), false );
                 this->setDisconnected( true, DCTypes::PktDC );
             }
         }
-    }
-    else if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoPK, server->getServerName() ).toBool() )
-    {
-        if ( value )
-        {
-            static const QString msg{ "You have been disconnected due to the Rule \"noPK\" being *Strictly Enforced*." };
-            server->sendMasterMessage( msg, this->getThisPlayer(), false );
-            this->setDisconnected( true, DCTypes::PktDC );
-        }
-    }
 
-    isPK = value;
-    this->updateIconState();
+        isPK = value;
+        this->updateIconState();
+    }
 }
 
 void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)

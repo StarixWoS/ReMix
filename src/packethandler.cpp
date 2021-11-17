@@ -234,7 +234,6 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                 if ( type >= 1 && !Helper::cmpStrings( plr->getPlrName(), "" ) )
                 {
                     bool isIncarnated{ plr->getIsIncarnated() };
-                    plr->setIsIncarnated( true );
                     plr->setIsGhosting( false );
 
                     QString msg{ "" };
@@ -242,32 +241,40 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                     {
                         case 1:
                             {
+                                plr->setIsIncarnated( true );
                                 msg = "has incarnated into this world! ";
                             }
                         break;
                         case 2:
                             {
+                                plr->setIsIncarnated( true );
                                 plr->setIsGhosting( true );
                                 msg = "walks the land as an apparition! ";
                             }
                         break;
                         case 4:
                             {
-                                plr->setIsIncarnated( false );
-                                msg = "has returned to the Well of Souls! ";
+                                if ( isIncarnated )
+                                {
+                                    isIncarnated = false;
+                                    plr->setIsIncarnated( false );
+                                    msg = "has returned to the Well of Souls! ";
+                                }
                             }
                         break;
                         default:
+                            plr->setIsIncarnated( false );
                         break;
                     }
 
                     //To Do: Enforce Game Version.
-                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                    if ( plr->getIsIncarnated()
+                      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                     {
                         const QString minVersion{ Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, server->getServerName() ).toString() };
                         if ( !minVersion.isEmpty() )
                         {
-                            const qint32 plrVersion{ Helper::strToInt( packet.mid( 15 ).left( 8 ) ) };
+                            const qint32 plrVersion{ Helper::strToInt( pkt.mid( 15 ).left( 8 ) ) };
                             if ( Helper::strToInt( minVersion ) != plrVersion )
                             {
                                 static const QString dcMsg{ "You have been disconnected due to the Rule \"minV\" being *Strictly Enforced*." };
@@ -487,17 +494,20 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                     case 'H':
                         {
                             //To Do: Enforce User Migration Policy.
-                            if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                            if ( plr->getIsIncarnated() )
                             {
-                                const bool migration{ Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, server->getServerName() ).toBool() };
-                                if ( migration )
+                                if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                                 {
-                                    const qint32 birthSerNum{ Helper::strToInt( pkt.mid( 77 ) ) };
-                                    if ( plr->getSernum_i() != birthSerNum )
+                                    const bool migration{ Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, server->getServerName() ).toBool() };
+                                    if ( migration )
                                     {
-                                        static const QString dcMsg{ "You have been disconnected due to the Rule \"noMigrate\" being *Strictly Enforced*." };
-                                        server->sendMasterMessage( dcMsg, plr, false );
-                                        plr->setDisconnected( true, DCTypes::PktDC );
+                                        const qint32 birthSerNum{ Helper::strToInt( pkt.mid( 77 ) ) };
+                                        if ( plr->getSernum_i() != birthSerNum )
+                                        {
+                                            static const QString dcMsg{ "You have been disconnected due to the Rule \"noMigrate\" being *Strictly Enforced*." };
+                                            server->sendMasterMessage( dcMsg, plr, false );
+                                            plr->setDisconnected( true, DCTypes::PktDC );
+                                        }
                                     }
                                 }
                             }
