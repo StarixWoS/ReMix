@@ -188,6 +188,12 @@ const QIcon& PlrListWidget::getIcon(const IconRoles& role)
         break;
         case IconRoles::SoulWell: return soulWellIcon;
         break;
+        case IconRoles::SoulCheater: return soulCheater;
+        break;
+        case IconRoles::SoulModder: return soulModder;
+        break;
+        case IconRoles::SoulMuted: return soulMuted;
+        break;
         case IconRoles::Invalid:
         default:
             {

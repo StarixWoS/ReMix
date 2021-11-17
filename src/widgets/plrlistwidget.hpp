@@ -33,6 +33,7 @@ class PlrListWidget : public QWidget
 
     bool censorUIIPInfo{ false };
 
+    static const QMap<IconRoles, QIcon> iconMap;
     QIcon soulAFKWellIcon{ ":/icon/soulAFKWell.png" };
     QIcon gSoulGhostIcon{ ":/icon/gSoulGhost.png" };
     QIcon soulGhostIcon{ ":/icon/soulGhost.png" };
@@ -42,6 +43,9 @@ class PlrListWidget : public QWidget
     QIcon gSoulPKIcon{ ":/icon/gSoulPK.png" };
     QIcon soulNPKIcon{ ":/icon/soulNPK.png" };
     QIcon soulPKIcon{ ":/icon/soulPK.png" };
+    QIcon soulCheater{ ":/icon/soulCheater.png" };
+    QIcon soulModder{ ":/icon/soulModder.png" };
+    QIcon soulMuted{ ":/icon/soulMuted.png" };
 
     public:
         explicit PlrListWidget(QSharedPointer<Server> svr);

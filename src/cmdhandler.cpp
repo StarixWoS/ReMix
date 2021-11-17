@@ -1469,7 +1469,7 @@ QPair<qint64, TimePeriods> CmdHandler::getTimePeriodFromString(const QString& st
         else //Seconds if no letter is given.
             time = TimePeriods::Seconds;
 
-        duration = static_cast<qint32>( time ) * Helper::strToInt( pStr, static_cast<int>( IntBase::DEC ) );
+        duration = static_cast<qint32>( time ) * Helper::strToInt( pStr, IntBase::DEC );
     }
     return QPair<qint64, TimePeriods>( duration, time );
 }

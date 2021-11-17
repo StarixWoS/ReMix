@@ -231,7 +231,7 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
 
                 //Check that the User is actually incarnating.
                 int type{ pkt.at( 14 ).toLatin1() - 0x41 };
-                if ( type >= 1 && !Helper::cmpStrings( plr->getPlrName(), "Unincarnated" ) )
+                if ( type >= 1 && !Helper::cmpStrings( plr->getPlrName(), "" ) )
                 {
                     bool isIncarnated{ plr->getIsIncarnated() };
                     plr->setIsIncarnated( true );
@@ -254,12 +254,27 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                         case 4:
                             {
                                 plr->setIsIncarnated( false );
-                                isIncarnated = false;
                                 msg = "has returned to the Well of Souls! ";
                             }
                         break;
                         default:
                         break;
+                    }
+
+                    //To Do: Enforce Game Version.
+                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                    {
+                        const QString minVersion{ Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, server->getServerName() ).toString() };
+                        if ( !minVersion.isEmpty() )
+                        {
+                            const qint32 plrVersion{ Helper::strToInt( packet.mid( 15 ).left( 8 ) ) };
+                            if ( Helper::strToInt( minVersion ) != plrVersion )
+                            {
+                                static const QString dcMsg{ "You have been disconnected due to the Rule \"minV\" being *Strictly Enforced*." };
+                                server->sendMasterMessage( dcMsg, plr, false );
+                                plr->setDisconnected( true, DCTypes::PktDC );
+                            }
+                        }
                     }
 
                     //Arcadia does not use PK/NPK States/
@@ -338,6 +353,14 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                     break;
                     case 'k': //PK Attack.
                         {
+                            //To Do: Enforce the "No Player Killing" rule.
+                            if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                            {
+                                static const QString dcMsg{ "You have been disconnected due to the Rule \"noPK\" being *Strictly Enforced*." };
+                                server->sendMasterMessage( dcMsg, plr, false );
+                                plr->setDisconnected( true, DCTypes::PktDC );
+                            }
+
                             if ( targetPlayer != nullptr )
                             {
                                 emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
@@ -355,10 +378,10 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                         {
                             bool isJoining = true;
 
-                            int leader = trgSerNum.toInt( nullptr, 16 );
+                            qint32 leader( Helper::strToInt( trgSerNum ) );
                             if ( leader == 0 )
                             {
-                                leader = packet.left( 29 ).mid( 21 ).toInt( nullptr, 16 );
+                                leader = Helper::strToInt( packet.left( 29 ).mid( 21 ) );
                                 if ( leader == 0 )
                                     break;
 
@@ -368,25 +391,39 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                             QSharedPointer<Player> partyLeader{ server->getPlayer( Helper::intToStr( leader, IntBase::HEX, IntFills::DblWord ) ) };
                             if ( partyLeader != nullptr )
                             {
-                                if ( partyLeader->getAdminRank() >= GMRanks::GMaster )
+                                if ( isJoining
+                                  && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                                 {
-                                    targetNameColor = Colors::AdminName;
-                                    if ( partyLeader->getAdminRank() > GMRanks::Admin )
-                                        targetNameColor = Colors::OwnerName;
-
-                                    if ( partyLeader->getIsGoldenSerNum() )
-                                        targetSerNumColor = Colors::GoldenSoul;
+                                    //The Target Party is locked.
+                                    if ( partyLeader->getIsPartyLocked() )
+                                    {
+                                        static const QString dcMsg{ "You have been disconnected due to violating a User's \"Locked Party\" policy." };
+                                        server->sendMasterMessage( dcMsg, plr, false );
+                                        plr->setDisconnected( true, DCTypes::PktDC );
+                                    }
                                 }
+                                else
+                                {
+                                    if ( partyLeader->getAdminRank() >= GMRanks::GMaster )
+                                    {
+                                        targetNameColor = Colors::AdminName;
+                                        if ( partyLeader->getAdminRank() > GMRanks::Admin )
+                                            targetNameColor = Colors::OwnerName;
 
-                                emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
-                                emit this->insertChatMsgSignal( "*** ", Colors::PartyJoin, false );
-                                emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
-                                emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
-                                emit this->insertChatMsgSignal( ( isJoining ? "joins " : "leaves " ), Colors::PartyJoin, false );
+                                        if ( partyLeader->getIsGoldenSerNum() )
+                                            targetSerNumColor = Colors::GoldenSoul;
+                                    }
 
-                                emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s", targetNameColor, false );
-                                emit this->insertChatMsgSignal( " [ " % partyLeader->getSernum_s() % " ] ", targetSerNumColor, false );
-                                emit this->insertChatMsgSignal( "party. ***", Colors::PartyJoin, false );
+                                    emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
+                                    emit this->insertChatMsgSignal( "*** ", Colors::PartyJoin, false );
+                                    emit this->insertChatMsgSignal( plr->getPlrName(), nameColor, false );
+                                    emit this->insertChatMsgSignal( " [ " % plr->getSernum_s() % " ] ", serNumColor, false );
+                                    emit this->insertChatMsgSignal( ( isJoining ? "joins " : "leaves " ), Colors::PartyJoin, false );
+
+                                    emit this->insertChatMsgSignal( partyLeader->getPlrName() % "'s", targetNameColor, false );
+                                    emit this->insertChatMsgSignal( " [ " % partyLeader->getSernum_s() % " ] ", targetSerNumColor, false );
+                                    emit this->insertChatMsgSignal( "party. ***", Colors::PartyJoin, false );
+                                }
                             }
                         }
                     break;
@@ -414,20 +451,55 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
                     break;
                     case 's': //Parse Player Level and AFK status.
                         {
+                            const qint32 status{ Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) };
+
+                            plr->setPlrCheatCount( Helper::strToInt( pkt.mid( 87 ).left( 2 ) ) );
+                            plr->setPlrModCount( Helper::strToInt( pkt.mid( 69 ).left( 2 ) ) );
                             plr->setPlrLevel( Helper::strToInt( pkt.mid( 21 ).left( 4 ) ) );
-                            plr->setIsAFK( Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) & 1 );
+                            plr->setIsPartyLocked( status & 2 );
+                            plr->setIsAFK( status & 1 );
+
+                            //( status & 0x20 ) User's Camp/Scene is locked.
+                            //( ( status & 0x18 ) >> 3 ) User's Gender selection.
                         }
                     break;
                     case 'K':  //If pet level exceess the Player's level then discard the packet.
                         {
-                            QString msg{ "You may not call a pet stronger than yourself within a camp (scene) hosted by another Player!" };
+                            //To Do: Enforce the "No Pets" rule.
+                            if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                            {
+                                //Silently ignore the Pet Packet.
+                                retn = false;
+                                break;
+                            }
+
+                            static QString dcMsg{ "You may not call a pet stronger than yourself within a camp (scene) hosted by another Player!" };
                             qint32 petLevel{ Helper::strToInt( pkt.mid( 19 ).left( 4 ) ) };
 
                             if ( plr->getPlrLevel() >= 1
                               && petLevel >= plr->getPlrLevel() )
                             {
-                                server->sendMasterMessage( msg, plr, false );
+                                server->sendMasterMessage( dcMsg, plr, false );
                                 retn = false;
+                            }
+                        }
+                    break;
+                    case 'H':
+                        {
+                            //To Do: Enforce User Migration Policy.
+                            if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                            {
+                                const bool migration{ Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, server->getServerName() ).toBool() };
+                                if ( migration )
+                                {
+                                    const qint32 birthSerNum{ Helper::strToInt( pkt.mid( 77 ) ) };
+                                    if ( plr->getSernum_i() != birthSerNum )
+                                    {
+                                        static const QString dcMsg{ "You have been disconnected due to the Rule \"noMigrate\" being *Strictly Enforced*." };
+                                        server->sendMasterMessage( dcMsg, plr, false );
+                                        plr->setDisconnected( true, DCTypes::PktDC );
+                                    }
+                                }
                             }
                         }
                     break;
@@ -680,7 +752,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
 
     QString recvSlotPos{ pkt.mid( 4 ).left( 2 ) };
     qint32 plrPktSlot{ plr->getPktHeaderSlot() };
-    if ( plrPktSlot != Helper::strToInt( recvSlotPos, static_cast<int>( IntBase::HEX ) ) )
+    if ( plrPktSlot != Helper::strToInt( recvSlotPos, IntBase::HEX ) )
     {
         qint32 exemptCount{ plr->getPktHeaderExemptCount() + 1 };
         if ( exemptCount >= static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) )

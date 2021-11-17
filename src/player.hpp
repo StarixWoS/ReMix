@@ -27,6 +27,7 @@ class Player : public QTcpSocket
     bool svrPwdRequested{ false };
     bool svrPwdReceived{ false };
     bool isDisconnected{ false };
+    bool isPartyLocked{ false };
     bool isCampLocked{ false };
     bool isCampOptOut{ false };
     bool isIncarnated{ false };
@@ -52,6 +53,9 @@ class Player : public QTcpSocket
     qint32 sceneHost{ 0 };
     qint32 sernum_i{ 0 };
     qint32 plrLevel{ 0 };
+
+    qint32 plrCheatCount{ 0 };
+    qint32 plrModCount{ 0 };
 
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
@@ -213,6 +217,15 @@ class Player : public QTcpSocket
 
         qint32 getPlrLevel() const;
         void setPlrLevel(const qint32& value);
+
+        qint32 getPlrCheatCount() const;
+        void setPlrCheatCount(const qint32& value);
+
+        qint32 getPlrModCount() const;
+        void setPlrModCount(const qint32& value);
+
+        qint32 getIsPartyLocked() const;
+        void setIsPartyLocked(const qint32& value);
 
         qint32 getPktHeaderExemptCount() const;
         void setPktHeaderExemptCount(const qint32& value);

@@ -642,12 +642,60 @@ void Player::setPlrLevel(const qint32& value)
     plrLevel = value;
 }
 
+qint32 Player::getPlrCheatCount() const
+{
+    return plrCheatCount;
+}
+
+void Player::setPlrCheatCount(const qint32& value)
+{
+    if ( value > 0
+      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    {
+        static const QString msg{ "You have been disconnected due to to the Rule \"noCheat\" being *Strictly Enforced*." };
+        server->sendMasterMessage( msg, this->getThisPlayer(), false );
+        this->setDisconnected( true, DCTypes::PktDC );
+    }
+    plrCheatCount = value;
+}
+
+qint32 Player::getPlrModCount() const
+{
+    return plrModCount;
+}
+
+void Player::setPlrModCount(const qint32& value)
+{
+    if ( ( value & 2 )
+      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    {
+        const QString msg{ "You have been disconnected due to the Rule \"noMod\" being *Strictly Enforced*." };
+        server->sendMasterMessage( msg, this->getThisPlayer(), false );
+        this->setDisconnected( true, DCTypes::PktDC );
+    }
+    plrModCount = value;
+}
+
+qint32 Player::getIsPartyLocked() const
+{
+    return isPartyLocked;
+}
+
+void Player::setIsPartyLocked(const qint32& value)
+{
+    isPartyLocked = value;
+}
+
 void Player::updateIconState()
 {
     const bool incarnated{ this->getIsIncarnated() };
 
-    IconRoles role{ IconRoles::SoulNPK };
-    if ( !isAFK )
+    IconRoles role{ IconRoles::SoulWell };
+    if ( isAFK )
+    {
+        role = ( incarnated == true ? IconRoles::SoulAFK : IconRoles::SoulAFKWell );
+    }
+    else
     {
         afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
         if ( incarnated )
@@ -655,38 +703,39 @@ void Player::updateIconState()
             const bool golden{ this->getIsGoldenSerNum() };
             if ( !this->getIsGhosting() )
             {
-                if ( this->getIsPK() )
+                if ( this->getPlrCheatCount() > 0 )
+                {
+                    role = IconRoles::SoulCheater;
+                }
+                else if ( ( this->getPlrModCount() & 2 ) == 2 )
+                {
+                    role = IconRoles::SoulModder;
+                }
+                else if ( this->getIsPK() )
                 {
                     if ( golden )
+                    {
                         role = IconRoles::GSoulPK;
+                    }
                     else
                         role = IconRoles::SoulPK;
                 }
-                else
+                else if ( golden )
                 {
-                    if ( golden )
-                        role = IconRoles::GSoulNPK;
-                    else
-                        role = IconRoles::SoulNPK;
+                    role = IconRoles::GSoulNPK;
                 }
+                else
+                    role = IconRoles::SoulNPK;
+            }
+            else if ( golden )
+            {
+                role = IconRoles::GSoulGhost;
             }
             else
-            {
-                if ( golden )
-                    role = IconRoles::GSoulGhost;
-                else
-                    role = IconRoles::SoulGhost;
-            }
+                role = IconRoles::SoulGhost;
         }
         else
             role = IconRoles::SoulWell;
-    }
-    else
-    {
-        if ( incarnated )
-            role = IconRoles::SoulAFK;
-        else
-            role = IconRoles::SoulAFKWell;
     }
     emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( role ), Qt::DecorationRole, false );
 }
@@ -704,6 +753,28 @@ bool Player::getIsPK()
 
 void Player::setIsPK(bool value)
 {
+    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+    {
+        if ( Settings::getSetting( SKeys::Rules, SSubKeys::AllPK, server->getServerName() ).toBool() )
+        {
+            if ( !value )
+            {
+                static const QString msg{ "You have been disconnected due to the Rule \"allPK\" being *Strictly Enforced*." };
+                server->sendMasterMessage( msg, this->getThisPlayer(), false );
+                this->setDisconnected( true, DCTypes::PktDC );
+            }
+        }
+    }
+    else if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoPK, server->getServerName() ).toBool() )
+    {
+        if ( value )
+        {
+            static const QString msg{ "You have been disconnected due to the Rule \"noPK\" being *Strictly Enforced*." };
+            server->sendMasterMessage( msg, this->getThisPlayer(), false );
+            this->setDisconnected( true, DCTypes::PktDC );
+        }
+    }
+
     isPK = value;
     this->updateIconState();
 }

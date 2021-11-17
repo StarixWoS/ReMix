@@ -270,7 +270,7 @@
 
         //Valid Icons for use in the PlrListWidget SerNum DecorationRole.
         enum class IconRoles: int { Invalid = -1, SoulAFK = 0, SoulAFKWell, SoulGhost, SoulNPK, SoulPK, SoulWell, GSoulGhost,
-                                    GSoulNPK, GSoulPK = 9, RoleCount = 9 };
+                                    GSoulNPK, GSoulPK, SoulCheater, SoulModder, SoulMuted = 12, RoleCount = 12 };
 
         //Valid Theme Colors
         enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, DeathTxt, SpellTxt, DiceAndLevel, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
@@ -333,15 +333,15 @@
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
                                   LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface,
                                   HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat,
-                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, KeyCount };
+                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount };
 
         //Valid Toggles for the Settings Widget.
         enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
                                   InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMasterHost, OverrideMaster = 16 };
 
         //Valid Toggles for the Rules Widget.
-        enum class RToggles: int{ ServerPassword = 0, AutoRestart, WorldName, UrlAddr, AllPK, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep, NoCheat,
-                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK = 16 };
+        enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep, NoCheat,
+                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, AllPK, ArenaPK = 17 };
 
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };

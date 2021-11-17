@@ -73,6 +73,7 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     { SSubKeys::NetInterface,           "netInterface"        },
 
     //Rules.
+    { SSubKeys::StrictRules,            "enforceRules"   },
     { SSubKeys::HasSvrPassword,         "hasSvrPassword" },
     { SSubKeys::SvrPassword,            "svrPassword"    },
     { SSubKeys::World,                  "world"          },
@@ -143,6 +144,7 @@ QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
     SSubKeys::NoEavesdrop,
     SSubKeys::SvrPassword,
     SSubKeys::AutoRestart,
+    SSubKeys::StrictRules,
     SSubKeys::MinVersion,
     SSubKeys::MaxPlayers,
     SSubKeys::NoMigrate,

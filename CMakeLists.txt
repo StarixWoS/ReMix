@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 3.0.1 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.0.2 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -43,6 +43,7 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/appeventfilter.cpp
         src/packethandler.cpp
         src/campexemption.cpp
+        src/guildstorage.cpp
         src/packetforge.cpp
         src/selectworld.cpp
         src/cmdhandler.cpp
@@ -80,6 +81,7 @@ set(HEADERS src/views/usersortproxymodel.hpp
         src/appeventfilter.hpp
         src/packethandler.hpp
         src/campexemption.hpp
+        src/guildstorage.hpp
         src/packetforge.hpp
         src/selectworld.hpp
         src/cmdhandler.hpp

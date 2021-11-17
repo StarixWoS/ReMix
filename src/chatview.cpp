@@ -200,7 +200,7 @@ bool ChatView::parseChatEffect(const QString& packet)
     Colors msgColor{ Colors::PlayerTxt };
 
     QSharedPointer<Player> plr{ nullptr };
-    QString plrName{ "" };
+    QString plrName{ "Unincarnated" };
     QString message{ "" };
 
     if ( server->getGameId() != Games::W97 )
@@ -220,8 +220,6 @@ bool ChatView::parseChatEffect(const QString& packet)
 
         if ( packet.at( 3 ) == 'C' )
         {
-            QString plrName{ "Unincarnated [ %1 ]" };
-
             for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
             {
                 plr = server->getPlayer( i );
@@ -308,15 +306,16 @@ bool ChatView::parseChatEffect(const QString& packet)
                 break;
                 default:
                     {
-                        if ( !plrName.isEmpty()
-                          && server->getGameId() == Games::WoS )
+                        if ( ( !plrName.isEmpty()
+                            && plr->getIsIncarnated() )
+                          && server->getGameId() == Games::WoS ) //Only parse these Chat types if on WoS, and if the Player *is* incarnated.
                         {
                             QString msg{ message.mid( message.indexOf( plrName ) + plrName.length() ).simplified() };
                             switch ( code )
                             {
                                 case ChatType::DiceAndLevelUp:
                                     {
-                                        this->insertChat( "***", Colors::DiceAndLevel, false );
+                                        this->insertChat( "*** ", Colors::DiceAndLevel, false );
                                         this->insertColoredName( plr );
                                         this->insertColoredSerNum( plr );
                                         this->insertChat( msg, Colors::DiceAndLevel, false );
@@ -331,7 +330,7 @@ bool ChatView::parseChatEffect(const QString& packet)
                                 break;
                                 case ChatType::DeathMsg:
                                     {
-                                        this->insertChat( "*", Colors::DeathTxt, false );
+                                        this->insertChat( "* ", Colors::DeathTxt, false );
                                         this->insertColoredName( plr );
                                         this->insertColoredSerNum( plr );
                                         this->insertChat( msg, Colors::DeathTxt, false );
@@ -561,7 +560,7 @@ void ChatView::newUserCommentSlot(QSharedPointer<Player> plr, const QString& mes
 
     QString name{ "%1 [ %2 ]: " };
             name = name.arg( plr->getPlrName() )
-                       .arg( plr->getSernumHex_s() );
+                       .arg( plr->getSernum_s() );
 
     QString comment{ "%1%2" };
             comment = comment.arg( name )

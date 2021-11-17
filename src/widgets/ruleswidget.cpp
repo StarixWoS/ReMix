@@ -105,9 +105,10 @@ void RulesWidget::setServerName(const QString& name)
     this->setCheckedState( RToggles::ServerPassword, Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, name ).toBool() );
     this->setCheckedState( RToggles::UrlAddr, !Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, name ).toString().isEmpty() );
     this->setCheckedState( RToggles::MaxPlayers, Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name ).toUInt() != 0 );
-    this->setCheckedState( RToggles::MaxIdle, Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name ).toUInt() != 0 );
+    this->setCheckedState( RToggles::StrictRules, Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, name ).toBool() );
     this->setCheckedState( RToggles::AutoRestart, Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool() );
     this->setCheckedState( RToggles::NoEavesdrop, Settings::getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, name ).toBool() );
+    this->setCheckedState( RToggles::MaxIdle, Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name ).toUInt() != 0 );
     this->setCheckedState( RToggles::NoMigrate, Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, name ).toBool() );
     this->setCheckedState( RToggles::NoModding, Settings::getSetting( SKeys::Rules, SSubKeys::NoModding, name ).toBool() );
     this->setCheckedState( RToggles::ArenaPK, Settings::getSetting( SKeys::Rules, SSubKeys::ArenaPK, name ).toBool() );
@@ -211,6 +212,11 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
 
     switch ( static_cast<RToggles>( row ) )
     {
+        case RToggles::StrictRules:
+            {
+                Settings::setSetting( state, SKeys::Rules, SSubKeys::StrictRules, serverName );
+            }
+        break;
         case RToggles::ServerPassword:
             {
                 QString pwd{ Settings::getSetting( SKeys::Rules, SSubKeys::SvrPassword, serverName ).toString() };
@@ -336,17 +342,6 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 rowText = "Server Home: [ %1 ]";
                 rowText = rowText.arg( Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, serverName ).toString() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
-            }
-        break;
-        case RToggles::AllPK:
-            Settings::setSetting( state, SKeys::Rules, SSubKeys::AllPK, serverName );
-            if ( state )
-            {
-                if ( getCheckedState( RToggles::NoPK ) )
-                    this->toggleRulesModel( RToggles::NoPK );
-
-                if ( getCheckedState( RToggles::ArenaPK ) )
-                    this->toggleRulesModel( RToggles::ArenaPK );
             }
         break;
         case RToggles::MaxPlayers:
@@ -495,6 +490,17 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     if ( getCheckedState( RToggles::AllPK ) )
                         this->toggleRulesModel( RToggles::AllPK );
                 }
+            }
+        break;
+        case RToggles::AllPK:
+            Settings::setSetting( state, SKeys::Rules, SSubKeys::AllPK, serverName );
+            if ( state )
+            {
+                if ( getCheckedState( RToggles::NoPK ) )
+                    this->toggleRulesModel( RToggles::NoPK );
+
+                if ( getCheckedState( RToggles::ArenaPK ) )
+                    this->toggleRulesModel( RToggles::ArenaPK );
             }
         break;
         case RToggles::ArenaPK:

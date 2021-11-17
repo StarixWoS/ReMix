@@ -14,6 +14,17 @@ Version 3.0.2:
       * We now detect when a User is a Player Killer.
         * This may be useful information if the Server Instance is using the "No Pking" Rule
         * To DO: Strictly enforce the "No PKing" rule within ReMix. Do not trust Users to adhere to the rule.
+      * Added a new Rule that enables ReMix to Strictly Enforce rules that are usually trusted to be followed by it's connected Users.
+        * When enabled ReMix will Disconnect Users when they attempt to join a "Locked" party.
+          * This isn't really a rule, but it's something that can be enforced when Strict Rules is enabled.
+        * When enabled alongside the "noPet" rule, ReMix will disregard any packets calling a Pet.
+          * This does not disconnect the User, and may be subject to change.
+        * Enabling this Rule will allow ReMix to disconnect Users breaking the following rules.
+          * noPK, allPK, noCheat, noMod, noMigrate, and minV (version).
+      * Added two more Icons for use within the PlrListWidget.
+        * This include the Cheater, Modder, and Muted icons.
+          * The Muted icon is currently not used.
+      * Renamed the Rules within the Rules Widget UI to be somewhat more descriptive in their function.
 
 
 

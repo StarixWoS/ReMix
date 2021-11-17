@@ -58,14 +58,14 @@ QInputDialog* Helper::createInputDialog(QWidget* parent, const QString& label, c
     return dialog;
 }
 
-qint32 Helper::strToInt(const QString& str, const int& base)
+qint32 Helper::strToInt(const QString& str, const IntBase& base)
 {
-    bool base16{ base != static_cast<int>( IntBase::DEC ) };
+    bool base16{ base != IntBase::DEC };
     bool ok{ false };
 
-    qint32 val{ static_cast<qint32>( str.toUInt( &ok, base ) ) };
+    qint32 val{ static_cast<qint32>( str.toUInt( &ok, static_cast<qint32>( base ) ) ) };
     if ( !ok && !base16 )
-        val = str.toInt( &ok, static_cast<int>( IntBase::HEX ) );
+        val = str.toInt( &ok, static_cast<int>( base ) );
 
     if ( !ok )
         val = -1;
@@ -238,9 +238,9 @@ qint32 Helper::serNumtoInt(const QString& sernum, const bool& isHex)
     if ( !ok )
     {
         if ( isHex )
-            sernum_i = strToInt( serNum, static_cast<int>( IntBase::HEX ) );
+            sernum_i = strToInt( serNum );
         else
-            sernum_i = strToInt( serNum, static_cast<int>( IntBase::DEC ) );
+            sernum_i = strToInt( serNum, IntBase::DEC );
     }
     return sernum_i;
 }

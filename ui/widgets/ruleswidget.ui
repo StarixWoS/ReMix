@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>306</width>
-    <height>332</height>
+    <width>245</width>
+    <height>352</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -155,6 +155,11 @@
        <string>16</string>
       </property>
      </row>
+     <row>
+      <property name="text">
+       <string>17</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>Settings</string>
@@ -162,7 +167,10 @@
      </column>
      <item row="0" column="0">
       <property name="text">
-       <string>Require Password</string>
+       <string>Strictly Enforce Rules</string>
+      </property>
+      <property name="toolTip">
+       <string>ReMix will strictly enforce all enabled Rules.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -170,13 +178,27 @@
      </item>
      <item row="1" column="0">
       <property name="text">
-       <string>Auto Restart</string>
+       <string>Require Password</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be required to know and enter a password to enter this Server.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
       </property>
      </item>
      <item row="2" column="0">
+      <property name="text">
+       <string>Auto Restart</string>
+      </property>
+      <property name="toolTip">
+       <string>This server will automatically start when ReMix starts.</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="3" column="0">
       <property name="text">
        <string>World Name</string>
       </property>
@@ -187,23 +209,12 @@
        <enum>Unchecked</enum>
       </property>
      </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <property name="text">
        <string>Server Home</string>
       </property>
       <property name="toolTip">
        <string>A URL Address pointing Users to the Server's home website if relevant.</string>
-      </property>
-      <property name="checkState">
-       <enum>Unchecked</enum>
-      </property>
-     </item>
-     <item row="4" column="0">
-      <property name="text">
-       <string>All PKing</string>
-      </property>
-      <property name="toolTip">
-       <string>Users are freely able to PK(Player Killing) regardless of other rules.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -222,7 +233,7 @@
      </item>
      <item row="6" column="0">
       <property name="text">
-       <string>Max AFK</string>
+       <string>Max AFK Duration</string>
       </property>
       <property name="toolTip">
        <string>Users may be AFK(Away From Keyboard) for up to # Minutes.</string>
@@ -233,7 +244,7 @@
      </item>
      <item row="7" column="0">
       <property name="text">
-       <string>Min Version</string>
+       <string>Minimum Game Version</string>
       </property>
       <property name="toolTip">
        <string>Users will be required to use A##(e.g. A97) versioned clients to connect to the Server.</string>
@@ -244,7 +255,7 @@
      </item>
      <item row="8" column="0">
       <property name="text">
-       <string>Report to Ladder</string>
+       <string>Report PK Stats to the Ladder</string>
       </property>
       <property name="toolTip">
        <string>Users will be required to report all PK(Pkayer Killing) statistics to the Synthetic-Reality website.</string>
@@ -255,10 +266,10 @@
      </item>
      <item row="9" column="0">
       <property name="text">
-       <string>No Cursing</string>
+       <string>No Profanity Allowed</string>
       </property>
       <property name="toolTip">
-       <string>Users will be required to censor certain English profanities within Chat.</string>
+       <string>Profanity (cursing) within chat will be censored.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -266,10 +277,10 @@
      </item>
      <item row="10" column="0">
       <property name="text">
-       <string>No Cheating</string>
+       <string>No Cheat Characters Allowed</string>
       </property>
       <property name="toolTip">
-       <string>Users will be unable to perform certain actions with other Users when flagged as a cheater.</string>
+       <string>Users will be unable to use or create characters that are marked as a Cheater.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>
@@ -277,7 +288,7 @@
      </item>
      <item row="11" column="0">
       <property name="text">
-       <string>No Eavesdropping</string>
+       <string>No Chat Eavesdropping Allowed</string>
       </property>
       <property name="toolTip">
        <string>Only chat within a certain radius or scene will be shown to the User.</string>
@@ -288,7 +299,7 @@
      </item>
      <item row="12" column="0">
       <property name="text">
-       <string>No Migrating</string>
+       <string>No Character Migrating Allowed</string>
       </property>
       <property name="toolTip">
        <string>Users will be unable to use Characters that have been migrated to a new client version.</string>
@@ -299,7 +310,7 @@
      </item>
      <item row="13" column="0">
       <property name="text">
-       <string>No Modders</string>
+       <string>No Modified Characters Allowed</string>
       </property>
       <property name="toolTip">
        <string>Users will be unable to use Characters used within a modified World.</string>
@@ -310,7 +321,7 @@
      </item>
      <item row="14" column="0">
       <property name="text">
-       <string>No Pets</string>
+       <string>No Pets Allowed</string>
       </property>
       <property name="toolTip">
        <string>Users will be unable to use Pets.</string>
@@ -321,7 +332,7 @@
      </item>
      <item row="15" column="0">
       <property name="text">
-       <string>No PKing</string>
+       <string>No Player Killers Allowed</string>
       </property>
       <property name="toolTip">
        <string>Users will be unable to use or create Characters capable of PK(Player Killing).</string>
@@ -332,10 +343,21 @@
      </item>
      <item row="16" column="0">
       <property name="text">
-       <string>Arena PKing</string>
+       <string>Only Player Killers Allowed</string>
       </property>
       <property name="toolTip">
-       <string>Users will be able to freely PK(Pkayer Killing) within certain &quot;Arena&quot; areas dependant on the World selected.</string>
+       <string>Users will be unable to use or create Characters incapable of PK(Player Killing).</string>
+      </property>
+      <property name="checkState">
+       <enum>Unchecked</enum>
+      </property>
+     </item>
+     <item row="17" column="0">
+      <property name="text">
+       <string>Only Arena Player Killing Allowed</string>
+      </property>
+      <property name="toolTip">
+       <string>Users will be able to freely PK(Player Killing) within certain &quot;Arena&quot; areas dependant on the World selected.</string>
       </property>
       <property name="checkState">
        <enum>Unchecked</enum>

@@ -14,5 +14,8 @@
         <file>gSoulPK.png</file>
         <file>soulPK.png</file>
         <file>soulWell.png</file>
+        <file>soulCheater.png</file>
+        <file>soulModder.png</file>
+        <file>soulMuted.png</file>
     </qresource>
 </RCC>

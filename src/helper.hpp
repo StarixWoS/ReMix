@@ -26,7 +26,7 @@ class Helper
                 str = str.mid( str.length() - 8 );
             return str;
         }
-        static qint32 strToInt(const QString& str, const int& base = 16);
+        static qint32 strToInt(const QString& str, const IntBase& base = IntBase::HEX);
         static QString intSToStr(const QString& val, const int& base = 16, const int& fill = 0, QChar filler = '0');
         static QString getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left);
 
