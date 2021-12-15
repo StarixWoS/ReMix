@@ -12,6 +12,7 @@ class UdpThread : public QThread
     Q_OBJECT
 
     QUdpSocket* socket{ nullptr };
+    Games gameID{ Games::Invalid };
 
     qint32 usageDays{ 0 };
     qint32 usageHours{ 0 };
@@ -56,6 +57,7 @@ class UdpThread : public QThread
         void serverWorldChangedSlot(const QString& newWorld);
         void serverNameChangedSlot(const QString& newName);
         void serverIDChangedSlot(const QString& id);
+        void serverGameChangedSlot(const Games& game);
 };
 
 #endif // UDPTHREAD_HPP

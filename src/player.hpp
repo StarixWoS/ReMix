@@ -16,7 +16,7 @@ class Player : public QTcpSocket
 {
     Q_OBJECT
 
-    QStandardItem* tableRow{ nullptr };
+    QList<QMetaObject::Connection> slotConnections;
     QSharedPointer<Server> server;
     User* userUIObject{ nullptr };
 
@@ -51,6 +51,8 @@ class Player : public QTcpSocket
     qint32 targetSerNum{ 0 };
     qint32 targetHost{ 0 };
     qint32 sceneHost{ 0 };
+
+    bool hasSerNum{ false };
     qint32 sernum_i{ 0 };
     qint32 plrLevel{ 0 };
 
@@ -75,6 +77,7 @@ class Player : public QTcpSocket
     QElapsedTimer floodTimer;
     QElapsedTimer idleTime;
 
+    QTimer serNumKillTimer;
     QTimer killTimer;
     QTimer afkTimer;
 
@@ -100,9 +103,11 @@ class Player : public QTcpSocket
         bool getIsVisible() const;
         void setIsVisible(const bool& value);
 
-        bool getHasSernum() const;
+        bool getHasSerNum() const;
+        void setHasSerNum( const bool& value);
+
         qint32 getSernum_i() const;
-        void setSernum_i(qint32 value);
+        void setSernum_i(const qint32& value);
 
         QString getSernum_s() const;
         void setSernum_s(const QString& value);

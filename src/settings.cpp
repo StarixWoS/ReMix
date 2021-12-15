@@ -76,7 +76,8 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     { SSubKeys::StrictRules,            "enforceRules"   },
     { SSubKeys::HasSvrPassword,         "hasSvrPassword" },
     { SSubKeys::SvrPassword,            "svrPassword"    },
-    { SSubKeys::World,                  "world"          },
+    { SSubKeys::WorldName,              "world"          },
+    { SSubKeys::ToYName,                "toy"            },
     { SSubKeys::SvrUrl,                 "url"            },
     { SSubKeys::AllPK,                  "allPK"          },
     { SSubKeys::MaxPlayers,             "maxP"           },
@@ -156,7 +157,7 @@ QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
     SSubKeys::SvrUrl,
     SSubKeys::NoPets,
     SSubKeys::MaxIdle,
-    SSubKeys::World,
+    SSubKeys::WorldName,
     SSubKeys::AllPK,
     SSubKeys::NoPK,
 };

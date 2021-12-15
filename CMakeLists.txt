@@ -6,10 +6,8 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -s")
 
-set(BUILD_VERSION 3.0.2 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.0.3 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -20,12 +18,15 @@ add_compile_definitions(REMIX_VERSION=\"${ReMix_VERSION}\")
 find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent REQUIRED)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ui/ ui/widgets/)
-set(SRC_LIST src/ src/widgets/)
+set(SRC_LIST src/ src/widgets/ src/thread src/views src/packethandlers )
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(SOURCES src/views/usersortproxymodel.cpp
+set(SOURCES src/packethandlers/wospackethandler.cpp
+        src/packethandlers/toypackethandler.cpp
+        src/packethandlers/w97packethandler.cpp
+        src/views/usersortproxymodel.cpp
         src/views/plrsortproxymodel.cpp
         src/widgets/settingswidget.cpp
         src/widgets/remixtabwidget.cpp
@@ -63,7 +64,10 @@ set(SOURCES src/views/usersortproxymodel.cpp
         src/user.cpp
         src/upnp.cpp
         src/main.cpp)
-set(HEADERS src/views/usersortproxymodel.hpp
+set(HEADERS src/packethandlers/wospackethandler.hpp
+        src/packethandlers/toypackethandler.hpp
+        src/packethandlers/w97packethandler.hpp
+        src/views/usersortproxymodel.hpp
         src/views/plrsortproxymodel.hpp
         src/widgets/settingswidget.hpp
         src/widgets/remixtabwidget.hpp

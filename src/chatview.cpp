@@ -206,8 +206,8 @@ bool ChatView::parseChatEffect(const QString& packet)
     if ( server->getGameId() != Games::W97 )
     {
 
-        QString fltrCode{ packet.mid( 13 ).left( 2 ) };
-        ChatType code{ static_cast<ChatType>( ( fltrCode.at( 0 ).toLatin1() - 'A' ) & 0xFF ) };
+        const QString fltrCode{ packet.mid( 13 ).left( 2 ) };
+        const ChatType code{ static_cast<ChatType>( ( fltrCode.at( 0 ).toLatin1() - 'A' ) & 0xFF ) };
         if ( code == ChatType::Unk3
           || code == ChatType::PetCmd
           || code == ChatType::SceneMsg )
@@ -310,7 +310,7 @@ bool ChatView::parseChatEffect(const QString& packet)
                             && plr->getIsIncarnated() )
                           && server->getGameId() == Games::WoS ) //Only parse these Chat types if on WoS, and if the Player *is* incarnated.
                         {
-                            QString msg{ message.mid( message.indexOf( plrName ) + plrName.length() ).simplified() };
+                            const QString msg{ message.mid( message.indexOf( plrName ) + plrName.length() ).simplified() };
                             switch ( code )
                             {
                                 case ChatType::DiceAndLevelUp:
@@ -342,11 +342,8 @@ bool ChatView::parseChatEffect(const QString& packet)
                             }
                         }
                         else
-                        {
-                            this->insertColoredName( plr );
-                            this->insertColoredSerNum( plr );
                             this->insertChat( message, msgColor, false );
-                        }
+
                         message = plrName % ": " % message;
                     }
                 break;
@@ -358,7 +355,7 @@ bool ChatView::parseChatEffect(const QString& packet)
     }
     else
     {
-        qint32 plrSlot{ Helper::strToInt( packet.left( 6 ).mid( 4 ) ) };
+        const qint32 plrSlot{ Helper::strToInt( packet.left( 6 ).mid( 4 ) ) };
         for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {
             plr = server->getPlayer( i );

@@ -53,6 +53,7 @@ Server::Server(QWidget* parent)
     QObject::connect( this, &Server::serverWorldChangedSignal, udpThread, &UdpThread::serverWorldChangedSlot );
     QObject::connect( this, &Server::serverUsageChangedSignal, udpThread, &UdpThread::serverUsageChangedSlot );
     QObject::connect( this, &Server::serverNameChangedSignal, udpThread, &UdpThread::serverNameChangedSlot );
+    QObject::connect( this, &Server::serverGameChangedSignal, udpThread, &UdpThread::serverGameChangedSlot );
     QObject::connect( this, &Server::serverIDChangedSignal, udpThread, &UdpThread::serverIDChangedSlot );
     QObject::connect( this, &Server::closeUdpSocketSignal, udpThread, &UdpThread::closeUdpSocketSlot, Qt::BlockingQueuedConnection );
     QObject::connect( this, &Server::sendUdpDataSignal, udpThread, &UdpThread::sendUdpDataSlot );
@@ -500,7 +501,7 @@ void Server::sendPlayerSocketInfo()
 
     for ( QSharedPointer<Player> plr : this->getPlayerVector() )
     {
-        if ( plr != nullptr && plr->getHasSernum() )
+        if ( plr != nullptr && plr->getHasSerNum() )
         {
             ipAddr = QHostAddress( plr->getIPAddress() );
             response = response.append( filler.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX ) )
@@ -656,6 +657,7 @@ Games Server::getGameId() const
 
 void Server::setGameId(const Games& game)
 {
+    emit this->serverGameChangedSignal( game );
     gameId = game;
 }
 
@@ -825,7 +827,11 @@ void Server::setPlayerCount(const quint32& value)
 {
     if ( value == 0 )
     {
-        this->setGameWorld( Settings::getSetting( SKeys::Rules, SSubKeys::World, this->getServerName() ).toString() );
+        if ( this->getGameId() == Games::WoS )
+            this->setGameWorld( Settings::getSetting( SKeys::Rules, SSubKeys::WorldName, this->getServerName() ).toString() );
+        else if ( this->getGameId() == Games::ToY )
+            this->setGameWorld( Settings::getSetting( SKeys::Rules, SSubKeys::ToYName, this->getServerName() ).toString() );
+
         playerCount = 0;
     }
     else

@@ -99,6 +99,11 @@
     class WriteThread;
     class UdpThread;
 
+    //Packet Handlers.
+    class WoSPacketHandler;
+    class ToYPacketHandler;
+    class W97PacketHandler;
+
     //GUI and Data Storage Classes.
     class CreateInstance;
     class AppEventFilter;
@@ -223,8 +228,12 @@
             UI_UPDATE_TIME = 500,
 
             //Maximum time a User may remain connected after having a
-            //"disconnect" initiated on their socket. (250MS|
+            //"disconnect" initiated on their socket. (250MS)
             MAX_DISCONNECT_TTL = 250,
+
+            //Maximum time a User may remain connected with an invalid or '0' SerNum value.
+            //5 Minutes in milliseconds.
+            MAX_SERNUM_TTL = 300000,
 
             //Maximum Count that ReMix will allow a User to send a packet with the incorrect Packet ID.
             MAX_PKT_HEADER_EXEMPT = 5,
@@ -332,7 +341,7 @@
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
                                   GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
                                   LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface,
-                                  HasSvrPassword, SvrPassword, World, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat,
+                                  HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat,
                                   NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount };
 
         //Valid Toggles for the Settings Widget.
@@ -340,8 +349,8 @@
                                   InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMasterHost, OverrideMaster = 16 };
 
         //Valid Toggles for the Rules Widget.
-        enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep, NoCheat,
-                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, AllPK, ArenaPK = 17 };
+        enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep,
+                                  NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, AllPK, ArenaPK = 17 };
 
         //Valid bases for use in converting strings to integers.
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };

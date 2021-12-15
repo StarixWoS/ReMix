@@ -125,7 +125,8 @@ void CreateInstance::updateServerList(const bool& firstRun)
         }
 
         if ( !skip
-          && ( !restart || !isRunning ) )
+          && ( ( restart && !isRunning )
+            || ( !restart && !isRunning ) ) )
         {
             validServers.append( name );
             ++serverCount;

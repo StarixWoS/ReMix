@@ -276,6 +276,7 @@ class Server : public QTcpServer
         void serverUsageChangedSignal(const qint32& minute, const qint32& day, const qint32& hour);
         void serverWorldChangedSignal(const QString& newWorld);
         void serverNameChangedSignal(const QString& newName);
+        void serverGameChangedSignal(const Games& game);
         void serverIDChangedSignal(const QString& serverID);
         void setMaxIdleTimeSignal(const qint64& maxAFK);
 

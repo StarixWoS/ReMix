@@ -196,16 +196,18 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
         auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
         [=, this]()
         {
-            QString msg{ "Connecting the [ %1 ] Master Mix." };
-                    msg = msg.arg( gameNames.value( game ) );
-
-            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
-
             this->obtainMasterData( game );
         }, Qt::ConnectionType::UniqueConnection );
 
         if ( connection )
+        {
+            //Emit the Log message only if the connection is *New*.
+            QString msg{ "Connecting to the [ %1 ] Master Mix." };
+                    msg = msg.arg( gameNames.value( game ) );
+
+            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
             connectedGames.insert( game, connection );
+        }
     }
 
     if ( !download )
@@ -224,7 +226,7 @@ void MasterMixThread::removeConnectedGameSlot(const Games& game)
     if ( connectedGames.contains( game ) )
     {
         auto connection = connectedGames.take( game );
-        if( QObject::disconnect( connection ) )
+        if ( QObject::disconnect( connection ) )
         {
             QString msg{ "Disconnecting from the [ %1 ] Master Mix." };
                     msg = msg.arg( gameNames.value( game ) );

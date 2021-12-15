@@ -51,6 +51,30 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     //Start the AFK timer.
     afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
 
+    //Connect to the serNumKillTimer.
+    QObject::connect( &serNumKillTimer, &QTimer::timeout, &serNumKillTimer,
+    [this]()
+    {
+        static const QString reason{ "Auto-Disconnect; SerNum Await Timeout." };
+        static const QString message{ " ReMix requires a SerNum to be sent within 5 Minutes of connecting." };
+        QString append{ ", [ %1 ][ %2 ]" };
+
+        //The User has been given 5 minues to send a valid SerNum. Disconnect them.
+        if ( !this->getHasSerNum() )
+        {
+            append = append.arg( this->getIPAddress() )
+                           .arg( this->getBioData() );
+            server->sendMasterMessage( reason + message, this->getThisPlayer(), false );
+
+            emit this->insertLogSignal( server->getServerName(), reason + append, LKeys::PunishmentLog, true, true );
+
+            this->setDisconnected( true, DCTypes::IPDC );
+        }
+    } );
+
+    //Start the Sernum timer.
+    serNumKillTimer.start( static_cast<int>( Globals::MAX_SERNUM_TTL ) );
+
     //Connect the Player Object to a User UI signal.
     QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this,
     [=, this](const QString& sernum, const quint64& duration)
@@ -151,9 +175,14 @@ void Player::setIsVisible(const bool& value)
     emit this->setVisibleStateSignal( isVisible );
 }
 
-bool Player::getHasSernum() const
+bool Player::getHasSerNum() const
 {
-    return this->getSernum_i() != 0;
+    return hasSerNum;
+}
+
+void Player::setHasSerNum(const bool& value)
+{
+    hasSerNum = value;
 }
 
 qint32 Player::getSernum_i() const
@@ -161,7 +190,7 @@ qint32 Player::getSernum_i() const
     return sernum_i;
 }
 
-void Player::setSernum_i(qint32 value)
+void Player::setSernum_i(const qint32& value)
 {
     if ( value != this->getSernum_i() )
     {
@@ -206,6 +235,7 @@ void Player::setSernum_i(qint32 value)
 
         server->sendPlayerSocketInfo();
     }
+    this->setHasSerNum(( sernum_i != 0 ));
 }
 
 QString Player::getSernum_s() const

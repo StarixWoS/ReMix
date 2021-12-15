@@ -87,7 +87,12 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 if (( reqSernum && Helper::serNumtoInt( sernum, true ) )
                   || !reqSernum )
                 {
-                    QString sGameInfo{ " [world=%1]" };
+                    QString sGameInfo{ "" };
+                    if ( gameID == Games::ToY )
+                        sGameInfo = " [toy=%1]";
+                    else
+                        sGameInfo = " [world=%1]";
+
                     if ( !worldInfo.isEmpty() )
                         sGameInfo = sGameInfo.arg( worldInfo );
                     else
@@ -237,4 +242,9 @@ void UdpThread::serverNameChangedSlot(const QString& newName)
 void UdpThread::serverIDChangedSlot(const QString& id)
 {
     serverID = id;
+}
+
+void UdpThread::serverGameChangedSlot(const Games& game)
+{
+    gameID = game;
 }

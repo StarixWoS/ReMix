@@ -62,14 +62,26 @@ void RulesWidget::deleteInstance(QSharedPointer<Server> server)
 
 void RulesWidget::setServerName(const QString& name)
 {
+    QSharedPointer<Server> server = ruleWidgets.key( this );
+
     //Load Rules from file.
     QVariant val;
     QString rowText{ "" };
 
-    val = Settings::getSetting( SKeys::Rules, SSubKeys::World, name );
-    this->setCheckedState( RToggles::WorldName, !val.toString().isEmpty() );
 
-    rowText = "World Name: [ %1 ]";
+    if ( server != nullptr
+      && server->getGameId() == Games::ToY )
+    {
+        val = Settings::getSetting( SKeys::Rules, SSubKeys::ToYName, name );
+        rowText = "ToY Name: [ %1 ]";
+    }
+    else
+    {
+        val = Settings::getSetting( SKeys::Rules, SSubKeys::WorldName, name );
+        rowText = "World Name: [ %1 ]";
+    }
+
+    this->setCheckedState( RToggles::WorldName, !val.toString().isEmpty() );
     ui->rulesView->item( static_cast<int>( RToggles::WorldName ), 0 )->setText( rowText.arg( val.toString() ) );
     this->setGameInfo( val.toString() );
 
@@ -255,8 +267,16 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
         break;
         case RToggles::WorldName:
             {
-                QString world{ Settings::getSetting( SKeys::Rules, SSubKeys::World, serverName ).toString() };
-                bool ok{ false };
+                QSharedPointer<Server> server = ruleWidgets.key( this );
+                Games game{ Games::Invalid };
+                if ( server != nullptr )
+                    game = server->getGameId();
+
+                QString world{ "" };
+                if ( game == Games::ToY )
+                    world = Settings::getSetting( SKeys::Rules, SSubKeys::ToYName, serverName ).toString();
+                else
+                    world = Settings::getSetting( SKeys::Rules, SSubKeys::WorldName, serverName ).toString();
 
                 QString worldDir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                 if ( !worldDir.isEmpty() )
@@ -278,12 +298,21 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 }
                 else
                 {
+                    bool ok{ false };
                     if ( state )
                     {
                         if ( world.isEmpty() )
                         {
-                            title = "Server World:";
-                            prompt = "World:";
+                            if ( game == Games::ToY )
+                            {
+                                title = "Server ToY:";
+                                prompt = "ToY:";
+                            }
+                            else
+                            {
+                                title = "Server World:";
+                                prompt = "World:";
+                            }
                             world = Helper::getTextResponse( this, title, prompt, "", &ok, MessageBox::SingleLine );
                         }
 
@@ -299,14 +328,23 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 }
 
                 ui->rulesView->item( row, 0 )->setCheckState( state == true ? Qt::Checked : Qt::Unchecked );
-                rowText = "World Name: [ %1 ]";
+                if ( game == Games::ToY )
+                {
+                    Settings::setSetting( world, SKeys::Rules, SSubKeys::ToYName, serverName );
+                    rowText = "ToY Name: [ %1 ]";
+                }
+                else
+                {
+                    Settings::setSetting( world, SKeys::Rules, SSubKeys::WorldName, serverName );
+                    rowText = "World Name: [ %1 ]";
+                }
+
                 if ( world.isEmpty() )
                     rowText = rowText.arg( "Not Selected" );
                 else
                     rowText = rowText.arg( world );
 
                 ui->rulesView->item( static_cast<int>( RToggles::WorldName ), 0 )->setText( rowText );
-                Settings::setSetting( world, SKeys::Rules, SSubKeys::World, serverName );
 
                 this->setGameInfo( world );
             }

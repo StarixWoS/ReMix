@@ -4,6 +4,26 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.3:
+    Change:
+      * Increased Compatibility with the SynGame Arcadia[ ToY ].
+        * ReMix will now correctly identify on the MasterMix server list which minigame is being played.
+      * Split the PacketHandler's parsing of packets into dedicated sub-classes for each suppoerted SynGame.
+      * ReMix will now disconnect any User that has not sent a valid, non-zero SerNum within 5 Minutes of the Player object being created.
+      
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where Server Instances with the "Auto Restart" rule enabled would not correctly restart.
+      * Fixed an issue where a User would remain connected in an invalid state as SerNum 0.
+        * This would cause any new Users to be disconnected as a "Duplicate SerNum".
+      
+
+
+
+
 Version 3.0.2:
     Change:
       * Properly use Qt's "QInputDialog::getInt" when obtaining integers within the Rules Settings tab.
@@ -37,6 +57,7 @@ Version 3.0.2:
         * This is due to the Packet Slot Positions being unable to exceed 255 when converted to Hex (0xFF).
       * Fixed another issue where disabling and enabling the "Public" toggle would not correctly restart the MasterMix check-in timers.
       * Fixed an issue where Server Instances with the "Auto Restart" rule enabled would not correctly restart.
+      * Fixed an issue where a User would be shown as returning to a lobby despite having never fully connected.
 
 
 
