@@ -19,6 +19,7 @@ Version 3.0.3:
       * Fixed an issue where Server Instances with the "Auto Restart" rule enabled would not correctly restart.
       * Fixed an issue where a User would remain connected in an invalid state as SerNum 0.
         * This would cause any new Users to be disconnected as a "Duplicate SerNum".
+      * Fixed an issue within the WoS and ToY packet handlers related to sending and ignoring packets.
       
 
 

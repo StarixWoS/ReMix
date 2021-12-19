@@ -47,7 +47,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
         serNumColor = Colors::GoldenSoul;
 
     QString pkt{ PacketForge::getInstance()->decryptPacket( packet ) };
-    bool retn{ false };
+    bool retn{ true };
 
     if ( !pkt.isEmpty() )
     {

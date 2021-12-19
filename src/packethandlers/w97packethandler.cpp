@@ -40,7 +40,7 @@ bool W97PacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
     if ( plr == nullptr )
         return false;
 
-    bool retn{ false };
+    bool retn{ true };
     QString pkt{ packet };
     pkt = PacketForge::getInstance()->decryptPacket( packet );
 
