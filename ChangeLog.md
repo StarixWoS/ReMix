@@ -4,13 +4,28 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.4:
+    Change:
+      * Renamed a Helper function to correct name-case. serNumtoInt -> serNumToInt.
+      
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where ReMix would crash when attempting to parse a zero-width (empty) packet.
+
+
+
+
+
 Version 3.0.3:
     Change:
       * Increased Compatibility with the SynGame Arcadia[ ToY ].
         * ReMix will now correctly identify on the MasterMix server list which minigame is being played.
       * Split the PacketHandler's parsing of packets into dedicated sub-classes for each suppoerted SynGame.
       * ReMix will now disconnect any User that has not sent a valid, non-zero SerNum within 5 Minutes of the Player object being created.
-      
+
 
 
 
@@ -20,7 +35,7 @@ Version 3.0.3:
       * Fixed an issue where a User would remain connected in an invalid state as SerNum 0.
         * This would cause any new Users to be disconnected as a "Duplicate SerNum".
       * Fixed an issue within the WoS and ToY packet handlers related to sending and ignoring packets.
-      
+
 
 
 

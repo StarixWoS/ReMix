@@ -290,7 +290,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
-            if ( !( Helper::serNumtoInt( arg1, true ) & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
+            if ( !( Helper::serNumToInt( arg1, true ) & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
                 arg1.prepend( "SOUL " );
         }
         else if ( Helper::cmpStrings( subCmd, "change" ) )

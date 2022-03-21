@@ -24,6 +24,7 @@ class Helper
 
             if ( str.length() > 8 )
                 str = str.mid( str.length() - 8 );
+
             return str;
         }
         static qint32 strToInt(const QString& str, const IntBase& base = IntBase::HEX);
@@ -35,7 +36,7 @@ class Helper
         static QString sanitizeSerNum(const QString& value);
         static QString serNumToHexStr(QString sernum, const IntFills& fillAmt = IntFills::DblWord );
         static QString serNumToIntStr(const QString& sernum, const bool& isHex = false);
-        static qint32 serNumtoInt(const QString& sernum, const bool& isHex = false);
+        static qint32 serNumToInt(const QString& sernum, const bool& isHex = false);
 
         static bool isBlueCodedSerNum(const qint32& sernum);
 

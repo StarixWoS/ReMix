@@ -13,6 +13,7 @@
 //    #include <QDialog>
 //    #include <QTimer>
 
+    #include <QtCore/QtContainerFwd>
     class QNetworkAccessManager;
     class QSortFilterProxyModel;
     class QNetworkAddressEntry;
@@ -56,7 +57,6 @@
     class QPalette;
     class QLibrary;
     class QToolTip;
-    class QVariant;
     class QtEndian;
     class QProcess;
     class QLayout;

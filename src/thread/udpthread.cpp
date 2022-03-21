@@ -84,7 +84,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 }
 
                 bool reqSernum{ Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() };
-                if (( reqSernum && Helper::serNumtoInt( sernum, true ) )
+                if (( reqSernum && Helper::serNumToInt( sernum, true ) )
                   || !reqSernum )
                 {
                     QString sGameInfo{ "" };

@@ -77,8 +77,10 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
     }
 
     QByteArray pkt{ packet };
-    QChar opCode{ pkt.at( 4 ) };
     QString data{ pkt };
+    QChar opCode{ ' ' };
+    if ( data.size() > 4 )
+        opCode = data.at( 4 );
 
     this->detectFlooding( plr );
 
@@ -117,6 +119,8 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
             case '9':   //Set/Read SSV Variable.
                 this->readMIX9( data, plr );
             break;
+            default:
+                return;
         }
     }
     else if ( Helper::strStartsWithStr( packet, ":SR" )
@@ -132,7 +136,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
         else if ( Helper::strStartsWithStr( pkt, ":SR?" ) ) //User is requesting Slot information for their packet headers.
         {
             QString sernum{ packet.mid( 4 ).left( 8 ) };
-            plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
+            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
 
             server->sendPlayerSocketPosition( plr, false );
             return; //No need to continue parsing. Return now.
@@ -437,14 +441,14 @@ void PacketHandler::readMIX0(const QString& packet, QSharedPointer<Player> plr)
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
 
     //Send the next Packet to the Scene's Host.
-    plr->setTargetScene( Helper::serNumtoInt( sernum, true ) );
+    plr->setTargetScene( Helper::serNumToInt( sernum, true ) );
     plr->setTargetType( PktTarget::SCENE );
 }
 
 void PacketHandler::readMIX1(const QString& packet, QSharedPointer<Player> plr)
 {
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
-    plr->setSceneHost( Helper::serNumtoInt( sernum, true ) );
+    plr->setSceneHost( Helper::serNumToInt( sernum, true ) );
 }
 
 void PacketHandler::readMIX2(const QString&, QSharedPointer<Player> plr)
@@ -457,7 +461,7 @@ void PacketHandler::readMIX3(const QString& packet, QSharedPointer<Player> plr)
 {
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
 
-    plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
+    plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
     this->checkBannedInfo( plr );
 }
 
@@ -465,7 +469,7 @@ void PacketHandler::readMIX4(const QString& packet, QSharedPointer<Player> plr)
 {
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
 
-    plr->setTargetSerNum( Helper::serNumtoInt( sernum, true ) );
+    plr->setTargetSerNum( Helper::serNumToInt( sernum, true ) );
     plr->setTargetType( PktTarget::PLAYER );
 }
 
@@ -475,7 +479,7 @@ void PacketHandler::readMIX5(const QString& packet, QSharedPointer<Player> plr)
     if ( plr != nullptr )
     {
         if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
+            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
 
         //Do not accept comments from User who have been muted.
         if ( !plr->getIsMuted() )
@@ -489,7 +493,7 @@ void PacketHandler::readMIX6(const QString& packet, QSharedPointer<Player> plr)
     if ( plr != nullptr )
     {
         if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, Helper::serNumtoInt( sernum, true ) );
+            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
 
         //Do not accept commands from User who have been muted.
         if ( !plr->getIsMuted() )
@@ -510,7 +514,7 @@ void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
             pkt = pkt.left( pkt.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, Helper::serNumtoInt( pkt, true ) );
+    plr->validateSerNum( server, Helper::serNumToInt( pkt, true ) );
     this->checkBannedInfo( plr );
 }
 

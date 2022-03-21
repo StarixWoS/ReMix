@@ -149,9 +149,11 @@ void Helper::stripNewlines(QString& string)
 {
     if ( string.contains( "\r\n" ) ) //Replace Unix NewLines with Spaces.
         string = string.replace( "\r\n", " " );
-    else if ( string.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
+
+    if ( string.contains( "\r" ) ) //Replace Carriage Returns with Spaces.
         string = string.replace( "\r", " " );
-    else if ( string.contains( "\n" ) ) //Replace NewLines with Spaces.
+
+    if ( string.contains( "\n" ) ) //Replace NewLines with Spaces.
         string = string.replace( "\n", " " );
 }
 
@@ -212,7 +214,7 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
         serNum = serNum.mid( serNum.length() - 8 );
     }
 
-    qint32 sernum_i{ serNumtoInt( serNum, isHex ) };
+    qint32 sernum_i{ serNumToInt( serNum, isHex ) };
     QString retn{ "" };
 
     if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) || !isHex )
@@ -228,7 +230,7 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
     return retn;
 }
 
-qint32 Helper::serNumtoInt(const QString& sernum, const bool& isHex)
+qint32 Helper::serNumToInt(const QString& sernum, const bool& isHex)
 {
     QString serNum{ sernum };
             serNum = stripSerNumHeader( sernum );
@@ -368,7 +370,7 @@ QString Helper::getTimeFormat(const qint64& time)
 
 qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
 {
-    qint64 retn{ time };
+    qint64 retn;
     switch ( format )
     {
         case TimeFormat::Days:
@@ -386,6 +388,7 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
         case TimeFormat::Seconds:
             retn = ( time % static_cast<int>( TimeDivide::Seconds ) );
         break;
+        default:
         case TimeFormat::Default:
             retn = time;
         break;
