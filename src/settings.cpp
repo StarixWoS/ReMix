@@ -189,13 +189,13 @@ Settings::Settings(QWidget* parent) :
     }
 
     if ( getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, "Settings" ).toByteArray() );
 }
 
 Settings::~Settings()
 {
     if ( getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
+        setSetting( this->saveGeometry(), SKeys::Positions, "Settings" );
 
     ColorWidget::deleteInstance();
     tabWidget->deleteLater();

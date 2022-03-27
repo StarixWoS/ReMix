@@ -108,17 +108,22 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                                .arg( QString( REMIX_VERSION ) );
 
                     this->sendUdpDataSlot( ipAddr, port, response );
-
-                    QString msg{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
-                            msg = msg.arg( ipAddr.toString() )
-                                     .arg( port )
-                                     .arg( Helper::serNumToIntStr( sernum, true ) )
-                                     .arg( data );
-
                     Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
-
                     emit this->logBIOSignal( sernum, ipAddr, data );
-                    emit this->insertLogSignal( serverName, msg, LKeys::PingLog, true, true );
+
+                    QString pingLog{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
+                            pingLog = pingLog.arg( ipAddr.toString() )
+                                             .arg( port )
+                                             .arg( Helper::serNumToIntStr( sernum, true ) )
+                                             .arg( data );
+
+                    QString responseLog{ "Responding to User [ %1:%2 ]; %3" };
+                            responseLog = responseLog.arg( ipAddr.toString() )
+                                                     .arg( port )
+                                                     .arg( response );
+
+                    emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
+                    emit this->insertLogSignal( serverName, responseLog, LKeys::PingLog, true, true );
                 }
                 emit this->increaseServerPingsSignal();
             }
@@ -143,11 +148,24 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
             break;
             case 'Q':   //Send Online User Information.
             {
+                QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
+                        pingLog = pingLog.arg( ipAddr.toString() )
+                                         .arg( port )
+                                         .arg( Helper::serNumToIntStr( sernum, true ) )
+                                         .arg( data );
+                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
             }
             break;
             case 'R':   //Send Online User Information.
             {
+                QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
+                        pingLog = pingLog.arg( ipAddr.toString() )
+                                         .arg( port )
+                                         .arg( Helper::serNumToIntStr( sernum, true ) )
+                                         .arg( data );
+
+                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );
             }
             break;

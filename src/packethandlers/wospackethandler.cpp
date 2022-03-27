@@ -154,7 +154,8 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                             if ( tmpPlr != nullptr
                               && plr != tmpPlr )
                             {
-                                if ( tmpPlr->getIsVisible() ) //Do not force Invisible Users to send camp packets.
+                                if ( tmpPlr->getIsVisible()
+                                  && !tmpPlr->getIsMuted() ) //Do not force Invisible or Muted Users to send camp packets.
                                 {
                                     if ( plr->getSceneHost() != tmpPlr->getSernum_i()
                                       || plr->getSceneHost() <= 0 )

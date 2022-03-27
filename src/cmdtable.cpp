@@ -11,249 +11,267 @@ CmdTable* CmdTable::instance{ nullptr };
 const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
 {
     {   //Command Implemented.
-        "help",
-        {},
+        { "help" },
+        1,
+        { },
         0,
-        "Help Description: Shows command information and syntax.",
-        "Help Usage: /help *Command"
+        "Command Description: Shows command information and syntax.",
+        "Command Usage: /help *Command"
         "e.g. (/help help) will show the command description and format!",
         GMRanks::User,
         true,
         GMCmds::Help,
     },
     {   //Command Implemented.
-        "list",
+        { "list" },
+        1,
         { },
         0,
-        "List Description: Prints all commands the User has access to.",
-        "List Usage: /list", //List does not have a Syntax.
+        "Command Description: Prints all commands the User has access to.",
+        "Command Usage: /list", //List does not have a Syntax.
         GMRanks::User,
         true,
         GMCmds::List,
     },
     {   //Command Implemented.
-        "motd",
+        { "motd" },
+        1,
         { "change", "remove", },
         2,
-        "MotD Description: Sets the Server's Message of the Day.",
-        "MotD Usage: /motd change | remove *Message. "
+        "Command Description: Sets the Server's Message of the Day.",
+        "Command Usage: /motd change | remove *Message. "
         "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
         GMRanks::CoAdmin,
         true,
         GMCmds::MotD,
     },
-    {
-        //Server UpTime, Connected Users, Connected Admins.
-        "info",
+    {   //Server UpTime, Connected Users, Connected Admins.
+        { "info" },
+        1,
         { "server", "soul" },
         2,
-        "Info Description: Shows the Server or User Information.",
-        "Info Usage: /info server | soul e.g. \"/info soul 4000\".",
+        "Command Description: Shows the Server or User Information.",
+        "Command Usage: /info server | soul e.g. \"/info soul 4000\".",
         GMRanks::GMaster,
         true,
         GMCmds::Info,
     },
     {   //Command Implemented.
-        //TODO: Allow the Admin to select a duration for the ban.
-        "ban",
+        { "ban" },
+        1,
         { "soul", "ip", "all"  },
         3,
-        "Ban Description: Bans the selected user and prevents their future connection to the server.",
-        "Ban Usage: /ban Soul | IP | All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
+        "Command Description: Bans the selected user and prevents their future connection to the server.",
+        "Command Usage: /ban Soul | IP | All <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
         "(Duration is default to 30 Days if not provided). e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
         GMRanks::CoAdmin,
         true,
         GMCmds::Ban,
     },
     {   //Command Implemented.
-        "unban",
+        { "unban" },
+        1,
         { "soul", "ip", "all" },
         3,
-        "Unban Description: Removes a ban from the selected user and reallows them to connect.",
-        "Unban Usage: /unban Soul | IP | All (Permission Required) *Reason (Optional). "
+        "Command Description: Removes a ban from the selected user and reallows them to connect.",
+        "Command Usage: /unban Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
         GMRanks::CoAdmin,
         true,
         GMCmds::UnBan,
     },
     {   //Command Implemented.
-        "kick",
+        { "kick" },
+        1,
         { "soul", "ip", "all" },
         3,
-        "Kick Description: Disconnects the selected user from the server.",
-        "Kick Usage: /kick Soul | IP | All (Permission Required) *Reason (Optional). "
+        "Command Description: Disconnects the selected user from the server.",
+        "Command Usage: /kick Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
         GMRanks::GMaster,
         true,
         GMCmds::Kick,
     },
     {   //Command Implemented.
-        //TODO: Allow the Admin to select a duration for the Mute.
-        "mute",
+        { "mute" },
+        1,
         { "soul", "ip", "all" },
         3,
-        "Mute Description: Adds a network mute to the selected User.",
-        "Mute Usage: /mute Soul | IP | All (Permission Required) <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
+        "Command Description: Adds a network mute to the selected User.",
+        "Command Usage: /mute Soul | IP | All (Permission Required) <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
         "(Duration is default 10 Minutes if not provided). e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
         GMRanks::GMaster,
         true,
         GMCmds::Mute,
     },
     {   //Command Implemented.
-        "unmute",
+        { "unmute" },
+        1,
         { "soul", "ip", "all" },
         3,
-        "Unmute Description: Removes a network mute imposed on the selected User.",
-        "Unmute Usage: /unmute Soul | IP | All (Permission Required) *Reason (Optional). "
+        "Command Description: Removes a network mute imposed on the selected User.",
+        "Command Usage: /unmute Soul | IP | All (Permission Required) *Reason (Optional). "
         "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
         GMRanks::GMaster,
         true,
         GMCmds::UnMute,
     },
     {   //Command Implemented.
-        //TODO: Add alternate initializer word "message".
-        "msg",
+        { "msg", "message" },
+        2,
         { "soul", "ip", "all" },
         3,
-        "Msg Description: Sends a message to the selected User.",
-        "Message Usage: /msg Soul | IP | All (Permission Required) *Message. "
+        "Command Description: Sends a message to the selected User.",
+        "Command Usage: /msg Soul | IP | All (Permission Required) *Message. "
         "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
         GMRanks::GMaster,
         true,
         GMCmds::Message,
     },
     {   //Command Implemented.
-        "login",
+        { "login" },
+        1,
         { },
         0,
-        "Login Description: Input command from the User to authenticate with the server.",
-        "Login Usage: /login *Password",
+        "Command Description: Input command from the User to authenticate with the server.",
+        "Command Usage: /login *Password",
         GMRanks::User,
         true,
         GMCmds::Login,
     },
     {   //Command Implemented.
-        "register",
+        { "register" },
+        1,
         { },
         0,
-        "Register Description: Input command from the User to register with the server as a Remote Administrator.",
-        "Register Usage: /register *Password",
+        "Command Description: Input command from the User to register with the server as a Remote Administrator.",
+        "Command Usage: /register *Password",
         GMRanks::User,
         true,
         GMCmds::Register,
     },
     {   //Command Implemented.
-        "shutdown",
+        { "shutdown" },
+        1,
         { "stop" },
         1,
-        "Shutdown Description: Initiates server shutdown in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
-        "Shutdown Usage: /shutdown <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/shutdown), (/shutdown Seconds 30) "
+        "Command Description: Initiates server shutdown in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
+        "Command Usage: /shutdown <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/shutdown), (/shutdown Seconds 30) "
         "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
         GMRanks::Admin,
         true,
         GMCmds::ShutDown,
     },
     {   //Command Implemented.
-        "restart",
+        { "restart" },
+        1,
         { "stop" },
         1,
-        "Restart Description: Initiates server restart in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
-        "Restart Usage: /restart <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/restart), (/restart 30s) "
+        "Command Description: Initiates server restart in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
+        "Command Usage: /restart <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/restart), (/restart 30s) "
         "will cause the server to shutdown in 30 seconds, (/restart stop) will cease an inprogress restart.",
         GMRanks::Admin,
         true,
         GMCmds::ReStart,
     },
     {   //Command Unimplemented.
-        "mkadmin",
+        { "mkadmin" },
+        1,
         { },
         0,
-        "MKAdmin Description: Allows the selected User to authenticate with the server as a Remote Administrator.",
+        "Command Description: Allows the selected User to authenticate with the server as a Remote Administrator.",
         "",
         GMRanks::Owner,
         false,
         GMCmds::Invalid,
     },
     {   //Command Unimplemented.
-        "rmadmin",
+        { "rmadmin" },
+        1,
         { },
         0,
-        "RMAdmin Description: Disallows the selected User to authenticate with the server as a Remote Administrator.",
+        "Command Description: Disallows the selected User to authenticate with the server as a Remote Administrator.",
         "",
         GMRanks::Owner,
         false,
         GMCmds::Invalid,
     },
     {   //Command Unimplemented.
-        "chadmin",
+        { "chadmin" },
+        1,
         { },
         0,
-        "CHAdmin Description: Changes the Remote Administrator rank of the selected User.",
+        "Command Description: Changes the Remote Administrator rank of the selected User.",
         "",
         GMRanks::Owner,
         false,
         GMCmds::Invalid,
     },
     {   //Command Unimplemented.
-        "chrules",
+        { "chrules" },
+        1,
         { },
         0,
-        "CHRules Description: Modifies the Server's rule set",
+        "Command Description: Modifies the Server's rule set",
         "",
         GMRanks::Admin,
         false,
         GMCmds::Invalid,
     },
     {   //Command Unimplemented.
-        "chsettings",
+        { "chsettings" },
+        1,
         { },
         0,
-        "CHSettings Description: Modifies the Server's settings.",
+        "Command Description: Modifies the Server's settings.",
         "",
         GMRanks::Admin,
         false,
         GMCmds::Invalid,
     },
     {   //Command Implemented.
-        "vanish",
+        { "vanish" },
+        1,
         { "hide", "show", "status" },
         3,
-        "Vanish Description: Makes the Admin invisible to others. Poof!",
-        "Vanish Usage: /vanish hide | show | status. When no sub-command is "
-        "entered the command acts as an on|off toggle.",
+        "Command Description: Makes the Admin invisible to others. Poof!",
+        "Command Usage: /vanish hide | show | status. When no sub-command is entered the command acts as an on|off toggle.",
         GMRanks::GMaster,
         true,
         GMCmds::Vanish,
     },
     {   //Command Implemented.
-        "version",
+        { "version" },
+        1,
         { },
         0,
-        "Version Description: Shows the Servers Version Information.",
-        "Version Usage: /version",
+        "Command Description: Shows the Servers Version Information.",
+        "Command Usage: /version",
         GMRanks::User,
         true,
         GMCmds::Version,
     },
     {
-        "camp",
+        { "camp" },
+        1,
         { "lock", "unlock", "allowcurrent", "allowall", "allow", "remove" },
         6,
-        "Camp Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. "
+        "Command Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. "
         "If enabling \"allowcurrent\" then only Players online when the Scene was created can enter and the command \"allowall\" reverses that limitation. "
         "Using the command syntax \"/camp allow soul 4000\" or \"/camp remove soul 4000\" you may exempt specific Players from any limitations.",
-        "Camp Usage: /camp lock | unlock | allowcurrent | allowall | allow. Remote Administrators may append \"soul *PlayerSerNum\" to override a "
+        "Command Usage: /camp lock | unlock | allowcurrent | allowall | allow. Remote Administrators may append \"soul *PlayerSerNum\" to override a "
         "Player's status. e.g. \"/camp lock soul 4000\".",
         GMRanks::User,
         true,
         GMCmds::Camp,
     },
     {
-        "guild",
+        { "guild" },
+        1,
         { "create", "join", "kick", "leave" },
         3,
-        "Guild Description: ",
-        "Guild Usage: /camp *message | create | join | leave.",
+        "Command Description: ",
+        "Command Usage: /camp *message | create | join | leave.",
         GMRanks::User,
         false,
         GMCmds::Guild,
@@ -298,9 +316,9 @@ bool CmdTable::getCmdHasSubCmd(const GMCmds& index)
     return cmdTable.at( static_cast<qint32>( index ) ).subCmdCount >= 1;
 }
 
-QString CmdTable::getCmdName(const GMCmds& index)
+QStringList CmdTable::getCmdName(const GMCmds& index)
 {
-    return cmdTable.at( static_cast<qint32>( index ) ).cmd;
+    return cmdTable.at( static_cast<qint32>( index ) ).cmdActivators;
 }
 
 GMCmds CmdTable::getCmdIndex(const QString& cmd)
@@ -311,11 +329,14 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
     {
         ++idx;
         //Check the current Object if it contains our command information,
-        if ( Helper::cmpStrings( el.cmd, cmd ) )
+        for ( const auto& item : el.cmdActivators )
         {
-            //Make Certain that the command is Activated.
-            if ( el.cmdIsActive )
-                index = static_cast<GMCmds>( idx );
+            if ( Helper::cmpStrings( item, cmd ) )
+            {
+                //Make Certain that the command is Activated.
+                if ( el.cmdIsActive )
+                    index = static_cast<GMCmds>( idx );
+            }
         }
     }
     return index;
@@ -356,17 +377,20 @@ QString CmdTable::collateCmdList(const GMRanks& rank)
         //Check the current Object if it contains our command information,
         if ( el.cmdRank <= rank && el.cmdIsActive )
         {
-            list.append( el.cmd );
-            if ( el.subCmdCount > 0 )
+            for ( const auto& item : el.cmdActivators )
             {
-                list.append( "[ " );
-                for ( const QString& sEl : el.subCmd )
+                list.append( item );
+                if ( el.subCmdCount > 0 )
                 {
-                    list.append( sEl % ", " );
+                    list.append( "[ " );
+                    for ( const QString& sEl : el.subCmd )
+                    {
+                        list.append( sEl % ", " );
+                    }
+                    list.append( " ]" );
                 }
-                list.append( " ]" );
+                list.append( ", " );
             }
-            list.append( ", " );
         }
     }
     return list;

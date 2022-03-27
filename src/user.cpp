@@ -90,7 +90,7 @@ User::User(QWidget* parent) :
         this->setInstance( this );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, "User" ).toByteArray() );
 
     //Setup the Server TableView.
     tblModel = new QStandardItemModel( 0, static_cast<int>( UserCols::ColCount ), nullptr );
@@ -128,7 +128,7 @@ User::User(QWidget* parent) :
 User::~User()
 {
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, "User" );
 
     userData->sync();
     userData->deleteLater();

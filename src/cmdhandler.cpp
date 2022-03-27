@@ -550,9 +550,13 @@ void CmdHandler::cannotIssueAction(QSharedPointer<Player> admin, QSharedPointer<
     if ( admin == nullptr || target == nullptr )
         return;
 
+    QString cmdNames;
+    for ( const auto& item : cmdTable->getCmdName( argIndex ) )
+        cmdNames.append( item + ", " );
+
     QString message{ "Admin [ %1 ]: Unable to issue the command [ %2 ] on the User [ %3 ]. The User may be offline or another Remote Administrator." };
             message = message.arg( admin->getSernum_s() )
-                             .arg( cmdTable->getCmdName( argIndex ) )
+                             .arg( cmdNames )
                              .arg( target->getSernum_s() );
 
     server->sendMasterMessage( message, admin, false );

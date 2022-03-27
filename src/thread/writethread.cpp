@@ -12,8 +12,23 @@
 #include <QtCore>
 #include <QDebug>
 
-WriteThread::WriteThread(const QMap<LKeys, QString>& types, QObject *parent)
-    : QThread(parent), logType( types )
+const QMap<LKeys, QString> WriteThread::logType =
+{
+    { LKeys::AllLogs,       "AllLogs"       }, //Unused, placeholder.
+    { LKeys::AdminLog,      "AdminUsageLog" },
+    { LKeys::CommentLog,    "CommentLog"    },
+    { LKeys::ClientLog,     "ClientLog"     },
+    { LKeys::MasterMixLog,  "MasterMixLog"  },
+    { LKeys::UPNPLog,       "UPNPLog"       },
+    { LKeys::PunishmentLog, "PunishmentLog" },
+    { LKeys::MiscLog,       "MiscLog"       },
+    { LKeys::ChatLog,       "ChatLog"       },
+    { LKeys::SSVLog,        "QuestLog"      },
+    { LKeys::PingLog,       "PingLog"       },
+};
+
+WriteThread::WriteThread(QObject *parent)
+    : QThread(parent)
 {
 }
 
@@ -40,9 +55,9 @@ void WriteThread::run()
     this->exec();
 }
 
-WriteThread* WriteThread::getNewWriteThread(const QMap<LKeys, QString>& types, QObject* parent)
+WriteThread* WriteThread::getNewWriteThread(QObject* parent)
 {
-    return new WriteThread( types, parent );
+    return new WriteThread( parent );
 }
 
 void WriteThread::logToFile(const LKeys& type, const QString& text, const QString& timeStamp, const bool& newLine)
@@ -70,7 +85,7 @@ void WriteThread::logToFile(const LKeys& type, const QString& text, const QStrin
             logTxt.prepend( "\r\n" );
 
         QTextStream stream( &this->getLogFile( type ) );
-        stream << logTxt;
+                    stream << logTxt;
     }
 }
 
@@ -113,7 +128,7 @@ QFile& WriteThread::getLogFile(const LKeys& type)
     return miscLog; //Use Misc log as fallthrough.
 }
 
-void WriteThread::openLogFile(const LKeys& type)
+bool WriteThread::openLogFile(const LKeys& type)
 {
     QString log{ "logs/%1/%2.txt" };
             log = log.arg( logDate )
@@ -128,65 +143,66 @@ void WriteThread::openLogFile(const LKeys& type)
         case LKeys::PunishmentLog:
         {
             punishmentLog.setFileName( log );
-            punishmentLog.open( QFile::WriteOnly | QFile::Append );
+            return punishmentLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::CommentLog:
         {
             commentLog.setFileName( log );
-            commentLog.open( QFile::WriteOnly | QFile::Append );
+            return commentLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::MasterMixLog:
         {
             masterMix.setFileName( log );
-            masterMix.open( QFile::WriteOnly | QFile::Append );
+            return masterMix.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::ClientLog:
         {
             usageLog.setFileName( log );
-            usageLog.open( QFile::WriteOnly | QFile::Append );
+            return usageLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::SSVLog:
         {
             questLog.setFileName( log );
-            questLog.open( QFile::WriteOnly | QFile::Append );
+            return questLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::AdminLog:
         {
             adminLog.setFileName( log );
-            adminLog.open( QFile::WriteOnly | QFile::Append );
+            return adminLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::UPNPLog:
         {
             upnpLog.setFileName( log );
-            upnpLog.open( QFile::WriteOnly | QFile::Append );
+            return upnpLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::MiscLog:
         {
             miscLog.setFileName( log );
-            miscLog.open( QFile::WriteOnly | QFile::Append );
+            return miscLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::ChatLog:
         {
             chatLog.setFileName( log );
-            chatLog.open( QFile::WriteOnly | QFile::Append );
+            return chatLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::PingLog:
         {
             pingLog.setFileName( log );
-            pingLog.open( QFile::WriteOnly | QFile::Append );
+            return pingLog.open( QFile::WriteOnly | QFile::Append );
         }
         break;
         case LKeys::AllLogs: break;
     }
+    return false;
 }
 
 void WriteThread::closeLogFile(QFile& log)

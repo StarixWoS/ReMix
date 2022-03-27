@@ -51,7 +51,7 @@ Logger::Logger(QWidget *parent) :
     ui->setupUi(this);
 
     logThread = new QThread();
-    writeThread = WriteThread::getNewWriteThread( logType, nullptr );
+    writeThread = WriteThread::getNewWriteThread( nullptr );
     writeThread->moveToThread( logThread );
 
     //Connect Objects to Slots.
@@ -88,7 +88,7 @@ Logger::Logger(QWidget *parent) :
     autoClearTimer.setInterval( static_cast<int>( TimeInterval::Day ) * static_cast<int>( TimeMultiply::Milliseconds ) );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, "Logger" ).toByteArray() );
 
     logThread->start();
 }
@@ -101,11 +101,13 @@ Logger::~Logger()
     if ( logThread != nullptr )
     {
         logThread->exit();
+        logThread->wait();  //Properly await thread exit.
+
         writeThread->deleteLater();
     }
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, "Logger" );
 
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();

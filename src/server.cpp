@@ -160,7 +160,10 @@ Server::Server(QWidget* parent)
 Server::~Server()
 {
     thread->exit();
+    thread->wait();    //Properly await thread exit.
+
     udpThread->exit();
+    udpThread->wait();    //Properly await thread exit.
 
     thread->deleteLater();
     udpThread->deleteLater();
@@ -239,8 +242,6 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
     //Sends the User's IP address within field(%2) 2; we are sending the User's
     //position within the players[] array instead to prevent IP leakage.
 
-    //Hide any Userlist pings from the LogView if no Player's are found.
-    bool emptyResponse{ true };
     for ( int i = 0; i < this->getMaxPlayerCount() && response.length() < 800; ++i )
     {
         QSharedPointer<Player> plr{ this->getPlayer( i ) };
@@ -260,19 +261,16 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
                                         .arg( Helper::intToStr( this->getPlayerSlot( plr ), IntBase::HEX, IntFills::DblWord ) );
                 }
             }
-            emptyResponse = false;
         }
     }
 
     emit this->sendUdpDataSignal( addr, port, response );
-    if ( !emptyResponse )
-    {
-        QString msg{ "Sending User List to [ %1:%2 ]; %3" };
-                msg = msg.arg( addr.toString() )
-                         .arg( port )
-                         .arg( response );
-        emit this->insertLogSignal( this->getServerName(), msg, LKeys::PingLog, true, true );
-    }
+
+    QString msg{ "Sending User List to [ %1:%2 ]; %3" };
+            msg = msg.arg( addr.toString() )
+                     .arg( port )
+                     .arg( response );
+    emit this->insertLogSignal( this->getServerName(), msg, LKeys::PingLog, true, true );
 }
 
 void Server::sendMasterInfo(const bool& disconnect)
@@ -1128,10 +1126,10 @@ void Server::setMasterPing()
 
 QString Server::getUsageString()
 {
-    return QString( "%1.%2.%3" )
-            .arg( this->getUsageMins() )
-            .arg( this->getUsageHours() )
-            .arg( this->getUsageDays() );
+    static const QString usage{ "%1.%2.%3" };
+    return usage.arg( this->getUsageMins() )
+                .arg( this->getUsageHours() )
+                .arg( this->getUsageDays() );
 }
 
 qint32 Server::getUsageHours() const

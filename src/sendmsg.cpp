@@ -17,7 +17,7 @@ SendMsg::SendMsg(QWidget* parent) :
     ui->setupUi(this);
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        this->restoreGeometry( Settings::getSetting( SKeys::Positions, this->metaObject()->className() ).toByteArray() );
+        this->restoreGeometry( Settings::getSetting( SKeys::Positions, "SendMsg" ).toByteArray() );
 
     //Install EventFilters.
     this->installEventFilter( this );
@@ -28,7 +28,7 @@ SendMsg::SendMsg(QWidget* parent) :
 SendMsg::~SendMsg()
 {
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
-        Settings::setSetting( this->saveGeometry(), SKeys::Positions, this->metaObject()->className() );
+        Settings::setSetting( this->saveGeometry(), SKeys::Positions, "SendMsg" );
 
     delete ui;
 }

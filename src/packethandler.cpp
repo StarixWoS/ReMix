@@ -78,14 +78,15 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
 
     QByteArray pkt{ packet };
     QString data{ pkt };
-    QChar opCode{ ' ' };
-    if ( data.size() > 4 )
-        opCode = data.at( 4 );
 
     this->detectFlooding( plr );
 
     if ( Helper::strStartsWithStr( packet, ":MIX" ) )
     {
+        QChar opCode{ ' ' };
+        if ( data.size() > 4 )
+            opCode = data.at( 4 );
+
         data = Helper::getStrStr( data, "", ":MIX", "" ).mid( 1 );
         switch ( opCode.toLatin1() )
         {

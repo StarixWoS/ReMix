@@ -7,6 +7,8 @@ TODO:
 Version 3.0.4:
     Change:
       * Renamed a Helper function to correct name-case. serNumtoInt -> serNumToInt.
+      * Expanded the CommandTable to support aliasing command names.
+        * Aliased command names will appear within the "/list" printout as completely seperate commands.
       
 
 
@@ -14,6 +16,9 @@ Version 3.0.4:
 
     Bugfixes:
       * Fixed an issue where ReMix would crash when attempting to parse a zero-width (empty) packet.
+      * Fixed an issue where Muted Users on WoS server instances would have their camp packets forwarded to other Users.
+      * Fixed an issue where closing a server instance would crash ReMix.
+        * This was caused by improperly closing QThread objects and deleting the parent object before the thread had actually closed.
 
 
 

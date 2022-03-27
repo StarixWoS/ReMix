@@ -14,7 +14,8 @@ class CmdTable
     public:
         struct CmdStructure
         {
-            QString cmd;
+            QStringList cmdActivators;
+            qint32 cmdActivatorCount;
             QStringList subCmd;
             qint32 subCmdCount;
             QString cmdInfo;
@@ -34,7 +35,7 @@ class CmdTable
         bool isSubCommand(const GMCmds& index, const QString& cmd, const bool& time = false);
         bool getCmdHasSubCmd(const GMCmds& index);
 
-        QString getCmdName(const GMCmds& index);
+        QStringList getCmdName(const GMCmds& index);
         GMCmds getCmdIndex(const QString& cmd);
         GMSubCmds getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time = false);
         GMRanks getCmdRank(const GMCmds& index);

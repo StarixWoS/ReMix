@@ -207,6 +207,9 @@ QString Helper::serNumToHexStr(QString sernum, const IntFills& fillAmt)
 
 QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
 {
+    static const QString goldenSerNum{ "SOUL %1" };
+    static const QString whiteSerNum{ "%1" };
+
     QString serNum{ sernum };
     if ( isHex
       && ( serNum.length() > 8 ) )
@@ -218,9 +221,9 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
     QString retn{ "" };
 
     if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) || !isHex )
-        retn = QString( "SOUL %1" ).arg( intToStr( sernum_i, IntBase::DEC ) );
+        retn = goldenSerNum.arg( intToStr( sernum_i, IntBase::DEC ) );
     else
-        retn = QString( "%1" ).arg( intToStr( sernum_i, IntBase::HEX ) );
+        retn = whiteSerNum.arg( intToStr( sernum_i, IntBase::HEX ) );
 
     if ( !strStartsWithStr( retn, "SOUL" )
       && retn.length() > 8 )
@@ -249,6 +252,9 @@ qint32 Helper::serNumToInt(const QString& sernum, const bool& isHex)
 
 bool Helper::isBlueCodedSerNum(const qint32& sernum)
 {
+    if ( sernum >= 3 && sernum <= 1000 )
+        return true;
+
     return blueCodedList.contains( sernum );
 }
 
@@ -360,12 +366,11 @@ QString Helper::getTimeAsString(const quint64& time)
 
 QString Helper::getTimeFormat(const qint64& time)
 {
-    QString format{ "%1d:%2h:%3m:%4s" };
-            format = format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                           .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                           .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                           .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) );
-    return format;
+    static const QString format{ "%1d:%2h:%3m:%4s" };
+    return format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) );
 }
 
 qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)

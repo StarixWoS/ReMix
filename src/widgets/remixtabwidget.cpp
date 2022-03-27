@@ -131,6 +131,7 @@ ReMixTabWidget::~ReMixTabWidget()
 
     //Disconnect and Delete Objects.
     masterMixThread->exit();
+    masterMixThread->wait();    //Properly await thread exit.
     masterMixThread->disconnect();
     masterMixThread->deleteLater();
 }
@@ -367,7 +368,7 @@ void ReMixTabWidget::createTabButtons()
         this->setCornerWidget( button, Qt::TopLeftCorner );
         QObject::connect( button, &QToolButton::clicked, this, &ReMixTabWidget::createServer );
 
-        Themes theme{ this->getThemeType() };
+        Themes theme{ Themes::Light };
         if ( Settings::getSetting( SKeys::Setting, SSubKeys::DarkMode ).toBool() )
         {
             this->getNightModeButton()->setText( "Normal Mode" );
