@@ -175,7 +175,7 @@ Server::~Server()
     upnpPortRefresh.disconnect();
 
     QString msg{ "Server [ Server( 0x%1 ) ] deconstructed." };
-            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::DblWord ) );
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::QuadWord ) );
 
     emit this->insertLogSignal( this->getServerName(), msg, LKeys::MiscLog, true, true );
 
@@ -253,12 +253,12 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
             {
                 if ( type == UserListResponse::Q_Response ) //Standard 'Q' Response.
                 {
-                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX, IntFills::DblWord ) );
+                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX, IntFills::QuadWord ) );
                 }
                 else if ( type == UserListResponse::R_Response ) //Non-Standard 'R' Response
                 {
                     response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX ) )
-                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), IntBase::HEX, IntFills::DblWord ) );
+                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), IntBase::HEX, IntFills::QuadWord ) );
                 }
             }
         }
@@ -349,6 +349,7 @@ QSharedPointer<Player> Server::createPlayer(const qintptr& socketDescriptor, QSh
             QObject::connect( this, &Server::connectionTimeUpdateSignal, plr.get(), &Player::connectionTimeUpdateSlot );
             QObject::connect( plr.get(), &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot );
             QObject::connect( plr.get(), &Player::setVisibleStateSignal, this, &Server::setVisibleStateSlot );
+            QObject::connect( User::getInstance(), &User::setAdminRankSignal, plr.get(), &Player::setAdminRankSlot );
             return plr;
         }
     }
@@ -562,7 +563,7 @@ void Server::sendPlayerSocketPosition(QSharedPointer<Player> plr, const bool& fo
     plrSlotMap.insert( slot, plr );
     QString slotResponse{ ":SR!%1%2%3\r\n" };
             slotResponse = slotResponse.arg( plr->getSernumHex_s() )
-                                       .arg( Helper::intToStr( slot, IntBase::HEX, IntFills::Word ) )
+                                       .arg( Helper::intToStr( slot, IntBase::HEX, IntFills::Byte ) )
                                        .arg( lastPlr->getSernumHex_s() );
 
     qint64 bOut{ plr->write( slotResponse.toLatin1(), slotResponse.length() ) };

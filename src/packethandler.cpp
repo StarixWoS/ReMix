@@ -32,6 +32,8 @@ PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
 {
     chatView = chat;
 
+    QObject::connect( WoSPacketHandler::getInstance(), &WoSPacketHandler::sendPacketToPlayerSignal, this, &PacketHandler::sendPacketToPlayerSignal );
+
     QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
     QObject::connect( this, &PacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot );
 
@@ -417,7 +419,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
 
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
-                             .arg( Helper::intToStr( plrPktSlot, IntBase::HEX, IntFills::Word ) )
+                             .arg( Helper::intToStr( plrPktSlot, IntBase::HEX, IntFills::Byte ) )
                              .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.

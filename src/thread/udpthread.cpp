@@ -151,8 +151,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
                         pingLog = pingLog.arg( ipAddr.toString() )
                                          .arg( port )
-                                         .arg( Helper::serNumToIntStr( sernum, true ) )
-                                         .arg( data );
+                                         .arg( Helper::serNumToIntStr( sernum, true ) );
                 emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
             }
@@ -162,8 +161,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                 QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
                         pingLog = pingLog.arg( ipAddr.toString() )
                                          .arg( port )
-                                         .arg( Helper::serNumToIntStr( sernum, true ) )
-                                         .arg( data );
+                                         .arg( Helper::serNumToIntStr( sernum, true ) );
 
                 emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );

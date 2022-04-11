@@ -357,7 +357,8 @@
 
         //Valid Filler lengths for IntBase::Hex conversions.
         enum class IntFills: int{ Bit = 0,
-                                  Word = 2,      //Byte
+                                  Byte = 2,      //Byte
+                                  Word = 4,      //Two Bytes
                                   DblWord = 8,   //Int
                                   QuadWord = 16, //Int64
                                 };

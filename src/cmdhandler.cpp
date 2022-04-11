@@ -312,8 +312,21 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
     {
         case GMCmds::Help:
             {
+                //Prevent Users from seeing details on commands they lack access to.
+                message = "The command [ %1 ] does not exist, or you lack the access required to view it's usage.";
                 if ( !subCmd.isEmpty() )
+                {
+                    message = message.arg( subCmd );
+
                     index = cmdTable->getCmdIndex( subCmd );
+                    cmdRank = cmdTable->getCmdRank( index );
+
+                    if ( admin->getAdminRank() >= cmdRank )
+                        index = cmdTable->getCmdIndex( subCmd );
+                    else
+                        index = GMCmds::Invalid;
+
+                }
 
                 //Send command description and usage.
                 if ( index != GMCmds::Invalid )
@@ -321,6 +334,8 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                     server->sendMasterMessage( cmdTable->getCommandInfo( index, false ), admin, false );
                     server->sendMasterMessage( cmdTable->getCommandInfo( index, true ), admin, false );
                 }
+                else //Inform the User that they lack access to the command.
+                    server->sendMasterMessage( message, admin, false );
             }
         break;
         case GMCmds::List:
@@ -615,11 +630,8 @@ void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd
             server->sendMasterMessage( message, nullptr, true );
         }
     }
-    else
-    {
-        //Invalid argument listing. Send the command syntax.
+    else    //Invalid argument listing. Send the command syntax.
         server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ), admin, false );
-    }
 }
 
 void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString&)
@@ -968,10 +980,9 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
             QString loginStr{ "Remote Admin [ %1 ] Authenticated with the server." };
                     loginStr = loginStr.arg( admin->getSernum_s() ) ;
 
-            //Inform Other Users of this Remote-Admin's login if enabled.
+            //Inform Other Admins of this login event if enabled.
             if ( Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
             {
-
                 for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
                     QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };

@@ -158,7 +158,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Command Description: Initiates server shutdown in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
         "Command Usage: /shutdown <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. e.g. (/shutdown), (/shutdown Seconds 30) "
         "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
-        GMRanks::Admin,
+        GMRanks::Owner,
         true,
         GMCmds::ShutDown,
     },
@@ -295,17 +295,13 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool&
 {
     qint32 idx{ static_cast<int>( index ) };
     const CmdTable::CmdStruct& cmdAt{ cmdTable.at( idx ) };
-    if ( cmdAt.subCmdCount > 0 )
+
+    if ( !time )
     {
-        if ( !time )
+        for ( const auto& item : cmdAt.subCmd )
         {
-            for ( int i = 0; i < cmdAt.subCmdCount; ++i )
-            {
-                if ( Helper::cmpStrings( cmdAt.subCmd[ i ], cmd ) )
-                {
-                    return true;
-                }
-            }
+            if ( Helper::cmpStrings( item, cmd ) )
+                return true;
         }
     }
     return false;
@@ -362,6 +358,9 @@ GMSubCmds CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd
 
 GMRanks CmdTable::getCmdRank(const GMCmds& index)
 {
+    if ( index == GMCmds::Invalid )
+        return GMRanks::Invalid;
+
     if ( this->cmdIsActive( index ) )
         return cmdTable.at( static_cast<int>( index ) ).cmdRank;
 

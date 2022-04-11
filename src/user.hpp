@@ -85,6 +85,7 @@ class User : public QDialog
         void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void removePunishmentSignal(const QString& value, const PunishTypes& type);
+        void setAdminRankSignal(const QString& hexSerNum, const GMRanks& rank);
 
     public slots:
         static void logBIOSlot(const QString& serNum, const QHostAddress& ip, const QString& bio);

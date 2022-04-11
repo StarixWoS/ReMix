@@ -9,6 +9,12 @@ Version 3.0.4:
       * Renamed a Helper function to correct name-case. serNumtoInt -> serNumToInt.
       * Expanded the CommandTable to support aliasing command names.
         * Aliased command names will appear within the "/list" printout as completely seperate commands.
+      * Users will no longer have access to the help or usage information of commands that they lack access to use.
+        * The User will now receive a message informing them of this.
+      * The "Shutdown" command has had it's rank limitation elevated from "Admin" to "Owner".
+      * Sorting the "Last Seen" column within the User dialog is now sped up significantly for large lists.
+        * We are now sorting via the actual time-code integer as-is instead of converting the human readable string into it's original time-code.
+      * Slightly changed how Admin Ranks are applied to Users from the UI, and should over-all be more consistent.
       
 
 

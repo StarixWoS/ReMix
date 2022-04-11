@@ -386,12 +386,16 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         if ( Helper::confirmAction( this, titleRevokeStr, prompt ) )
         {
             GMRanks rank{ User::requestRank( this ) };
+
             User::setAdminRank( sernum, rank );
             menuTarget->resetAdminAuth();
-            if ( rank > GMRanks::User )
-                server->sendMasterMessage( changed, menuTarget, false );
-            else
-                server->sendMasterMessage( revoke, menuTarget, false );
+
+            QString msg{ changed };
+            if ( rank == GMRanks::User )
+                msg = revoke;
+
+            server->sendMasterMessage( msg, menuTarget, false );
+            menuTarget->setAdminRank( rank );
         }
     }
     menuTarget = nullptr;

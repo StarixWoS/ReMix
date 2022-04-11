@@ -56,7 +56,8 @@ class PacketHandler : public QObject
 
     signals:
         void newUserCommentSignal(QSharedPointer<Player> plr, const QString& message);
-        void sendPacketToPlayerSignal(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSignal(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
+                                      const qint32& trgScene, const QByteArray& packet);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void insertChatMsgSignal(const QString& msg, const Colors& color, const bool& newLine);

@@ -279,10 +279,9 @@ void User::setAdminRank(const QString& sernum, const GMRanks& newRank)
                 setData( sernum, User::uKeys.value( UKeys::Salt ), "" );
             }
         }
-        setData( sernum, User::uKeys.value( UKeys::Rank ), static_cast<int>( newRank ) );
     }
-    else
-        setData( sernum, User::uKeys.value( UKeys::Rank ), static_cast<int>( newRank ) );
+
+    setData( sernum, User::uKeys.value( UKeys::Rank ), static_cast<int>( newRank ) );
 
     if ( index.isValid() )
         user->updateRowData( index.row(), static_cast<int>( UserCols::Rank ), static_cast<int>( newRank ) );
@@ -291,7 +290,10 @@ void User::setAdminRank(const QString& sernum, const GMRanks& newRank)
 void User::setAdminRank(QSharedPointer<Player> plr, const GMRanks& rank, const bool&)
 {
     if ( plr != nullptr )
+    {
         setAdminRank( plr->getSernumHex_s(), rank );
+        plr->setAdminRank( rank );
+    }
 }
 
 quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum)
@@ -376,9 +378,9 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
         list = tblModel->findItems( value, Qt::MatchFixedString, static_cast<qint32>( UserCols::IPAddr ) );
 
     User* user = User::getInstance();
-    if ( list.count() )
+    for ( const QStandardItem* item : list )
     {
-        QModelIndex index{ list.value( 0 )->index() };
+        QModelIndex index{ item->index() };
         if ( index.isValid() )
         {
             QStringList sernums{ userData->childGroups() };
@@ -609,7 +611,7 @@ void User::logBIOSlot(const QString& serNum, const QHostAddress& ip, const QStri
     User* user{ User::getInstance() };
     QString sernum{ serNum };
     if ( Helper::strContainsStr( sernum, "SOUL" ) )
-        sernum = Helper::serNumToHexStr( serNum, IntFills::DblWord );
+        sernum = Helper::serNumToHexStr( serNum, IntFills::QuadWord );
 
     //quint32 pings{ getData( sernum, keys[ UserKeys::kPINGS ] ).toUInt() + 1 };
     quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
@@ -815,6 +817,9 @@ void User::updateRowData(const qint32& row, const qint32& col, const QVariant& d
           || col == static_cast<int>( UserCols::MuteDuration ) )
         {
             uint date{ data.toUInt() };
+
+            //Place the Date into the UserRole. Accessing this value is more convenient than the date string.
+            tblModel->setData( index, date, Qt::UserRole );
             if ( date > 0 )
             {
                 msg = Helper::getTimeAsString( date );
@@ -866,7 +871,10 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
     {
         case UserCols::Rank:
             {
-                setAdminRank( sernum, static_cast<GMRanks>( tblModel->data( index ).toInt() ) );
+                GMRanks rank{ static_cast<GMRanks>( tblModel->data( index ).toInt() ) };
+                setAdminRank( sernum, rank );
+
+                emit this->setAdminRankSignal( sernum, rank );
             }
         break;
         case UserCols::Banned:

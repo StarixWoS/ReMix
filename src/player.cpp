@@ -257,6 +257,8 @@ void Player::setSernumHex_s(const QString& value)
 {
     sernumHex_s = value;
 
+    this->setAdminRank( static_cast<GMRanks>( User::getAdminRank( sernumHex_s ) ) );
+
     emit this->hexSerNumSetSignal( this->getThisPlayer() );
 }
 
@@ -532,12 +534,29 @@ void Player::setNewAdminPwdReceived(const bool& value)
 
 bool Player::getIsAdmin() const
 {
-    return User::getIsAdmin( this->getSernumHex_s() );
+    return isAdmin;
+}
+
+void Player::setIsAdmin(const bool& value)
+{
+    isAdmin = value;
 }
 
 GMRanks Player::getAdminRank() const
 {
-    return static_cast<GMRanks>( User::getAdminRank( this->getSernumHex_s() ) );
+    return adminRank;
+}
+
+void Player::setAdminRank(const GMRanks& value)
+{
+    if ( adminRank > GMRanks::User
+      && value == GMRanks::User )
+    {
+        this->resetAdminAuth();
+    }
+
+    adminRank = value;
+    this->setIsAdmin( adminRank > GMRanks::User );
 }
 
 qint32 Player::getCmdAttempts() const
@@ -946,7 +965,8 @@ bool Player::getIsGoldenSerNum()
 }
 
 //Slots
-void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet)
+void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
+                                    const qint32& trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
     if ( plr == this )
@@ -1118,16 +1138,18 @@ void Player::connectionTimeUpdateSlot()
                 {
                     static const QString msg{ "Remote Administrators are required to authenticate themselves before using commands. "
                                               "Please enter your password with the command (/login *PASS). Thank you!" };
-
-                    if ( this->getIsAdmin() )
-                    {
-                        this->setAdminPwdRequested( true );
-                        server->sendMasterMessage( msg, this->getThisPlayer(), false );
-                    }
+                    this->setAdminPwdRequested( true );
+                    server->sendMasterMessage( msg, this->getThisPlayer(), false );
                 }
             }
         }
     }
+}
+
+void Player::setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank)
+{
+    if ( Helper::cmpStrings( hexSerNum, this->getSernumHex_s() ) )
+        this->setAdminRank( rank );
 }
 
 void Player::readyReadSlot()

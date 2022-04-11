@@ -396,7 +396,7 @@ QString Settings::getServerID(const QString& svrID)
         id = RandDev::getInstance().getGen( 1, 0x7FFFFFFE );
         setSetting( id, SKeys::Setting, SSubKeys::ServerID, svrID );
     }
-    return Helper::intToStr( id, IntBase::HEX, IntFills::DblWord );
+    return Helper::intToStr( id, IntBase::HEX, IntFills::QuadWord );
 }
 
 QString Settings::getRuleSet(const QString& svrID)

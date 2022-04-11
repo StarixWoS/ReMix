@@ -67,7 +67,9 @@ class Player : public QTcpSocket
     qint32 pktHeaderExemptCount{ 0 };
     qint32 pktHeaderSlot{ 0 };
     qint32 cmdAttempts{ 0 };
-    qint32 adminRank{ -1 };
+
+    bool isAdmin{ false };
+    GMRanks adminRank{ GMRanks::User };
 
     int packetFloodCount{ 0 };
     int packetsOut{ 0 };
@@ -184,7 +186,10 @@ class Player : public QTcpSocket
         void setNewAdminPwdReceived(const bool& value);
 
         bool getIsAdmin() const;
+        void setIsAdmin(const bool& value);
+
         GMRanks getAdminRank() const;
+        void setAdminRank(const GMRanks& value);
 
         qint32 getCmdAttempts() const;
         void setCmdAttempts(const qint32& value);
@@ -245,10 +250,12 @@ class Player : public QTcpSocket
         void setIsGhosting(bool newIsGhosting);
 
     public slots:
-        void sendPacketToPlayerSlot(QSharedPointer<Player> plr, qint32 targetType, qint32 trgSerNum, qint32 trgScene, const QByteArray& packet);
+        void sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
+                                    const qint32& trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
         void setMaxIdleTimeSlot(const qint64& maxAFK);
         void connectionTimeUpdateSlot();
+        void setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank);
 
     private slots:
         void readyReadSlot();
