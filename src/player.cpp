@@ -41,63 +41,19 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     //All connections start as ascive and not AFK.
     this->setIsAFK( false );
 
-    //Connect to the afkTimer.
-    QObject::connect( &afkTimer, &QTimer::timeout, &afkTimer,
-    [this]()
-    {
-        this->setIsAFK( true );
-    } );
+    //Connect Timers to Slots.
+    QObject::connect( &serNumKillTimer, &QTimer::timeout, this, &Player::serNumKillTimerTimeOutSlot );
+    QObject::connect( &afkTimer, &QTimer::timeout, this, &Player::afkTimerTimeOutSlot );
+    QObject::connect( &killTimer, &QTimer::timeout, this, &Player::killTimerTimeOutSlot );
 
-    //Start the AFK timer.
-    afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
-
-    //Connect to the serNumKillTimer.
-    QObject::connect( &serNumKillTimer, &QTimer::timeout, &serNumKillTimer,
-    [this]()
-    {
-        static const QString reason{ "Auto-Disconnect; SerNum Await Timeout." };
-        static const QString message{ " ReMix requires a SerNum to be sent within 5 Minutes of connecting." };
-        QString append{ ", [ %1 ][ %2 ]" };
-
-        //The User has been given 5 minues to send a valid SerNum. Disconnect them.
-        if ( !this->getHasSerNum() )
-        {
-            append = append.arg( this->getIPAddress() )
-                           .arg( this->getBioData() );
-            server->sendMasterMessage( reason + message, this->getThisPlayer(), false );
-
-            emit this->insertLogSignal( server->getServerName(), reason + append, LKeys::PunishmentLog, true, true );
-
-            this->setDisconnected( true, DCTypes::IPDC );
-        }
-    } );
-
-    //Start the Sernum timer.
-    serNumKillTimer.start( static_cast<int>( Globals::MAX_SERNUM_TTL ) );
-
-    //Connect the Player Object to a User UI signal.
-    QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this,
-    [=, this](const QString& sernum, const quint64& duration)
-    {
-        if ( !sernum.isEmpty() || duration > 0 )
-        {
-            if ( Helper::cmpStrings( sernum, this->getSernumHex_s() ) )
-                this->setMuteDuration( duration );
-        }
-    });
-
-    QObject::connect( &killTimer, &QTimer::timeout, &killTimer,
-    [this]()
-    {
-        if ( this->getIsDisconnected() )
-        {
-            //Gracefully Disconnect the User.
-            emit this->disconnected();
-        }
-    });
-
+    //Start Timers.
+    serNumKillTimer.start( *Globals::MAX_SERNUM_TTL );
+    afkTimer.start( *Globals::MAX_AFK_TIME );
     floodTimer.start();
     idleTime.start();
+
+    //Connect the Player Object to a User UI signal.
+    QObject::connect( User::getInstance(), &User::mutedSerNumDurationSignal, this, &Player::mutedSerNumDurationSlot );
 }
 
 Player::~Player()
@@ -231,7 +187,13 @@ void Player::setSernum_i(const qint32& value)
             muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP, sernumHex_s );
 
         if ( muteDuration >= 1 )
+        {
             this->setMuteDuration( muteDuration );
+            QString message{ "Automatic-Mute; Mute restored from file. You are muted until [ %1 ] server time." };
+                    message = message.arg( Helper::getTimeAsString( muteDuration ) );
+
+            server->sendMasterMessage( message, this->getThisPlayer(), false );
+        }
 
         server->sendPlayerSocketInfo();
     }
@@ -580,7 +542,7 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     if ( isDisconnected )
     {
         emit this->ipDCIncreaseSignal( dcType );
-        killTimer.start( static_cast<int>( Globals::MAX_DISCONNECT_TTL ) );
+        killTimer.start( *Globals::MAX_DISCONNECT_TTL );
     }
 }
 
@@ -752,7 +714,7 @@ void Player::updateIconState()
     }
     else
     {
-        afkTimer.start( static_cast<int>( Globals::MAX_AFK_TIME ) );
+        afkTimer.start( *Globals::MAX_AFK_TIME );
         if ( incarnated )
         {
             const bool golden{ this->getIsGoldenSerNum() };
@@ -792,7 +754,7 @@ void Player::updateIconState()
         else
             role = IconRoles::SoulWell;
     }
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( role ), Qt::DecorationRole, false );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::SerNum, *role, Qt::DecorationRole, false );
 }
 
 void Player::setIsAFK(bool value)
@@ -961,7 +923,7 @@ void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
 
 bool Player::getIsGoldenSerNum()
 {
-    return !( this->getSernum_i() & static_cast<int>( Globals::MIN_HEX_SERNUM ) );
+    return !( this->getSernum_i() & *Globals::MIN_HEX_SERNUM );
 }
 
 //Slots
@@ -1052,15 +1014,15 @@ void Player::connectionTimeUpdateSlot()
 
     baudIn = baudIn.arg( bytesIn )
                    .arg( bytesInUnit )
-                   .arg( this->getPacketsIn() );
+                   .arg( QString::number( this->getPacketsIn() ) );
 
     baudOut = baudOut.arg( bytesOut )
                      .arg( bytesOutUnit )
-                     .arg( this->getPacketsOut() );
+                     .arg( QString::number( this->getPacketsOut() ) );
 
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::Time ), Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::BytesIn ), baudIn, Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::BytesOut ), baudOut, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::Time, Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesIn, baudIn, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesOut, baudOut, Qt::DisplayRole );
 
     //Color the User's IP address Green if the Admin is authed Otherwise, color as Red.
     Colors color{ Colors::Default };
@@ -1078,7 +1040,7 @@ void Player::connectionTimeUpdateSlot()
             color = Colors::GoldenSoul;
     }
 
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::SerNum ), static_cast<int>( color ), Qt::ForegroundRole, true );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::SerNum, *color, Qt::ForegroundRole, true );
     this->updateIconState();
 
     //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
@@ -1093,18 +1055,18 @@ void Player::connectionTimeUpdateSlot()
         color = Colors::IPInvalid;
 
     //Color the User's IP/Port.
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), this->getIPPortAddress(), Qt::DisplayRole, false );
-    emit this->updatePlrViewSignal( this->getThisPlayer(), static_cast<int>( PlrCols::IPPort ), static_cast<int>( color ), Qt::ForegroundRole, true );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::IPPort, this->getIPPortAddress(), Qt::DisplayRole, false );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::IPPort, *color, Qt::ForegroundRole, true );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
       && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously aisconnected user.
     {
         bool defaultIdleTime{ false };
         qint64 maxIdle{ this->getMaxIdleTime() };
-        if ( maxIdle == static_cast<qint64>( Globals::MAX_IDLE_TIME ) )
+        if ( maxIdle == *Globals::MAX_IDLE_TIME )
             defaultIdleTime = true;
 
-        if ((( idleTime.elapsed() >= static_cast<qint64>( Globals::MAX_IDLE_TIME ) )
+        if ((( idleTime.elapsed() >= *Globals::MAX_IDLE_TIME )
             && defaultIdleTime )
           || ( idleTime.elapsed() >= maxIdle ) )
         {
@@ -1152,6 +1114,16 @@ void Player::setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank)
         this->setAdminRank( rank );
 }
 
+//Private Slots.
+void Player::mutedSerNumDurationSlot(const QString& sernum, const quint64& duration)
+{
+    if ( !sernum.isEmpty() || duration > 0 )
+    {
+        if ( Helper::cmpStrings( sernum, this->getSernumHex_s() ) )
+            this->setMuteDuration( duration );
+    }
+}
+
 void Player::readyReadSlot()
 {
     QByteArray data{ this->getOutBuff() };
@@ -1191,4 +1163,38 @@ void Player::readyReadSlot()
             }
         }
     }
+}
+
+//Private Timer Slots.
+void Player::serNumKillTimerTimeOutSlot()
+{
+    static const QString reason{ "Auto-Disconnect; SerNum Await Timeout." };
+    static const QString message{ " ReMix requires a SerNum to be sent within 5 Minutes of connecting." };
+    QString append{ ", [ %1 ][ %2 ]" };
+
+    //The User has been given 5 minues to send a valid SerNum. Disconnect them.
+    if ( !this->getHasSerNum() )
+    {
+        append = append.arg( this->getIPAddress() )
+                       .arg( this->getBioData() );
+        server->sendMasterMessage( reason + message, this->getThisPlayer(), false );
+
+        emit this->insertLogSignal( server->getServerName(), reason + append, LKeys::PunishmentLog, true, true );
+
+        this->setDisconnected( true, DCTypes::IPDC );
+    }
+}
+
+void Player::killTimerTimeOutSlot()
+{
+    if ( this->getIsDisconnected() )
+    {
+        //Gracefully Disconnect the User.
+        emit this->disconnected();
+    }
+}
+
+void Player::afkTimerTimeOutSlot()
+{
+    this->setIsAFK( true );
 }

@@ -110,9 +110,9 @@ bool CmdHandler::canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks
 
         admin->setCmdAttempts( admin->getCmdAttempts() + 1 );
         invalid = invalid.arg( cmdStr )
-                         .arg( static_cast<int>( Globals::MAX_CMD_ATTEMPTS ) - admin->getCmdAttempts() );
+                         .arg( *Globals::MAX_CMD_ATTEMPTS - admin->getCmdAttempts() );
 
-        if ( admin->getCmdAttempts() >= static_cast<int>( Globals::MAX_CMD_ATTEMPTS ) )
+        if ( admin->getCmdAttempts() >= *Globals::MAX_CMD_ATTEMPTS )
         {
             QString reason = "Auto-Banish; <Unregistered Remote Admin[ %1 ]: [ %2 ] command attempts>";
                     reason = reason.arg (admin->getSernum_s() )
@@ -290,7 +290,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
-            if ( !( Helper::serNumToInt( arg1, true ) & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
+            if ( !( Helper::serNumToInt( arg1, true ) & *Globals::MIN_HEX_SERNUM ) )
                 arg1.prepend( "SOUL " );
         }
         else if ( Helper::cmpStrings( subCmd, "change" ) )
@@ -712,7 +712,7 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
     {
         QString dateString{ "" };
         quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint64 banDuration{ static_cast<qint32>( PunishDurations::SEVEN_DAYS ) };
+        qint64 banDuration{ *PunishDurations::SEVEN_DAYS };
 
         if ( !duration.isEmpty() )
         {
@@ -720,7 +720,7 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
 
             banDuration = pair.first;
             if ( banDuration == 0 )
-                banDuration = static_cast<qint32>( PunishDurations::SEVEN_DAYS );
+                banDuration = *PunishDurations::SEVEN_DAYS;
         }
 
         date += banDuration;
@@ -826,7 +826,7 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
     {
         QString dateString{ "" };
         quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint64 muteDuration{ static_cast<qint32>( PunishDurations::TEN_MINUTES ) };
+        qint64 muteDuration{ *PunishDurations::TEN_MINUTES };
 
         if ( !duration.isEmpty() )
         {
@@ -834,7 +834,7 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
 
             muteDuration = pair.first;
             if ( muteDuration == 0 )
-                muteDuration = static_cast<qint32>( PunishDurations::TEN_MINUTES );
+                muteDuration = *PunishDurations::TEN_MINUTES;
         }
 
         date += muteDuration;
@@ -960,7 +960,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
             response = response.arg( invalidStr ).append( goodbyeStr );
             disconnect = true;
         }
-        response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
+        response = response.arg( pwdTypes.at( *pwdType ) );
     }
     else if ( !admin->getAdminPwdReceived()
            || admin->getAdminPwdRequested()
@@ -1005,7 +1005,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
             response = response.arg( invalidStr ).append( goodbyeStr );
             disconnect = true;
         }
-        response = response.arg( pwdTypes.at( static_cast<int>( pwdType ) ) );
+        response = response.arg( pwdTypes.at( *pwdType ) );
     }
 
     if ( !response.isEmpty() )
@@ -1016,7 +1016,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
         if ( pwdType != PwdTypes::Invalid )
         {
             QString reason{ "Auto-Disconnect; Invalid %1 password: [ %2 ], [ %3 ]" };
-                    reason = reason.arg( pwdTypes.at( static_cast<int>( pwdType ) ) )
+                    reason = reason.arg( pwdTypes.at( *pwdType ) )
                                    .arg( admin->getSernum_s() )
                                    .arg( admin->getBioData() );
 
@@ -1113,7 +1113,7 @@ void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& du
             stop = true;
     }
     else //Default the shutdown action to 30 seconds.
-        time = static_cast<qint32>( PunishDurations::THIRTY_SECONDS );
+        time = *PunishDurations::THIRTY_SECONDS;
 
     if ( !stop )
     {
@@ -1136,7 +1136,7 @@ void CmdHandler::shutDownHandler(QSharedPointer<Player> admin, const QString& du
                          .arg( duration )
                          .arg( timeText );
 
-        shutdownTimer->start( time * static_cast<int>( TimeMultiply::Milliseconds ) );
+        shutdownTimer->start( time * *TimeMultiply::Milliseconds );
     }
     else
     {
@@ -1396,7 +1396,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         else
             msg = msg.arg( allowedStr );
 
-        if ( !hasWhitelisted.isEmpty() )
+        if ( !whiteList.isEmpty() )
             msg.append( hasWhitelisted );
     }
 
@@ -1484,7 +1484,7 @@ QPair<qint64, TimePeriods> CmdHandler::getTimePeriodFromString(const QString& st
         else //Seconds if no letter is given.
             time = TimePeriods::Seconds;
 
-        duration = static_cast<qint32>( time ) * Helper::strToInt( pStr, IntBase::DEC );
+        duration = *time * Helper::strToInt( pStr, IntBase::DEC );
     }
     return QPair<qint64, TimePeriods>( duration, time );
 }

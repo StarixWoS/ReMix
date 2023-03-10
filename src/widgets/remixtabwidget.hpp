@@ -1,6 +1,6 @@
 
-#ifndef REMIXTABWIDGET_H
-#define REMIXTABWIDGET_H
+#ifndef REMIXTABWIDGET_HPP
+#define REMIXTABWIDGET_HPP
 
 #include "prototypes.hpp"
 
@@ -85,4 +85,4 @@ class ReMixTabWidget : public QTabWidget
         void removeConnectedGameSignal(const Games& game);
 };
 
-#endif // REMIXTABWIDGET_H
+#endif // REMIXTABWIDGET_HPP

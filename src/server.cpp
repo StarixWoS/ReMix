@@ -32,7 +32,7 @@ Server::Server(QWidget* parent)
     : QTcpServer(parent)
 {
     //Ensure all possible User slots are fillable.
-    this->setMaxPendingConnections( static_cast<int>( Globals::MAX_PLAYERS ) );
+    this->setMaxPendingConnections( *Globals::MAX_PLAYERS );
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &Server::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -61,7 +61,6 @@ Server::Server(QWidget* parent)
 
     //Connect Signals from the MasterMixThread class to the slots within the Server class.
     QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal, this, &Server::masterMixInfoSlot, Qt::UniqueConnection );
-
     QObject::connect( this, &Server::recvMasterInfoSignal, this, &Server::recvMasterInfoSlot );
 
     //Connect the MasterMixThread signals to the Server Slots.
@@ -71,86 +70,29 @@ Server::Server(QWidget* parent)
     QObject::connect( this, &Server::upnpPortForwardSignal, UPNP::getInstance(), &UPNP::upnpPortForwardSlot );
     QObject::connect( UPNP::getInstance(), &UPNP::upnpPortAddedSignal, this, &Server::upnpPortAddedSlot );
 
-    upnpPortRefresh.setInterval( static_cast<int>( Globals::UPNP_TIME_OUT_MS ) );
-    QObject::connect( &upnpPortRefresh, &QTimer::timeout, &upnpPortRefresh,
-    [=,this]()
-    {
-        emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), this->getUseUPNP() );
-    } );
+    //Connect Timers to Slots.
+    QObject::connect( &masterSerNumKeepAliveTimer, &QTimer::timeout, this, &Server::masterSerNumKeepAliveSlot );
+    QObject::connect( &upnpPortRefresh, &QTimer::timeout, this, &Server::upnpPortRefreshTimeOutSlot );
+    QObject::connect( &masterCheckIn, &QTimer::timeout, this, &Server::masterCheckInTimeOutSlot );
+    QObject::connect( &usageUpdate, &QTimer::timeout, this, &Server::updateUsageTimeOutSlot );
+    QObject::connect( &upnpPortTimeOut, &QTimer::timeout, this, &Server::upnpTimeOutSlot );
+    QObject::connect( &masterTimeOut, &QTimer::timeout, this, &Server::masterTimeOutSlot );
+    QObject::connect( &upTimer, &QTimer::timeout, this, &Server::upTimerTimeOutSlot );
 
-    //players.resize( static_cast<int>( Globals::MAX_PLAYERS ) );
+    //Start Timers.
+    usageUpdate.start( *Globals::SERVER_USAGE_UPDATE );
+    upTimer.start( *Globals::UI_UPDATE_TIME );
 
-    upTimer.start( static_cast<int>( Globals::UI_UPDATE_TIME ) );
+    //Set KeepAlive timer.
+    masterSerNumKeepAliveTimer.setInterval( *Globals::MASTER_SERNUM_KEEPALIVE );
 
-    QObject::connect( &upTimer, &QTimer::timeout, &upTimer,
-    [=,this]()
-    {
-        emit this->connectionTimeUpdateSignal();
-    } );
+    //Set Conditional Timers with an initial interval.
+    masterTimeOut.setInterval( *Globals::MAX_MASTER_RESPONSE_TIME );
+    upnpPortRefresh.setInterval( *Globals::UPNP_TIME_OUT_MS );
 
-    masterTimeOut.setInterval( static_cast<int>( Globals::MAX_MASTER_RESPONSE_TIME ) );
-    masterTimeOut.setSingleShot( true );
-    QObject::connect( &masterTimeOut, &QTimer::timeout, &masterTimeOut,
-    [=,this]()
-    {
-        this->setMasterTimedOut( true );
-    } );
-
+    //Set Timers as Single-use.
     upnpPortTimeOut.setSingleShot( true );
-    QObject::connect( &upnpPortTimeOut, &QTimer::timeout, &upnpPortTimeOut,
-    [=,this]()
-    {
-        this->setUpnpTimedOut( true );
-    } );
-
-    QObject::connect( &masterCheckIn, &QTimer::timeout, &masterCheckIn,
-    [=,this]()
-    {
-        if ( this->getMasterInfoRecv() )
-        {
-            if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
-              || ( this->getUpnpPortAdded() && this->getUseUPNP() )
-              || ( !this->getUpnpPortAdded() && this->getUseUPNP() )
-              || this->getUpnpTimedOut() )
-            {
-                this->sendMasterInfo();
-                if ( !masterTimeOut.isActive() )
-                    masterTimeOut.start();
-            }
-        }
-    } );
-
-    //Updates the Server's Server Usage array every 10 minutes.
-    usageUpdate.start( static_cast<int>( Globals::SERVER_USAGE_UPDATE ) );
-    QObject::connect( &usageUpdate, &QTimer::timeout, &usageUpdate,
-    [=,this]()
-    {
-        usageArray[ usageCounter ] = this->getPlayerCount();
-
-        usageDays = 0;
-        usageHours = 0;
-        usageMins = 0;
-
-        for ( uint i = 0; i < static_cast<int>( Globals::SERVER_USAGE_48_HOURS ); ++i )
-        {
-            const quint32 code{ usageArray[ ( i + usageCounter ) % static_cast<int>( Globals::SERVER_USAGE_48_HOURS ) ] };
-            const quint32 usageCap{ ( static_cast<int>( Globals::SERVER_USAGE_48_HOURS ) - 1 ) - i };
-            if ( usageCap < static_cast<int>( Globals::SERVER_USAGE_DAYS ) )
-            {
-                usageDays += code;
-                if ( usageCap < static_cast<int>( Globals::SERVER_USAGE_HOURS ) )
-                {
-                    usageHours += code;
-                    if ( usageCap < static_cast<int>( Globals::SERVER_USAGE_MINUTES ) )
-                        usageMins += code;
-                }
-            }
-        }
-        emit this->serverUsageChangedSignal( usageMins, usageDays, usageHours );
-
-        ++usageCounter;
-        usageCounter %= static_cast<int>( Globals::SERVER_USAGE_48_HOURS );
-    } );
+    masterTimeOut.setSingleShot( true );
 
     this->setInitializeDate( QDateTime::currentDateTime().currentSecsSinceEpoch() );
     udpThread->start();
@@ -159,14 +101,20 @@ Server::Server(QWidget* parent)
 
 Server::~Server()
 {
+    thread->disconnect();
     thread->exit();
     thread->wait();    //Properly await thread exit.
 
+    udpThread->disconnect();
     udpThread->exit();
     udpThread->wait();    //Properly await thread exit.
 
-    thread->deleteLater();
-    udpThread->deleteLater();
+    //Explicitly delete Thread objects now.
+    delete thread;
+    delete udpThread;
+
+    //thread->deleteLater();
+    //udpThread->deleteLater();
 
     thread = nullptr;
     udpThread = nullptr;
@@ -215,11 +163,10 @@ void Server::setupInfo(const QString& interfaceIP)
 void Server::setupUPNP(const bool& enable)
 {
     if ( !enable )
-    {
         this->setUpnpPortAdded( false );
-        return;
-    }
-    upnpPortTimeOut.start( static_cast<int>( Globals::UPNP_RESPONSE_TIME_OUT ) );
+    else
+        upnpPortTimeOut.start( *Globals::UPNP_RESPONSE_TIME_OUT );
+
     emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), enable );
 }
 
@@ -291,7 +238,7 @@ void Server::sendMasterInfo(const bool& disconnect)
             response = "!version=%1,nump=%2,gameid=%3,game=%4,host=%5,id=%6,port=%7,info=%8,name=%9";
             response = response.arg( this->getVersionID() )
                                .arg( this->getPlayerCount() )
-                               .arg( static_cast<int>( this->getGameId() ) )
+                               .arg( *this->getGameId() )
                                .arg( this->getGameName() )
                                .arg( this->getHostInfo().localHostName() )
                                .arg( this->getServerID() )
@@ -326,7 +273,7 @@ void Server::sendMasterInfo(const bool& disconnect)
 
     if ( !disconnect )
     {
-        masterCheckIn.setInterval( static_cast<int>( Globals::MAX_MASTER_CHECKIN_TIME ) );
+        masterCheckIn.setInterval( *Globals::MAX_MASTER_CHECKIN_TIME );
         this->setMasterTimedOut( false );
     }
 }
@@ -625,6 +572,20 @@ void Server::sendMasterMessageToAdmins(const QString& message)
     }
 }
 
+void Server::startMasterKeepAliveTimer()
+{
+    if ( !masterSerNumKeepAliveTimer.isActive() )
+        masterSerNumKeepAliveTimer.start();
+}
+
+void Server::masterSerNumKeepAliveSlot()
+{
+    const QString packet{ ":;o0FFFFFB2ED" };
+    emit this->sendMasterMsgToPlayerSignal( nullptr, true, PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, this->getGameId() ) );
+
+    this->startMasterKeepAliveTimer();
+}
+
 qint64 Server::getUpTime() const
 {
     return (( QDateTime::currentDateTime().toSecsSinceEpoch() - this->getInitializeDate() ) );
@@ -705,12 +666,17 @@ void Server::setMasterIP(const QString& value, const quint16& port)
 {
     if ( !value.isEmpty() )
     {
-        //Port should be set before the IP Address.
-        this->setMasterPort( port );
+        //Prevent newly created Server instances from forcing all servers to re-ping the MasterMix.
+        //Only when the MasterIP is being changed should we force the Server Instance to ping.
+        if ( !Helper::cmpStrings( masterIP, value ) )
+        {
+            //Port should be set before the IP Address.
+            this->setMasterPort( port );
 
-        masterIP = value;
-        emit this->recvMasterInfoSignal();
-        this->setMasterInfoRecv( true );
+            masterIP = value;
+            emit this->recvMasterInfoSignal();
+            this->setMasterInfoRecv( true );
+        }
     }
 }
 
@@ -1005,13 +971,13 @@ void Server::setMasterUDPResponse(const bool& value)
     if ( masterUDPResponse )
     {
         this->setMasterTimedOut( false );
-        masterCheckIn.setInterval( static_cast<int>( Globals::MAX_MASTER_CHECKIN_TIME ) );
+        masterCheckIn.setInterval( *Globals::MAX_MASTER_CHECKIN_TIME );
     }
     else if ( this->getMasterTimedOut() )
     {
-        masterCheckIn.setInterval( static_cast<int>( Globals::MIN_MASTER_CHECK_IN_TIME ) );
+        masterCheckIn.setInterval( *Globals::MIN_MASTER_CHECK_IN_TIME );
         if ( this->getGameId() == Games::W97 )
-            masterCheckIn.setInterval( static_cast<int>( Globals::MAX_MASTER_CHECKIN_TIME ) );
+            masterCheckIn.setInterval( *Globals::MAX_MASTER_CHECKIN_TIME );
     }
 }
 
@@ -1037,7 +1003,7 @@ void Server::startMasterCheckIn()
     //Every 500 Milliseconds we will attempt to Obtain Master Info.
     //This will be set to 300000 (5-Minutes) once Master info is obtained.
 
-    masterCheckIn.setInterval( static_cast<int>( Globals::MIN_MASTER_STARTUP_TIME ) );
+    masterCheckIn.setInterval( *Globals::MIN_MASTER_STARTUP_TIME );
     masterCheckIn.start();
 }
 
@@ -1186,11 +1152,11 @@ void Server::setUpnpTimedOut(bool newUpnpTimedOut)
 qint64 Server::getMaxIdleTime()
 {
     QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() ) };
-    qint64 maxIdle{ static_cast<qint64>( Globals::MAX_IDLE_TIME ) };
+    qint64 maxIdle{ *Globals::MAX_IDLE_TIME };
     if ( val.isValid() && val.toBool() )
     {
-        maxIdle = val.toUInt() * static_cast<qint64>( TimeMultiply::Seconds )
-                               * static_cast<qint64>( TimeMultiply::Milliseconds );
+        maxIdle = val.toUInt() * *TimeMultiply::Seconds
+                               * *TimeMultiply::Milliseconds;
     }
     return maxIdle;
 }
@@ -1307,8 +1273,8 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
                 usrInfo = usrInfo.remove( '\u0000' );
 
             //Enforce a 256 character limit on GameNames.
-            if ( usrInfo.length() > static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) )
-                this->setGameWorld( usrInfo.left( static_cast<int>( Globals::MAX_GAME_NAME_LENGTH ) ).toLatin1() ); //Truncate the User's GameInfo String.
+            if ( usrInfo.length() > *Globals::MAX_GAME_NAME_LENGTH )
+                this->setGameWorld( usrInfo.left( *Globals::MAX_GAME_NAME_LENGTH ).toLatin1() ); //Truncate the User's GameInfo String.
             else
                 this->setGameWorld( usrInfo.toLatin1() ); //Length was less than 256, set without issue.
         }
@@ -1389,4 +1355,70 @@ void Server::upnpPortAddedSlot(const quint16& port, const QString& protocol)
         upnpPortRefresh.start();
     }
     upnpPortTimeOut.stop();
+}
+
+//Private Timer Slots.
+void Server::updateUsageTimeOutSlot()
+{
+    usageArray[ usageCounter ] = this->getPlayerCount();
+
+    usageDays = 0;
+    usageHours = 0;
+    usageMins = 0;
+
+    for ( uint i = 0; i < *Globals::SERVER_USAGE_48_HOURS; ++i )
+    {
+        const quint32 code{ usageArray[ ( i + usageCounter ) % *Globals::SERVER_USAGE_48_HOURS ] };
+        const quint32 usageCap{ ( *Globals::SERVER_USAGE_48_HOURS - 1 ) - i };
+        if ( usageCap < *Globals::SERVER_USAGE_DAYS )
+        {
+            usageDays += code;
+            if ( usageCap < *Globals::SERVER_USAGE_HOURS )
+            {
+                usageHours += code;
+                if ( usageCap < *Globals::SERVER_USAGE_MINUTES )
+                    usageMins += code;
+            }
+        }
+    }
+    emit this->serverUsageChangedSignal( usageMins, usageDays, usageHours );
+
+    ++usageCounter;
+    usageCounter %= *Globals::SERVER_USAGE_48_HOURS;
+}
+
+void Server::masterCheckInTimeOutSlot()
+{
+    if ( this->getMasterInfoRecv() )
+    {
+        if (( !this->getUpnpPortAdded() && !this->getUseUPNP() )
+          || ( this->getUpnpPortAdded() && this->getUseUPNP() )
+          || ( !this->getUpnpPortAdded() && this->getUseUPNP() )
+          || this->getUpnpTimedOut() )
+        {
+            this->sendMasterInfo();
+            if ( !masterTimeOut.isActive() )
+                masterTimeOut.start();
+        }
+    }
+}
+
+void Server::upnpTimeOutSlot()
+{
+    this->setUpnpTimedOut( true );
+}
+
+void Server::upTimerTimeOutSlot()
+{
+    this->connectionTimeUpdateSignal();
+}
+
+void Server::upnpPortRefreshTimeOutSlot()
+{
+    this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), this->getUseUPNP() );
+   }
+
+void Server::masterTimeOutSlot()
+{
+    this->setMasterTimedOut( true );
 }

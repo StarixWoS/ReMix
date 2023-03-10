@@ -262,7 +262,7 @@ QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, con
 {
     //Verify Instance Count isn't above the maximum.
     QSharedPointer<Server> server{ nullptr };
-    if ( ReMixTabWidget::getInstanceCount() + 1 <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
+    if ( ReMixTabWidget::getInstanceCount() + 1 <= *Globals::MAX_SERVER_COUNT )
     {
         Games gameID{ gameNames.key( gameName, Games::WoS ) };
 
@@ -285,7 +285,7 @@ QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, con
     {
         static const QString title{ "Unable to Initialize Server:" };
         QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
-        message = message.arg( static_cast<int>( Globals::MAX_SERVER_COUNT ) );
+        message = message.arg( *Globals::MAX_SERVER_COUNT );
 
         Helper::warningMessage( this, title, message );
     }
@@ -368,11 +368,11 @@ void CreateInstance::on_servers_currentIndexChanged(int)
         QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, svrName ).toString() };
         if ( !gameName.isEmpty() )
         {
-            Games game{ static_cast<int>( gameNames.key( gameName, Games::Invalid ) ) };
+            Games game{ *gameNames.key( gameName, Games::Invalid ) };
             if ( game == Games::Invalid )
                 ui->gameName->setCurrentIndex( 0 );
             else
-                ui->gameName->setCurrentIndex( static_cast<int>( game ) );
+                ui->gameName->setCurrentIndex( *game );
         }
     }
     else

@@ -63,9 +63,9 @@ qint32 Helper::strToInt(const QString& str, const IntBase& base)
     bool base16{ base != IntBase::DEC };
     bool ok{ false };
 
-    qint32 val{ static_cast<qint32>( str.toUInt( &ok, static_cast<qint32>( base ) ) ) };
+    qint32 val{ static_cast<qint32>( str.toUInt( &ok, *base ) ) };
     if ( !ok && !base16 )
-        val = str.toInt( &ok, static_cast<int>( base ) );
+        val = str.toInt( &ok, *base );
 
     if ( !ok )
         val = -1;
@@ -85,7 +85,7 @@ QString Helper::intSToStr(const QString& val, const int& base, const int& fill, 
     if ( val_i > 0 )
         str = str.arg( val_i, fill, base, filler );
     else
-        str = str.arg( val.toInt( nullptr, static_cast<int>( IntBase::HEX ) ), fill, base, filler );
+        str = str.arg( val.toInt( nullptr, *IntBase::HEX ), fill, base, filler );
 
     return str.toUpper();
 }
@@ -174,27 +174,27 @@ QString Helper::sanitizeSerNum(const QString& value)
     QString sernum{ value };
             sernum = stripSerNumHeader( sernum );
 
-    quint32 sernum_i{ sernum.toUInt( nullptr, static_cast<int>( IntBase::HEX ) ) };
-    if ( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) )
+    quint32 sernum_i{ sernum.toUInt( nullptr, *IntBase::HEX ) };
+    if ( sernum_i & *Globals::MIN_HEX_SERNUM )
         return value;
 
     return serNumToHexStr( sernum, IntFills::DblWord );
 }
 
-QString Helper::serNumToHexStr(QString sernum, const IntFills& fillAmt)
+QString Helper::serNumToHexStr(const QString& serNumIntStr, const IntFills& fillAmt)
 {
-    sernum = stripSerNumHeader( sernum );
+    QString sernum{ stripSerNumHeader( serNumIntStr ) };
 
-    qint32 sernum_i{ static_cast<qint32>( sernum.toUInt( nullptr, static_cast<int>( IntBase::HEX ) ) ) };
+    qint32 sernum_i{ static_cast<qint32>( sernum.toUInt( nullptr, *IntBase::HEX ) ) };
     QString result{ "" };
 
-    if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) )
+    if ( !( sernum_i & *Globals::MIN_HEX_SERNUM ) )
     {
         bool ok{ false };
 
-        result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::DEC ) ), IntBase::HEX, fillAmt );
+        result = intToStr( sernum.toInt( &ok, *IntBase::DEC ), IntBase::HEX, fillAmt );
         if ( !ok )
-            result = intToStr( sernum.toInt( &ok, static_cast<int>( IntBase::HEX ) ), IntBase::HEX, fillAmt );
+            result = intToStr( sernum.toInt( &ok, *IntBase::HEX ), IntBase::HEX, fillAmt );
     }
     else
         result = intToStr( sernum_i, IntBase::HEX, fillAmt );
@@ -220,7 +220,7 @@ QString Helper::serNumToIntStr(const QString& sernum, const bool& isHex)
     qint32 sernum_i{ serNumToInt( serNum, isHex ) };
     QString retn{ "" };
 
-    if ( !( sernum_i & static_cast<int>( Globals::MIN_HEX_SERNUM ) ) || !isHex )
+    if ( !( sernum_i & *Globals::MIN_HEX_SERNUM ) || !isHex )
         retn = goldenSerNum.arg( intToStr( sernum_i, IntBase::DEC ) );
     else
         retn = whiteSerNum.arg( intToStr( sernum_i, IntBase::HEX ) );
@@ -239,7 +239,7 @@ qint32 Helper::serNumToInt(const QString& sernum, const bool& isHex)
             serNum = stripSerNumHeader( sernum );
 
     bool ok{ false };
-    qint32 sernum_i{ static_cast<qint32>( serNum.toUInt( &ok, static_cast<int>( IntBase::HEX ) ) ) };
+    qint32 sernum_i{ static_cast<qint32>( serNum.toUInt( &ok, *IntBase::HEX ) ) };
     if ( !ok )
     {
         if ( isHex )
@@ -367,10 +367,10 @@ QString Helper::getTimeAsString(const quint64& time)
 QString Helper::getTimeFormat(const qint64& time)
 {
     static const QString format{ "%1d:%2h:%3m:%4s" };
-    return format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                 .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                 .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) )
-                 .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, static_cast<int>( IntBase::DEC ), QChar( '0' ) );
+    return format.arg( getTimeIntFormat( time, TimeFormat::Days ), 2, *IntBase::DEC, QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Hours ), 2, *IntBase::DEC, QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Minutes ), 2, *IntBase::DEC, QChar( '0' ) )
+                 .arg( getTimeIntFormat( time, TimeFormat::Seconds ), 2, *IntBase::DEC, QChar( '0' ) );
 }
 
 qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
@@ -379,19 +379,19 @@ qint64 Helper::getTimeIntFormat(const qint64& time, const TimeFormat& format)
     switch ( format )
     {
         case TimeFormat::Days:
-            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
-                     / static_cast<int>( TimeDivide::Days ) );
+            retn = ( ( time / *TimeDivide::Hours )
+                     / *TimeDivide::Days );
         break;
         case TimeFormat::Hours:
-            retn = ( ( time / static_cast<int>( TimeDivide::Hours ) )
-                     % static_cast<int>( TimeDivide::Days ) );
+            retn = ( ( time / *TimeDivide::Hours ) )
+                     % *TimeDivide::Days;
         break;
         case TimeFormat::Minutes:
-            retn = ( ( time / static_cast<int>( TimeDivide::Minutes ) )
-                     % static_cast<int>( TimeDivide::Seconds ) );
+            retn = ( time / *TimeDivide::Minutes )
+                     % *TimeDivide::Seconds;
         break;
         case TimeFormat::Seconds:
-            retn = ( time % static_cast<int>( TimeDivide::Seconds ) );
+            retn = ( time % *TimeDivide::Seconds );
         break;
         default:
         case TimeFormat::Default:
@@ -409,7 +409,7 @@ qint32 Helper::sanitizeToFriendlyUnits(const quint64& bytes, QString &retVal, QS
     if ( bytes == 0 )
         return false;
 
-    while ( ( val >= 1024 ) && ( iter <= static_cast<int>( ByteUnits::ExbiByte ) ) )
+    while ( ( val >= 1024 ) && ( iter <= *ByteUnits::ExbiByte ) )
     {
         val /= 1024;
         ++iter;

@@ -93,7 +93,7 @@ ColorWidget::~ColorWidget()
 
 void ColorWidget::loadColors()
 {
-    for ( int i = 0; i <= static_cast<int>( Colors::ColorCount ); ++i )
+    for ( int i = 0; i <= *Colors::ColorCount; ++i )
     {
         const QColor color{ Theme::getColor( static_cast<Colors>( i ) ) };
 

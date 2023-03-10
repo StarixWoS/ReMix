@@ -35,8 +35,8 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
             if ( vrStr.contains( "SOUL" ) )
                 vrStr = vrStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
-            vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );
-            vrStr = Helper::intSToStr( vrStr, static_cast<int>( IntBase::DEC ) );
+            vlStr = Helper::intSToStr( vlStr, *IntBase::DEC );
+            vrStr = Helper::intSToStr( vrStr, *IntBase::DEC );
         }
         else if ( column == COLS::AGE
                || column == COLS::TIME )

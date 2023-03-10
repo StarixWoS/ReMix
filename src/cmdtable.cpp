@@ -174,45 +174,12 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         true,
         GMCmds::ReStart,
     },
-    {   //Command Unimplemented.
-        { "mkadmin" },
-        1,
-        { },
-        0,
-        "Command Description: Allows the selected User to authenticate with the server as a Remote Administrator.",
-        "",
-        GMRanks::Owner,
-        false,
-        GMCmds::Invalid,
-    },
-    {   //Command Unimplemented.
-        { "rmadmin" },
-        1,
-        { },
-        0,
-        "Command Description: Disallows the selected User to authenticate with the server as a Remote Administrator.",
-        "",
-        GMRanks::Owner,
-        false,
-        GMCmds::Invalid,
-    },
-    {   //Command Unimplemented.
-        { "chadmin" },
-        1,
-        { },
-        0,
-        "Command Description: Changes the Remote Administrator rank of the selected User.",
-        "",
-        GMRanks::Owner,
-        false,
-        GMCmds::Invalid,
-    },
-    {   //Command Unimplemented.
+    {   //Command Unimplemented. Would require a restart or for currently connected Users to reconnect.
         { "chrules" },
         1,
         { },
         0,
-        "Command Description: Modifies the Server's rule set",
+        "Command Description: Modifies the Server's rule set.",
         "",
         GMRanks::Admin,
         false,
@@ -271,7 +238,7 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         { "create", "join", "kick", "leave" },
         3,
         "Command Description: ",
-        "Command Usage: /camp *message | create | join | leave.",
+        "Command Usage: /guild *message | create | join | kick | leave. e.g. (/guild *chat), (/guild create *Name) ",
         GMRanks::User,
         false,
         GMCmds::Guild,
@@ -288,12 +255,12 @@ CmdTable* CmdTable::getInstance()
 
 bool CmdTable::cmdIsActive(const GMCmds& index)
 {
-    return cmdTable.at( static_cast<int>( index ) ).cmdIsActive;
+    return cmdTable.at( *index ).cmdIsActive;
 }
 
 bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool& time)
 {
-    qint32 idx{ static_cast<int>( index ) };
+    qint32 idx{ *index };
     const CmdTable::CmdStruct& cmdAt{ cmdTable.at( idx ) };
 
     if ( !time )
@@ -309,12 +276,12 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool&
 
 bool CmdTable::getCmdHasSubCmd(const GMCmds& index)
 {
-    return cmdTable.at( static_cast<qint32>( index ) ).subCmdCount >= 1;
+    return cmdTable.at( *index ).subCmdCount >= 1;
 }
 
 QStringList CmdTable::getCmdName(const GMCmds& index)
 {
-    return cmdTable.at( static_cast<qint32>( index ) ).cmdActivators;
+    return cmdTable.at( *index ).cmdActivators;
 }
 
 GMCmds CmdTable::getCmdIndex(const QString& cmd)
@@ -340,8 +307,8 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
 
 GMSubCmds CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
 {
-    qint32 index{ static_cast<qint32>( GMSubCmds::Invalid ) };
-    qint32 cmdIdx{ static_cast<qint32>( cmdIndex ) };
+    qint32 index{ *GMSubCmds::Invalid };
+    qint32 cmdIdx{ *cmdIndex };
     const CmdTable::CmdStruct& cmdAt{ cmdTable.at( cmdIdx ) };
     if ( !time )
     {
@@ -362,7 +329,7 @@ GMRanks CmdTable::getCmdRank(const GMCmds& index)
         return GMRanks::Invalid;
 
     if ( this->cmdIsActive( index ) )
-        return cmdTable.at( static_cast<int>( index ) ).cmdRank;
+        return cmdTable.at( *index ).cmdRank;
 
     //The command is inactive. Return Rank Invalid.
     return GMRanks::Invalid;
@@ -397,9 +364,9 @@ QString CmdTable::collateCmdList(const GMRanks& rank)
 
 QString CmdTable::getCommandInfo(const GMCmds& index, const bool& syntax)
 {
-    qint32 idx{ static_cast<int>( index ) };
+    qint32 idx{ *index };
     if ( idx < 0 )
-        idx = static_cast<int>( GMCmds::Help );
+        idx = *GMCmds::Help;
 
     if ( syntax )
         return cmdTable.at( idx ).cmdSyntax;

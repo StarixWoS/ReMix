@@ -29,11 +29,11 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
 
-        if ( column == static_cast<int>( UserCols::LastSeen )
-          || column == static_cast<int>( UserCols::BanDate )
-          || column == static_cast<int>( UserCols::BanDuration )
-          || column == static_cast<int>( UserCols::MuteDate )
-          || column == static_cast<int>( UserCols::MuteDuration ) )
+        if ( ( column == *UserCols::LastSeen )
+          || ( column == *UserCols::BanDate )
+          || ( column == *UserCols::BanDuration )
+          || ( column == *UserCols::MuteDate )
+          || ( column == *UserCols::MuteDuration ) )
         {
             //Pull Date out of the UserRole. This is faster than converting the date string back to a qint64.
             QVariant valLeft{ sourceModel()->data( left, Qt::UserRole ) };
@@ -41,7 +41,7 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
 
             return valLeft.toLongLong() >= valRight.toLongLong();
         }
-        else if ( column == static_cast<int>( UserCols::SerNum ) )
+        else if ( column == *UserCols::SerNum )
         {
             if ( vlStr.contains( "SOUL" ) )
                 vlStr = vlStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
@@ -49,8 +49,8 @@ bool UserSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& ri
             if ( vrStr.contains( "SOUL" ) )
                 vrStr = vrStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
 
-            vlStr = Helper::intSToStr( vlStr, static_cast<int>( IntBase::DEC ) );
-            vrStr = Helper::intSToStr( vrStr, static_cast<int>( IntBase::DEC ) );
+            vlStr = Helper::intSToStr( vlStr, *IntBase::DEC );
+            vrStr = Helper::intSToStr( vrStr, *IntBase::DEC );
         }
         return SortUtil::naturalLessThan( vlStr, vrStr, Qt::CaseInsensitive );
     }

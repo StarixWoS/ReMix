@@ -21,6 +21,8 @@ class WoSPacketHandler : public QObject
 
     signals:
         void insertChatMsgSignal(const QString& msg, const Colors& color, const bool& newLine);
+        void sendPacketToPlayerSignal(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
+                                      const qint32& trgScene, const QByteArray& packet);
 };
 
 #endif // WOSPACKETHANDLER_HPP

@@ -45,7 +45,7 @@ class PacketHandler : public QObject
         void readMIX3(const QString& packet, QSharedPointer<Player> plr);
         void readMIX4(const QString& packet, QSharedPointer<Player> plr);
         void readMIX5(const QString& packet, QSharedPointer<Player> plr);
-        void readMIX6(const QString& packet, QSharedPointer<Player> plr);
+        //void readMIX6(const QString& packet, QSharedPointer<Player> plr);
         void readMIX7(const QString& packet, QSharedPointer<Player> plr);
         void readMIX8(const QString& packet, QSharedPointer<Player> plr);
         void readMIX9(const QString& packet, QSharedPointer<Player> plr);

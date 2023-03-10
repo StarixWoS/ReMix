@@ -258,7 +258,12 @@ class Player : public QTcpSocket
         void setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank);
 
     private slots:
+        void mutedSerNumDurationSlot(const QString& sernum, const quint64& duration);
         void readyReadSlot();
+
+        void serNumKillTimerTimeOutSlot();
+        void killTimerTimeOutSlot();
+        void afkTimerTimeOutSlot();
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;

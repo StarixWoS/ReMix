@@ -1,5 +1,5 @@
-#ifndef SELECTWORLD_H
-#define SELECTWORLD_H
+#ifndef SELECTWORLD_HPP
+#define SELECTWORLD_HPP
 
 #include "prototypes.hpp"
 
@@ -39,4 +39,4 @@ class SelectWorld : public QDialog
         Ui::SelectWorld* ui;
 };
 
-#endif // SELECTWORLD_H
+#endif // SELECTWORLD_HPP

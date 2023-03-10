@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21.1)
+cmake_minimum_required(VERSION 3.20.0)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -7,7 +7,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.0.4 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.0.5 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")

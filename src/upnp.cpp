@@ -206,7 +206,7 @@ void UPNP::getUdpSlot()
                                      reader.readNext();
                     while ( !reader.atEnd() )
                     {
-                        if ( Helper::cmpStrings( reader.name().toString(), "serviceType" )
+                        if ( Helper::cmpStrings( reader.name().toString(), QStringLiteral("serviceType") )
                           || Helper::cmpStrings( reader.name().toString(), "ST" ) )
                         {
                             rtrSchema = reader.readElementText();
@@ -482,10 +482,10 @@ void UPNP::portForwardAdd(const QString& protocol, const QString& privateIP, con
                      "</SOAP-ENV:Body></SOAP-ENV:Envelope>" };
 
     //Support for routers that only support lifetime leases.
-    qint32 timeout{ static_cast<int>( Globals::UPNP_TIME_OUT_S ) };
+    qint32 timeout{ *Globals::UPNP_TIME_OUT_S };
     if ( lifetime )
     {
-        timeout = static_cast<int>( Globals::UPNP_TIME_OUT_PERMA );
+        timeout = *Globals::UPNP_TIME_OUT_PERMA;
         permFwd.insert( port, true );
     }
 

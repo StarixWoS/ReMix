@@ -88,6 +88,8 @@ Theme* Theme::instance{ nullptr };
 
 Theme::Theme(QWidget*)
 {
+    defaultPal = QApplication::palette();
+
     this->loadColors();
 }
 
@@ -115,7 +117,7 @@ void Theme::setThemeType(const Themes& value)
 
 void Theme::loadColors()
 {
-    for ( int i = 0; i <= static_cast<int>( Colors::ColorCount ); ++i )
+    for ( int i = 0; i <= *Colors::ColorCount; ++i )
     {
         QString dark = Settings::getSetting( SKeys::Colors, Themes::Dark, static_cast<Colors>( i ) ).toString();
         QString light = Settings::getSetting( SKeys::Colors, Themes::Light, static_cast<Colors>( i ) ).toString();
@@ -135,7 +137,7 @@ void Theme::applyTheme(const Themes& type)
     if ( themeStyle == nullptr )
     {
         themeStyle = QStyleFactory::create( "Fusion" );
-        defaultPal = themeStyle->standardPalette();
+        defaultPal = QApplication::palette();
     }
 
     qApp->setStyle( themeStyle );
@@ -178,14 +180,14 @@ void Theme::applyTheme(const Themes& type)
         currentPal = customPalette;
     }
     else
-        currentPal = themeStyle->standardPalette();
+        currentPal = defaultPal;//themeStyle->standardPalette();
 
     qApp->setPalette( currentPal );
 }
 
 QString Theme::getDefaultColor(const Themes& theme, const Colors& color)
 {
-    return QColor( defaultColors[ static_cast<int>( theme ) ].value( color ) ).name();
+    return QColor( defaultColors[ *theme ].value( color ) ).name();
 }
 
 QBrush Theme::getColorBrush(const Colors& color)

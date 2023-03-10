@@ -45,14 +45,14 @@ PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
 
     //Setup the PlayerInfo TableView.
     plrModel = new QStandardItemModel( 0, 8, nullptr );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::IPPort ), Qt::Horizontal, "Player IP:Port" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::SerNum ), Qt::Horizontal, "SerNum" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesOut ), Qt::Horizontal, "OUT" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BioData ), Qt::Horizontal, "BIO" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Alias ), Qt::Horizontal, "Alias" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::BytesIn ), Qt::Horizontal, "IN" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Time ), Qt::Horizontal, "Time" );
-    plrModel->setHeaderData( static_cast<int>( PlrCols::Age ), Qt::Horizontal, "Age" );
+    plrModel->setHeaderData( *PlrCols::IPPort, Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( *PlrCols::SerNum, Qt::Horizontal, "SerNum" );
+    plrModel->setHeaderData( *PlrCols::BytesOut, Qt::Horizontal, "OUT" );
+    plrModel->setHeaderData( *PlrCols::BioData, Qt::Horizontal, "BIO" );
+    plrModel->setHeaderData( *PlrCols::Alias, Qt::Horizontal, "Alias" );
+    plrModel->setHeaderData( *PlrCols::BytesIn, Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( *PlrCols::Time, Qt::Horizontal, "Time" );
+    plrModel->setHeaderData( *PlrCols::Age, Qt::Horizontal, "Age" );
 
     //Proxy model to support sorting without actually altering the underlying model
     plrProxy = new PlrSortProxyModel();
@@ -61,19 +61,19 @@ PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
     plrProxy->setSourceModel( plrModel );
     ui->playerView->setModel( plrProxy );
 
-    ui->playerView->setColumnHidden( static_cast<int>( PlrCols::BioData ), true );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesOut ), 120 );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::BytesIn ), 120 );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::IPPort ), 130 );
+    ui->playerView->setColumnHidden( *PlrCols::BioData, true );
+    ui->playerView->setColumnWidth( *PlrCols::BytesOut, 120 );
+    ui->playerView->setColumnWidth( *PlrCols::BytesIn, 120 );
+    ui->playerView->setColumnWidth( *PlrCols::IPPort, 130 );
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool() )
         this->censorUIIPInfoSlot( true );
 
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::censorUIIPInfoSignal, this, &PlrListWidget::censorUIIPInfoSlot );
 
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::SerNum ), 100 );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Alias ), 70 );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Time ), 50 );
-    ui->playerView->setColumnWidth( static_cast<int>( PlrCols::Age ), 80 );
+    ui->playerView->setColumnWidth( *PlrCols::SerNum, 100 );
+    ui->playerView->setColumnWidth( *PlrCols::Alias, 70 );
+    ui->playerView->setColumnWidth( *PlrCols::Time, 50 );
+    ui->playerView->setColumnWidth( *PlrCols::Age, 80 );
     ui->playerView->horizontalHeader()->setStretchLastSection( true );
 
     //Install Event Filter to enable Row-Deslection.

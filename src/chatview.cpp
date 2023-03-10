@@ -5,6 +5,7 @@
 
 //ReMix includes.
 #include "campexemption.hpp"
+#include "packetforge.hpp"
 #include "cmdhandler.hpp"
 #include "settings.hpp"
 #include "server.hpp"
@@ -91,7 +92,6 @@ QStringList ChatView::bleepList
     "whore", "willies"
 };
 
-Themes ChatView::currentTheme;
 QHash<QSharedPointer<Server>, ChatView*> ChatView::chatViewInstanceMap;
 QVector<Colors> ChatView::colors
 {
@@ -132,7 +132,7 @@ ChatView::ChatView(QSharedPointer<Server> svr, QWidget* parent) :
     QObject::connect( this, &ChatView::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
 
     //Conect Theme Signals to the ChatView Class.
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ChatView::themeChangedSlot, Qt::UniqueConnection );
+    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &ChatView::themeChangedSlot );
 
     if ( server->getGameId() == Games::W97 )
     {
@@ -144,15 +144,6 @@ ChatView::ChatView(QSharedPointer<Server> svr, QWidget* parent) :
     }
 
     QObject::connect( Theme::getInstance(), &Theme::colorOverrideSignal, this, &ChatView::colorOverrideSlot );
-    QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
-    [=,this]()
-    {
-        auto pal{ Theme::getCurrentPal() };
-        ui->autoScrollCheckBox->setPalette( pal );
-        ui->chatInput->setPalette( pal );
-        ui->chatView->setPalette( pal );
-        ui->label->setPalette( pal );
-    });
 
     ui->autoScrollCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() ).toBool() );
     ui->timeStampCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatTimeStamp, server->getServerName() ).toBool() );
@@ -615,7 +606,9 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
     if ( !msg.isEmpty() )
         emit this->insertLogSignal( server->getServerName(), msg, LKeys::ChatLog, true, true );
 
-    emit this->sendChatSignal( msg, target, toAll );
+    QString packet{ ":;oCFFFFFB2EDLFFFFFFB2E00000000" % msg };
+    QString forgedPacket = PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() );
+    emit this->sendChatSignal( forgedPacket, target, toAll );
 }
 
 void ChatView::on_chatInput_returnPressed()
@@ -642,6 +635,12 @@ void ChatView::themeChangedSlot(const Themes& theme)
         }
         this->scrollToBottom( true );
         currentTheme = theme;
+
+        auto pal{ Theme::getCurrentPal() };
+        ui->autoScrollCheckBox->setPalette( pal );
+        ui->chatInput->setPalette( pal );
+        ui->chatView->setPalette( pal );
+        ui->label->setPalette( pal );
     }
 }
 

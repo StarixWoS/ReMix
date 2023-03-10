@@ -237,6 +237,10 @@
 
             //Maximum Count that ReMix will allow a User to send a packet with the incorrect Packet ID.
             MAX_PKT_HEADER_EXEMPT = 5,
+
+            //Time before the server sends the keep alive packet for ReMix's designated sernum.
+            //30 Seconds in milliseconds.
+            MASTER_SERNUM_KEEPALIVE = 30000,
         };
 
         //Valid Password types.
@@ -257,9 +261,9 @@
                                    Six, Seven = 7, Invalid = -1 };
 
         //Valid Command Structure Format.
-        enum class CmdTblFmt: int { Cmd = 0, SubCommands, SubCommandCount,
-                                    CmdInfo, CmdSyntax, CmdRank,
-                                    CmdIsActive = 6 };
+        enum class CmdTblFmt: int{ Cmd = 0, SubCommands, SubCommandCount,
+                                   CmdInfo, CmdSyntax, CmdRank,
+                                   CmdIsActive = 6 };
 
         //Valid SerNum response codes.
         enum class UserListResponse: int{ Q_Response = 0, R_Response = 1 };
@@ -356,7 +360,7 @@
         enum class IntBase: int{ OCT = 8, DEC = 10, HEX = 16 };
 
         //Valid Filler lengths for IntBase::Hex conversions.
-        enum class IntFills: int{ Bit = 0,
+        enum class IntFills: int{ Bit = 1,       //Half a Byte
                                   Byte = 2,      //Byte
                                   Word = 4,      //Two Bytes
                                   DblWord = 8,   //Int
@@ -380,11 +384,21 @@
         enum class ChatType: int{ Normal = 0, DiceAndLevelUp, Unk1 = 2, LearnSpell = 3,
                                   Unk2 = 4, Unk3 = 5, PetCmd = 6, SceneMsg = 10, DeathMsg = 11 };
 
+        //Valid forms of a Skin Transfer Packet.
+        enum class SkinType{ RequestModeOne = 1, RequestModeTwo = 6, Offer = 2, DataRequest = 3, DataTransfer = 4, ThanksForSkin = 5 };
+
         //Valid SSV Modes. Read/Write.
         enum class SSVModes: int{ Read = 0, Write = 1, Invalid = -1,  };
 
         //Valid Player Disconnect Types.
-        enum class PlrDisconnectType{ SerNumChanged = 0, InvalidSerNum, BlueCodeSerNum, SerNumOne, Invalid = -1 };
+        enum class PlrDisconnectType: int{ SerNumChanged = 0, InvalidSerNum, BlueCodeSerNum, SerNumOne, Invalid = -1 };
+
+        template <typename T>
+        static constexpr auto operator*(T e) noexcept
+            -> std::enable_if_t<std::is_enum<T>::value, std::underlying_type_t<T>>
+        {
+            return static_cast<std::underlying_type_t<T>>(e);
+        }
 
     #endif  // REMIX_GLOBALS
 

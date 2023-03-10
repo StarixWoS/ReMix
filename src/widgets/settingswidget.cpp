@@ -44,7 +44,7 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     else
         rowText = rowText.arg( "" );
 
-    ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setText( rowText );
+    ui->settingsView->item( *SToggles::WorldDir, 0 )->setText( rowText );
     this->setCheckedState( SToggles::WorldDir, !dir.isEmpty() );
 
     QString masterIPOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
@@ -55,7 +55,7 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     else
         rowText = rowText.arg( "" );
 
-    ui->settingsView->item( static_cast<int>( SToggles::OverrideMaster ), 0 )->setText( rowText );
+    ui->settingsView->item( *SToggles::OverrideMaster, 0 )->setText( rowText );
     this->setCheckedState( SToggles::OverrideMaster, !masterIPOverride.isEmpty() );
 
     QString masterAddressOverride{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() };
@@ -66,7 +66,7 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     else
         rowText = rowText.arg( "" );
 
-    ui->settingsView->item( static_cast<int>( SToggles::OverrideMasterHost ), 0 )->setText( rowText );
+    ui->settingsView->item( *SToggles::OverrideMasterHost, 0 )->setText( rowText );
     this->setCheckedState( SToggles::OverrideMasterHost, !masterAddressOverride.isEmpty() );
 }
 
@@ -86,17 +86,17 @@ void SettingsWidget::setCheckedState(const SToggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    QTableWidgetItem* item{ ui->settingsView->item( static_cast<int>( option ), 0 ) };
+    QTableWidgetItem* item{ ui->settingsView->item( *option, 0 ) };
     if ( item != nullptr )
     {
-        ui->settingsView->item( static_cast<int>( option ), 0 )->setCheckState( state );
+        ui->settingsView->item( *option, 0 )->setCheckState( state );
         stateMap.insert( item, state );
     }
 }
 
 bool SettingsWidget::getCheckedState(const SToggles& option)
 {
-    return ui->settingsView->item( static_cast<int>( option ), 0 )->checkState() == Qt::Checked;
+    return ui->settingsView->item( *option, 0 )->checkState() == Qt::Checked;
 }
 
 SettingsWidget* SettingsWidget::getInstance(QWidget* parent)
@@ -167,7 +167,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
             if ( state )
             {
                 if ( this->getCheckedState( SToggles::BanDupeIP ) )
-                    this->toggleSettingsModel( static_cast<int>( SToggles::BanDupeIP ) );
+                    this->toggleSettingsModel( *SToggles::BanDupeIP );
             }
         break;
         case SToggles::BanDupeIP: //1
@@ -175,7 +175,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
             if ( state )
             {
                 if ( this->getCheckedState( SToggles::AllowDupeIP ) )
-                    this->toggleSettingsModel( static_cast<int>( SToggles::AllowDupeIP ) );
+                    this->toggleSettingsModel( *SToggles::AllowDupeIP );
             }
         break;
         case SToggles::CensorIPInfo:
@@ -242,7 +242,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         if ( directory.endsWith( "/worlds", Qt::CaseInsensitive ) )
                         {
                             state = true;
-                            ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setCheckState( Qt::Checked );
+                            ui->settingsView->item( *SToggles::WorldDir, 0 )->setCheckState( Qt::Checked );
                         }
                     }
 
@@ -252,12 +252,12 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                         title = "Invalid Directory:";
                         prompt = "You have selected an invalid world directory. Please try again.";
 
-                        ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setCheckState( Qt::Unchecked );
+                        ui->settingsView->item( *SToggles::WorldDir, 0 )->setCheckState( Qt::Unchecked );
 
                         Helper::warningMessage( this, title, prompt );
                     }
                     rowText = rowText.arg( directory );
-                    ui->settingsView->item( static_cast<int>( SToggles::WorldDir ), 0 )->setText( rowText );
+                    ui->settingsView->item( *SToggles::WorldDir, 0 )->setText( rowText );
 
                     Settings::setSetting( directory, SKeys::Setting, SSubKeys::WorldDir );
                 }

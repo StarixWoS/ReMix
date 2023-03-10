@@ -4,6 +4,41 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.5:
+    Change:
+      * Reduce spammy chat for connected Users when using the ReMix ChatView to send messages.
+        * Users using actual game clients will no longer receive the "MESSAGE FROM SERVER" tags when sending messages to Users via ReMix.
+        * ReMix chat is sent via the actual chat packet (C) using the sernum (negative)-1234 in hex 0xFFFFFB2E.
+          * As an exception, messages sent via Remote Admin Commands currently still prompt with the "MESSAGE FROM SERVER" tags and may be changed in the future.
+      * As ReMix now uses the sernum 0xFFFFFB2E for chat packets, we now also send heartbeat packets (0) for the sernum to prevent Users from seeing it "disappear".
+      * Reduce verbosity in code when accessing the underlying type of enum values.
+        * static_cast<int>( Globals::VALUE ) reduced to *Globals::VALUE.
+      * ReMix now removes IP information from (WoS) Skin Transfer (x) packets.
+        * This *should force WoS to fallback to using the Mix to communicate the skin data to other Users and allow the feature to work for more people.
+      * The packet MIX6 is now fully and completely deprecated. WoS will no longer acknowledge or respond to Mix commands starting with "/cmd".
+      * Packet forging is now fully implemented for both WoS and ToY game types.
+      
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where right-clicking a server-instance would not properly allow the instance to be closed or renamed.
+      * Fixed an issue where re-opening a previously closed server instance would cause ReMix to freeze until forcefully closed.
+      * Fixed an issue where Server threads (UdpThread) would not close or exit properly.
+        * We now forcefully end it instead of waiting for a obj.deleteLater().
+      * Fixed an issue where starting a server-instance using the GameType(WoS, ToY, W97) of another instance would force all servers on that GameType to ping the MasterMix.
+        * Server instances will now only re-ping the MasterMix if the provided information for that GameType has changed.
+      * Fixed an issue on Windows11 using >Qt6.4 where ReMix would no longer properly switch between the dark and light themes.
+      * Fixed an issue with the ChatView where only the first server instance created would have it's text colors changed based on the dark and light themes.
+        * All other servers created would use the light theme text color regardless of theme picked.
+      * Fixed an issue where ReMix would no longer download the MasterMix data (synreal.ini) when using >Qt6.4.
+      * Fixed an issue where ReMix would no longer ping the MasterMix when using >Qt6.4.
+
+
+
+
+
 Version 3.0.4:
     Change:
       * Renamed a Helper function to correct name-case. serNumtoInt -> serNumToInt.

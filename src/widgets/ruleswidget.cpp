@@ -82,36 +82,35 @@ void RulesWidget::setServerName(const QString& name)
     }
 
     this->setCheckedState( RToggles::WorldName, !val.toString().isEmpty() );
-    ui->rulesView->item( static_cast<int>( RToggles::WorldName ), 0 )->setText( rowText.arg( val.toString() ) );
+    ui->rulesView->item( *RToggles::WorldName, 0 )->setText( rowText.arg( val.toString() ) );
     this->setGameInfo( val.toString() );
 
     rowText = "Max Idle: [ %1 ] Minutes";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name );
     if ( !val.isValid() )
     {
-        val = ( static_cast<qint64>( Globals::MAX_IDLE_TIME ) / static_cast<int>( TimeDivide::Miliseconds ) )
-                                                              / static_cast<int>( TimeDivide::Minutes );
+        val = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds ) / *TimeDivide::Minutes;
     }
 
-    ui->rulesView->item( static_cast<int>( RToggles::MaxIdle ), 0 )->setText( rowText.arg( val.toUInt() ) );
+    ui->rulesView->item( *RToggles::MaxIdle, 0 )->setText( rowText.arg( val.toUInt() ) );
 
     rowText = "Minimum Game Version: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
-    ui->rulesView->item( static_cast<int>( RToggles::MinVersion ), 0 )->setText( rowText.arg( val.toString() ) );
+    ui->rulesView->item( *RToggles::MinVersion, 0 )->setText( rowText.arg( val.toString() ) );
 
     rowText = "Server Home: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::SvrUrl, name );
-    ui->rulesView->item( static_cast<int>( RToggles::UrlAddr ), 0 )->setText( rowText.arg( val.toString() ) );
+    ui->rulesView->item( *RToggles::UrlAddr, 0 )->setText( rowText.arg( val.toString() ) );
 
     rowText = "Max Players: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxPlayers, name );
 
     if ( !val.isValid() )
-        val = static_cast<quint32>( Globals::MAX_PLAYERS );
+        val = *Globals::MAX_PLAYERS;
 
     emit this->setMaxPlayersSignal( val.toInt() );
 
-    ui->rulesView->item( static_cast<int>( RToggles::MaxPlayers ), 0 )->setText( rowText.arg( Helper::intToStr( val.toUInt() ) ) );
+    ui->rulesView->item( *RToggles::MaxPlayers, 0 )->setText( rowText.arg( Helper::intToStr( val.toUInt() ) ) );
 
     this->setCheckedState( RToggles::MinVersion, !Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name ).toString().isEmpty() );
     this->setCheckedState( RToggles::ServerPassword, Settings::getSetting( SKeys::Rules, SSubKeys::HasSvrPassword, name ).toBool() );
@@ -142,17 +141,17 @@ void RulesWidget::setCheckedState(const RToggles& option, const bool& val)
     else
         state = Qt::Unchecked;
 
-    QTableWidgetItem* item{ ui->rulesView->item( static_cast<int>( option ), 0 ) };
+    QTableWidgetItem* item{ ui->rulesView->item( *option, 0 ) };
     if ( item != nullptr )
     {
-        ui->rulesView->item( static_cast<int>( option ), 0 )->setCheckState( state );
+        ui->rulesView->item( *option, 0 )->setCheckState( state );
         stateMap.insert( item, state );
     }
 }
 
 bool RulesWidget::getCheckedState(const RToggles& option)
 {
-    return ui->rulesView->item( static_cast<int>( option ), 0 )->checkState() == Qt::Checked;
+    return ui->rulesView->item( *option, 0 )->checkState() == Qt::Checked;
 }
 
 void RulesWidget::setGameInfo(const QString& gInfo)
@@ -198,7 +197,7 @@ void RulesWidget::on_rulesView_doubleClicked(const QModelIndex& index)
 
 void RulesWidget::toggleRulesModel(const RToggles &row)
 {
-    auto intRow{ static_cast<int>( row ) };
+    auto intRow{ *row };
 
     QTableWidgetItem* item{ ui->rulesView->item( intRow, 0 ) };
     if ( item != nullptr )
@@ -344,7 +343,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 else
                     rowText = rowText.arg( world );
 
-                ui->rulesView->item( static_cast<int>( RToggles::WorldName ), 0 )->setText( rowText );
+                ui->rulesView->item( *RToggles::WorldName, 0 )->setText( rowText );
 
                 this->setGameInfo( world );
             }
@@ -394,8 +393,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                     {
                         title = "Max-Players:";
                         prompt = "Value:";
-                        maxPlrs = Helper::getIntResponse( this, title, prompt, static_cast<qint32>( Globals::MAX_PLAYERS ),
-                                                          static_cast<qint32>( Globals::MAX_PLAYERS ), 1, &ok );
+                        maxPlrs = Helper::getIntResponse( this, title, prompt, *Globals::MAX_PLAYERS,
+                                                          *Globals::MAX_PLAYERS, 1, &ok );
                     }
 
                     if ( maxPlrs == 0 || !ok )
@@ -417,7 +416,7 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 }
                 else
                 {
-                    maxPlrs = static_cast<int>( Globals::MAX_PLAYERS );
+                    maxPlrs = *Globals::MAX_PLAYERS;
                     rowText = rowText.arg( maxPlrs );
                 }
 
@@ -435,12 +434,12 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 {
                     if ( maxIdle == 0 )
                     {
-                        auto defaultIdle = ( static_cast<qint32>( Globals::MAX_IDLE_TIME ) / static_cast<qint32>( TimeDivide::Miliseconds ) )
-                                                                                           / static_cast<qint32>( TimeDivide::Minutes );
+                        auto defaultIdle = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds )
+                                                                     / *TimeDivide::Minutes;
                         title = "Max-Idle:";
                         prompt = "Value:";
                         maxIdle = Helper::getIntResponse( this, title, prompt, defaultIdle,
-                                                          static_cast<qint32>( Globals::MAX_IDLE_TIME ), 1, &ok );
+                                                          *Globals::MAX_IDLE_TIME, 1, &ok );
                     }
 
                     if ( maxIdle == 0 || !ok )
@@ -458,8 +457,8 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
                 if ( !val.isValid() )
                 {
-                    val = ( static_cast<qint32>( Globals::MAX_IDLE_TIME ) / static_cast<qint32>( TimeDivide::Miliseconds ) )
-                                                                          / static_cast<qint32>( TimeDivide::Minutes );
+                    val = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds )
+                                                    / *TimeDivide::Minutes;
                 }
 
                 rowText = rowText.arg( val.toUInt() );

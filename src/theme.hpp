@@ -1,5 +1,5 @@
-#ifndef THEMECHANGE_HPP
-#define THEMECHANGE_HPP
+#ifndef THEME_HPP
+#define THEME_HPP
 
 //ReMix Includes
 #include "prototypes.hpp"
@@ -50,4 +50,4 @@ class Theme : public QObject
         void colorOverrideSlot(const Colors& colorRole, const QString& color);
 };
 
-#endif // THEMECHANGE_HPP
+#endif // THEME_HPP

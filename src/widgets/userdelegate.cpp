@@ -122,9 +122,9 @@ void UserDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
 QWidget* UserDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
     QComboBox* editor{ new QComboBox( parent ) };
-               editor->setFocusPolicy( Qt::StrongFocus );
+          editor->setFocusPolicy( Qt::StrongFocus );
 
-    if ( index.column() == static_cast<int>( UserCols::Rank ) )
+    if ( index.column() == *UserCols::Rank )
     {
         editor->addItem( "User" );
         editor->addItem( "Game Master" );
@@ -133,12 +133,12 @@ QWidget* UserDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&
         editor->addItem( "Owner" );
         editor->addItem( "Creator" );
     }
-    else if ( index.column() == static_cast<int>( UserCols::Muted ) )
+    else if ( index.column() == *UserCols::Muted )
     {
         editor->addItem( "Not Muted" );
         editor->addItem( "Muted" );
     }
-    else if ( index.column() == static_cast<int>( UserCols::Banned ) )
+    else if ( index.column() == *UserCols::Banned )
     {
         editor->addItem( "Not Banned" );
         editor->addItem( "Banned" );

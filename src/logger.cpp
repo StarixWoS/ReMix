@@ -61,10 +61,10 @@ Logger::Logger(QWidget *parent) :
     QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot );
 
     tblModel = new QStandardItemModel( 0, 4, nullptr );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Message ), Qt::Horizontal, "Message" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Source ), Qt::Horizontal, "Source" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Date ), Qt::Horizontal, "Date" );
-    tblModel->setHeaderData( static_cast<int>( LogCols::Type ), Qt::Horizontal, "Type" );
+    tblModel->setHeaderData( *LogCols::Message, Qt::Horizontal, "Message" );
+    tblModel->setHeaderData( *LogCols::Source, Qt::Horizontal, "Source" );
+    tblModel->setHeaderData( *LogCols::Date, Qt::Horizontal, "Date" );
+    tblModel->setHeaderData( *LogCols::Type, Qt::Horizontal, "Type" );
     ui->logView->setModel( tblModel );
 
     //Load the application Icon into the top left of the dialog.
@@ -85,7 +85,7 @@ Logger::Logger(QWidget *parent) :
 
     //Restore the AutoClear Logs setting.
     ui->autoClear->setChecked( Settings::getSetting( SKeys::Logger, SSubKeys::LoggerAutoClear ).toBool() );
-    autoClearTimer.setInterval( static_cast<int>( TimeInterval::Day ) * static_cast<int>( TimeMultiply::Milliseconds ) );
+    autoClearTimer.setInterval( *TimeInterval::Day * *TimeMultiply::Milliseconds );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, "Logger" ).toByteArray() );
@@ -185,12 +185,12 @@ void Logger::filterLogs()
 
     ui->logView->setUpdatesEnabled( false );
 
-    bool filteringLogs{ index != static_cast<int>( LKeys::AllLogs ) };
+    bool filterLogs{ index != *LKeys::AllLogs };
     for ( const QModelIndex& idx : logMap.keys() )
     {
         if ( idx.isValid() )
         {
-            if ( filteringLogs )
+            if ( filterLogs )
             {
                 const LKeys type{ logMap.value( idx ) };
                 if ( type == static_cast<LKeys>( index ) )

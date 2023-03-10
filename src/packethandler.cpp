@@ -107,12 +107,12 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
             case '4':   //Send the next Packet from the User to SerNum's Socket.
                 this->readMIX4( data, plr );
             break;
-            case '5':   //Handle Server password login and User Comments.
+            case '5':   //Handle Server password login, remote admin commands, and User Comments.
                 this->readMIX5( data, plr );
             break;
-            case '6':   //Handle Remote Admin Commands.
-                this->readMIX6( data, plr );
-            break;
+            //case '6':   //Handle Remote Admin Commands. Mix6 packets contain "/cmd command". ReMix no longer supports this packet.
+            //    this->readMIX6( data, plr );
+            //break;
             case '7':   //Set the User's HB ID.
                 this->readMIX7( data, plr );
             break;
@@ -174,7 +174,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
                 if ( plr->getSvrPwdReceived()
                   || !plr->getSvrPwdRequested() )
                 {
-                    emit this->sendPacketToPlayerSignal( plr, static_cast<qint32>( plr->getTargetType() ), plr->getTargetSerNum(),
+                    emit this->sendPacketToPlayerSignal( plr, *plr->getTargetType(), plr->getTargetSerNum(),
                                                          plr->getTargetScene(), pkt );
                     //Reset the User's target information.
                     plr->setTargetType( PktTarget::ALL );
@@ -359,9 +359,9 @@ void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
     if ( floodCount >= 1 )
     {
         qint64 time{ plr->getFloodTime() };
-        if ( time <= static_cast<int>( Globals::PACKET_FLOOD_TIME ) )
+        if ( time <= *Globals::PACKET_FLOOD_TIME )
         {
-            if ( floodCount >= static_cast<int>( Globals::PACKET_FLOOD_LIMIT )
+            if ( floodCount >= *Globals::PACKET_FLOOD_LIMIT
                  && !plr->getIsDisconnected() )
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
@@ -377,7 +377,7 @@ void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
                 server->sendMasterMessage( plrMessage, plr, false );
             }
         }
-        else if ( time >= static_cast<qint64>( Globals::PACKET_FLOOD_TIME ) )
+        else if ( time >= *Globals::PACKET_FLOOD_TIME )
         {
             plr->restartFloodTimer();
             plr->setPacketFloodCount( 0 );
@@ -398,7 +398,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
     if ( plrPktSlot != Helper::strToInt( recvSlotPos, IntBase::HEX ) )
     {
         qint32 exemptCount{ plr->getPktHeaderExemptCount() + 1 };
-        if ( exemptCount >= static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) )
+        if ( exemptCount >= *Globals::MAX_PKT_HEADER_EXEMPT )
         {
             disconnect = true;
 
@@ -409,7 +409,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
             reason = reason.arg( plr->getSernum_s() )
                            .arg( plr->getIPAddress() )
                            .arg( plr->getBioData() )
-                           .arg( Helper::intToStr( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) ) );
+                           .arg( Helper::intToStr( *Globals::MAX_PKT_HEADER_EXEMPT ) );
 
             emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
         }
@@ -420,7 +420,7 @@ bool PacketHandler::validatePacketHeader(QSharedPointer<Player> plr, const QByte
             message = "Error; Received Packet with Header [ :SR1%1 ] while assigned [ :SR1%2 ]. Exemptions remaining: [ %3 ].";
             message = message.arg( recvSlotPos )
                              .arg( Helper::intToStr( plrPktSlot, IntBase::HEX, IntFills::Byte ) )
-                             .arg( static_cast<int>( Globals::MAX_PKT_HEADER_EXEMPT ) - exemptCount );
+                             .arg( *Globals::MAX_PKT_HEADER_EXEMPT - exemptCount );
 
             //Attempt to re-issue the User a valid Packet Slot ID.
             //I'm not sure if WoS will allow this.
@@ -490,22 +490,23 @@ void PacketHandler::readMIX5(const QString& packet, QSharedPointer<Player> plr)
     }
 }
 
-void PacketHandler::readMIX6(const QString& packet, QSharedPointer<Player> plr)
-{
-    const QString sernum{ packet.mid( 2 ).left( 8 ) };
-    if ( plr != nullptr )
-    {
-        if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
+//No longer a supported packet.
+//void PacketHandler::readMIX6(const QString& packet, QSharedPointer<Player> plr)
+//{
+//    const QString sernum{ packet.mid( 2 ).left( 8 ) };
+//    if ( plr != nullptr )
+//    {
+//        if ( plr->getSernum_i() <= 0 )
+//            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
 
-        //Do not accept commands from User who have been muted.
-        if ( !plr->getIsMuted() )
-        {
-            static const QString message{ "This command syntax is no longer supported. Please use the syntax \"/command\" e.g. \"/help version\" instead." };
-            server->sendMasterMessage( message, plr );
-        }
-    }
-}
+//        //Do not accept commands from User who have been muted.
+//        if ( !plr->getIsMuted() )
+//        {
+//            static const QString message{ "This command syntax is no longer supported. Please use the syntax \"/command\" e.g. \"/help version\" instead." };
+//            server->sendMasterMessage( message, plr );
+//        }
+//    }
+//}
 
 void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
 {

@@ -104,7 +104,10 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     [=, this](const QString& message, QSharedPointer<Player> target, const bool& toAll)
     {
         if ( !message.isEmpty() )
-            server->sendMasterMessage( message, target, toAll );
+        {
+            server->sendMasterMsgToPlayerSignal( target, toAll, message.toLatin1() );
+            server->startMasterKeepAliveTimer();
+        }
     } );
 
     //Initialize the TCP Server if we're starting as a public instance.
@@ -467,7 +470,7 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     [=, this]()
     {
         this->plrDisconnectedSlot( plr, false );
-    }, Qt::UniqueConnection );
+    } );
 
     QObject::connect( plr.get(), &Player::errorOccurred, this,
     [=, this](QAbstractSocket::SocketError socketError)
@@ -475,9 +478,9 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
         if ( QAbstractSocket::SocketTimeoutError == socketError )
             this->plrDisconnectedSlot( plr, true );
 
-    }, Qt::UniqueConnection );
+    } );
 
-    QObject::connect( plr.get(), &Player::parsePacketSignal, PacketHandler::getInstance( server ),&PacketHandler::parsePacketSlot, Qt::UniqueConnection );
+    QObject::connect( plr.get(), &Player::parsePacketSignal, PacketHandler::getInstance( server ), &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
 
     server->sendServerGreeting( plr );
     plr->setPlrConnectedTime( QDateTime::currentDateTime().toSecsSinceEpoch() );

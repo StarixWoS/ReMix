@@ -54,7 +54,7 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     if ( !createDialog->getLoadingOldServers() )
         this->createServer();
 
-    createInstanceTimer.start( static_cast<int>( Globals::UI_UPDATE_TIME ) );
+    createInstanceTimer.start( *Globals::UI_UPDATE_TIME );
     QObject::connect( &createInstanceTimer, &QTimer::timeout, &createInstanceTimer,
     [=]()
     {
@@ -179,7 +179,7 @@ void ReMixTabWidget::remoteCloseServer(QSharedPointer<Server> server, const bool
     if ( tabWidget != nullptr
       && server != nullptr )
     {
-        for ( int i = 0; i < static_cast<int>( Globals::MAX_SERVER_COUNT ); ++i )
+        for ( int i = 0; i < *Globals::MAX_SERVER_COUNT; ++i )
         {
             const ReMixWidget* instance{ serverMap.value( i ) };
             if ( instance != nullptr )
@@ -481,7 +481,7 @@ void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
 
                 renameAction->disconnect();
                 renameAction->deleteLater();
-            }, Qt::UniqueConnection );
+            } );
 
             QString closeMsg{ "Close [ %1 ]" };
                     closeMsg = closeMsg.arg( name );
@@ -496,7 +496,7 @@ void ReMixTabWidget::customContextMenuRequestedSlot(const QPoint& point)
 
                 closeAction->disconnect();
                 closeAction->deleteLater();
-            }, Qt::UniqueConnection );
+            } );
 
             menu.exec( this->mapToGlobal( point ) );
         }
@@ -512,7 +512,7 @@ void ReMixTabWidget::tabCloseRequestedSlot(const qint32& index)
         QString prompt{ "You are about to shut down your ReMix game server!\r\nThis will affect [ %1 ] "
                         "User(s) connected to it.\r\n\r\nAre you certain?" };
 
-        for ( int i = 0; ( i < static_cast<int>( Globals::MAX_SERVER_COUNT ) )
+        for ( int i = 0; ( i < *Globals::MAX_SERVER_COUNT )
            || ( i < serverMap.size() ); ++i )
         {
             const ReMixWidget* instance = serverMap.value( i );
@@ -630,10 +630,10 @@ void ReMixTabWidget::createServerAcceptedSlot(QSharedPointer<Server> server)
 
     qint32 serverID{ 0 };
 
-    for ( int i = 0; i < static_cast<int>( Globals::MAX_SERVER_COUNT ); ++i )
+    for ( int i = 0; i < *Globals::MAX_SERVER_COUNT; ++i )
     {
         const ReMixWidget* instance{ serverMap.value( i ) };
-        serverID = static_cast<int>( Globals::MAX_SERVER_COUNT ) + 1;
+        serverID = *Globals::MAX_SERVER_COUNT + 1;
 
         if ( instance == nullptr )
         {
@@ -642,7 +642,7 @@ void ReMixTabWidget::createServerAcceptedSlot(QSharedPointer<Server> server)
         }
     }
 
-    if ( serverID <= static_cast<int>( Globals::MAX_SERVER_COUNT ) )
+    if ( serverID <= *Globals::MAX_SERVER_COUNT )
     {
         instanceCount += 1;
         serverMap.insert( serverID, new ReMixWidget( server, this ) );

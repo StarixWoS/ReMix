@@ -1,6 +1,6 @@
 
-#ifndef PREFERENCES_HPP
-#define PREFERENCES_HPP
+#ifndef HELPER_HPP
+#define HELPER_HPP
 
 #include "prototypes.hpp"
 
@@ -20,7 +20,7 @@ class Helper
         static QString intToStr(const T& val, const IntBase& base = IntBase::DEC, const IntFills& fill = IntFills::Bit, const QChar& filler = '0')
         {
             QString str{ "%1" };
-                    str = str.arg( ( val & 0xffffffff ), static_cast<int>( fill ), static_cast<int>( base ), filler ).toUpper();
+                    str = str.arg( ( val & 0xffffffff ), *fill, *base, filler ).toUpper();
 
             if ( str.length() > 8 )
                 str = str.mid( str.length() - 8 );
@@ -34,7 +34,7 @@ class Helper
         static void stripNewlines(QString& string);
         static QString stripSerNumHeader(const QString& sernum);
         static QString sanitizeSerNum(const QString& value);
-        static QString serNumToHexStr(QString sernum, const IntFills& fillAmt = IntFills::DblWord );
+        static QString serNumToHexStr(const QString& serNumIntStr, const IntFills& fillAmt = IntFills::DblWord );
         static QString serNumToIntStr(const QString& sernum, const bool& isHex = false);
         static qint32 serNumToInt(const QString& sernum, const bool& isHex = false);
 
@@ -64,4 +64,4 @@ class Helper
         static qint32 sanitizeFriendlyPrecision(const ByteUnits& unit);
 };
 
-#endif // PREFERENCES_HPP
+#endif // HELPER_HPP

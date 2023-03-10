@@ -37,7 +37,7 @@ class Server : public QTcpServer
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    quint32 usageArray[ static_cast<int>( Globals::SERVER_USAGE_48_HOURS ) ]{ 0 };
+    quint32 usageArray[ *Globals::SERVER_USAGE_48_HOURS ]{ 0 };
     quint32 usageCounter{ 0 };
 
     QTimer usageUpdate;
@@ -45,7 +45,7 @@ class Server : public QTcpServer
     qint32 usageDays{ 0 };
     qint32 usageMins{ 0 };
 
-    qint32 maxPlayerCount{ static_cast<qint32>( Globals::MAX_PLAYERS ) };
+    qint32 maxPlayerCount{ *Globals::MAX_PLAYERS };
     quint32 playerCount{ 0 };
     QString serverID{ "" };
 
@@ -98,6 +98,8 @@ class Server : public QTcpServer
     bool upnpPortAdded{ false };
     bool upnpTimedOut{ false };
 
+    QTimer masterSerNumKeepAliveTimer;
+
     public:
         Server(QWidget* parent = nullptr);
         ~Server() override;
@@ -130,6 +132,9 @@ class Server : public QTcpServer
         void sendServerGreeting(QSharedPointer<Player> plr);
         void sendMasterMessage(const QString& packet, QSharedPointer<Player> plr, const bool toAll = false);
         void sendMasterMessageToAdmins(const QString& message);
+
+        void startMasterKeepAliveTimer();
+        void masterSerNumKeepAliveSlot();
 
         qint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -306,6 +311,12 @@ class Server : public QTcpServer
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void increaseServerPingSlot();
         void upnpPortAddedSlot(const quint16& port, const QString& protocol);
+        void updateUsageTimeOutSlot();
+        void masterCheckInTimeOutSlot();
+        void upnpTimeOutSlot();
+        void upTimerTimeOutSlot();
+        void upnpPortRefreshTimeOutSlot();
+        void masterTimeOutSlot();
 };
 
 #endif // SERVER_HPP

@@ -39,7 +39,7 @@ MasterMixThread::MasterMixThread()
     tcpSocket = new QTcpSocket( this );
     this->connectSlots();
 
-    updateInfoTimer.setInterval( static_cast<qint32>( Globals::MASTER_MIX_UPDATE_INTERVAL ) ); //Default of 6 hours in Milliseconds..
+    updateInfoTimer.setInterval( *Globals::MASTER_MIX_UPDATE_INTERVAL ); //Default of 6 hours in Milliseconds..
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
         QString msg{ "Automatically refreshing the Master Mix Information." };
@@ -47,7 +47,7 @@ MasterMixThread::MasterMixThread()
 
         masterMixPref->sync();
         this->updateMasterMixInfo( true );
-    }, Qt::UniqueConnection );
+    } );
 
     QObject::connect( this, &MasterMixThread::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot, Qt::UniqueConnection );
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::masterMixInfoChangedSignal,
@@ -77,7 +77,7 @@ void MasterMixThread::connectSlots()
     [=, this]()
     {
         tcpSocket->write( QString( "GET %1\r\n" ).arg( this->getModdedHost() ).toLatin1() );
-    }, Qt::UniqueConnection );
+    } );
 
     QObject::connect( tcpSocket, &QTcpSocket::readyRead, tcpSocket,
     [=, this]()
@@ -109,13 +109,13 @@ void MasterMixThread::connectSlots()
 
         emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
         emit this->obtainedMasterMixInfoSignal(); //Inform Listening Objects of a completed download.
-    }, Qt::UniqueConnection );
+    } );
 
     QObject::connect( tcpSocket, &QTcpSocket::errorOccurred, tcpSocket,
     [](QAbstractSocket::SocketError socketError)
     {
         qDebug() << socketError;
-    }, Qt::UniqueConnection );
+    } );
 }
 
 void MasterMixThread::startUpdateInfoTimer(const bool& start)
@@ -197,7 +197,7 @@ void MasterMixThread::getMasterMixInfoSlot(const Games& game)
         [=, this]()
         {
             this->obtainMasterData( game );
-        }, Qt::ConnectionType::UniqueConnection );
+        } );
 
         if ( connection )
         {

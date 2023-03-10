@@ -298,6 +298,87 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     plr->setIsAFK( status & 1 );
                 }
             break;
+            case 'x': //Skin Transfers.
+                {
+                    targetPlayer = server->getPlayer( pkt.mid( 15 ).left( 8 ) );
+
+                    QString logMessage{ "" };
+                    QString skinName{ "" };
+
+                    qint32 transferType{ Helper::strToInt( pkt.left( 15 ).mid( 13 ), IntBase::HEX ) };
+
+                    bool toLog{ true };
+
+                    switch ( static_cast<SkinType>( transferType ) )
+                    {
+                        case SkinType::RequestModeOne: //Mode One is never used. Perhaps from an older WoS version?
+                        case SkinType::RequestModeTwo: //Mode Two is the standard Skin Request.
+                            {
+                                bool isSkinRequest{ false };
+                                if ( pkt.contains( ".bmp," ) ) //Contains IP Information.
+                                {
+                                    QString forgedPacket{ pkt.left( pkt.indexOf( "," ) ) };
+                                            forgedPacket = PacketForge::getInstance()->encryptPacket( forgedPacket.toLatin1(),
+                                                                                                     plr->getPktHeaderSlot(), server->getGameId() );
+                                    skinName = pkt.left( pkt.indexOf( "," ) ).mid( 39 );
+
+                                    if ( plr->getIsVisible()
+                                      && !plr->getIsMuted() )
+                                    {
+                                        if ( !forgedPacket.isEmpty() )
+                                            forgedPacket.append( "\n" );
+
+                                        if ( plr->getSvrPwdReceived()
+                                          || !plr->getSvrPwdRequested() )
+                                        {
+                                            emit this->sendPacketToPlayerSignal( plr, *plr->getTargetType(), plr->getTargetSerNum(),
+                                                                                 plr->getTargetScene(), forgedPacket.toLatin1() );
+
+                                            //Reset the User's target information.
+                                            plr->setTargetType( PktTarget::ALL );
+                                            plr->setTargetSerNum( 0 );
+                                            plr->setTargetScene( 0 );
+                                        }
+                                    }
+                                    retn = false; //The original packet will not be processed.
+                                    isSkinRequest = true;
+                                }
+                                else //ReMix will forward the packet as normal, as we only wish to modify packets with IP data.
+                                    retn = true;
+
+                                if ( isSkinRequest )
+                                    logMessage = "User [ %1 ] is requesting the skin [ %2 ] from User [ %3 ].";
+                            }
+                        break;
+                        case SkinType::Offer:           //User is Offering another User a Skin.
+                            {
+                                skinName = pkt.left( pkt.indexOf( "," ) ).mid( 39 );
+                                logMessage = "User [ %1 ] is offering, or accepting a transfer request for the Skin [ %2 ]; To User [ %3 ].";
+
+                                retn = true;
+                            }
+                        break;
+                        case SkinType::ThanksForSkin:   //User is saying thanks for a skin.
+                        case SkinType::DataRequest:     //Data Transfer, Request Data from Position.
+                        case SkinType::DataTransfer:    //Data Transfer.
+                        default:
+                            toLog = false;
+                            retn = true;
+                        break;
+                    }
+
+                    if ( toLog )
+                    {
+                        if ( targetPlayer != nullptr )
+                        {
+                            logMessage = logMessage.arg( plr->getSernum_s() )
+                                                   .arg( skinName )
+                                                   .arg( targetPlayer->getSernum_s() );
+                        }
+                        qDebug() << logMessage;
+                    }
+                }
+            break;
             case 'K':  //If pet level exceess the Player's level then discard the packet.
                 {
                     if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )

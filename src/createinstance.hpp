@@ -1,5 +1,5 @@
-#ifndef CREATEINSTANCE_H
-#define CREATEINSTANCE_H
+#ifndef CREATEINSTANCE_HPP
+#define CREATEINSTANCE_HPP
 
 #include "prototypes.hpp"
 
@@ -66,4 +66,4 @@ class CreateInstance : public QDialog
         mutable QMutex mutex;
 };
 
-#endif // CREATEINSTANCE_H
+#endif // CREATEINSTANCE_HPP
