@@ -32,10 +32,10 @@ PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
 {
     chatView = chat;
 
-    QObject::connect( WoSPacketHandler::getInstance(), &WoSPacketHandler::sendPacketToPlayerSignal, this, &PacketHandler::sendPacketToPlayerSignal );
+    if ( server->getGameId() == Games::WoS )
+        QObject::connect( WoSPacketHandler::getInstance( svr ), &WoSPacketHandler::sendPacketToPlayerSignal, this, &PacketHandler::sendPacketToPlayerSignal );
 
     QObject::connect( CmdHandler::getInstance( server ), &CmdHandler::newUserCommentSignal, this, &PacketHandler::newUserCommentSignal );
-    QObject::connect( this, &PacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot );
 
     //Connect LogFile Signals to the Logger Class.
     QObject::connect( this, &PacketHandler::insertLogSignal, Logger::getInstance(), &Logger::insertLogSlot );
@@ -193,14 +193,12 @@ bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Play
     {
         case Games::WoS:
             {
-                auto* object = WoSPacketHandler::getInstance();
-                QObject::connect( object, &WoSPacketHandler::insertChatMsgSignal, this, &PacketHandler::insertChatMsgSignal, Qt::UniqueConnection );
+                auto* object = WoSPacketHandler::getInstance( server );
                 return object->handlePacket( server, chatView, packet, plr );
             }
         case Games::ToY:
             {
-                auto* object = ToYPacketHandler::getInstance();
-                QObject::connect( object, &ToYPacketHandler::insertChatMsgSignal, this, &PacketHandler::insertChatMsgSignal, Qt::UniqueConnection );
+                auto* object = ToYPacketHandler::getInstance( server );
                 return object->handlePacket( server, chatView, packet, plr );
             }
         case Games::W97:

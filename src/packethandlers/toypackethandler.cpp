@@ -10,23 +10,39 @@
 #include <QtCore>
 
 
-ToYPacketHandler::ToYPacketHandler()
-{
+QHash<QSharedPointer<Server>, ToYPacketHandler*> ToYPacketHandler::handlerInstanceMap;
 
+ToYPacketHandler::ToYPacketHandler(QSharedPointer<Server> server)
+{
+    QObject::connect( this, &ToYPacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot, Qt::UniqueConnection );
 }
 
 ToYPacketHandler::~ToYPacketHandler()
 {
-
+    this->disconnect();
 }
 
-ToYPacketHandler* ToYPacketHandler::getInstance()
+ToYPacketHandler* ToYPacketHandler::getInstance(QSharedPointer<Server> server)
 {
-    static ToYPacketHandler* instance;
+    ToYPacketHandler* instance{ handlerInstanceMap.value( server, nullptr ) };
     if ( instance == nullptr )
-        instance = new ToYPacketHandler();
-
+    {
+        instance = new ToYPacketHandler( server );
+        if ( instance != nullptr )
+            handlerInstanceMap.insert( server, instance );
+    }
     return instance;
+}
+
+void ToYPacketHandler::deleteInstance(QSharedPointer<Server> server)
+{
+    ToYPacketHandler* instance{ handlerInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
 }
 
 bool ToYPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr)

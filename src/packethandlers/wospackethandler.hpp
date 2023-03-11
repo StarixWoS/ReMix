@@ -12,11 +12,15 @@ class WoSPacketHandler : public QObject
 {
     Q_OBJECT
 
+    static QHash<QSharedPointer<Server>, WoSPacketHandler*> handlerInstanceMap;
+
     public:
-        WoSPacketHandler(){};
+        WoSPacketHandler(QSharedPointer<Server> server);
         ~WoSPacketHandler();
 
-        static WoSPacketHandler* getInstance();
+        static WoSPacketHandler* getInstance(QSharedPointer<Server> server);
+        static void deleteInstance(QSharedPointer<Server> server);
+
         bool handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr);
 
     signals:

@@ -60,7 +60,6 @@ class PacketHandler : public QObject
                                       const qint32& trgScene, const QByteArray& packet);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
-        void insertChatMsgSignal(const QString& msg, const Colors& color, const bool& newLine);
 };
 
 #endif // PACKETHANDLER_HPP

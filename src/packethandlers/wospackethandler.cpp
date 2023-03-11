@@ -9,18 +9,39 @@
 #include <QSharedPointer>
 #include <QtCore>
 
-WoSPacketHandler::~WoSPacketHandler()
-{
+QHash<QSharedPointer<Server>, WoSPacketHandler*> WoSPacketHandler::handlerInstanceMap;
 
+WoSPacketHandler::WoSPacketHandler(QSharedPointer<Server> server)
+{
+    QObject::connect( this, &WoSPacketHandler::insertChatMsgSignal, ChatView::getInstance( server ), &ChatView::insertChatMsgSlot, Qt::UniqueConnection );
 }
 
-WoSPacketHandler* WoSPacketHandler::getInstance()
+WoSPacketHandler::~WoSPacketHandler()
 {
-    static WoSPacketHandler* instance;
-    if ( instance == nullptr )
-        instance = new WoSPacketHandler();
+    this->disconnect();
+}
 
+WoSPacketHandler* WoSPacketHandler::getInstance(QSharedPointer<Server> server)
+{
+    WoSPacketHandler* instance{ handlerInstanceMap.value( server, nullptr ) };
+    if ( instance == nullptr )
+    {
+        instance = new WoSPacketHandler( server );
+        if ( instance != nullptr )
+            handlerInstanceMap.insert( server, instance );
+    }
     return instance;
+}
+
+void WoSPacketHandler::deleteInstance(QSharedPointer<Server> server)
+{
+    WoSPacketHandler* instance{ handlerInstanceMap.take( server ) };
+    if ( instance != nullptr )
+    {
+        instance->disconnect();
+        instance->setParent( nullptr );
+        instance->deleteLater();
+    }
 }
 
 bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr)

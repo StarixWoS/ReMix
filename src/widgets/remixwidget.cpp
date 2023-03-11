@@ -9,6 +9,11 @@
 #include "widgets/ruleswidget.hpp"
 #include "widgets/motdwidget.hpp"
 
+//ReMix Specialized Packet Handlers.
+#include "packethandlers/wospackethandler.hpp"
+#include "packethandlers/toypackethandler.hpp"
+#include "packethandlers/w97packethandler.hpp"
+
 //ReMix includes.
 #include "remixtabwidget.hpp"
 #include "packethandler.hpp"
@@ -165,6 +170,8 @@ ReMixWidget::~ReMixWidget()
     if ( ui->useUPNP->isChecked() )
         server->setupUPNP( false );
 
+    WoSPacketHandler::deleteInstance( server );
+    ToYPacketHandler::deleteInstance( server );
     PlrListWidget::deleteInstance( server );
     PacketHandler::deleteInstance( server );
     RulesWidget::deleteInstance( server );

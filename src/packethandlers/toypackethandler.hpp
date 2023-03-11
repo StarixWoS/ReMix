@@ -12,11 +12,15 @@ class ToYPacketHandler : public QObject
 {
     Q_OBJECT
 
+    static QHash<QSharedPointer<Server>, ToYPacketHandler*> handlerInstanceMap;
+
     public:
-        ToYPacketHandler();
+        ToYPacketHandler(QSharedPointer<Server> server);
         ~ToYPacketHandler();
 
-        static ToYPacketHandler* getInstance();
+        static ToYPacketHandler* getInstance(QSharedPointer<Server> server);
+        static void deleteInstance(QSharedPointer<Server> server);
+
         bool handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr);
 
     signals:
