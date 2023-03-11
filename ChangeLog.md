@@ -8,6 +8,7 @@ Version 3.0.6:
     Bugfixes:
       * Fixed an issue with the ChatView UI where messages and information would be written into more than the intended view.
         * e.g. Server A's messages would appear in both Server A's and Server B's ChatView UI.
+      * Fixed an issue with Remote Admin Commands.
 
 
 

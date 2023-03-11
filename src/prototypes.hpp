@@ -253,8 +253,8 @@
         //Valid Remote Administrator commands.
         enum class GMCmds: int{ Help = 0, List, MotD, Info, Ban,
                                 UnBan, Kick, Mute, UnMute, Message, Login,
-                                Register, ShutDown, ReStart, MKAdmin, RMAdmin,
-                                CHAdmin, CHRules, CHSettings, Vanish, Version,
+                                Register, ShutDown, ReStart,
+                                CHRules, CHSettings, Vanish, Version,
                                 Camp, Guild, Invalid = -1 };
         //Valid Remote Administrator sub-commands.
         enum class GMSubCmds: int{ Zero = 0, One, Two, Three, Four, Five,
