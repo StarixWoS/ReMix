@@ -44,15 +44,17 @@ class ReMixWidget : public QWidget
         QString getInterface(QWidget* parent);
 
     private slots:
+        void on_splitterPlayerChatSize_splitterMoved(int, int);
+        void on_splitterHideServerButtons_splitterMoved(int, int);
         void on_openSettings_clicked();
         void on_openPlayerView_clicked();
         void on_openUserInfo_clicked();
+        void on_openChatView_clicked();
         void on_isPublicServer_toggled(bool value);
         void on_useUPNP_toggled(bool value);
+        void on_useUPNP_clicked();
         void on_networkStatus_linkActivated(const QString&);
         void on_networkStatus_customContextMenuRequested(const QPoint&);
-        void on_openChatView_clicked();
-        void on_useUPNP_clicked();
 
         void on_logButton_clicked();
         void initializeServerSlot();

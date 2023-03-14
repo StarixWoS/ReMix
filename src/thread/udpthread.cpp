@@ -109,7 +109,6 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
 
                     this->sendUdpDataSlot( ipAddr, port, response );
                     Settings::insertBioHash( ipAddr, udp.mid( 1 ) );
-                    emit this->logBIOSignal( sernum, ipAddr, data );
 
                     QString pingLog{ "Recieved ping from User [ %1:%2 ] with SoulID [ %3 ] and BIO data; %4" };
                             pingLog = pingLog.arg( ipAddr.toString() )
@@ -124,6 +123,7 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
 
                     emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                     emit this->insertLogSignal( serverName, responseLog, LKeys::PingLog, true, true );
+                    emit this->logBIOSignal( sernum, ipAddr, data );
                 }
                 emit this->increaseServerPingsSignal();
             }
@@ -152,8 +152,8 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                         pingLog = pingLog.arg( ipAddr.toString() )
                                          .arg( port )
                                          .arg( Helper::serNumToIntStr( sernum, true ) );
-                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
+                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
             }
             break;
             case 'R':   //Send Online User Information.
@@ -163,8 +163,8 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
                                          .arg( port )
                                          .arg( Helper::serNumToIntStr( sernum, true ) );
 
-                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
                 emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );
+                emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
             }
             break;
         }

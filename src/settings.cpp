@@ -71,6 +71,8 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     { SSubKeys::HidePlayerView,         "hidePlayerView"      },
     { SSubKeys::HideChatView,           "hideChatView"        },
     { SSubKeys::NetInterface,           "netInterface"        },
+    { SSubKeys::ServerButtonState,      "serverButtonState"   },
+    { SSubKeys::ServerPlayerChatSize,   "serverPlayerChatSize"},
 
     //Rules.
     { SSubKeys::StrictRules,            "enforceRules"   },
@@ -128,6 +130,8 @@ const QMap<Colors, QString> Settings::cKeys =
 
 QVector<SSubKeys> Settings::serverSettings //Settings Specific to a Server Instance.
 {
+    SSubKeys::ServerPlayerChatSize,
+    SSubKeys::ServerButtonState,
     SSubKeys::ChatAutoScroll,
     SSubKeys::HidePlayerView,
     SSubKeys::HideChatView,

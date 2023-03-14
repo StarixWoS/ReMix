@@ -265,8 +265,8 @@ void Server::sendMasterInfo(const bool& disconnect)
         else
             msg.append( " [ Disconnect ]." );
 
-        emit this->insertLogSignal( this->getServerName(), msg, LKeys::MasterMixLog, true, true );
         emit this->sendUdpDataSignal( addr, port, response );
+        emit this->insertLogSignal( this->getServerName(), msg, LKeys::MasterMixLog, true, true );
     }
     else
         this->setSentUDPCheckIn( false );

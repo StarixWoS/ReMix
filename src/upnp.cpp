@@ -17,13 +17,16 @@
 
 QStringList UPNP::schemas =
 {
-    "urn:schemas-upnp-org:device:InternetGatewayDevice:2",
-    "urn:schemas-upnp-org:service:WANIPConnection:2",
-    "urn:schemas-upnp-org:device:InternetGatewayDevice:1",
-    "urn:schemas-upnp-org:service:WANIPConnection:1",
-    "urn:schemas-upnp-org:service:WANPPPConnection:1",
     "urn:schemas-wifialliance-org:service:WFAWLANConfig:1",
+    "urn:schemas-wifialliance-org:service:WFAWLANConfig:2",
+    "urn:schemas-upnp-org:device:InternetGatewayDevice:1",
+    "urn:schemas-upnp-org:device:InternetGatewayDevice:2",
     "urn:schemas-wifialliance-org:device:WFADevice:1",
+    "urn:schemas-wifialliance-org:device:WFADevice:2",
+    "urn:schemas-upnp-org:service:WANIPConnection:1",
+    "urn:schemas-upnp-org:service:WANIPConnection:2",
+    "urn:schemas-upnp-org:service:WANPPPConnection:1",
+    "urn:schemas-upnp-org:service:WANPPPConnection:2",
     "upnp:rootdevice",
 };
 
@@ -126,13 +129,13 @@ void UPNP::getUdpSlot()
     if ( udpSocket->state() != QAbstractSocket::BoundState )
         return;
 
-    QString vs;
+    QString serviceResponse;
     while ( udpSocket->hasPendingDatagrams() )
     {
         QByteArray datagram;
         QHostAddress sender;
         quint16 senderPort;
-        QString sport;
+        QString servicePort;
 
         QString logMsg{ "" };
 
@@ -145,50 +148,50 @@ void UPNP::getUdpSlot()
         {
             gateway = st_addr;
 
-            vs = datagram.data();
-            if ( !vs.isEmpty() )
+            serviceResponse = datagram.data();
+            if ( !serviceResponse.isEmpty() )
             {
                 logMsg = "Got UDP Query Response [ %1 ].";
-                logMsg = logMsg.arg( vs.trimmed() );
+                logMsg = logMsg.arg( serviceResponse.trimmed() );
 
                 emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
             }
 
-            int index{ Helper::getStrIndex( vs, "Location" ) };
+            int index{ Helper::getStrIndex( serviceResponse, "Location" ) };
             if ( index != -1 )
             {
-                vs.remove( 0, index + 10 );
+                serviceResponse.remove( 0, index + 10 );
                 index = 0;
 
-                while ( vs[ index ].isPrint() )
+                while ( serviceResponse[ index ].isPrint() )
                 {
                     index++;
                 }
 
-                vs.remove( index, vs.size() - index );
-                sport = vs;
+                serviceResponse.remove( index, serviceResponse.size() - index );
+                servicePort = serviceResponse;
 
-                sport.remove( 0, 5 );
+                servicePort.remove( 0, 5 );
                 index = 0;
-                while ( ( index <sport.size() )
-                     && ( sport[ index ] != QChar( ':' ) ) )
+                while ( ( index <servicePort.size() )
+                     && ( servicePort[ index ] != QChar( ':' ) ) )
                 {
                     index++;
                 }
 
-                sport.remove( 0, index+1 );
+                servicePort.remove( 0, index+1 );
                 index = 0;
-                while ( ( index<sport.size() )
-                     && ( sport[ index ] != QChar( '/' ) ) )
+                while ( ( index<servicePort.size() )
+                     && ( servicePort[ index ] != QChar( '/' ) ) )
                 {
                     index++;
                 }
 
-                sport.remove( index, sport.size() - index );
+                servicePort.remove( index, servicePort.size() - index );
 
-                ctrlPort = sport;
+                ctrlPort = servicePort;
                 QObject::connect( httpSocket, &QNetworkAccessManager::finished, httpSocket,
-                [=, this](QNetworkReply* reply)
+                [=, this]( QNetworkReply* reply )
                 {
                     QString response{ reply->readAll() };
                     QString logMsg{ "" };
@@ -204,70 +207,102 @@ void UPNP::getUdpSlot()
 
                     QXmlStreamReader reader( response );
                                      reader.readNext();
+
+                    bool validSchema{ false };
                     while ( !reader.atEnd() )
                     {
+                        if ( Helper::cmpStrings( reader.name().toString(), "friendlyName" ) )
+                        {
+                            logMsg = "Obtained Service Name [ %1 ].";
+                            logMsg = logMsg.arg( reader.readElementText() );
+
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
+                        }
+
+                        if ( Helper::cmpStrings( reader.name().toString(), "UDN" ) )
+                        {
+                            serviceUUID = reader.readElementText();
+
+                            logMsg = "Obtained Service UUID [ %1 ].";
+                            logMsg = logMsg.arg( serviceUUID );
+
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
+                        }
+
                         if ( Helper::cmpStrings( reader.name().toString(), QStringLiteral("serviceType") )
                           || Helper::cmpStrings( reader.name().toString(), "ST" ) )
                         {
                             rtrSchema = reader.readElementText();
-                            bool validSchema{ false };
-                            for ( const QString& schema : schemas )
+
+                            logMsg = "Validating Control Schema [ %1 ].";
+                            logMsg = logMsg.arg( rtrSchema );
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
+
+                            validSchema = schemas.contains( rtrSchema );
+                            if ( validSchema )
                             {
-                                logMsg = "Comparing Control URL[ %1 ] with [ %2 ].";
-                                logMsg = logMsg.arg( rtrSchema )
-                                               .arg( schema );
+                                logMsg = "Obtained Valid Control Schema [ %1 ].";
+                                logMsg = logMsg.arg( rtrSchema ) ;
+                            }
+                            else
+                                logMsg = "Control Schema Validation Failed.";
+
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
+                        }
+
+                        if ( ( !rtrSchema.isEmpty() && validSchema )
+                          && Helper::cmpStrings( reader.name().toString(), "controlUrl" ))
+                        {
+                            QString element{ reader.readElementText() };
+
+                            static const QString controlUrlFormat{ "http://%1:%2%3" };
+                            gatewayCtrlUrl = controlUrlFormat.arg( gateway.toString() )
+                                                             .arg( ctrlPort )
+                                                             .arg( element );
+
+                            //The default ControlURL is invalid, we'll attempt to manually rebuild it.
+                            if ( gatewayCtrlUrl.toString().isEmpty() )
+                            {
+                                logMsg = "Obtained Invalid ControlURL. Attempting Reconstruction.";
+                                logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
 
                                 emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
 
-                                validSchema = false;
-                                if ( Helper::cmpStrings( rtrSchema, schema ) )
-                                {
-                                    validSchema = true;
-                                    break;
-                                }
-                            }
+                                if ( !element.startsWith( "/" ) )
+                                    element = "/" % element; //Ensure the ControlElement contains a fwd-Slash.
 
-                            if ( validSchema )
-                            {
-                                while ( ( !reader.atEnd() )
-                                     && ( !Helper::cmpStrings( reader.name().toString(), "controlUrl" ) ) )
-                                {
-                                    reader.readNext();
-                                }
+                                if ( !Helper::strContainsStr( element, "uuid" ) )
+                                    element = "/" % serviceUUID % element;
 
-                                if ( Helper::cmpStrings( reader.name().toString(), "controlUrl" ) )
-                                {
-                                    gatewayCtrlUrl = QString( "http://%1:%2%3" )
-                                                         .arg( gateway.toString() )
-                                                         .arg( ctrlPort )
-                                                         .arg( reader.readElementText() );
+                                //http://192.168.0.1:1234/uuid:84f2572c-59bd-aa7f-1747-bd89603cb789/control?WFAWLANConfig
+                                //It's possible that the URL should exclude the uuid. As I lack the proper router to test, I can only assume it is required.
+                                gatewayCtrlUrl = controlUrlFormat.arg( gateway.toString() )
+                                                                 .arg( ctrlPort )
+                                                                 .arg( element );
 
-                                    logMsg = "Got ControlURL[ %1 ].";
-                                    logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
-
-                                    emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
-
-                                    this->setIsTunneled( true );
-                                    emit this->upnpTunnelSuccessSignal();
-                                    break;
-                                }
+                                logMsg = "Obtained Reconstructed ControlURL [ %1 ].";
                             }
                             else
-                                reader.readNext();
-                        }
-                        else
-                            reader.readNext();
-                    }
+                                logMsg = "Obtained ControlURL [ %1 ].";
 
+                            logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
+
+                            this->setIsTunneled( true );
+                            emit this->upnpTunnelSuccessSignal();
+                            break;
+                        }
+                        reader.readNext();
+                    }
                     httpSocket->disconnect();
                 } );
 
                 logMsg = "Requesting Service Information from [ %1 ].";
-                logMsg = logMsg.arg( vs );
+                logMsg = logMsg.arg( serviceResponse );
 
                 emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
 
-                httpSocket->get( QNetworkRequest( QUrl( vs ) ) );
+                httpSocket->get( QNetworkRequest( QUrl( serviceResponse ) ) );
                 udpSocket->close();
             }
         }
@@ -349,7 +384,6 @@ void UPNP::extractError(const QString& message, const QString& privateIP, const 
     {
         reader.readNext();
     }
-
 
     QString logMsg{ "Got Error for Port[ %1:%2 ] [ %3 ]" };
     logMsg = logMsg.arg( protocol )

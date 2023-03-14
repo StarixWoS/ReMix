@@ -141,6 +141,16 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
         ui->chatViewFill->hide();
     }
 
+    //Hide all ServerButtons based on User Settings.
+    QByteArray buttonState{ Settings::getSetting( SKeys::Setting, SSubKeys::ServerButtonState, server->getServerName() ).toByteArray() };
+    if ( !buttonState.isEmpty() )
+        ui->splitterHideServerButtons->restoreState( buttonState );
+
+    //Resize the PlayerView and ChatViews based on User Settings.
+    QByteArray plrChatState{ Settings::getSetting( SKeys::Setting, SSubKeys::ServerPlayerChatSize, server->getServerName() ).toByteArray() };
+    if ( !plrChatState.isEmpty() )
+        ui->splitterPlayerChatSize->restoreState( plrChatState );
+
     QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this,
     [=,this]()
     {
@@ -299,7 +309,6 @@ QString ReMixWidget::getInterface(QWidget* parent)
     QStringList items;
 
     //Default to our localhost address if nothing valid is found.
-    QHostAddress ipAddress{ QHostAddress::Null };
     for ( const QHostAddress& ip : ipList )
     {
         items.append( ip.toString() );
@@ -313,6 +322,25 @@ QString ReMixWidget::getInterface(QWidget* parent)
     return Helper::getPrivateIP().toString();
 }
 
+void ReMixWidget::on_splitterPlayerChatSize_splitterMoved(int, int)
+{
+    Settings::setSetting( ui->splitterPlayerChatSize->saveState(), SKeys::Setting, SSubKeys::ServerPlayerChatSize, server->getServerName() );
+}
+
+void ReMixWidget::on_splitterHideServerButtons_splitterMoved(int, int)
+{
+    Settings::setSetting( ui->splitterHideServerButtons->saveState(), SKeys::Setting, SSubKeys::ServerButtonState, server->getServerName() );
+}
+
+void ReMixWidget::on_openSettings_clicked()
+{
+    Settings* settings{ Settings::getInstance() };
+    if ( settings->isVisible() )
+        settings->hide();
+    else
+        settings->show();
+}
+
 void ReMixWidget::on_openUserInfo_clicked()
 {
     User* user{ User::getInstance() };
@@ -323,15 +351,6 @@ void ReMixWidget::on_openUserInfo_clicked()
         else
             user->show();
     }
-}
-
-void ReMixWidget::on_openSettings_clicked()
-{
-    Settings* settings{ Settings::getInstance() };
-    if ( settings->isVisible() )
-        settings->hide();
-    else
-        settings->show();
 }
 
 void ReMixWidget::on_openPlayerView_clicked()
@@ -393,13 +412,6 @@ void ReMixWidget::on_isPublicServer_toggled(bool value)
         server->setIsPublic( ui->isPublicServer->isChecked() );
 }
 
-void ReMixWidget::on_networkStatus_linkActivated(const QString&)
-{
-    QString interface{ this->getInterface( this ) };
-    if ( interface != server->getPrivateIP() )
-        emit this->reValidateServerIPSignal( interface );
-}
-
 void ReMixWidget::on_useUPNP_toggled(bool value)
 {
     if ( value != server->getUseUPNP() )
@@ -415,6 +427,13 @@ void ReMixWidget::on_useUPNP_clicked()
                                      "If you are unable to ping the Master Mix try disabling the UPNP Feature and manusally forward your desired ports.." };
         Helper::warningMessage( this, title, prompt );
     }
+}
+
+void ReMixWidget::on_networkStatus_linkActivated(const QString&)
+{
+    QString interface{ this->getInterface( this ) };
+    if ( interface != server->getPrivateIP() )
+        emit this->reValidateServerIPSignal( interface );
 }
 
 void ReMixWidget::on_networkStatus_customContextMenuRequested(const QPoint&)

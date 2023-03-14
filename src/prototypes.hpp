@@ -342,11 +342,11 @@
 
         //Valid Sub-Key values for use within the Settings Class.
         enum class SSubKeys: int{ ServerID = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,
-                                  InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic,
-                                  GameName, LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP,
-                                  LoggerAutoClear, OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface,
-                                  HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion, PKLadder, NoBleep, NoCheat,
-                                  NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount };
+                                  InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic, GameName,
+                                  LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP, LoggerAutoClear,
+                                  OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface, ServerButtonState,
+                                  ServerPlayerChatSize, HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion,
+                                  PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount };
 
         //Valid Toggles for the Settings Widget.
         enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,

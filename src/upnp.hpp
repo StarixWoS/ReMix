@@ -33,6 +33,7 @@ class UPNP : public QObject
 
         QString rtrSchema{ "urn:schemas-upnp-org:service:WANIPConnection:1" };
         QString ctrlPort{ "" };
+        QString serviceUUID{ "" };
 
     public:
         explicit UPNP(QObject* parent = nullptr);
