@@ -4,6 +4,15 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.7.2:
+    Bugfixes:
+      * Attempted a fix with UPNP where the Control URL as provided by a Router/Modem is invalid.
+        * An example of an erroneous ControlURL: <controlURL>control?WFAWLANConfig</controlURL>
+		  * When such an example is found, the URL will be formatted as such: http://192.168.1.1:1990/control?WFAWLANConfig (RouterIP:RouterPort/ControlURL)
+
+
+
+
 Version 3.0.7:
     Change:
       * When using the UI splitters to hide the Server Buttons (Settings, User Information, Log View, ect) ReMix will now save that state (per server).

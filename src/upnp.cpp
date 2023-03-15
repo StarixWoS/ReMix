@@ -253,12 +253,16 @@ void UPNP::getUdpSlot()
                         if ( ( !rtrSchema.isEmpty() && validSchema )
                           && Helper::cmpStrings( reader.name().toString(), "controlUrl" ))
                         {
+                            static const QString controlUrlFormat{ "http://%1:%2%3" };
                             QString element{ reader.readElementText() };
 
-                            static const QString controlUrlFormat{ "http://%1:%2%3" };
-                            gatewayCtrlUrl = controlUrlFormat.arg( gateway.toString() )
-                                                             .arg( ctrlPort )
-                                                             .arg( element );
+                            QString controlURL = controlUrlFormat.arg( gateway.toString() )
+                                                                 .arg( ctrlPort )
+                                                                 .arg( element );
+                            gatewayCtrlUrl = controlURL;
+
+                            logMsg = "Constructing ControlURL [ " + controlURL + " ].";
+                            emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
 
                             //The default ControlURL is invalid, we'll attempt to manually rebuild it.
                             if ( gatewayCtrlUrl.toString().isEmpty() )
@@ -271,21 +275,22 @@ void UPNP::getUdpSlot()
                                 if ( !element.startsWith( "/" ) )
                                     element = "/" % element; //Ensure the ControlElement contains a fwd-Slash.
 
-                                if ( !Helper::strContainsStr( element, "uuid" ) )
-                                    element = "/" % serviceUUID % element;
+                                //if ( !Helper::strContainsStr( element, "uuid" ) )
+                                //    element = "/" % serviceUUID % element;
 
                                 //http://192.168.0.1:1234/uuid:84f2572c-59bd-aa7f-1747-bd89603cb789/control?WFAWLANConfig
                                 //It's possible that the URL should exclude the uuid. As I lack the proper router to test, I can only assume it is required.
-                                gatewayCtrlUrl = controlUrlFormat.arg( gateway.toString() )
-                                                                 .arg( ctrlPort )
-                                                                 .arg( element );
+                                controlURL = controlUrlFormat.arg( gateway.toString() )
+                                                             .arg( ctrlPort )
+                                                             .arg( element );
+                                gatewayCtrlUrl = controlURL;
 
                                 logMsg = "Obtained Reconstructed ControlURL [ %1 ].";
                             }
                             else
-                                logMsg = "Obtained ControlURL [ %1 ].";
+                                logMsg = "Obtained Valid ControlURL [ %1 ].";
 
-                            logMsg = logMsg.arg( gatewayCtrlUrl.toString() );
+                            logMsg = logMsg.arg( controlURL );
                             emit this->insertLogSignal( "UPNP", logMsg, LKeys::UPNPLog, true, true );
 
                             this->setIsTunneled( true );
