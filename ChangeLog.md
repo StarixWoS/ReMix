@@ -24,12 +24,6 @@ Version 3.0.7:
 
 
 
-    Buildsystem:
-      * Add support for sub versions to be derived from the RePo Tag Name.
-        * e.g. ReMix verison 3,0,7,1 would be the first release of verison 3,0,7. with the second release being 3,0,7,2.
-
-
-
 
 Version 3.0.6:
     Bugfixes:
