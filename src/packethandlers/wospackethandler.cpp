@@ -73,6 +73,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
     if ( !pkt.isEmpty() )
     {
         QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
+        qint32 trgSerNumInt{ Helper::strToInt( trgSerNum, IntBase::HEX) };
         QSharedPointer<Player> targetPlayer{ server->getPlayer( trgSerNum ) };
 
         Colors targetNameColor{ Colors::PlayerName };
@@ -89,7 +90,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
 
         switch ( pkt.at( 3 ).toLatin1() )
         {
-            case '3':
+            case *WoSPacketTypes::Incarnation:
                 {
                     QStringList varList{ pkt.mid( 47 ).split( "," ) };
                     QString plrName{ varList.at( 0 ) };
@@ -108,20 +109,20 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                         QString msg{ "" };
                         switch ( type )
                         {
-                            case 1:
+                            case *IncarnationType::Incarnation:
                                 {
                                     plr->setIsIncarnated( true );
                                     msg = "has incarnated into this world! ";
                                 }
                             break;
-                            case 2:
+                            case *IncarnationType::GhostIncarnation:
                                 {
                                     plr->setIsIncarnated( true );
                                     plr->setIsGhosting( true );
                                     msg = "walks the land as an apparition! ";
                                 }
                             break;
-                            case 4:
+                            case *IncarnationType::DisIncarnation:
                                 {
                                     if ( isIncarnated )
                                     {
@@ -193,9 +194,13 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                             }
                         }
                     }
+
+                    this->forgePacket( server, plr, WoSPacketTypes::Incarnation );
+                    this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
+                    this->forgePacket( server, plr, WoSPacketTypes::CharacterInfo );
                 }
             break;
-            case '5': //Player Leaves Server. //Arcadia uses packet 'B'.
+            case *WoSPacketTypes::ServerLeave: //Player Leaves Server. //Arcadia uses packet 'B'.
                 {
                     emit this->insertChatMsgSignal( ChatView::getTimeStr(), Colors::TimeStamp, true );
                     emit this->insertChatMsgSignal( "*** ", Colors::SoulLeftWorld, false );
@@ -204,13 +209,13 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     emit this->insertChatMsgSignal( "has left this world! ***", Colors::SoulLeftWorld, false );
                 }
             break;
-            case 'C':
+            case *WoSPacketTypes::Chat:
                 {
                     plr->setIsAFK( false );
                     retn = chatView->parseChatEffect( pkt );
                 }
             break;
-            case 'k': //PK Attack.
+            case *WoSPacketTypes::PKAttack: //PK Attack.
                 {
                     //To Do: Enforce the "No Player Killing" rule.
                     if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
@@ -233,7 +238,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'p':
+            case *WoSPacketTypes::PartyState:
                 {
                     bool isJoining = true;
 
@@ -286,7 +291,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'F':
+            case *WoSPacketTypes::PlayerCamp:
                 {  //Save the User's camp packet. --Send to newly connecting Users.
                     if ( plr->getCampPacket().isEmpty() )
                     {
@@ -299,7 +304,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'f':
+            case *WoSPacketTypes::PlayerUnCamp:
                 {  //User un-camp. Remove camp packet.
                     if ( !plr->getCampPacket().isEmpty() )
                     {
@@ -308,7 +313,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 's': //Parse Player Level and AFK status.
+            case *WoSPacketTypes::PlayerStatus: //Parse Player Level and AFK status.
                 {
                     const qint32 status{ Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) };
 
@@ -319,7 +324,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     plr->setIsAFK( status & 1 );
                 }
             break;
-            case 'x': //Skin Transfers.
+            case *WoSPacketTypes::SkinTransfer: //Skin Transfers.
                 {
                     targetPlayer = server->getPlayer( pkt.mid( 15 ).left( 8 ) );
 
@@ -330,10 +335,10 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
 
                     bool toLog{ true };
 
-                    switch ( static_cast<SkinType>( transferType ) )
+                    switch ( transferType )
                     {
-                        case SkinType::RequestModeOne: //Mode One is never used. Perhaps from an older WoS version?
-                        case SkinType::RequestModeTwo: //Mode Two is the standard Skin Request.
+                        case *SkinTransferType::RequestModeOne: //Mode One is never used. Perhaps from an older WoS version?
+                        case *SkinTransferType::RequestModeTwo: //Mode Two is the standard Skin Request.
                             {
                                 bool isSkinRequest{ false };
                                 if ( pkt.contains( ".bmp," ) ) //Contains IP Information.
@@ -371,7 +376,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                     logMessage = "User [ %1 ] is requesting the skin [ %2 ] from User [ %3 ].";
                             }
                         break;
-                        case SkinType::Offer:           //User is Offering another User a Skin.
+                        case *SkinTransferType::Offer:           //User is Offering another User a Skin.
                             {
                                 skinName = pkt.left( pkt.indexOf( "," ) ).mid( 39 );
                                 logMessage = "User [ %1 ] is offering, or accepting a transfer request for the Skin [ %2 ]; To User [ %3 ].";
@@ -379,9 +384,9 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                 retn = true;
                             }
                         break;
-                        case SkinType::ThanksForSkin:   //User is saying thanks for a skin.
-                        case SkinType::DataRequest:     //Data Transfer, Request Data from Position.
-                        case SkinType::DataTransfer:    //Data Transfer.
+                        case *SkinTransferType::ThanksForSkin:   //User is saying thanks for a skin.
+                        case *SkinTransferType::DataRequest:     //Data Transfer, Request Data from Position.
+                        case *SkinTransferType::DataTransfer:    //Data Transfer.
                         default:
                             toLog = false;
                             retn = true;
@@ -400,7 +405,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'K':  //If pet level exceess the Player's level then discard the packet.
+            case *WoSPacketTypes::PetCall:  //If pet level exceess the Player's level then discard the packet.
                 {
                     if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                     {
@@ -419,7 +424,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'H':
+            case *WoSPacketTypes::CharacterInfo:
                 {
                     if ( plr->getIsIncarnated() )
                     {
@@ -440,7 +445,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
-            case 'J':
+            case *WoSPacketTypes::CampJoin:
                 {
                     QSharedPointer<Player> tmpPlr{ nullptr };
                     for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
@@ -484,7 +489,60 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     }
                 }
             break;
+            case *WoSPacketTypes::InfoRequest:
+                {
+                    if ( trgSerNumInt == static_cast<qint32>( ReMixSerNum::SerNum ) )
+                    {
+                        this->forgePacket( server, plr, WoSPacketTypes::Incarnation );
+                        this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
+                        this->forgePacket( server, plr, WoSPacketTypes::CharacterInfo );
+                    }
+                }
+            break;
         }
     }
     return retn;
+}
+
+void WoSPacketHandler::forgePacket(QSharedPointer<Server> server, QSharedPointer<Player> plr, const WoSPacketTypes& type)
+{
+    if ( server == nullptr )
+        return;
+
+    if ( plr == nullptr )
+        return;
+
+    QString packet{ "" };
+    static QString serverSernum{ Helper::serNumToHexStr( Helper::intToStr( *ReMixSerNum::SerNum, IntBase::HEX, IntFills::DblWord ) ) };
+    switch ( type )
+    {
+        case WoSPacketTypes::Incarnation:
+            {
+                packet = ":;o3" % serverSernum % "DEB00000A97000000000000000000000000Owner,Adventurer"
+                       % "," + server->getGameWorld() % ","
+                       % Helper::intToStr( static_cast<int>( std::time( nullptr ) ), IntBase::HEX, IntFills::DblWord ).toUpper();
+            }
+        break;
+        case WoSPacketTypes::CharacterInfo:
+            {
+                packet = ":;oH" % serverSernum % "D" % "0000000000000000000000000000000000000000071DFC29" % "0000000000000000"
+                       % serverSernum;
+            }
+        break;
+        case WoSPacketTypes::GuildInfo:
+            {
+                packet = ":;oU" + serverSernum + "D000000010000000000000000000000000000000000000000ReMix,(null),(null)";
+            }
+        break;
+        default:
+        break;
+    }
+
+    if ( !packet.isEmpty() )
+    {
+        packet = PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() );
+        emit this->sendPacketToPlayerSignal( nullptr, *PktTarget::PLAYER, plr->getSernum_i(), 0, packet.toLatin1() );
+
+        server->startMasterSerNumKeepAliveTimer();
+    }
 }

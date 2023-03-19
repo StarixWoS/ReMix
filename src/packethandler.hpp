@@ -33,7 +33,7 @@ class PacketHandler : public QObject
         bool parseTCPPacket(const QByteArray& packet, QSharedPointer<Player> plr);
 
         bool checkBannedInfo(QSharedPointer<Player> plr) const;
-        bool getIsBanned(const QString& serNum, const QString& ipAddr, const QString& plrSerNum) const;
+        bool getIsBanned(const QString& serNum, const QString& ipAddr) const;
 
     private:
         void detectFlooding(QSharedPointer<Player> plr);

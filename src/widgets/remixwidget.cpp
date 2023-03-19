@@ -111,7 +111,7 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
         if ( !message.isEmpty() )
         {
             server->sendMasterMsgToPlayerSignal( target, toAll, message.toLatin1() );
-            server->startMasterKeepAliveTimer();
+            server->startMasterSerNumKeepAliveTimer();
         }
     } );
 

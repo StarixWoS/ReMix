@@ -384,14 +384,25 @@
         enum class ChatType: int{ Normal = 0, DiceAndLevelUp, Unk1 = 2, LearnSpell = 3,
                                   Unk2 = 4, Unk3 = 5, PetCmd = 6, SceneMsg = 10, DeathMsg = 11 };
 
-        //Valid forms of a Skin Transfer Packet.
-        enum class SkinType{ RequestModeOne = 1, RequestModeTwo = 6, Offer = 2, DataRequest = 3, DataTransfer = 4, ThanksForSkin = 5 };
-
         //Valid SSV Modes. Read/Write.
         enum class SSVModes: int{ Read = 0, Write = 1, Invalid = -1,  };
 
         //Valid Player Disconnect Types.
         enum class PlrDisconnectType: int{ SerNumChanged = 0, InvalidSerNum, BlueCodeSerNum, SerNumOne, Invalid = -1 };
+
+        //The SerNum ReMix will use for any packets forged or emulated.
+        enum class ReMixSerNum: quint32{ SerNum = 0xFFFFFB2E };
+
+        //Valid WoS Packets that ReMix will read information from, modify, or emulate.
+        enum class WoSPacketTypes: char{ Incarnation = '3', ServerLeave = '5', Chat = 'C', PKAttack = 'k', PartyState = 'p', PlayerCamp = 'F',
+                                         PlayerUnCamp = 'f', PlayerStatus = 's', SkinTransfer = 'x', PetCall = 'K', CharacterInfo = 'H', CampJoin = 'J',
+                                         BioRequest = 'b', BioResponse = 'B', GuildInfo = 'U', InfoRequest = '4' };
+
+        //Valid forms of a Skin Transfer Packet.
+        enum class IncarnationType: int{ Incarnation = 1, GhostIncarnation = 2, DisIncarnation = 4 };
+
+        //Valid forms of a Skin Transfer Packet.
+        enum class SkinTransferType: int{ RequestModeOne = 1, RequestModeTwo = 6, Offer = 2, DataRequest = 3, DataTransfer = 4, ThanksForSkin = 5 };
 
         template <typename T>
         static constexpr auto operator*(T e) noexcept

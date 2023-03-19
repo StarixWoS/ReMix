@@ -133,7 +133,7 @@ class Server : public QTcpServer
         void sendMasterMessage(const QString& packet, QSharedPointer<Player> plr, const bool toAll = false);
         void sendMasterMessageToAdmins(const QString& message);
 
-        void startMasterKeepAliveTimer();
+        void startMasterSerNumKeepAliveTimer();
         void masterSerNumKeepAliveSlot();
 
         qint64 getUpTime() const;

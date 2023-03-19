@@ -582,6 +582,7 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
     static const QString ownerStr{ "Owner: " };
     static const QString ownerToStr{ "Owner to User < " };
 
+    bool redMessage{ ui->serverMsgCheckBox->isChecked() };
     QString msg{ message };
 
     this->insertTimeStamp();
@@ -598,7 +599,8 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
     else
     {
         this->insertChat( ownerStr, Colors::OwnerName, false );
-        msg.prepend( ownerStr );
+        if ( redMessage )
+            msg.prepend( ownerStr );
     }
 
     this->insertChat( message, Colors::OwnerTxt, false );
@@ -607,6 +609,12 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
         emit this->insertLogSignal( server->getServerName(), msg, LKeys::ChatLog, true, true );
 
     QString packet{ ":;oCFFFFFB2EDLFFFFFFB2E00000000" % msg };
+    if ( toAll == true
+      && redMessage == false )
+    {
+        packet = ( ":;oCFFFFFB2EDAEFFFFFB2E00000000" % msg );
+    }
+
     QString forgedPacket = PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() );
     emit this->sendChatSignal( forgedPacket, target, toAll );
 }
@@ -638,9 +646,9 @@ void ChatView::themeChangedSlot(const Themes& theme)
 
         auto pal{ Theme::getCurrentPal() };
         ui->autoScrollCheckBox->setPalette( pal );
+        ui->serverMsgCheckBox->setPalette( pal );
         ui->chatInput->setPalette( pal );
         ui->chatView->setPalette( pal );
-        ui->label->setPalette( pal );
     }
 }
 

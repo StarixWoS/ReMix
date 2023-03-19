@@ -52,8 +52,10 @@ class User : public QDialog
         static void setAdminRank(const QString& sernum, const GMRanks& rank);
         static void setAdminRank(QSharedPointer<Player> plr, const GMRanks& rank, const bool& remote);
 
-        static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum = "" );
+        static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type);
         static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
+        static void logPunishmentRemoval(const QString& sernum, const quint64& punishDate, const quint64& punishDuration,
+                                         const QString& punishReason, const PunishTypes& type);
 
         static bool addBan(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool remote,
                            const PunishDurations duration);

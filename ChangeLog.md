@@ -4,6 +4,29 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.8:
+    Change:
+      * Chat messages sent to Users via the Chat View will now appear as normal "Player" chat.
+        * Chat messages can now be toggled between a Red (urgent) message, or a normal *player* message via a CheckBox toggle within the ChatView.
+      * ReMix now emulates a "Player" for the WoS Game Type.
+        * A character named "Owner" will appear to Users connected to WoS.
+        * The emulated character cannot be interacted with.
+      
+
+
+
+
+    Bugfixes:
+      * Fixed an issue with the "vanish" command.
+        * The PlayerCount sent to Ping Requests would be set to erroneous values when an admin in vanish mode would disconnect from ReMix.
+      * Fixed an issue where Admins in vanish mode were unable to communicate via the ingame chat boxes.
+      * Fixed an issue related to Punishment Durations and erroneously logging a completed penalty.
+      * Fixed an issue where Mute Durations being removed while a User was connected would not be logged.
+
+
+
+
+
 Version 3.0.7.2:
     Bugfixes:
       * Attempted a fix with UPNP where the Control URL as provided by a Router/Modem is invalid.

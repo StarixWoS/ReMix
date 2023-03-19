@@ -296,7 +296,7 @@ void User::setAdminRank(QSharedPointer<Player> plr, const GMRanks& rank, const b
     }
 }
 
-quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type, const QString& plrSernum)
+quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type)
 {
     if ( value.isEmpty() )
         return false;
@@ -306,17 +306,10 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
     QString var{ "" };
 
     bool isValue{ false };
-    bool skip{ false };
 
     for ( int i = 0; i < sernums.count(); ++i )
     {
         sernum = sernums.at( i );
-        if ( !plrSernum.isEmpty() )
-        {
-            if ( Helper::cmpStrings( sernum, plrSernum ) )
-                skip = true;
-        }
-
         switch ( type )
         {
             case PunishTypes::SerNum:
@@ -327,12 +320,12 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
             break;
             case PunishTypes::IP:
             {
-                if ( skip )
-                    break;
-
                 var = getData( sernum, User::uKeys.value( UKeys::IP ) ).toString();
                 if ( Helper::cmpStrings( var, value ) )
+                {
                     isValue = true;
+                    break;
+                }
             }
             break;
             case PunishTypes::DV:
@@ -342,16 +335,17 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
                 break;
         }
 
-        skip = false;
         if ( isValue )
             break;
     }
 
     quint64 punishDuration{ getData( sernum, User::uKeys.value( UKeys::BanDuration ) ).toUInt() };
+    QString punishReason{ getData( sernum, User::uKeys.value( UKeys::BanReason ) ).toString() };
     quint64 punishDate{ getData( sernum, User::uKeys.value( UKeys::Banned ) ).toUInt() };
     if ( punishType == PunishTypes::Mute )
     {
         punishDuration = getData( sernum, User::uKeys.value( UKeys::MuteDuration ) ).toUInt();
+        punishReason = getData( sernum, User::uKeys.value( UKeys::BanReason ) ).toString();
         punishDate = getData( sernum, User::uKeys.value( UKeys::Muted ) ).toUInt();
     }
 
@@ -419,6 +413,9 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
                 }
             }
 
+            quint64 punishDuration{ getData( sernum, User::uKeys.value( UKeys::BanDuration ) ).toUInt() };
+            QString punishReason{ getData( sernum, User::uKeys.value( UKeys::BanReason ) ).toString() };
+            quint64 punishDate{ getData( sernum, User::uKeys.value( UKeys::Banned ) ).toUInt() };
             if ( punishType == PunishTypes::Ban )
             {
                 user->updateRowData( index.row(), *UserCols::Banned, false );
@@ -428,12 +425,42 @@ void User::removePunishment(const QString& value, const PunishTypes& punishType,
             }
             else if ( punishType == PunishTypes::Mute )
             {
+                punishDuration = getData( sernum, User::uKeys.value( UKeys::MuteDuration ) ).toUInt();
+                punishReason = getData( sernum, User::uKeys.value( UKeys::BanReason ) ).toString();
+                punishDate = getData( sernum, User::uKeys.value( UKeys::Muted ) ).toUInt();
+
                 user->updateRowData( index.row(), *UserCols::Muted, false );
                 user->updateRowData( index.row(), *UserCols::MuteDate, 0 );
                 user->updateRowData( index.row(), *UserCols::MuteDuration, 0 );
                 user->updateRowData( index.row(), *UserCols::MuteReason, "" );
             }
+            logPunishmentRemoval( sernum, punishDate, punishDuration, punishReason, punishType );
         }
+    }
+}
+
+void User::logPunishmentRemoval(const QString& sernum, const quint64& punishDate, const quint64& punishDuration,
+                                const QString& punishReason, const PunishTypes& type)
+{
+    User* object{ User::getInstance() };
+    if ( object != nullptr )
+    {
+        QString message{ "Removing the %1 User [ %2 ]. %1 on [ %3 ] until [ %4 ]; With the reason [ %5 ]." };
+        QString banned{ "Banned" };
+        QString muted{ "Muted" };
+        QString typeFill{ "" };
+
+        if ( type == PunishTypes::Ban )
+            typeFill = banned;
+        else
+            typeFill = muted;
+
+        message = message.arg( typeFill )
+                  .arg( Helper::serNumToIntStr( sernum, true ) )
+                  .arg( Helper::getTimeAsString( punishDate ) )
+                  .arg( Helper::getTimeAsString( punishDuration ) )
+                  .arg( punishReason );
+        emit object->insertLogSignal( "User", message, LKeys::PunishmentLog, true, true );
     }
 }
 
@@ -456,7 +483,7 @@ bool User::addBan(QSharedPointer<Player> admin, QSharedPointer<Player> target, c
 
             msg = "Remote-Banish by [ %1 ]; Unknown Reason: [ %2 ]";
             msg = msg.arg( admin->getSernum_s() )
-                     .arg( target->getSernum_s() );
+                  .arg( target->getSernum_s() );
         }
         else
         {
@@ -765,39 +792,8 @@ void User::loadUserInfo()
 
             ui->userTable->resizeColumnToContents( *UserCols::BanReason );
 
-            auto informRemoval = [=,this](const QString& sernum, const quint64& punishDate, const quint64& punishDuration, const QString& punishReason,
-                                          const PunishTypes& type)
-            {
-                bool remove{ this->getIsPunished( type, sernum, PunishTypes::SerNum, sernum ) == 0 };
-                if ( !remove )
-                    remove = ( this->getIsPunished( type, sernum, PunishTypes::IP, sernum ) == 0 );
-
-                if ( remove )
-                {
-                    QString message{ "Removing the %1 User [ %2 ]. %1 on [ %3 ] until [ %4 ]; With the reason [ %5 ]." };
-                    QString banned{ "Banned" };
-                    QString muted{ "Muted" };
-                    QString typeFill{ "" };
-
-                    if ( type == PunishTypes::Ban )
-                        typeFill = banned;
-                    else
-                        typeFill = muted;
-
-                    message = message.arg( typeFill )
-                                     .arg( Helper::serNumToIntStr( sernum, true ) )
-                                     .arg( Helper::getTimeAsString( punishDate ) )
-                                     .arg( Helper::getTimeAsString( punishDuration ) )
-                                     .arg( punishReason );
-                    emit this->insertLogSignal( "User", message, LKeys::PunishmentLog, true, true );
-                }
-            };
-
-            if ( banned )
-                informRemoval( sernum, banDate_i, banDuration_i, banReason, PunishTypes::Ban );
-
-            if ( muted )
-                informRemoval( sernum, muteDate_i, muteDuration_i, muteReason, PunishTypes::Mute );
+            getIsPunished( PunishTypes::SerNum, sernum, PunishTypes::Ban );
+            getIsPunished( PunishTypes::SerNum, sernum, PunishTypes::Mute );
         }
     }
 
@@ -956,7 +952,7 @@ void User::updateDataValueSlot(const QModelIndex& index, const QModelIndex&, con
                     setReason = true;
                     reason.clear();
 
-                    removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
+                    //removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
                     emit this->mutedSerNumDurationSignal( sernum, *PunishDurations::Invalid );
                 }
 

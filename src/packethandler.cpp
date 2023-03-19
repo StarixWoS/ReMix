@@ -165,8 +165,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
             else
                 parsePkt = this->parseTCPPacket( packet, plr );
 
-            if ( parsePkt
-              && plr->getIsVisible() )
+            if ( parsePkt )
             {
                 if ( !pkt.isEmpty() )
                     pkt.append( "\r\n" );
@@ -228,11 +227,10 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
 
     QString logMsg{ "Auto-Disconnect; %1: [ %2 ], [ %3 ]" };
     QString plrMessage{ "Auto-%1; %2" };
-    QString plrSerNum{ plr->getSernumHex_s() };
     QString reason{ logMsg };
 
     //Prevent Banned IP's or SerNums from remaining connected.
-    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getIPAddress(), plrSerNum ) )
+    if ( this->getIsBanned( plr->getSernumHex_s(), plr->getIPAddress() ) )
     {
         reason = reason.arg( "Banned Info" )
                        .arg( plr->getIPAddress() )
@@ -338,12 +336,12 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
     return badInfo;
 }
 
-bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr, const QString& plrSerNum) const
+bool PacketHandler::getIsBanned(const QString& serNum, const QString& ipAddr) const
 {
     quint64 banned{ 0 };
-    banned = User::getIsPunished( PunishTypes::Ban, serNum, PunishTypes::SerNum, plrSerNum );
+    banned = User::getIsPunished( PunishTypes::Ban, serNum, PunishTypes::SerNum );
     if ( banned == 0 )
-        banned = User::getIsPunished( PunishTypes::Ban, ipAddr, PunishTypes::IP, plrSerNum );
+        banned = User::getIsPunished( PunishTypes::Ban, ipAddr, PunishTypes::IP );
 
     return ( banned >= 1 );
 }

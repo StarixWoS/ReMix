@@ -181,10 +181,10 @@ void Player::setSernum_i(const qint32& value)
         this->setSernumHex_s( sernumHex_s );
 
         quint64 muteDuration{ 0 };
-        muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum, sernumHex_s );
+        muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum );
 
         if ( muteDuration == 0 )
-            muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP, sernumHex_s );
+            muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP );
 
         if ( muteDuration >= 1 )
         {
@@ -886,7 +886,6 @@ void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
                         const QString masterIP{ server->getMasterIP() };
                         const QString socketIP{ this->getIPAddress() };
 
-                        QString message{ "" };
                         if ( !Helper::cmpStrings( masterIP, socketIP ) )
                         {
                             //Ban IP?
@@ -933,6 +932,15 @@ void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& ta
     //Source Player is this Player Object. Return without further processing.
     if ( plr == this )
         return;
+
+    if ( !this->getIsAdmin() )
+    {
+        if ( plr != nullptr
+          && !plr->getIsVisible() )
+        {
+            return;
+        }
+    }
 
     bool isAuth{ false };
     bool send{ false };

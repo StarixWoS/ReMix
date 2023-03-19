@@ -425,8 +425,15 @@ void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const boo
     plr.clear();
 
     if ( !all )
-        this->setPlayerCount( this->getPlayerCount() - 1 );
+    {
+        quint32 count{ this->getPlayerCount() };
+        if ( count > 0 )
+            count -= 1;
+        else
+            count = 0;
 
+        this->setPlayerCount( count );
+    }
     emit this->insertLogSignal( this->getServerName(), logMsg, LKeys::ClientLog, true, true );
 }
 
@@ -572,7 +579,7 @@ void Server::sendMasterMessageToAdmins(const QString& message)
     }
 }
 
-void Server::startMasterKeepAliveTimer()
+void Server::startMasterSerNumKeepAliveTimer()
 {
     if ( !masterSerNumKeepAliveTimer.isActive() )
         masterSerNumKeepAliveTimer.start();
@@ -580,10 +587,11 @@ void Server::startMasterKeepAliveTimer()
 
 void Server::masterSerNumKeepAliveSlot()
 {
-    const QString packet{ ":;o0FFFFFB2ED" };
-    emit this->sendMasterMsgToPlayerSignal( nullptr, true, PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, this->getGameId() ) );
+    static const QString packet{ ":;o0%1D" };
+    QString pkt{ packet.arg( Helper::serNumToHexStr( Helper::intToStr( *ReMixSerNum::SerNum, IntBase::HEX, IntFills::DblWord ) ) ) };
+    emit this->sendMasterMsgToPlayerSignal( nullptr, true, PacketForge::getInstance()->encryptPacket( pkt.toLatin1(), 0, this->getGameId() ) );
 
-    this->startMasterKeepAliveTimer();
+    this->startMasterSerNumKeepAliveTimer();
 }
 
 qint64 Server::getUpTime() const
@@ -1310,10 +1318,18 @@ void Server::ipDCIncreaseSlot(const DCTypes& type)
 
 void Server::setVisibleStateSlot(const bool& state)
 {
-    if ( state )
-        this->setPlayerCount( this->getPlayerCount() + 1 );
+    quint32 count{ this->getPlayerCount() };
+    if ( count > 0 )
+    {
+        if ( state )
+            count += 1 ;
+        else
+            count -= 1;
+    }
     else
-        this->setPlayerCount( this->getPlayerCount() + -1 );
+        count = 0;
+
+    this->setPlayerCount( count );
 }
 
 void Server::recvMasterInfoSlot()

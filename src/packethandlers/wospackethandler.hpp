@@ -22,6 +22,7 @@ class WoSPacketHandler : public QObject
         static void deleteInstance(QSharedPointer<Server> server);
 
         bool handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr);
+        void forgePacket(QSharedPointer<Server> server, QSharedPointer<Player> plr, const WoSPacketTypes& type);
 
     signals:
         void insertChatMsgSignal(const QString& msg, const Colors& color, const bool& newLine);
