@@ -93,6 +93,7 @@ QStringList ChatView::bleepList
 };
 
 QHash<QSharedPointer<Server>, ChatView*> ChatView::chatViewInstanceMap;
+
 QVector<Colors> ChatView::colors
 {
     Colors::GossipTxt,
@@ -641,7 +642,6 @@ void ChatView::themeChangedSlot(const Themes& theme)
             ui->chatView->clear();
             ui->chatView->insertHtml( txtHtml );
         }
-        this->scrollToBottom( true );
         currentTheme = theme;
 
         auto pal{ Theme::getCurrentPal() };
@@ -649,6 +649,7 @@ void ChatView::themeChangedSlot(const Themes& theme)
         ui->serverMsgCheckBox->setPalette( pal );
         ui->chatInput->setPalette( pal );
         ui->chatView->setPalette( pal );
+        this->scrollToBottom( true );
     }
 }
 

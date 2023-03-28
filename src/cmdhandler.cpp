@@ -1433,58 +1433,40 @@ void CmdHandler::parseTimeArgs(const QString& str, QString& timeArg, QString& re
 
 QPair<qint64, TimePeriods> CmdHandler::getTimePeriodFromString(const QString& str)
 {
+    static const QMap<QChar, TimePeriods> periodMap
+    {
+        { 'y', TimePeriods::Years   },
+        { 'd', TimePeriods::Days    },
+        { 'h', TimePeriods::Hours   },
+        { 'm', TimePeriods::Minutes },
+        { 's', TimePeriods::Seconds }
+    };
+
     TimePeriods time{ TimePeriods::Default };
     qint64 duration{ 0 };
     QString pStr;
-            pStr.reserve( str.length() );
 
-    QString::const_iterator itr{ str.constBegin() };
-
-    while ( itr != nullptr )
+    for ( const QChar& c : str )
     {
-        //Always starts with a number.
-        if ( !itr->isDigit() )
+        if ( c.isDigit() )
+        {
+            pStr += c;
+        }
+        else if ( periodMap.contains( c.toLower() ) )
+        {
+            time = periodMap.value( c.toLower(), TimePeriods::Seconds );
+            duration += pStr.toLongLong() * static_cast<qint64>(time);
+            pStr.clear();
+        }
+        else //We only care about the first non-digit character, and if it is within the periodMap. Stop here.
             break;
+    }
 
-        pStr.clear();
-        while( itr->isDigit()
-            && *itr != nullptr )
-        {
-            pStr += *itr;
-            ++itr;
-        }
-
-        //Try to find a letter.
-        if ( *itr != nullptr )
-        {
-            // check the type
-            switch( itr->toLower().toLatin1() )
-            {
-                case 'y': //Year
-                    time = TimePeriods::Years;
-                break;
-                case 'd': //Days
-                    time = TimePeriods::Days;
-                break;
-                case 'h': //Hours
-                    time = TimePeriods::Hours;
-                break;
-                case 'm': //Minutes
-                    time = TimePeriods::Minutes;
-                break;
-                case 's': //Seconds
-                    time = TimePeriods::Seconds;
-                break;
-                default: //Default, no duration.
-                    time = TimePeriods::Default;
-                break;
-            }
-            ++itr;
-        }
-        else //Seconds if no letter is given.
-            time = TimePeriods::Seconds;
-
-        duration = *time * Helper::strToInt( pStr, IntBase::DEC );
+    // If there is no duration indicator, assume seconds.
+    if ( time == TimePeriods::Default )
+    {
+        time = TimePeriods::Seconds;
+        duration = pStr.toLongLong() * static_cast<qint64>( time );
     }
     return QPair<qint64, TimePeriods>( duration, time );
 }

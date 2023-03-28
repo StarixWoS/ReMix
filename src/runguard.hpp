@@ -2,32 +2,20 @@
 #define RUNGUARD_HPP
 
 //Required Qt includes.
-#include <QCryptographicHash>
-#include <QSystemSemaphore>
-#include <QSharedMemory>
-#include <QObject>
+#include <QApplication>
+#include <QtCore>
+#include <QtGui>
 
-class RunGuard
+class RunGuard : public QApplication
 {
-    QString sharedmemKey;
-    QString memLockKey;
+    Q_OBJECT
 
-    QSystemSemaphore* memLock{ nullptr };
-    QSharedMemory* sharedMem{ nullptr };
+    QSharedMemory sharedMemory{ "ReMix_Game_Server_SharedMem" };
+    bool isRunning{ false };
 
     public:
-        RunGuard(const QString& key);
-        ~RunGuard();
-
-        bool isAnotherRunning() const;
-        bool tryToRun();
-        void release();
-
-        static QString generateKeyHash(const QString& key, const QString& salt);
-
-    private:
-
-        Q_DISABLE_COPY( RunGuard )
+        explicit RunGuard(int& argc, char** argv);
+        bool getIsRunning() const;
 };
 
 #endif // RUNGUARD_HPP

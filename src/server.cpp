@@ -502,7 +502,7 @@ void Server::sendPlayerSocketPosition(QSharedPointer<Player> plr, const bool& fo
 
     for ( int i = slot; i < this->getMaxPlayerCount(); ++i )
     {
-        const QSharedPointer<Player> tmpPlr = plrSlotMap.value( i );
+        const QSharedPointer<Player> tmpPlr = plrSlotMap.value( i, nullptr );
         if ( tmpPlr == nullptr )
         {
             slot = i;

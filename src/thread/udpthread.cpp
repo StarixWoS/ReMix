@@ -148,23 +148,21 @@ void UdpThread::parseUdpPacket(const QByteArray& udp, const QHostAddress& ipAddr
             break;
             case 'Q':   //Send Online User Information.
             {
-                QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
+                QString pingLog{ "User List requested by User [ %1:%2 ]." };
                         pingLog = pingLog.arg( ipAddr.toString() )
-                                         .arg( port )
-                                         .arg( Helper::serNumToIntStr( sernum, true ) );
-                emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
+                                         .arg( port );
                 emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
+                emit this->sendUserListSignal( ipAddr, port, UserListResponse::Q_Response );
             }
             break;
             case 'R':   //Send Online User Information.
             {
-                QString pingLog{ "User List requested by User [ %1:%2 ] with SoulID [ %3 ]." };
+                QString pingLog{ "User List requested by User [ %1:%2 ]." };
                         pingLog = pingLog.arg( ipAddr.toString() )
-                                         .arg( port )
-                                         .arg( Helper::serNumToIntStr( sernum, true ) );
+                                         .arg( port );
 
-                emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );
                 emit this->insertLogSignal( serverName, pingLog, LKeys::PingLog, true, true );
+                emit this->sendUserListSignal( ipAddr, port, UserListResponse::R_Response );
             }
             break;
         }

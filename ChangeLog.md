@@ -11,6 +11,13 @@ Version 3.0.8:
       * ReMix now emulates a "Player" for the WoS Game Type.
         * A character named "Owner" will appear to Users connected to WoS.
         * The emulated character cannot be interacted with.
+      * Changed how the LogView handles filtering incoming logs.
+        * Hopefully this change will allow the logView to be accessed and filtered with a lower latency.
+          * The old method for certain would cause UI latency issues once ReMix had been online for an extended period.
+      * Simplified the RunGuard class and reduced the scope of what it tries to do.
+        * This should allow for the RunGuard to once again operate on Linux and OSX.
+      * Corrected the order of the "User List" pings.
+        * The request is now correctly logged before the response.
       
 
 

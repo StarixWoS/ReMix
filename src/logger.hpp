@@ -26,8 +26,7 @@ class Logger : public QDialog
 
     static const QMap<LKeys, QString> logType;
     static const QString website;
-    static QMap<QModelIndex, LKeys> logMap;
-    static QStandardItemModel* tblModel;
+    static QMap<QStandardItemModel*, LKeys> logViews;
     static Logger* logInstance;
 
     QGraphicsPixmapItem* iconViewerItem{ nullptr };
@@ -45,6 +44,7 @@ class Logger : public QDialog
         void insertLog(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);
 
     private:
+        void createLogViews();
         void filterLogs();
         void clearLogs();
         void startAutoClearingLogs(const bool& start);

@@ -401,7 +401,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                                    .arg( skinName )
                                                    .arg( targetPlayer->getSernum_s() );
                         }
-                        qDebug() << logMessage;
+                        //qDebug() << logMessage;
                     }
                 }
             break;

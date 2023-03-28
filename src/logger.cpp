@@ -23,15 +23,14 @@
 #include <QObject>
 #include <QtCore>
 
-QStandardItemModel* Logger::tblModel{ nullptr };
+QMap<QStandardItemModel*, LKeys> Logger::logViews;
 
-QMap<QModelIndex, LKeys> Logger::logMap;
 Logger* Logger::logInstance{ nullptr };
 
 const QString Logger::website{ "https://bitbucket.org/ahitb/remix" };
 const QMap<LKeys, QString> Logger::logType =
 {
-    { LKeys::AllLogs,       "AllLogs"       }, //Unused, placeholder.
+    { LKeys::AllLogs,       "AllLogs"       },
     { LKeys::AdminLog,      "AdminUsageLog" },
     { LKeys::CommentLog,    "CommentLog"    },
     { LKeys::ClientLog,     "ClientLog"     },
@@ -39,7 +38,7 @@ const QMap<LKeys, QString> Logger::logType =
     { LKeys::UPNPLog,       "UPNPLog"       },
     { LKeys::PunishmentLog, "PunishmentLog" },
     { LKeys::MiscLog,       "MiscLog"       },
-    { LKeys::ChatLog,       "ChatLog"       },
+    { LKeys::ChatLog,       "ChatLog"       }, //Unused, placeholder.
     { LKeys::SSVLog,        "QuestLog"      },
     { LKeys::PingLog,       "PingLog"       },
 };
@@ -60,12 +59,8 @@ Logger::Logger(QWidget *parent) :
     QObject::connect( this, &Logger::insertLogSignal, writeThread, &WriteThread::insertLogSlot );
     QObject::connect( this, &Logger::resizeColumnsSignal, this, &Logger::resizeColumnsSlot );
 
-    tblModel = new QStandardItemModel( 0, 4, nullptr );
-    tblModel->setHeaderData( *LogCols::Message, Qt::Horizontal, "Message" );
-    tblModel->setHeaderData( *LogCols::Source, Qt::Horizontal, "Source" );
-    tblModel->setHeaderData( *LogCols::Date, Qt::Horizontal, "Date" );
-    tblModel->setHeaderData( *LogCols::Type, Qt::Horizontal, "Type" );
-    ui->logView->setModel( tblModel );
+    this->createLogViews();
+    ui->logView->setModel( logViews.key( LKeys::AllLogs, nullptr ) );
 
     //Load the application Icon into the top left of the dialog.
     iconViewerItem = new QGraphicsPixmapItem( QPixmap::fromImage( QImage( ":/icon/ReMix.png" ) ) );
@@ -112,7 +107,21 @@ Logger::~Logger()
     iconViewerScene->removeItem( iconViewerItem );
     iconViewerScene->deleteLater();
 
-    tblModel->deleteLater();
+    //Delete logModels
+    for ( const auto& type : logType.keys() )
+    {
+        if ( type != LKeys::ChatLog )
+        {
+            QStandardItemModel* model{ logViews.key( type, nullptr ) };
+            if ( model != nullptr )
+            {
+                logViews.remove( model );
+                model->deleteLater();
+            }
+            model = nullptr;
+        }
+    }
+
     this->deleteLater();
 
     delete iconViewerItem;
@@ -147,33 +156,48 @@ void Logger::scrollToBottom(const bool& forceScroll)
 
 void Logger::insertLog(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine)
 {
-    QAbstractItemModel* tblModel{ ui->logView->model() };
+    QStandardItemModel* typeModel{ logViews.key( type, nullptr ) };
+    QStandardItemModel* defaultModel{ logViews.key( LKeys::AllLogs, nullptr ) };
+
     QString time{ Helper::getTimeAsString() };
     QString format{ "%1 - %2 - %3 - %4" }; //Format string. - Easier to modify.
 
-    if ( tblModel != nullptr
+    if ( defaultModel != nullptr
+      && typeModel != nullptr
       && type != LKeys::ChatLog ) //Hide the Chat from the Log View.
     {
-        const qint32 row{ tblModel->rowCount() };
-        tblModel->insertRows( row, 1 );
-
-        const auto idx{ tblModel->index( row, 0 ) };
         format = format.arg( time )
                        .arg( logType.value( type ) )
                        .arg( source )
                        .arg( message.simplified() );
-        tblModel->setData( idx, format, Qt::DisplayRole );
 
-        //Insert the newly created row into the LoggerMap.
-        //LogType as the value, and the row as the key.
-        //This is to maintain purely unique combinations without overwriting data due to duplicate keys.
-        logMap.insert( idx, type );
+        qint32 row{ typeModel->rowCount() };
+        typeModel->insertRows( row, 1 );
+        const auto typeModelIdx{ typeModel->index( row, 0 ) };
+
+        //Continuously log to the default model.
+        row = defaultModel->rowCount();
+        defaultModel->insertRows( row, 1 );
+        const auto tblModelIdx{ defaultModel->index( row, 0 ) };
+
+        //Log to the LKeys::LogType model.
+        typeModel->setData( typeModelIdx, format );
+        defaultModel->setData( tblModelIdx, format );
     }
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
 
-    this->filterLogs();
+    //this->filterLogs();
+}
+
+void Logger::createLogViews()
+{
+    for ( const auto& type : logType.keys() )
+    {
+        if ( type != LKeys::ChatLog )
+            logViews.insert( new QStandardItemModel( 0, 1, nullptr ), type );
+    }
 }
 
 void Logger::filterLogs()
@@ -181,29 +205,11 @@ void Logger::filterLogs()
     //qint32 rowCount{ tblModel->rowCount() };
     qint32 index{ ui->filterComboBox->currentIndex() };
     if ( static_cast<LKeys>( index ) >= LKeys::ChatLog ) //This log type is not valid for filtering.
-        ++index;                                            //Adjust the index to the next valid log type.
+        ++index;                                         //Adjust the index to the next valid log type.
 
-    ui->logView->setUpdatesEnabled( false );
-
-    bool filterLogs{ index != *LKeys::AllLogs };
-    for ( const QModelIndex& idx : logMap.keys() )
-    {
-        if ( idx.isValid() )
-        {
-            if ( filterLogs )
-            {
-                const LKeys type{ logMap.value( idx ) };
-                if ( type == static_cast<LKeys>( index ) )
-                    ui->logView->setRowHidden( idx.row(), false );
-                else
-                    ui->logView->setRowHidden( idx.row(), true );
-            }
-            else //Unfilter logs.
-                ui->logView->setRowHidden( idx.row(), false );
-        }
-    }
-
-    ui->logView->setUpdatesEnabled( true );
+    QStandardItemModel* model{ logViews.key( static_cast<LKeys>( index ), nullptr ) };
+    if ( model != nullptr )
+        ui->logView->setModel( model );
 
     this->scrollToBottom( true );
 }
@@ -212,10 +218,18 @@ void Logger::clearLogs()
 {
     static const QString logMsg{ "The Log View has been cleared!" };
 
+    //Prevent updates to the view while clearing log models.
     ui->logView->setUpdatesEnabled( false );
 
-    tblModel->setRowCount( 0 );
-    logMap.clear();
+    for ( const auto& type : logType.keys() )
+    {
+        if ( type != LKeys::ChatLog )
+        {
+            QStandardItemModel* model{ logViews.key( type, nullptr ) };
+            if ( model != nullptr )
+                model->setRowCount( 0 );
+        }
+    }
 
     ui->logView->setUpdatesEnabled( true );
 

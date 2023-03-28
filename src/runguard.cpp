@@ -2,76 +2,37 @@
 //Class includes.
 #include "runguard.hpp"
 
-RunGuard::RunGuard(const QString& key)
-{
-    memLockKey = generateKeyHash( key, "_memLockKey" );
-    sharedmemKey = generateKeyHash( key, "_sharedmemKey" );
-    sharedMem = new QSharedMemory( sharedmemKey );
-    memLock = new QSystemSemaphore( memLockKey, -1 );
+//ReMix includes.
+#include "appeventfilter.hpp"
 
-    memLock->acquire();
+RunGuard::RunGuard(int& argc, char** argv)
+    : QApplication( argc, argv )
+{
+    // Create shared memory segment
+    if ( sharedMemory.create( sizeof( quint32 ) ) == false )
     {
-        QSharedMemory fix( sharedmemKey );
-        fix.attach();
+        // Segment already exists, meaning another instance of the application is running
+        isRunning = true;
     }
-    memLock->release();
+    else
+    {
+        // Set the shared memory value to 0 to indicate that this instance is running
+        sharedMemory.lock();
+        quint32* sharedMemVal = static_cast<quint32*>( sharedMemory.data() );
+        *sharedMemVal = 0;
+        sharedMemory.unlock();
+    }
+
+    if ( !isRunning )
+    {
+        this->setApplicationName( QStringLiteral("ReMix") );
+        this->setApplicationVersion( REMIX_VERSION );
+        this->setQuitOnLastWindowClosed( false );
+        this->installEventFilter( new AppEventFilter() );
+    }
 }
 
-RunGuard::~RunGuard()
+bool RunGuard::getIsRunning() const
 {
-    release();
-}
-
-bool RunGuard::isAnotherRunning() const
-{
-    if ( sharedMem->isAttached() )
-        return false;
-
-    memLock->acquire();
-    const bool isRunning{ sharedMem->attach() };
-    if ( isRunning )
-        sharedMem->detach();
-
-    memLock->release();
-
     return isRunning;
-}
-
-bool RunGuard::tryToRun()
-{
-    if ( isAnotherRunning() )
-        return false;
-
-    memLock->acquire();
-    const bool result{ sharedMem->create( sizeof( quint64 ) ) };
-    memLock->release();
-
-    if ( !result )
-    {
-        release();
-        return false;
-    }
-    return true;
-}
-
-void RunGuard::release()
-{
-    memLock->acquire();
-    if ( sharedMem->isAttached() )
-        sharedMem->detach();
-
-    memLock->release();
-
-    sharedMem->deleteLater();
-    delete memLock;
-}
-
-QString RunGuard::generateKeyHash(const QString& key, const QString& salt)
-{
-    QByteArray data;
-    data.append( key.toUtf8() );
-    data.append( salt.toUtf8() );
-    data = QCryptographicHash::hash( data, QCryptographicHash::Sha1 )
-                         .toHex();
-    return data;
 }
