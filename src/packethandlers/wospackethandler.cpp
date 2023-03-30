@@ -147,8 +147,8 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                 const qint32 plrVersion{ Helper::strToInt( pkt.mid( 15 ).left( 8 ) ) };
                                 if ( Helper::strToInt( minVersion ) != plrVersion )
                                 {
-                                    static const QString dcMsg{ "You have been disconnected due to the Rule \"minV\" being *Strictly Enforced*." };
-                                    server->sendMasterMessage( dcMsg, plr, false );
+                                    static const QString dcMsg{ "You have been disconnected due to the Rule \"minV=%1\" being *Strictly Enforced*." };
+                                    server->sendMasterMessage( dcMsg.arg( minVersion ), plr, false );
                                     plr->setDisconnected( true, DCTypes::PktDC );
                                 }
                             }
@@ -218,7 +218,8 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
             case *WoSPacketTypes::PKAttack: //PK Attack.
                 {
                     //To Do: Enforce the "No Player Killing" rule.
-                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoPK, server->getServerName() ).toBool()
+                      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                     {
                         static const QString dcMsg{ "You have been disconnected due to the Rule \"noPK\" being *Strictly Enforced*." };
                         server->sendMasterMessage( dcMsg, plr, false );
@@ -401,13 +402,13 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                                    .arg( skinName )
                                                    .arg( targetPlayer->getSernum_s() );
                         }
-                        //qDebug() << logMessage;
                     }
                 }
             break;
             case *WoSPacketTypes::PetCall:  //If pet level exceess the Player's level then discard the packet.
                 {
-                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                    if ( Settings::getSetting( SKeys::Rules, SSubKeys::NoPets, server->getServerName() ).toBool()
+                      && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
                     {
                         retn = false;   //Silently ignore the Pet Packet.
                         break;
@@ -428,18 +429,15 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                 {
                     if ( plr->getIsIncarnated() )
                     {
-                        if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
+                        if ( Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool()
+                          && Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, server->getServerName() ).toBool() )
                         {
-                            const bool migration{ Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, server->getServerName() ).toBool() };
-                            if ( migration )
+                            const qint32 birthSerNum{ Helper::strToInt( pkt.mid( 77 ) ) };
+                            if ( plr->getSernum_i() != birthSerNum )
                             {
-                                const qint32 birthSerNum{ Helper::strToInt( pkt.mid( 77 ) ) };
-                                if ( plr->getSernum_i() != birthSerNum )
-                                {
-                                    static const QString dcMsg{ "You have been disconnected due to the Rule \"noMigrate\" being *Strictly Enforced*." };
-                                    server->sendMasterMessage( dcMsg, plr, false );
-                                    plr->setDisconnected( true, DCTypes::PktDC );
-                                }
+                                static const QString dcMsg{ "You have been disconnected due to the Rule \"noMigrate\" being *Strictly Enforced*." };
+                                server->sendMasterMessage( dcMsg, plr, false );
+                                plr->setDisconnected( true, DCTypes::PktDC );
                             }
                         }
                     }
@@ -518,9 +516,11 @@ void WoSPacketHandler::forgePacket(QSharedPointer<Server> server, QSharedPointer
     {
         case WoSPacketTypes::Incarnation:
             {
-                packet = ":;o3" % serverSernum % "DEB00000A97000000000000000000000000Owner,Adventurer"
+                packet = ":;o3" % serverSernum % "DEB00000A97"
+                       % Helper::intToStr( server->getUpTime() / 60, IntBase::HEX, IntFills::DblWord )
+                       % "0000000000000000Owner,Adventurer"
                        % "," + server->getGameWorld() % ","
-                       % Helper::intToStr( static_cast<int>( std::time( nullptr ) ), IntBase::HEX, IntFills::DblWord ).toUpper();
+                       % Helper::intToStr( static_cast<int>( std::time( nullptr ) ), IntBase::HEX, IntFills::DblWord );
             }
         break;
         case WoSPacketTypes::CharacterInfo:

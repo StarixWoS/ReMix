@@ -4,6 +4,25 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.0.9:
+    Change:
+      * 
+
+
+
+
+
+    Bugfixes:
+      * Fixed an issue related to Server Side Variables (SSV) where a maliciously formatted packet could allow directory traveral on the Host Machine.
+        * This at most could lead to reading and writing to certain ".ini" files, if the attacker could get a grasp on the Host's Filesystem.
+        * We now sanitize the SSV Path to ensure that this cannot happen.
+        * We now ensure that the SSV is being set for the World that the Server Instance is actually using.
+      * Fixed an issue Users could be disconnected when the Rule "enforceRules" was enabled while the corresponding Rule being enforced was not checked.
+
+
+
+
+
 Version 3.0.8:
     Change:
       * Chat messages sent to Users via the Chat View will now appear as normal "Player" chat.

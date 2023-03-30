@@ -179,9 +179,12 @@
             //Length of a Remote Admin's password salt.
             SALT_LENGTH = 12,
 
-            //Maximum length annowed for a GameInfo String to be set and sent to
+            //Maximum length allowed for a GameInfo String to be set and sent to
             //players that ping our servers.
             MAX_GAME_NAME_LENGTH = 256,
+
+            //Maximum length allowed for a SSV FileName Path.
+            MAX_SSV_PATH_LENGTH = 255,
 
             //Time interval for updating the server's Usage array.
             SERVER_USAGE_UPDATE = 600000,

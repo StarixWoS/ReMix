@@ -536,65 +536,93 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
     QString accessType{ "Read" };
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() )
     {
+        const QString sernum{ packet.mid( 2 ).left( 8 ) };
+
         QString pkt{ packet };
                 pkt = pkt.mid( 10 );
                 pkt = pkt.left( pkt.length() - 2 );
-        const QString sernum{ pkt.mid( 2 ).left( 8 ) };
+
         const QStringList vars{ pkt.split( ',' ) };
 
-        QSettings ssv( "mixVariableCache/" % vars.value( 0 ) % ".ini", QSettings::IniFormat );
-
-        QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
-        QDir ssvDir( "mixVariableCache" );
-        if ( mode == SSVModes::Write )
+        //Ensure the WorldName is valid.
+        if ( Helper::cmpStrings( server->getGameWorld(), vars.value( 0 ) ) )
         {
-            accessType = "Write";
-            if ( !ssvDir.exists() )
-                ssvDir.mkpath( "." );
+            QString path{ "mixVariableCache/" % vars.value( 0 ) % ".ini" };
+            if( !Helper::sanitizeFilePath( path ) ) //Sanitize, prevent directory traversal.
+                return; //Could not properly sanitize, return without processing.
 
-            ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ), vars.value( 3 ) );
-        }
 
-        QString value{ vars.value( 3 ) };
-        if ( ssvDir.exists() )
-        {
-            value = ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString();
-            val = val.arg( sernum )
-                     .arg( vars.value( 0 ) ) //file name
+            QSettings ssv( path, QSettings::IniFormat );
+
+            QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
+            QDir ssvDir( "mixVariableCache" );
+            if ( mode == SSVModes::Write )
+            {
+                accessType = "Write";
+                if ( !ssvDir.exists() )
+                    ssvDir.mkpath( "." );
+
+                ssv.setValue( vars.value( 1 ) % "/" % vars.value( 2 ), vars.value( 3 ) );
+            }
+
+            QString value{ vars.value( 3 ) };
+            if ( ssvDir.exists() )
+            {
+                value = ssv.value( vars.value( 1 ) % "/" % vars.value( 2 ), "" ).toString();
+                val = val.arg( sernum )
+                         .arg( vars.value( 0 ) ) //file name
+                         .arg( vars.value( 1 ) ) //category
+                         .arg( vars.value( 2 ) ) //variable
+                         .arg( value ); //value
+
+                if ( mode == SSVModes::Write )
+                {
+                    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                    {
+                        QSharedPointer<Player> tmpPlr = server->getPlayer( i );
+                        if ( tmpPlr != nullptr
+                          && plr != tmpPlr )
+                        {
+                            server->updateBytesOut( tmpPlr, tmpPlr->write( val.toLatin1(), val.length() ) );
+                        }
+                    }
+                }
+                else if ( !val.isEmpty()
+                       && ( mode == SSVModes::Read ) )
+                {
+                    server->updateBytesOut( plr, plr->write( val.toLatin1(), val.length() ) );
+                }
+            }
+
+            QString msg{ "Server Variable being Accessed[ %1 ]: SerNum[ %2 ], "
+                         "FileName[ %3 ], Category[ %4 ], Variable[ %5 ], "
+                         "Value[ %6 ]" };
+
+            msg = msg.arg( accessType )
+                     .arg( plr->getSernum_s() )
+                     .arg( vars.value( 0 ) % ".ini" ) //file name
                      .arg( vars.value( 1 ) ) //category
                      .arg( vars.value( 2 ) ) //variable
                      .arg( value ); //value
 
-            if ( mode == SSVModes::Write )
-            {
-                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
-                {
-                    QSharedPointer<Player> tmpPlr = server->getPlayer( i );
-                    if ( tmpPlr != nullptr
-                      && plr != tmpPlr )
-                    {
-                        server->updateBytesOut( tmpPlr, tmpPlr->write( val.toLatin1(), val.length() ) );
-                    }
-                }
-            }
-            else if ( !val.isEmpty()
-                   && ( mode == SSVModes::Read ) )
-            {
-                server->updateBytesOut( plr, plr->write( val.toLatin1(), val.length() ) );
-            }
+            emit this->insertLogSignal( server->getServerName(), msg, LKeys::SSVLog, true, true );
         }
+        else //The User is Modifying the SSV packet, perhaps maliciously. Log, send reason, disconnect them.
+        {
+            QString message{ "Auto-Disconnect; Invalid SSV sent for the current world < %1 > ReMix < %2 >." };
+                    message = message.arg( vars.value( 0 ) )
+                                     .arg( server->getGameWorld() );
+            server->sendMasterMessage( message, plr, false );
 
-        QString msg{ "Server Variable being Accessed[ %1 ]: SerNum[ %2 ], "
-                     "FileName[ %3 ], Category[ %4 ], Variable[ %5 ], "
-                     "Value[ %6 ]" };
+            QString reason{ "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User sent invalid SSV for < %4 > ReMix < %5 >." };
+                    reason = reason.arg( plr->getSernum_s() )
+                                   .arg( plr->getIPAddress() )
+                                   .arg( plr->getBioData() )
+                                   .arg( vars.value( 0 ) )
+                                   .arg( server->getGameWorld() );
+            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
-        msg = msg.arg( accessType )
-                 .arg( plr->getSernum_s() )
-                 .arg( vars.value( 0 ) % ".ini" ) //file name
-                 .arg( vars.value( 1 ) ) //category
-                 .arg( vars.value( 2 ) ) //variable
-                 .arg( value ); //value
-
-        emit this->insertLogSignal( server->getServerName(), msg, LKeys::SSVLog, true, true );
+            plr->setDisconnected( true, DCTypes::PktDC );
+        }
     }
 }

@@ -442,3 +442,20 @@ qint32 Helper::sanitizeFriendlyPrecision(const ByteUnits& unit)
             return 3;
     }
 }
+
+bool Helper::sanitizeFilePath(QString& data, const QChar replacement)
+{
+    if ( data.length() > *Globals::MAX_SSV_PATH_LENGTH )
+        return false; //Invalid path length.
+
+    static const QStringList invalidList{ "..", "CON", "PRN", "AUX", "NUL", "COM1", "COM2",
+                                          "COM3", "COM4","COM5", "COM6", "COM7", "COM8", "COM9",
+                                          "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7",
+                                          "LPT8", "LPT9", "?", "<", ">", ":", "*", "|", "\"" };
+
+    for ( const auto& str : invalidList )
+    {
+        data = data.replace( str, replacement, Qt::CaseInsensitive );
+    }
+    return true;
+}

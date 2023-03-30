@@ -27,6 +27,7 @@ class Helper
 
             return str;
         }
+
         static qint32 strToInt(const QString& str, const IntBase& base = IntBase::HEX);
         static QString intSToStr(const QString& val, const int& base = 16, const int& fill = 0, QChar filler = '0');
         static QString getStrStr(const QString& str, const QString& indStr, const QString& mid, const QString& left);
@@ -62,6 +63,7 @@ class Helper
 
         static qint32 sanitizeToFriendlyUnits(const quint64& bytes, QString& retVal, QString& unit);
         static qint32 sanitizeFriendlyPrecision(const ByteUnits& unit);
+        static bool sanitizeFilePath(QString& data, const QChar replacement = '_');
 };
 
 #endif // HELPER_HPP

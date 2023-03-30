@@ -171,6 +171,7 @@ void Logger::insertLog(const QString& source, const QString& message, const LKey
                        .arg( source )
                        .arg( message.simplified() );
 
+        //Log to the LKeys::LogType model.
         qint32 row{ typeModel->rowCount() };
         typeModel->insertRows( row, 1 );
         const auto typeModelIdx{ typeModel->index( row, 0 ) };
@@ -180,15 +181,12 @@ void Logger::insertLog(const QString& source, const QString& message, const LKey
         defaultModel->insertRows( row, 1 );
         const auto tblModelIdx{ defaultModel->index( row, 0 ) };
 
-        //Log to the LKeys::LogType model.
         typeModel->setData( typeModelIdx, format );
         defaultModel->setData( tblModelIdx, format );
     }
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )
         emit this->insertLogSignal( type, message, time, newLine );
-
-    //this->filterLogs();
 }
 
 void Logger::createLogViews()
@@ -202,7 +200,6 @@ void Logger::createLogViews()
 
 void Logger::filterLogs()
 {
-    //qint32 rowCount{ tblModel->rowCount() };
     qint32 index{ ui->filterComboBox->currentIndex() };
     if ( static_cast<LKeys>( index ) >= LKeys::ChatLog ) //This log type is not valid for filtering.
         ++index;                                         //Adjust the index to the next valid log type.
