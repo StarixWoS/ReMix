@@ -45,6 +45,8 @@ class User : public QDialog
         static bool makeAdmin(const QString& sernum, const QString& pwd);
 
         static bool getIsAdmin(const QString& sernum);
+        static bool getIsInVisible(const QString& sernum);
+        static void setIsInVisible(const QString& sernum, const bool& vanish);
         static bool getHasPassword(const QString& sernum);
         static bool cmpAdminPwd(const QString& sernum, const QString& value);
 
@@ -54,8 +56,8 @@ class User : public QDialog
 
         static quint64 getIsPunished(const PunishTypes& punishType, const QString& value, const PunishTypes& type);
         static void removePunishment(const QString& value, const PunishTypes& punishType, const PunishTypes& type);
-        static void logPunishmentRemoval(const QString& sernum, const quint64& punishDate, const quint64& punishDuration,
-                                         const QString& punishReason, const PunishTypes& type);
+        static void logPunishment(const QString& sernum, const quint64& punishDate, const quint64& punishDuration,
+                                         const QString& punishReason, const PunishTypes& type, const bool& remove);
 
         static bool addBan(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool remote,
                            const PunishDurations duration);
@@ -65,7 +67,7 @@ class User : public QDialog
 
         static bool addMute(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& reason, const bool& remote, const bool& autoMute,
                             const PunishDurations& duration);
-        static bool addMute(QSharedPointer<Player> target, const QString& reason, const bool& autoMute, const PunishDurations& duration);
+        static bool addMute(QSharedPointer<Player> target, const QString& reason, const bool& remote, const PunishDurations& duration);
 
         static bool addMuteImpl(QSharedPointer<Player> target, const QString& reason, const PunishDurations& duration);
 
@@ -81,10 +83,10 @@ class User : public QDialog
     private:
         QModelIndex findModelIndex(const QString& value, const UserCols& col);
         void loadUserInfo();
-        void updateRowData(const qint32& row, const qint32& col, const QVariant& data);
+        void updateRowData(const qint32& row, const qint32& col, const QVariant& data, const bool& dataLoad = false);
 
     signals:
-        void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration);
+        void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration, const QString& reason);
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void removePunishmentSignal(const QString& value, const PunishTypes& type);
         void setAdminRankSignal(const QString& hexSerNum, const GMRanks& rank);

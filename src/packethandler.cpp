@@ -43,6 +43,12 @@ PacketHandler::PacketHandler(QSharedPointer<Server> svr, ChatView* chat)
 
 PacketHandler::~PacketHandler()
 {
+    QString msg{ "PacketHandler( 0x%1 ) deconstructed." };
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::QuadWord ) );
+
+    emit this->insertLogSignal( server->getServerName(), msg, LKeys::MiscLog, true, true );
+
+    this->disconnect();
     server = nullptr;
 }
 
@@ -62,10 +68,7 @@ void PacketHandler::deleteInstance(QSharedPointer<Server> server)
 {
     PacketHandler* instance{ pktHandleInstanceMap.take( server ) };
     if ( instance != nullptr )
-    {
-        instance->disconnect();
         instance->deleteLater();
-    }
 }
 
 void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Player> plr)
@@ -117,10 +120,10 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
                 this->readMIX7( data, plr );
             break;
             case '8':   //Set/Read SSV Variable.
-                this->readMIX8( data, plr );
+                this->handleSSVReadWrite( data, plr, SSVMode::Read );
             break;
             case '9':   //Set/Read SSV Variable.
-                this->readMIX9( data, plr );
+                this->handleSSVReadWrite( data, plr, SSVMode::Write );
             break;
             default:
                 return;
@@ -160,10 +163,10 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
                 if ( !PacketForge::getInstance()->validateSerNum( plr, packet ) )
                     parsePkt = false;
                 else
-                    parsePkt = this->parseTCPPacket( packet, plr );
+                    parsePkt = this->parseTCPPacket( pkt, plr );
             }
             else
-                parsePkt = this->parseTCPPacket( packet, plr );
+                parsePkt = this->parseTCPPacket( pkt, plr );
 
             if ( parsePkt )
             {
@@ -186,7 +189,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
     return;
 }
 
-bool PacketHandler::parseTCPPacket(const QByteArray& packet, QSharedPointer<Player> plr)
+bool PacketHandler::parseTCPPacket(QByteArray& packet, QSharedPointer<Player> plr)
 {
     switch ( server->getGameId() )
     {
@@ -358,13 +361,13 @@ void PacketHandler::detectFlooding(QSharedPointer<Player> plr)
         if ( time <= *Globals::PACKET_FLOOD_TIME )
         {
             if ( floodCount >= *Globals::PACKET_FLOOD_LIMIT
-                 && !plr->getIsDisconnected() )
+              && !plr->getIsDisconnected() )
             {
                 QString logMsg{ "Auto-Mute; Packet Flooding: [ %1 ] sent %2 packets in %3 MS, they are muted: [ %4 ]" };
-                logMsg = logMsg.arg( plr->getIPAddress() )
-                               .arg( floodCount )
-                               .arg( time )
-                               .arg( plr->getBioData() );
+                        logMsg = logMsg.arg( plr->getIPAddress() )
+                                       .arg( floodCount )
+                                       .arg( time )
+                                       .arg( plr->getBioData() );
 
                 User::addMute( plr, logMsg, true, PunishDurations::THIRTY_MINUTES );
                 emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
@@ -518,17 +521,7 @@ void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
     this->checkBannedInfo( plr );
 }
 
-void PacketHandler::readMIX8(const QString& packet, QSharedPointer<Player> plr)
-{
-    this->handleSSVReadWrite( packet, plr, SSVModes::Read );
-}
-
-void PacketHandler::readMIX9(const QString& packet, QSharedPointer<Player> plr)
-{
-    this->handleSSVReadWrite( packet, plr, SSVModes::Write );
-}
-
-void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVModes mode)
+void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVMode mode)
 {
     if ( plr == nullptr || packet.isEmpty() )
         return;
@@ -551,12 +544,11 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
             if( !Helper::sanitizeFilePath( path ) ) //Sanitize, prevent directory traversal.
                 return; //Could not properly sanitize, return without processing.
 
-
             QSettings ssv( path, QSettings::IniFormat );
 
             QString val{ ":SR@V%1%2,%3,%4,%5\r\n" };
             QDir ssvDir( "mixVariableCache" );
-            if ( mode == SSVModes::Write )
+            if ( mode == SSVMode::Write )
             {
                 accessType = "Write";
                 if ( !ssvDir.exists() )
@@ -575,7 +567,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
                          .arg( vars.value( 2 ) ) //variable
                          .arg( value ); //value
 
-                if ( mode == SSVModes::Write )
+                if ( mode == SSVMode::Write )
                 {
                     for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                     {
@@ -588,7 +580,7 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
                     }
                 }
                 else if ( !val.isEmpty()
-                       && ( mode == SSVModes::Read ) )
+                       && ( mode == SSVMode::Read ) )
                 {
                     server->updateBytesOut( plr, plr->write( val.toLatin1(), val.length() ) );
                 }
@@ -598,23 +590,23 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
                          "FileName[ %3 ], Category[ %4 ], Variable[ %5 ], "
                          "Value[ %6 ]" };
 
-            msg = msg.arg( accessType )
-                     .arg( plr->getSernum_s() )
-                     .arg( vars.value( 0 ) % ".ini" ) //file name
-                     .arg( vars.value( 1 ) ) //category
-                     .arg( vars.value( 2 ) ) //variable
-                     .arg( value ); //value
+                    msg = msg.arg( accessType )
+                             .arg( plr->getSernum_s() )
+                             .arg( vars.value( 0 ) % ".ini" ) //file name
+                             .arg( vars.value( 1 ) ) //category
+                             .arg( vars.value( 2 ) ) //variable
+                             .arg( value ); //value
 
             emit this->insertLogSignal( server->getServerName(), msg, LKeys::SSVLog, true, true );
         }
         else //The User is Modifying the SSV packet, perhaps maliciously. Log, send reason, disconnect them.
         {
-            QString message{ "Auto-Disconnect; Invalid SSV sent for the current world < %1 > ReMix < %2 >." };
+            QString message{ "Auto-Disconnect; Invalid SSV sent for the current world < %1 > ReMix expected < %2 >." };
                     message = message.arg( vars.value( 0 ) )
                                      .arg( server->getGameWorld() );
             server->sendMasterMessage( message, plr, false );
 
-            QString reason{ "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User sent invalid SSV for < %4 > ReMix < %5 >." };
+            QString reason{ "Automatic Disconnect of <[ %1 ][ %2 ] BIO [ %3 ]> User sent invalid SSV for < %4 > ReMix expected < %5 >." };
                     reason = reason.arg( plr->getSernum_s() )
                                    .arg( plr->getIPAddress() )
                                    .arg( plr->getBioData() )

@@ -27,7 +27,7 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
         QString vlStr{ vL.toString() };
         QString vrStr{ vR.toString() };
 
-        if ( column == COLS::SERNUM )
+        if ( column == *PlrCols::SerNum )
         {
             if ( vlStr.contains( "SOUL" ) )
                 vlStr = vlStr.remove( "SOUL", Qt::CaseInsensitive ).trimmed();
@@ -38,8 +38,8 @@ bool PlrSortProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
             vlStr = Helper::intSToStr( vlStr, *IntBase::DEC );
             vrStr = Helper::intSToStr( vrStr, *IntBase::DEC );
         }
-        else if ( column == COLS::AGE
-               || column == COLS::TIME )
+        else if ( column == *PlrCols::Age
+               || column == *PlrCols::Time )
         {
             vlStr = vlStr.remove( ":" );
             vrStr = vrStr.remove( ":" );

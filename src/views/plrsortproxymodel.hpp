@@ -13,8 +13,6 @@ class PlrSortProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
-    enum COLS{ IPADDR = 0, SERNUM = 1, AGE = 2, TIME = 3 };
-
     public:
         PlrSortProxyModel();
         ~PlrSortProxyModel() override;

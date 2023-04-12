@@ -49,7 +49,8 @@ class ChatView : public QWidget
         void insertAdminMessageSlot(const QString& msg, const bool& toAll, QSharedPointer<Player> admin, QSharedPointer<Player> target);
         void newUserCommentSlot(QSharedPointer<Player> plr, const QString& message);
         void colorOverrideSlot(const QString& oldColor, const QString& newColor);
-        void insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll);
+        void insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll, const bool& fromChatView);
+        void emulatePlayerToggledSlot(const bool& state);
 
     private slots:
         void on_chatInput_returnPressed();

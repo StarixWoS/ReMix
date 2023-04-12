@@ -24,6 +24,7 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     //Load Settings from file.
     this->setCheckedState( SToggles::SaveWindowPositions, Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() );
     this->setCheckedState( SToggles::InformAdminLogin, Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() );
+    this->setCheckedState( SToggles::PlayerEmulation, Settings::getSetting( SKeys::Setting, SSubKeys::PlayerEmulation ).toBool() );
     this->setCheckedState( SToggles::DCBlueCode, Settings::getSetting( SKeys::Setting, SSubKeys::DCBlueCodedSerNums ).toBool() );
     this->setCheckedState( SToggles::MinimizeToTray, Settings::getSetting( SKeys::Setting, SSubKeys::MinimizeToTray ).toBool() );
     this->setCheckedState( SToggles::CensorIPInfo, Settings::getSetting( SKeys::Setting, SSubKeys::CensorIPInfo ).toBool() );
@@ -158,7 +159,6 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
     QString title{ "" };
     QString prompt{ "" };
     QString rowText{ "" };
-    QString newMasterIP{ "" };
 
     switch ( static_cast<SToggles>( row ) )
     {
@@ -193,31 +193,35 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case SToggles::DCIdles: //4
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowIdle );
         break;
-        case SToggles::AllowSSV: //5
+        case SToggles::PlayerEmulation: //5
+            Settings::setSetting( state, SKeys::Setting, SSubKeys::PlayerEmulation );
+            emit this->emulatePlayerToggledSignal( state );
+        break;
+        case SToggles::AllowSSV: //6
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowSSV );
         break;
-        case SToggles::LogComments: //6
+        case SToggles::LogComments: //7
             Settings::setSetting( state, SKeys::Logger, SSubKeys::LogComments );
         break;
-        case SToggles::FwdComments: //7
+        case SToggles::FwdComments: //8
             Settings::setSetting( state, SKeys::Setting, SSubKeys::FwdComments );
         break;
-        case SToggles::EchoComments: //8
+        case SToggles::EchoComments: //9
             Settings::setSetting( state, SKeys::Setting, SSubKeys::EchoComments );
         break;
-        case SToggles::InformAdminLogin: //9
+        case SToggles::InformAdminLogin: //10
             Settings::setSetting( state, SKeys::Setting, SSubKeys::InformAdminLogin );
         break;
-        case SToggles::MinimizeToTray: //10
+        case SToggles::MinimizeToTray: //11
             Settings::setSetting( state, SKeys::Setting, SSubKeys::MinimizeToTray );
         break;
-        case SToggles::SaveWindowPositions: //11
+        case SToggles::SaveWindowPositions: //12
             Settings::setSetting( state, SKeys::Setting, SSubKeys::SaveWindowPositions );
         break;
-        case SToggles::LogFiles: //12
+        case SToggles::LogFiles: //13
             Settings::setSetting( state, SKeys::Logger, SSubKeys::LogFiles );
         break;
-        case SToggles::WorldDir: //13
+        case SToggles::WorldDir: //14
             {
                 QString directory{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
                 rowText = "World Dir: [ %1 ]";
@@ -263,7 +267,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 }
             }
         break;
-        case SToggles::OverrideMasterHost:
+        case SToggles::OverrideMasterHost: //15
             {
                 QString ipAddress{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterHost ).toString() };
                 bool ok{ false };
@@ -303,7 +307,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
                 emit this->masterMixInfoChangedSignal();
             }
         break;
-        case SToggles::OverrideMaster:
+        case SToggles::OverrideMaster: //16
             {
                 QString ipAddress{ Settings::getSetting( SKeys::Setting, SSubKeys::OverrideMasterIP ).toString() };
                 bool ok{ false };

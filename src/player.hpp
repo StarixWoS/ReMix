@@ -79,6 +79,7 @@ class Player : public QTcpSocket
     QElapsedTimer floodTimer;
     QElapsedTimer idleTime;
 
+    QTimer vanishStateTimer;
     QTimer serNumKillTimer;
     QTimer killTimer;
     QTimer afkTimer;
@@ -132,7 +133,7 @@ class Player : public QTcpSocket
         QString getPlrName() const;
         void setPlrName(const QString& value);
 
-        QByteArray getCampPacket() const;
+        QByteArray& getCampPacket();
         void setCampPacket(const QByteArray& value);
 
         void forceSendCampPacket();
@@ -250,6 +251,7 @@ class Player : public QTcpSocket
         void setIsGhosting(bool newIsGhosting);
 
     public slots:
+        void vanishStateTimerTimeOutSlot();
         void sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
                                     const qint32& trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
@@ -258,7 +260,7 @@ class Player : public QTcpSocket
         void setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank);
 
     private slots:
-        void mutedSerNumDurationSlot(const QString& sernum, const quint64& duration);
+        void mutedSerNumDurationSlot(const QString& sernum, const quint64& duration, const QString& reason);
         void readyReadSlot();
 
         void serNumKillTimerTimeOutSlot();

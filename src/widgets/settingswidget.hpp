@@ -41,6 +41,7 @@ class SettingsWidget : public QWidget
         void masterMixInfoChangedSignal();
         void masterMixIPChangedSignal();
         void censorUIIPInfoSignal(const bool& state);
+        void emulatePlayerToggledSignal(const bool& state);
 
     private:
         Ui::SettingsWidget* ui;

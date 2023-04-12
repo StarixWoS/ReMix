@@ -61,6 +61,8 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     ui->plrListFill->layout()->addWidget( plrList );
     ui->openPlayerView->setText( "Hide Player List" );
 
+    QObject::connect( SettingsWidget::getInstance( Settings::getInstance() ), &SettingsWidget::emulatePlayerToggledSignal,
+                      ChatView::getInstance( server ), ChatView::emulatePlayerToggledSlot );
     ui->chatViewFill->setLayout( ChatView::getInstance( server )->layout() );
     ui->chatViewFill->layout()->addWidget( ChatView::getInstance( server ) );
     ui->openChatView->setText( "Hide Chat View" );
@@ -111,7 +113,8 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
         if ( !message.isEmpty() )
         {
             server->sendMasterMsgToPlayerSignal( target, toAll, message.toLatin1() );
-            server->startMasterSerNumKeepAliveTimer();
+            if ( Settings::getSetting( SKeys::Setting, SSubKeys::PlayerEmulation ).toBool() )
+                server->startMasterSerNumKeepAliveTimer();
         }
     } );
 
@@ -503,7 +506,6 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     {
         if ( QAbstractSocket::SocketTimeoutError == socketError )
             this->plrDisconnectedSlot( plr, true );
-
     } );
 
     QObject::connect( plr.get(), &Player::parsePacketSignal, PacketHandler::getInstance( server ), &PacketHandler::parsePacketSlot, Qt::UniqueConnection );
@@ -520,7 +522,7 @@ void ReMixWidget::plrDisconnectedSlot(QSharedPointer<Player> plr, const bool& ti
 
     emit this->plrViewRemoveRowSignal( plr );
 
-    plr->setDisconnected( true );   //Ensure ReMix knows that the player object is in a disconnected state.
+    plr->setDisconnected( true, DCTypes::Invalid );   //Ensure ReMix knows that the player object is in a disconnected state.
     server->deletePlayer( plr, false, timedOut );
 }
 

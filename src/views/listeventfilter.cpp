@@ -1,6 +1,6 @@
 
 //Class includes.
-#include "views/tbleventfilter.hpp"
+#include "views/listeventfilter.hpp"
 
 //Qt Includes.
 #include <QSortFilterProxyModel>
@@ -8,36 +8,36 @@
 #include <QTableView>
 #include <QListView>
 
-QHash<TblEventFilter*, QTableView*> TblEventFilter::tableMap;
+QHash<ListEventFilter*, QListView*> ListEventFilter::listMap;
 
-TblEventFilter::TblEventFilter(QTableView* tbl)
+ListEventFilter::ListEventFilter(QListView* tbl)
 {
-    tableView = tbl;
+    listView = tbl;
 }
 
-TblEventFilter::~TblEventFilter()
+ListEventFilter::~ListEventFilter()
 {
     this->deleteLater();
 }
 
-TblEventFilter* TblEventFilter::getInstance(QTableView* tbl)
+ListEventFilter* ListEventFilter::getInstance(QListView* tbl)
 {
-    TblEventFilter* instance{ tableMap.key( tbl, nullptr ) };
+    ListEventFilter* instance{ listMap.key( tbl, nullptr ) };
     if ( instance == nullptr )
     {
-        instance = new TblEventFilter( tbl );
+        instance = new ListEventFilter( tbl );
         if ( instance != nullptr )
-            tableMap.insert( instance, tbl );
+            listMap.insert( instance, tbl );
     }
     return instance;
 }
 
-void TblEventFilter::deleteInstance(QTableView* tbl)
+void ListEventFilter::deleteInstance(QListView* tbl)
 {
-    TblEventFilter* instance{ tableMap.key( tbl, nullptr ) };
+    ListEventFilter* instance{ listMap.key( tbl, nullptr ) };
     if ( instance != nullptr )
     {
-        tableMap.remove( instance );
+        listMap.remove( instance );
         instance->disconnect();
         instance->setParent( nullptr );
         instance->deleteLater();
@@ -45,12 +45,12 @@ void TblEventFilter::deleteInstance(QTableView* tbl)
     }
 }
 
-bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
+bool ListEventFilter::eventFilter(QObject* obj, QEvent* event)
 {
     if ( obj == nullptr || event == nullptr )
         return false;
 
-    if ( tableView == nullptr )
+    if ( listView == nullptr )
         return false;
 
     QMouseEvent* mouseEvent{ dynamic_cast<QMouseEvent*>( event ) };
@@ -60,14 +60,14 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
            || mouseEvent->type() == QEvent::MouseButtonDblClick )
           && mouseEvent->buttons() == Qt::LeftButton )
         {
-            QModelIndex menuIndex{ tableView->indexAt( mouseEvent->pos() ) };
+            QModelIndex menuIndex{ listView->indexAt( mouseEvent->pos() ) };
             if ( menuIndex.isValid() )
             {
                 if ( prevIndex != menuIndex )
                 {
                     if ( prevIndex.row() != menuIndex.row() )
                     {
-                        tableView->setCurrentIndex( menuIndex );
+                        listView->setCurrentIndex( menuIndex );
                         prevIndex = menuIndex;
 
                         return true;
@@ -75,8 +75,8 @@ bool TblEventFilter::eventFilter(QObject* obj, QEvent* event)
                 }
             }
             prevIndex = QModelIndex();
-            tableView->clearSelection();
-            tableView->setCurrentIndex( prevIndex );
+            listView->clearSelection();
+            listView->setCurrentIndex( prevIndex );
 
             return true;
         }

@@ -77,8 +77,7 @@ PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
     ui->playerView->horizontalHeader()->setStretchLastSection( true );
 
     //Install Event Filter to enable Row-Deslection.
-    tblEvFilter = new TblEventFilter( ui->playerView );
-    ui->playerView->viewport()->installEventFilter( tblEvFilter );
+    ui->playerView->viewport()->installEventFilter( TblEventFilter::getInstance( ui->playerView) );
 
     QObject::connect( Theme::getInstance(), &Theme::themeChangedSignal, this, &PlrListWidget::themeChangedSlot );
 }
@@ -103,7 +102,7 @@ PlrListWidget::~PlrListWidget()
 
     contextMenu->deleteLater();
 
-    tblEvFilter->deleteLater();
+    TblEventFilter::deleteInstance( ui->playerView );
     plrModel->deleteLater();
     plrProxy->deleteLater();
 
@@ -353,12 +352,6 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
     if ( menuTarget == nullptr )
         return;
 
-    static const QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
-                                 "if you believe this was in error." };
-    static const QString changed{ "Your Remote Administrator privileges have been altered by the Server Host. Please contact the Server Host "
-                                 "if you believe this was in error." };
-    static const QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
-
     static const QString titleCreateStr{ "Create Admin:" };
     static const QString titleRevokeStr{ "Change Admin:" };
     QString sernum{ menuTarget->getSernumHex_s() };
@@ -372,9 +365,7 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
         if ( Helper::confirmAction( this, titleCreateStr, prompt ) )
         {
             User::setAdminRank( sernum, User::requestRank( this ) );
-            if ( User::getHasPassword( sernum ) )
-                server->sendMasterMessage( reinstated, menuTarget, false );
-            else
+            if ( !User::getHasPassword( sernum ) )
                 menuTarget->setNewAdminPwdRequested( true );
         }
     }
@@ -388,13 +379,6 @@ void PlrListWidget::on_actionMakeAdmin_triggered()
             GMRanks rank{ User::requestRank( this ) };
 
             User::setAdminRank( sernum, rank );
-            menuTarget->resetAdminAuth();
-
-            QString msg{ changed };
-            if ( rank == GMRanks::User )
-                msg = revoke;
-
-            server->sendMasterMessage( msg, menuTarget, false );
             menuTarget->setAdminRank( rank );
         }
     }
@@ -440,23 +424,14 @@ void PlrListWidget::on_actionMuteNetwork_triggered()
         inform = inform.arg( type )
                        .arg( reason );
 
-        PunishDurations muteDuration{ PunishDurations::Invalid };
+        qint64 muteDuration{ *PunishDurations::Invalid };
         if ( mute )
         {
-            muteDuration = User::requestDuration();
-            User::addMute( menuTarget, reason, false, muteDuration );
+            muteDuration = *User::requestDuration();
+            User::addMute( menuTarget, inform, false, static_cast<PunishDurations>( muteDuration ) );
         }
         else
-            User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
-
-        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                logMsg = logMsg.arg( reason )
-                               .arg( Helper::serNumToIntStr( sernum, true ) )
-                               .arg( menuTarget->getBioData() );
-
-        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
-
-        server->sendMasterMessage( inform, menuTarget, false );
+            menuTarget->setMuteDuration( 0 );
     }
 
     menuTarget = nullptr;
@@ -515,12 +490,6 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         inform = inform.arg( reason );
 
         User::addBan( menuTarget, reason, User::requestDuration() );
-        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
-                logMsg = logMsg.arg( reason )
-                               .arg( Helper::serNumToIntStr( sernum, true ) )
-                               .arg( menuTarget->getBioData() );
-
-        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
 
         server->sendMasterMessage( inform, menuTarget, false );
         if ( menuTarget->waitForBytesWritten() )
@@ -550,7 +519,7 @@ void PlrListWidget::forwardMessageSlot(const QString& message)
             if ( sendToAll )
                 menuTarget = nullptr;
 
-            emit this->insertMasterMessageSignal( message, menuTarget, sendToAll );
+            emit this->insertMasterMessageSignal( message, menuTarget, sendToAll, false );
         }
     }
     menuTarget = nullptr;

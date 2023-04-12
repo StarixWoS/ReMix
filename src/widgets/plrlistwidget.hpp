@@ -21,7 +21,6 @@ class PlrListWidget : public QWidget
 
     QSortFilterProxyModel* plrProxy{ nullptr };
     QStandardItemModel* plrModel{ nullptr };
-    TblEventFilter* tblEvFilter{ nullptr };
 
     QModelIndex prevIndex;
 
@@ -84,7 +83,8 @@ class PlrListWidget : public QWidget
 
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
-        void insertMasterMessageSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll);
+        void insertMasterMessageSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll, const bool& fromChatView);
+        void mutedSerNumDurationSignal(const QString& sernum, const quint64& duration, const QString& reason);
 
     private:
         Ui::PlrListWidget* ui;

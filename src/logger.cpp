@@ -4,6 +4,7 @@
 #include "ui_logger.h"
 
 //ReMix includes.
+#include "views/listeventfilter.hpp"
 #include "thread/writethread.hpp"
 #include "settings.hpp"
 #include "helper.hpp"
@@ -85,6 +86,9 @@ Logger::Logger(QWidget *parent) :
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
         this->restoreGeometry( Settings::getSetting( SKeys::Positions, "Logger" ).toByteArray() );
 
+    //Install Event Filter to enable Row-Deslection.
+    ui->logView->viewport()->installEventFilter( ListEventFilter::getInstance( ui->logView ) );
+
     logThread->start();
 }
 
@@ -121,6 +125,8 @@ Logger::~Logger()
             model = nullptr;
         }
     }
+
+    ListEventFilter::getInstance( ui->logView )->deleteInstance( ui->logView );
 
     this->deleteLater();
 

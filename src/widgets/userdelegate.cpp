@@ -122,7 +122,7 @@ void UserDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
 QWidget* UserDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
     QComboBox* editor{ new QComboBox( parent ) };
-          editor->setFocusPolicy( Qt::StrongFocus );
+               editor->setFocusPolicy( Qt::StrongFocus );
 
     if ( index.column() == *UserCols::Rank )
     {

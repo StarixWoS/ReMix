@@ -285,7 +285,7 @@ QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, con
     {
         static const QString title{ "Unable to Initialize Server:" };
         QString message{ "You have reached the limit of [ %1 ] concurrently running Server Instances.!" };
-        message = message.arg( *Globals::MAX_SERVER_COUNT );
+                message = message.arg( *Globals::MAX_SERVER_COUNT );
 
         Helper::warningMessage( this, title, message );
     }
@@ -362,50 +362,30 @@ void CreateInstance::showEvent(QShowEvent* event)
 
 void CreateInstance::on_servers_currentIndexChanged(int)
 {
-    QString svrName{ ui->servers->currentText() };
-    if ( !svrName.isEmpty() )
+    const QString serverName{ ui->servers->currentText() };
+
+    //If the serverName is empty, reset the UI, and return early.
+    if ( serverName.isEmpty() )
     {
-        QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, svrName ).toString() };
-        if ( !gameName.isEmpty() )
-        {
-            Games game{ *gameNames.key( gameName, Games::Invalid ) };
-            if ( game == Games::Invalid )
-                ui->gameName->setCurrentIndex( 0 );
-            else
-                ui->gameName->setCurrentIndex( *game );
-        }
-    }
-    else
         ui->gameName->setCurrentIndex( 0 );
-
-
-    QString netInterface{ Settings::getSetting( SKeys::Setting, SSubKeys::NetInterface, svrName ).toString() };
-    if ( !netInterface.isEmpty() )
-    {
-        qint32 netIndex{ ui->netInterface->findText( netInterface ) };
-        if ( netIndex >= 0 )
-            ui->netInterface->setCurrentIndex( netIndex );
-    }
-    else
         ui->netInterface->setCurrentIndex( 0 );
-
-    QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, svrName ).toString() };
-    if ( !svrPort.isEmpty() )
-        ui->portNumber->setText( svrPort );
-    else
         ui->portNumber->setText( Helper::intToStr( this->genPort() ) );
-
-    bool isPublic{ Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, svrName ).toBool() };
-    if ( isPublic )
-        ui->isPublic->setChecked( isPublic );
-    else
         ui->isPublic->setChecked( false );
-
-    bool useUPNP{ Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, svrName ).toBool() };
-    if ( useUPNP )
-        ui->useUPNP->setChecked( useUPNP );
-    else
         ui->useUPNP->setChecked( false );
+        return;
+    }
+
+    const QString netInterface{ Settings::getSetting( SKeys::Setting, SSubKeys::NetInterface, serverName ).toString() };
+    const QString svrPort{ Settings::getSetting( SKeys::Setting, SSubKeys::PortNumber, serverName ).toString() };
+    const QString gameName{ Settings::getSetting( SKeys::Setting, SSubKeys::GameName, serverName ).toString() };
+    const qint32 netIndex{ ui->netInterface->findText( netInterface ) };
+    const Games game{ *gameNames.key( gameName, Games::Invalid ) };
+
+    ui->isPublic->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::IsPublic, serverName ).toBool() );
+    ui->useUPNP->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::UseUPNP, serverName ).toBool() );
+    ui->portNumber->setText( svrPort.isEmpty() ? Helper::intToStr( this->genPort() ) : svrPort );
+    ui->gameName->setCurrentIndex( game == Games::Invalid ? 0 : *game );
+    ui->netInterface->setCurrentIndex( netIndex >= 0 ? netIndex : 0 );
 }
 
 void CreateInstance::on_portNumber_textChanged(const QString& arg1)

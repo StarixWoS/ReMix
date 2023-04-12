@@ -122,7 +122,7 @@ Server::~Server()
     upTimer.disconnect();
     upnpPortRefresh.disconnect();
 
-    QString msg{ "Server [ Server( 0x%1 ) ] deconstructed." };
+    QString msg{ "Server( 0x%1 ) deconstructed." };
             msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::QuadWord ) );
 
     emit this->insertLogSignal( this->getServerName(), msg, LKeys::MiscLog, true, true );
@@ -421,19 +421,19 @@ void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const boo
     plrSlotMap.remove( plr->getPktHeaderSlot() );
     players.removeOne( plr );
 
+    if ( !all )
+    {
+        qint32 count{ this->getPlayerCount() };
+        if ( !plr->getIsVisible() ) //Re-add the invisible admin to the player count before removing them.
+            count++;
+
+        //Ensure the Player Count is not negative.
+        this->setPlayerCount( qMax( count - 1, static_cast<qint32>( 0 ) ) );
+    }
+
     plr->clearThisPlayer();
     plr.clear();
 
-    if ( !all )
-    {
-        quint32 count{ this->getPlayerCount() };
-        if ( count > 0 )
-            count -= 1;
-        else
-            count = 0;
-
-        this->setPlayerCount( count );
-    }
     emit this->insertLogSignal( this->getServerName(), logMsg, LKeys::ClientLog, true, true );
 }
 
@@ -791,12 +791,12 @@ void Server::setMaxPlayerCount(const qint32& value)
     maxPlayerCount = value;
 }
 
-quint32 Server::getPlayerCount() const
+qint32 Server::getPlayerCount() const
 {
     return playerCount;
 }
 
-void Server::setPlayerCount(const quint32& value)
+void Server::setPlayerCount(const qint32& value)
 {
     if ( value == 0 )
     {
@@ -1313,23 +1313,27 @@ void Server::ipDCIncreaseSlot(const DCTypes& type)
                 this->setPktDc( this->getPktDc() + 1 );
             }
         break;
+        case DCTypes::Invalid:
+        default:
+        break;
     }
 }
 
 void Server::setVisibleStateSlot(const bool& state)
 {
-    quint32 count{ this->getPlayerCount() };
+    qint32 count{ this->getPlayerCount() };
     if ( count > 0 )
     {
         if ( state )
-            count += 1 ;
+            count++;
         else
-            count -= 1;
+            count--;
     }
     else
         count = 0;
 
-    this->setPlayerCount( count );
+    //Ensure Player Count cannot be negative.
+    this->setPlayerCount( qMax( count, static_cast<qint32>( 0 ) ) );
 }
 
 void Server::recvMasterInfoSlot()
@@ -1382,10 +1386,10 @@ void Server::updateUsageTimeOutSlot()
     usageHours = 0;
     usageMins = 0;
 
-    for ( uint i = 0; i < *Globals::SERVER_USAGE_48_HOURS; ++i )
+    for ( qint32 i = 0; i < *Globals::SERVER_USAGE_48_HOURS; ++i )
     {
-        const quint32 code{ usageArray[ ( i + usageCounter ) % *Globals::SERVER_USAGE_48_HOURS ] };
-        const quint32 usageCap{ ( *Globals::SERVER_USAGE_48_HOURS - 1 ) - i };
+        const qint32 code{ usageArray[ ( i + usageCounter ) % *Globals::SERVER_USAGE_48_HOURS ] };
+        const qint32 usageCap{ ( *Globals::SERVER_USAGE_48_HOURS - 1 ) - i };
         if ( usageCap < *Globals::SERVER_USAGE_DAYS )
         {
             usageDays += code;

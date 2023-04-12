@@ -148,10 +148,18 @@ ChatView::ChatView(QSharedPointer<Server> svr, QWidget* parent) :
 
     ui->autoScrollCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatAutoScroll, server->getServerName() ).toBool() );
     ui->timeStampCheckBox->setChecked( Settings::getSetting( SKeys::Setting, SSubKeys::ChatTimeStamp, server->getServerName() ).toBool() );
+
+    if ( !Settings::getSetting( SKeys::Setting, SSubKeys::PlayerEmulation ).toBool() )
+        ui->serverMsgCheckBox->hide();
 }
 
 ChatView::~ChatView()
 {
+    QString msg{ "ChatView( 0x%1 ) deconstructed." };
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::QuadWord ) );
+
+    emit this->insertLogSignal( server->getServerName(), msg, LKeys::MiscLog, true, true );
+
     server = nullptr;
     this->disconnect();
     delete ui;
@@ -179,7 +187,6 @@ void ChatView::deleteInstance(QSharedPointer<Server> server)
     ChatView* instance{ chatViewInstanceMap.take( server ) };
     if ( instance != nullptr )
     {
-        instance->disconnect();
         instance->setParent( nullptr );
         instance->deleteLater();
     }
@@ -578,11 +585,12 @@ void ChatView::colorOverrideSlot(const QString& oldColor, const QString& newColo
     this->scrollToBottom( true );
 }
 
-void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll)
+void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Player> target, const bool& toAll, const bool& fromChatView)
 {
     static const QString ownerStr{ "Owner: " };
     static const QString ownerToStr{ "Owner to User < " };
 
+    bool emulatePlayer{ Settings::getSetting( SKeys::Setting, SSubKeys::PlayerEmulation ).toBool() };
     bool redMessage{ ui->serverMsgCheckBox->isChecked() };
     QString msg{ message };
 
@@ -600,8 +608,12 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
     else
     {
         this->insertChat( ownerStr, Colors::OwnerName, false );
-        if ( redMessage )
-            msg.prepend( ownerStr );
+        if ( redMessage
+          || !fromChatView
+          || !emulatePlayer )
+        {
+            msg = ownerStr % message;
+        }
     }
 
     this->insertChat( message, Colors::OwnerTxt, false );
@@ -609,20 +621,32 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
     if ( !msg.isEmpty() )
         emit this->insertLogSignal( server->getServerName(), msg, LKeys::ChatLog, true, true );
 
-    QString packet{ ":;oCFFFFFB2EDLFFFFFFB2E00000000" % msg };
-    if ( toAll == true
-      && redMessage == false )
+    if ( emulatePlayer
+      && fromChatView )
     {
-        packet = ( ":;oCFFFFFB2EDAEFFFFFB2E00000000" % msg );
+        QString packet{ ":;oCFFFFFB2EDLFFFFFFB2E00000000" % msg };
+        if ( toAll == true
+          && redMessage == false )
+        {
+            packet = ( ":;oCFFFFFB2EDAEFFFFFB2E00000000" % msg );
+        }
+        emit this->sendChatSignal( PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() ), target, toAll );
     }
+    else
+        server->sendMasterMessage( msg, target, toAll );
+}
 
-    QString forgedPacket = PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() );
-    emit this->sendChatSignal( forgedPacket, target, toAll );
+void ChatView::emulatePlayerToggledSlot(const bool& state)
+{
+    if ( !state )
+        ui->serverMsgCheckBox->hide();
+    else
+        ui->serverMsgCheckBox->show();
 }
 
 void ChatView::on_chatInput_returnPressed()
 {
-    this->insertMasterMessageSlot( ui->chatInput->text(), nullptr, true );
+    this->insertMasterMessageSlot( ui->chatInput->text(), nullptr, true, true );
     ui->chatInput->clear();
 }
 

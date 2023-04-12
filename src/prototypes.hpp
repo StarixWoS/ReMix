@@ -82,6 +82,7 @@
     //Table-View Classes.
     class UserSortProxyModel;
     class PlrSortProxyModel;
+    class ListEventFilter;
     class TblEventFilter;
 
     //Widget GUI Classes.
@@ -131,12 +132,12 @@
 
         enum class Globals: int
         {
-            //Anything above PACKET_FLOOD_LIMIT (1024 packets)
+            //Anything above PACKET_FLOOD_LIMIT (512 packets)
             //will disconnect the User.
             PACKET_FLOOD_TIME = 1000,
 
-            //Users are able to send 1024 packets within PACKET_FLOOD_TIME.
-            PACKET_FLOOD_LIMIT = 1024,
+            //Users are able to send 512 packets within PACKET_FLOOD_TIME.
+            PACKET_FLOOD_LIMIT = 512,
 
             //Minimum hex-SERNUM allowed. This is used to validate a hex-SERNUM.
             //Via: sernum & MIN_HEX_SERNUM
@@ -244,6 +245,10 @@
             //Time before the server sends the keep alive packet for ReMix's designated sernum.
             //30 Seconds in milliseconds.
             MASTER_SERNUM_KEEPALIVE = 30000,
+
+            //The gave period for an Admin's Visible state to remain valid before they must log in.
+            //5 minues in milliseconds.
+            PLAYER_VISIBLE_LOAD_TIMEOUT = 300000,
         };
 
         //Valid Password types.
@@ -279,7 +284,7 @@
         enum class PunishTypes: int{ Mute = 0, Ban, SerNum, IP, DV, WV = 5 };
 
         //Valid forms of diconnecting Users.
-        enum class DCTypes: int{ IPDC = 0, DupDC, PktDC = 2 };
+        enum class DCTypes: int{ IPDC = 0, DupDC, PktDC, Invalid = 3 };
 
         //Valid Theme ID's.
         enum class Themes: int{ Light = 0, Dark = 1 };
@@ -338,7 +343,8 @@
         //Valid Key values for use within the User Class.
         enum class UKeys: int{ Seen = 0, Bio, IP, DV, WV, Rank, Hash, Salt,
                                Muted, MuteDuration, MuteReason,
-                               Banned, BanDuration, BanReason, Pings, Calls = 15 };
+                               Banned, BanDuration, BanReason,
+                               Pings, Calls, InVisible = 16 };
 
         //Valid Key values for use within the Rules and Settings Classes.
         enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors = 5 };
@@ -349,11 +355,13 @@
                                   LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP, LoggerAutoClear,
                                   OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface, ServerButtonState,
                                   ServerPlayerChatSize, HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion,
-                                  PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount };
+                                  PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount,
+                                  PlayerEmulation };
 
         //Valid Toggles for the Settings Widget.
-        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, AllowSSV, LogComments, FwdComments, EchoComments,
-                                  InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir, OverrideMasterHost, OverrideMaster = 16 };
+        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, PlayerEmulation, AllowSSV, LogComments,
+                                  FwdComments, EchoComments, InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir,
+                                  OverrideMasterHost, OverrideMaster = 17 };
 
         //Valid Toggles for the Rules Widget.
         enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep,
@@ -388,7 +396,7 @@
                                   Unk2 = 4, Unk3 = 5, PetCmd = 6, SceneMsg = 10, DeathMsg = 11 };
 
         //Valid SSV Modes. Read/Write.
-        enum class SSVModes: int{ Read = 0, Write = 1, Invalid = -1,  };
+        enum class SSVMode: int{ Read = 0, Write = 1, Invalid = -1,  };
 
         //Valid Player Disconnect Types.
         enum class PlrDisconnectType: int{ SerNumChanged = 0, InvalidSerNum, BlueCodeSerNum, SerNumOne, Invalid = -1 };
@@ -399,13 +407,16 @@
         //Valid WoS Packets that ReMix will read information from, modify, or emulate.
         enum class WoSPacketTypes: char{ Incarnation = '3', ServerLeave = '5', Chat = 'C', PKAttack = 'k', PartyState = 'p', PlayerCamp = 'F',
                                          PlayerUnCamp = 'f', PlayerStatus = 's', SkinTransfer = 'x', PetCall = 'K', CharacterInfo = 'H', CampJoin = 'J',
-                                         BioRequest = 'b', BioResponse = 'B', GuildInfo = 'U', InfoRequest = '4' };
+                                         BioRequest = 'b', BioResponse = 'B', GuildInfo = 'U', InfoRequest = '4', HeartBeat = '0' };
 
         //Valid forms of a Skin Transfer Packet.
         enum class IncarnationType: int{ Incarnation = 1, GhostIncarnation = 2, DisIncarnation = 4 };
 
         //Valid forms of a Skin Transfer Packet.
         enum class SkinTransferType: int{ RequestModeOne = 1, RequestModeTwo = 6, Offer = 2, DataRequest = 3, DataTransfer = 4, ThanksForSkin = 5 };
+
+        //Valid Tab Indexes for the Settings Tab View.
+        enum class SettingsTabIndexes: int{ Settings = 0, Rules, Colors, MoTD };
 
         template <typename T>
         static constexpr auto operator*(T e) noexcept

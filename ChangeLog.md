@@ -4,6 +4,36 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.1.0:
+    Change:
+      * Properly inform Users when a Mute punishment is applied or removed.
+        * This also applies to loading punishments from storage when the User connects.
+      * Messages sent to Users will utilize the ":SR@M" packet for the "SERVER MESSAGE" output.
+      * Rows within the Log View can now be de-selected by clicking a previously selected row.
+      * ReMix no longer considers a user leaving as an IP Disconnect which is considered an administrative action.
+      * ReMix will now "rename" characters that attempt to impersonate the "Owner" character.
+        * The name is not permanent, and only modifies the name packet sent to other Users.
+        * The name is changed to "Owner Impersonator".
+        * This will not happen if the "Owner Character Emulation" setting is disabled.
+      * Usage of the "Owner" character emulation is now an opt-in setting via the Settings UI.
+        * If this setting is disabled, the "Server Message" toggle within the "Chat View" UI is removed.
+      * Admins that disconnect while in the "Vanished State" will now have that state saved to file.
+        * Upon reconnecting, the "Vanish State" will be restored from file and the Admin will have a 5 minute grace period to authenticate with the server before becoming visible.
+
+
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where server admins in an invisible state would cause ReMix to send an incorrect online User count in response to a ping.
+      * Fixed an issue where ReMix would log and inform a User of an Un-Mute twice when manually un-muting the User from the User Information UI.
+      * Fixed an issue where manually Muting a user from the User Information UI would not generage a log-event within the Punishment log.
+
+
+
+
+
 Version 3.0.9:
     Change:
       * 

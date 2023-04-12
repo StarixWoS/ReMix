@@ -43,6 +43,12 @@ CmdHandler::CmdHandler(QSharedPointer<Server> svr, QObject* parent)
 
 CmdHandler::~CmdHandler()
 {
+    QString msg{ "CmdHandler( 0x%1 ) deconstructed." };
+            msg = msg.arg( Helper::intToStr( reinterpret_cast<quintptr>( this ), IntBase::HEX, IntFills::QuadWord ) );
+
+    emit this->insertLogSignal( server->getServerName(), msg, LKeys::MiscLog, true, true );
+
+    this->disconnect();
     server = nullptr;
 }
 
@@ -62,11 +68,7 @@ void CmdHandler::deleteInstance(QSharedPointer<Server> server)
 {
     CmdHandler* instance{ cmdInstanceMap.take( server ) };
     if ( instance != nullptr )
-    {
-        instance->disconnect();
-        instance->setParent( nullptr );
         instance->deleteLater();
-    }
 }
 
 bool CmdHandler::canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks rank, const QString& cmdStr)
@@ -128,7 +130,6 @@ bool CmdHandler::canUseAdminCommands(QSharedPointer<Player> admin, const GMRanks
             reason.append( append );
 
             User::addBan( admin, reason, PunishDurations::THIRTY_DAYS );
-            emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
             admin->setDisconnected( true, DCTypes::IPDC );
         }
@@ -737,14 +738,7 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
             server->sendMasterMessage( reasonMsg, tmpPlr, false );
 
         msg = msg.prepend( "Remote-Banish; " );
-        User::addBan( admin, tmpPlr, msg, true,
-                      static_cast<PunishDurations>( banDuration ) );
-
-        msg = msg.append( ": [ %1 ], [ %2 ]" )
-                 .arg( admin->getSernum_s() )
-                 .arg( admin->getBioData() );
-
-        emit this->insertLogSignal( server->getServerName(), msg, LKeys::PunishmentLog, true, true );
+        User::addBan( admin, tmpPlr, msg, true, static_cast<PunishDurations>( banDuration ) );
 
         tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
@@ -853,12 +847,6 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
         msg = msg.prepend( "Remote-Mute by admin [ %1 ]; " )
                  .arg( admin->getSernum_s() );
         User::addMute( admin, tmpPlr, msg, true, false, static_cast<PunishDurations>( muteDuration ) );
-
-        msg = msg.append( ": [ %1 ], with BIO [ %2 ]" )
-                 .arg( tmpPlr->getSernum_s() )
-                 .arg( tmpPlr->getBioData() );
-
-        emit this->insertLogSignal( server->getServerName(), msg, LKeys::PunishmentLog, true, true );
     }
 }
 

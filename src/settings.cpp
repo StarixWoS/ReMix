@@ -73,6 +73,7 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     { SSubKeys::NetInterface,           "netInterface"        },
     { SSubKeys::ServerButtonState,      "serverButtonState"   },
     { SSubKeys::ServerPlayerChatSize,   "serverPlayerChatSize"},
+    { SSubKeys::PlayerEmulation,        "usePlayerEmulation"  },
 
     //Rules.
     { SSubKeys::StrictRules,            "enforceRules"   },
@@ -152,6 +153,7 @@ QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
     SSubKeys::StrictRules,
     SSubKeys::MinVersion,
     SSubKeys::MaxPlayers,
+    SSubKeys::WorldName,
     SSubKeys::NoMigrate,
     SSubKeys::NoModding,
     SSubKeys::PKLadder,
@@ -161,7 +163,6 @@ QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
     SSubKeys::SvrUrl,
     SSubKeys::NoPets,
     SSubKeys::MaxIdle,
-    SSubKeys::WorldName,
     SSubKeys::AllPK,
     SSubKeys::NoPK,
 };
@@ -185,7 +186,7 @@ Settings::Settings(QWidget* parent) :
     tabWidget = new QTabWidget( this );
     if ( tabWidget != nullptr )
     {
-        tabWidget->insertTab( 0, SettingsWidget::getInstance( this ), "Settings" );
+        tabWidget->insertTab( *SettingsTabIndexes::Settings, SettingsWidget::getInstance( this ), "Settings" );
 
         ui->widget->setLayout( new QGridLayout( ui->widget ) );
         ui->widget->layout()->setContentsMargins( 5, 5, 5, 5 );
@@ -233,38 +234,36 @@ void Settings::updateTabBar(QSharedPointer<Server> server)
     tabWidget->clear();
 
     getInstance()->setWindowTitle( "[ " % server->getServerName() % " ] Settings:");
-    tabWidget->insertTab( 0, SettingsWidget::getInstance(), "Settings" );
-    tabWidget->insertTab( 1, RulesWidget::getInstance( server ), "Rules" );
-    tabWidget->insertTab( 2, ColorWidget::getInstance(), "Colors" );
-    tabWidget->insertTab( 3, MOTDWidget::getInstance( server ), "MotD" );
+    tabWidget->insertTab( *SettingsTabIndexes::Settings, SettingsWidget::getInstance(), "Settings" );
+    tabWidget->insertTab( *SettingsTabIndexes::Rules, RulesWidget::getInstance( server ), "Rules" );
+    tabWidget->insertTab( *SettingsTabIndexes::Colors, ColorWidget::getInstance(), "Colors" );
+    tabWidget->insertTab( *SettingsTabIndexes::MoTD, MOTDWidget::getInstance( server ), "MotD" );
 
     tabWidget->setCurrentIndex( index );
 }
 
 void Settings::copyServerSettings(QSharedPointer<Server> server, const QString& newName)
 {
-    QString oldName{ server->getServerName() };
-    if ( oldName != newName )
+    QString oldName = server->getServerName();
+    if ( oldName == newName )
+        return;
+
+    prefs->sync();
+
+    //Copy Server Rules.
+    for ( const auto& key : serverRules )
     {
-        prefs->sync();
-
-        //Copy Server Rules.
-        for ( const SSubKeys& key : serverRules )
-        {
-            QVariant val = getSetting( SKeys::Rules, key, oldName );
-            setSetting( val, SKeys::Rules, key, newName );
-        }
-
-        //Copy Server Settings.
-        for ( const SSubKeys& key : serverSettings )
-        {
-            QVariant val = getSetting( SKeys::Setting, key, oldName );
-            setSetting( val, SKeys::Setting, key, newName );
-        }
-
-        prefs->remove( oldName );
-        prefs->sync();
+        setSetting( getSetting( SKeys::Rules, key, oldName ), SKeys::Rules, key, newName );
     }
+
+    //Copy Server Settings.
+    for ( const auto& key : serverSettings )
+    {
+        setSetting( getSetting( SKeys::Setting, key, oldName ), SKeys::Setting, key, newName );
+    }
+
+    prefs->remove( oldName );
+    prefs->sync();
 }
 
 //Static-Free Functions.

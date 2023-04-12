@@ -37,8 +37,8 @@ class Server : public QTcpServer
     QString publicIP{ "" };
     quint16 publicPort{ 8888 };
 
-    quint32 usageArray[ *Globals::SERVER_USAGE_48_HOURS ]{ 0 };
-    quint32 usageCounter{ 0 };
+    qint32 usageArray[ *Globals::SERVER_USAGE_48_HOURS ]{ 0 };
+    qint32 usageCounter{ 0 };
 
     QTimer usageUpdate;
     qint32 usageHours{ 0 };
@@ -46,7 +46,7 @@ class Server : public QTcpServer
     qint32 usageMins{ 0 };
 
     qint32 maxPlayerCount{ *Globals::MAX_PLAYERS };
-    quint32 playerCount{ 0 };
+    qint32 playerCount{ 0 };
     QString serverID{ "" };
 
     bool isPublic{ false };
@@ -171,8 +171,8 @@ class Server : public QTcpServer
         QString getServerID() const;
         void setServerID(const QString& value);
 
-        quint32 getPlayerCount() const;
-        void setPlayerCount(const quint32& value);
+        qint32 getPlayerCount() const;
+        void setPlayerCount(const qint32& value);
 
         quint16 getPublicPort() const;
         void setPublicPort(const quint16& value);

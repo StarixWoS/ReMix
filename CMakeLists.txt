@@ -7,7 +7,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.0.9 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.1.0 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -32,6 +32,7 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/widgets/remixtabwidget.cpp
         src/thread/mastermixthread.cpp
         src/widgets/plrlistwidget.cpp
+        src/views/listeventfilter.cpp
         src/views/tbleventfilter.cpp
         src/widgets/userdelegate.cpp
         src/widgets/remixwidget.cpp
@@ -73,6 +74,7 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/widgets/remixtabwidget.hpp
         src/thread/mastermixthread.hpp
         src/widgets/plrlistwidget.hpp
+        src/views/listeventfilter.hpp
         src/views/tbleventfilter.hpp
         src/widgets/userdelegate.hpp
         src/widgets/remixwidget.hpp

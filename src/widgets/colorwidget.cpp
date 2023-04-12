@@ -11,8 +11,8 @@
 
 //Qt Includes.
 #include <QStandardItemModel>
-#include <QTableView>
 #include <QColorDialog>
+#include <QTableView>
 
 ColorWidget* ColorWidget::instance;
 const QStringList ColorWidget::rowList

@@ -42,11 +42,13 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     this->setIsAFK( false );
 
     //Connect Timers to Slots.
+    QObject::connect( &vanishStateTimer, QTimer::timeout, this, &Player::vanishStateTimerTimeOutSlot );
     QObject::connect( &serNumKillTimer, &QTimer::timeout, this, &Player::serNumKillTimerTimeOutSlot );
     QObject::connect( &afkTimer, &QTimer::timeout, this, &Player::afkTimerTimeOutSlot );
     QObject::connect( &killTimer, &QTimer::timeout, this, &Player::killTimerTimeOutSlot );
 
     //Start Timers.
+    vanishStateTimer.setInterval( *Globals::PLAYER_VISIBLE_LOAD_TIMEOUT );
     serNumKillTimer.start( *Globals::MAX_SERNUM_TTL );
     afkTimer.start( *Globals::MAX_AFK_TIME );
     floodTimer.start();
@@ -58,6 +60,10 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
 
 Player::~Player()
 {
+    //Ensure that the Server's playercount remains valid.
+    if ( !this->getIsVisible() )
+        emit this->setVisibleStateSignal( true );
+
     killTimer.stop();
     killTimer.disconnect();
 
@@ -128,6 +134,7 @@ void Player::setIsVisible(const bool& value)
 {
     isVisible = value;
 
+    User::setIsInVisible( this->getSernumHex_s(), !value );
     emit this->setVisibleStateSignal( isVisible );
 }
 
@@ -189,14 +196,24 @@ void Player::setSernum_i(const qint32& value)
         if ( muteDuration >= 1 )
         {
             this->setMuteDuration( muteDuration );
-            QString message{ "Automatic-Mute; Mute restored from file. You are muted until [ %1 ] server time." };
-                    message = message.arg( Helper::getTimeAsString( muteDuration ) );
+            QString muteMsg{ "Automatic-Mute; Mute restored from file. You are muted until [ %1 ] server time." };
+                    muteMsg = muteMsg.arg( Helper::getTimeAsString( muteDuration ) );
 
-            server->sendMasterMessage( message, this->getThisPlayer(), false );
+            server->sendMasterMessage( muteMsg, this->getThisPlayer(), false );
         }
 
+        if ( User::getIsInVisible( sernumHex_s ) )
+        {
+            this->setIsVisible( false );
+            vanishStateTimer.start( *Globals::PLAYER_VISIBLE_LOAD_TIMEOUT );
+
+            static const QString muteMsg{ "Vanish State restored from file. You are currently invisible to other Players. "
+                                          "You must Authenticate within < 5 > minutes to remain invisible!" };
+            server->sendMasterMessage( muteMsg, this->getThisPlayer(), false );
+        }
         server->sendPlayerSocketInfo();
     }
+
     this->setHasSerNum(( sernum_i != 0 ));
 }
 
@@ -276,7 +293,7 @@ void Player::setPlrName(const QString& value)
     plrName = value;
 }
 
-QByteArray Player::getCampPacket() const
+QByteArray& Player::getCampPacket()
 {
     return campPacket;
 }
@@ -294,6 +311,8 @@ void Player::forceSendCampPacket()
         PacketHandler* pktHandle{ PacketHandler::getInstance( svr ) };
         if ( pktHandle != nullptr )
             emit this->parsePacketSignal( this->getCampPacket(), this->getThisPlayer() );
+
+        pktHandle = nullptr;
     }
     svr = nullptr;
 }
@@ -463,6 +482,12 @@ bool Player::getAdminPwdReceived() const
 
 void Player::setAdminPwdReceived(const bool& value)
 {
+    if ( value
+      && vanishStateTimer.isActive() )
+    {
+        vanishStateTimer.stop();
+    }
+
     adminPwdReceived = value;
 }
 
@@ -598,7 +623,12 @@ quint64 Player::getMuteDuration()
 
 void Player::setMuteDuration(const quint64& value)
 {
+    if ( muteDuration == value ) //Duration unchanged.
+        return;
+
     muteDuration = value;
+    if ( value == 0 )
+        User::removePunishment( this->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
 }
 
 qint64 Player::getPlrConnectedTime() const
@@ -637,7 +667,6 @@ bool Player::getIsMuted()
     if ( this->getMuteDuration() <= date
       && this->getMuteDuration() >= 1 )
     {
-        User::removePunishment( this->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
         this->setMuteDuration( 0 );
     }
     return this->getMuteDuration() >= date;
@@ -926,6 +955,16 @@ bool Player::getIsGoldenSerNum()
 }
 
 //Slots
+void Player::vanishStateTimerTimeOutSlot()
+{
+    const QString message{ "The grace period of < 5 > minutes for your Vanish state has expired. You are now visible to other Players!" };
+    if ( !this->getIsVisible() )
+    {
+        this->setIsVisible( true );
+        server->sendMasterMessage( message, this->getThisPlayer(), false );
+    }
+}
+
 void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
                                     const qint32& trgScene, const QByteArray& packet)
 {
@@ -1119,16 +1158,43 @@ void Player::connectionTimeUpdateSlot()
 void Player::setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank)
 {
     if ( Helper::cmpStrings( hexSerNum, this->getSernumHex_s() ) )
+    {
+        static const QString revoke{ "Your Remote Administrator privileges have been revoked by the Server Host. Please contact the Server Host "
+                                    "if you believe this was in error." };
+        static const QString changed{ "Your Remote Administrator privileges have been altered by the Server Host. Please contact the Server Host "
+                                     "if you believe this was in error." };
+        static const QString reinstated{ "Your Remote Administrator privelages have been partially reinstated by the Server Host." };
+
+        GMRanks currentRank{ this->getAdminRank() };
+        if ( rank != currentRank )
+        {
+            QString msg{ changed };
+            if ( currentRank == GMRanks::User )
+            {
+                msg = reinstated;
+            }
+            else
+            {
+                if ( rank == GMRanks::User )
+                    msg = revoke;
+            }
+            server->sendMasterMessage( msg, this->getThisPlayer(), false );
+        }
         this->setAdminRank( rank );
+    }
 }
 
 //Private Slots.
-void Player::mutedSerNumDurationSlot(const QString& sernum, const quint64& duration)
+void Player::mutedSerNumDurationSlot(const QString& sernum, const quint64& duration, const QString& reason)
 {
-    if ( !sernum.isEmpty() || duration > 0 )
+    if ( !sernum.isEmpty() )
     {
         if ( Helper::cmpStrings( sernum, this->getSernumHex_s() ) )
+        {
             this->setMuteDuration( duration );
+            if ( !reason.isEmpty() )
+                server->sendMasterMessage( reason, this->getThisPlayer(), false );
+        }
     }
 }
 

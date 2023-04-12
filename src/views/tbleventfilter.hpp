@@ -6,10 +6,13 @@
 
 #include <QModelIndex>
 #include <QObject>
+#include <QHash>
 
 class TblEventFilter : public QObject
 {
     Q_OBJECT
+
+    static QHash<TblEventFilter*, QTableView*> tableMap;
 
     QTableView* tableView{ nullptr };
     QModelIndex prevIndex;
@@ -18,7 +21,8 @@ class TblEventFilter : public QObject
         explicit TblEventFilter(QTableView* tbl = nullptr);
         ~TblEventFilter() override;
 
-    signals:
+    static TblEventFilter* getInstance(QTableView* tbl);
+    static void deleteInstance(QTableView* tbl);
 
     public slots:
         bool eventFilter(QObject* obj, QEvent* event) override;

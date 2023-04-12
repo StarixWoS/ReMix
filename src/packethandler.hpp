@@ -30,7 +30,7 @@ class PacketHandler : public QObject
         void startMasterCheckIn();
         void stopMasterCheckIn();
 
-        bool parseTCPPacket(const QByteArray& packet, QSharedPointer<Player> plr);
+        bool parseTCPPacket(QByteArray& packet, QSharedPointer<Player> plr);
 
         bool checkBannedInfo(QSharedPointer<Player> plr) const;
         bool getIsBanned(const QString& serNum, const QString& ipAddr) const;
@@ -47,9 +47,7 @@ class PacketHandler : public QObject
         void readMIX5(const QString& packet, QSharedPointer<Player> plr);
         //void readMIX6(const QString& packet, QSharedPointer<Player> plr);
         void readMIX7(const QString& packet, QSharedPointer<Player> plr);
-        void readMIX8(const QString& packet, QSharedPointer<Player> plr);
-        void readMIX9(const QString& packet, QSharedPointer<Player> plr);
-        void handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVModes mode);
+        void handleSSVReadWrite(const QString& packet, QSharedPointer<Player> plr, const SSVMode mode);
 
     public slots:
         void parsePacketSlot(const QByteArray& packet, QSharedPointer<Player> plr);

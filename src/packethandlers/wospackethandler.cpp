@@ -44,7 +44,7 @@ void WoSPacketHandler::deleteInstance(QSharedPointer<Server> server)
     }
 }
 
-bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* chatView, const QByteArray& packet, QSharedPointer<Player> plr)
+bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* chatView, QByteArray& packet, QSharedPointer<Player> plr)
 {
     if ( server == nullptr )
         return false;
@@ -68,6 +68,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
         serNumColor = Colors::GoldenSoul;
 
     QString pkt{ PacketForge::getInstance()->decryptPacket( packet ) };
+    bool emulatePlayer{ Settings::getSetting( SKeys::Setting, SSubKeys::PlayerEmulation ).toBool() };
     bool retn{ true };
 
     if ( !pkt.isEmpty() )
@@ -96,7 +97,19 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     QString plrName{ varList.at( 0 ) };
 
                     if ( !plrName.isEmpty() )
+                    {
+                        if ( emulatePlayer )
+                        {
+                            //Prevent Users from impersonating the Owner Character.
+                            if ( Helper::cmpStrings( plrName, "Owner" ) )
+                            {
+                                pkt = pkt.replace( "Owner", "Owner Impersonator" );
+                                plrName = "Owner Impersonator";
+                                packet = PacketForge::getInstance()->encryptPacket( pkt.toLatin1(), plr->getPktHeaderSlot(), Games::WoS );
+                            }
+                        }
                         plr->setPlrName( plrName );
+                    }
 
                     //Check that the User is actually incarnating.
                     int type{ pkt.at( 14 ).toLatin1() - 0x41 };
@@ -195,9 +208,12 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                         }
                     }
 
-                    this->forgePacket( server, plr, WoSPacketTypes::Incarnation );
-                    this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
-                    this->forgePacket( server, plr, WoSPacketTypes::CharacterInfo );
+                    if ( emulatePlayer )
+                    {
+                        this->forgePacket( server, plr, WoSPacketTypes::Incarnation );
+                        this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
+                        this->forgePacket( server, plr, WoSPacketTypes::CharacterInfo );
+                    }
                 }
             break;
             case *WoSPacketTypes::ServerLeave: //Player Leaves Server. //Arcadia uses packet 'B'.
@@ -346,7 +362,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                                 {
                                     QString forgedPacket{ pkt.left( pkt.indexOf( "," ) ) };
                                             forgedPacket = PacketForge::getInstance()->encryptPacket( forgedPacket.toLatin1(),
-                                                                                                     plr->getPktHeaderSlot(), server->getGameId() );
+                                                                                                      plr->getPktHeaderSlot(), server->getGameId() );
                                     skinName = pkt.left( pkt.indexOf( "," ) ).mid( 39 );
 
                                     if ( plr->getIsVisible()
@@ -489,7 +505,8 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
             break;
             case *WoSPacketTypes::InfoRequest:
                 {
-                    if ( trgSerNumInt == static_cast<qint32>( ReMixSerNum::SerNum ) )
+                    if ( trgSerNumInt == static_cast<qint32>( ReMixSerNum::SerNum )
+                      && emulatePlayer )
                     {
                         this->forgePacket( server, plr, WoSPacketTypes::Incarnation );
                         this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
