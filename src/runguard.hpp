@@ -18,4 +18,4 @@ class RunGuard : public QApplication
         bool getIsRunning() const;
 };
 
-#endif // RUNGUARD_HPP
+#endif //RUNGUARD_HPP

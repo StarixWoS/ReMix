@@ -189,6 +189,8 @@ void Logger::insertLog(const QString& source, const QString& message, const LKey
 
         typeModel->setData( typeModelIdx, format );
         defaultModel->setData( tblModelIdx, format );
+
+        this->scrollToBottom();
     }
 
     if ( logToFile && Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() )

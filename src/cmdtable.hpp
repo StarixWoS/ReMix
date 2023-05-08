@@ -39,7 +39,8 @@ class CmdTable
         GMCmds getCmdIndex(const QString& cmd);
         GMSubCmds getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time = false);
         GMRanks getCmdRank(const GMCmds& index);
-        QString collateCmdList(const GMRanks& rank);
+        QString getCmdString(const CmdTable::CmdStruct& cmdStruct, const GMRanks rank, const bool isAuth);
+        QString collateCmdStrings(const QSharedPointer<Player> admin);
         QString getCommandInfo(const GMCmds& index, const bool& syntax);
 };
 

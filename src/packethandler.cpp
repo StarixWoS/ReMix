@@ -142,7 +142,7 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
         else if ( Helper::strStartsWithStr( pkt, ":SR?" ) ) //User is requesting Slot information for their packet headers.
         {
             QString sernum{ packet.mid( 4 ).left( 8 ) };
-            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
+            plr->validateSerNum( Helper::serNumToInt( sernum, true ) );
 
             server->sendPlayerSocketPosition( plr, false );
             return; //No need to continue parsing. Return now.
@@ -463,7 +463,7 @@ void PacketHandler::readMIX3(const QString& packet, QSharedPointer<Player> plr)
 {
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
 
-    plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
+    plr->validateSerNum( Helper::serNumToInt( sernum, true ) );
     this->checkBannedInfo( plr );
 }
 
@@ -481,9 +481,9 @@ void PacketHandler::readMIX5(const QString& packet, QSharedPointer<Player> plr)
     if ( plr != nullptr )
     {
         if ( plr->getSernum_i() <= 0 )
-            plr->validateSerNum( server, Helper::serNumToInt( sernum, true ) );
+            plr->validateSerNum( Helper::serNumToInt( sernum, true ) );
 
-        //Do not accept comments from User who have been muted.
+        //Do not accept comments from Users who have been muted.
         if ( !plr->getIsMuted() )
             CmdHandler::getInstance( server )->parseMix5Command( plr, packet );
     }
@@ -517,7 +517,7 @@ void PacketHandler::readMIX7(const QString& packet, QSharedPointer<Player> plr)
             pkt = pkt.left( pkt.length() - 2 );
 
     //Check if the User is banned or requires authentication.
-    plr->validateSerNum( server, Helper::serNumToInt( pkt, true ) );
+    plr->validateSerNum( Helper::serNumToInt( pkt, true ) );
     this->checkBannedInfo( plr );
 }
 

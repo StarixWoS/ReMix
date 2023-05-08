@@ -205,6 +205,16 @@ QVariant User::getData(const QString& key, const QString& subKey)
     return userData->value( key % "/" % subKey );
 }
 
+QVariant User::getData(const QString& groupName, const UKeys& subKey)
+{
+    userData->sync();
+
+    if ( subKey == UKeys::Rank )
+        return userData->value( groupName % "/" % User::uKeys.value( subKey ), 0 );
+
+    return userData->value( groupName % "/" % User::uKeys.value( subKey ) );
+}
+
 bool User::makeAdmin(const QString& sernum, const QString& pwd)
 {
     GMRanks rank{ static_cast<GMRanks>( getAdminRank( sernum ) ) };

@@ -59,6 +59,7 @@ class MasterMixThread : public QThread
 
     signals:
         void obtainedMasterMixInfoSignal();
+        void masterMixInfoSyncSignal();
         void masterMixInfoSignal(const Games& game, const QString& ip, const quint16& port);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine);

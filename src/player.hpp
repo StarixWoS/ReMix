@@ -37,8 +37,8 @@ class Player : public QTcpSocket
     bool isPK{ false };
 
     QString plrName{ "Unincarnated" };
-    QString sernumHex_s{ "" };
-    QString sernum_s{ "" };
+    QString sernumHex_s{ "00000000" };
+    QString sernum_s{ "SOUL 0" };
     QString bioData{ "" };
 
     QByteArray campPacket{ "" };
@@ -61,7 +61,6 @@ class Player : public QTcpSocket
 
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
-    qint64 maxIdleTime{ 0 };
     qint64 connTime{ 0 };
 
     qint32 pktHeaderExemptCount{ 0 };
@@ -209,12 +208,14 @@ class Player : public QTcpSocket
         bool getIsMuted();
 
         void updateIconState();
-        void setIsAFK(bool value);
+
+        bool getIsAFK();
+        void setIsAFK(const bool& value);
 
         bool getIsPK();
-        void setIsPK(bool value);
+        void setIsPK(const bool& value);
 
-        void validateSerNum(QSharedPointer<Server> server, const qint32& id);
+        void validateSerNum(const qint32& id);
         bool getIsGoldenSerNum();
 
         qint64 getPlrConnectedTime() const;
@@ -222,9 +223,6 @@ class Player : public QTcpSocket
 
         qint64 getCampCreatedTime() const;
         void setCampCreatedTime(const qint64& value);
-
-        qint64 getMaxIdleTime() const;
-        void setMaxIdleTime(const qint64& value);
 
         qint32 getPlrLevel() const;
         void setPlrLevel(const qint32& value);
@@ -255,7 +253,7 @@ class Player : public QTcpSocket
         void sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
                                     const qint32& trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
-        void setMaxIdleTimeSlot(const qint64& maxAFK);
+        void refreshAFKTimersSlot(const qint64& maxAFK);
         void connectionTimeUpdateSlot();
         void setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank);
 

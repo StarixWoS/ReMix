@@ -3,6 +3,7 @@
 
 //Required ReMix Includes.
 #include "helper.hpp"
+#include "player.hpp"
 
 //Required Qt includes.
 #include <QtCore>
@@ -137,7 +138,18 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
         "Command Usage: /login *Password",
         GMRanks::User,
         true,
-        GMCmds::Login,
+        GMCmds::LogIn,
+    },
+    {   //Command Implemented.
+        { "logout" },
+        1,
+        { },
+        0,
+        "Command Description: De-authenticates the User that issues the command. The User will not be able to use Admin Commands.",
+        "Command Usage: /logout",
+        GMRanks::GMaster,
+        true,
+        GMCmds::LogOut,
     },
     {   //Command Implemented.
         { "register" },
@@ -335,29 +347,45 @@ GMRanks CmdTable::getCmdRank(const GMCmds& index)
     return GMRanks::Invalid;
 }
 
-QString CmdTable::collateCmdList(const GMRanks& rank)
+QString CmdTable::getCmdString(const CmdTable::CmdStruct& cmdStruct, const GMRanks rank, const bool isAuth)
+{
+    QString result{ "" };
+    if ( isAuth
+      && cmdStruct.cmdRank > GMRanks::User ) //Unauthenticated should only get a basic list.
+    {
+        return result;
+    }
+
+    if ( cmdStruct.cmdRank <= rank
+      && cmdStruct.cmdIsActive )
+    {
+        for ( const auto& item : cmdStruct.cmdActivators )
+        {
+            result.append( item );
+            if ( cmdStruct.subCmdCount > 0 )
+            {
+                result.append( "[ " );
+                for ( const QString& sEl : cmdStruct.subCmd )
+                {
+                    result.append( sEl % ", " );
+                }
+                result.append( " ]" );
+            }
+            result.append( ", " );
+        }
+    }
+    return result;
+}
+
+QString CmdTable::collateCmdStrings(const QSharedPointer<Player> admin)
 {
     QString list{ "Available Command list: " };
+    GMRanks rank{ admin->getAdminRank() };
+    bool isAuth{ admin->getAdminPwdReceived() };
+
     for ( const CmdTable::CmdStruct& el : cmdTable )
     {
-        //Check the current Object if it contains our command information,
-        if ( el.cmdRank <= rank && el.cmdIsActive )
-        {
-            for ( const auto& item : el.cmdActivators )
-            {
-                list.append( item );
-                if ( el.subCmdCount > 0 )
-                {
-                    list.append( "[ " );
-                    for ( const QString& sEl : el.subCmd )
-                    {
-                        list.append( sEl % ", " );
-                    }
-                    list.append( " ]" );
-                }
-                list.append( ", " );
-            }
-        }
+        list.append( getCmdString( el, rank, isAuth ) );
     }
     return list;
 }

@@ -260,7 +260,7 @@
 
         //Valid Remote Administrator commands.
         enum class GMCmds: int{ Help = 0, List, MotD, Info, Ban,
-                                UnBan, Kick, Mute, UnMute, Message, Login,
+                                UnBan, Kick, Mute, UnMute, Message, LogIn, LogOut,
                                 Register, ShutDown, ReStart,
                                 CHRules, CHSettings, Vanish, Version,
                                 Camp, Guild, Invalid = -1 };
@@ -354,17 +354,17 @@
                                   InformAdminLogin, EchoComments, MinimizeToTray, SaveWindowPositions, IsRunning, WorldDir, PortNumber, IsPublic, GameName,
                                   LogFiles, DarkMode, UseUPNP, CheckForUpdates, DCBlueCodedSerNums, LoggerAutoScroll, OverrideMasterIP, LoggerAutoClear,
                                   OverrideMasterHost, ChatAutoScroll, ChatTimeStamp, HidePlayerView, HideChatView, NetInterface, ServerButtonState,
-                                  ServerPlayerChatSize, HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxIdle, MinVersion,
+                                  ServerPlayerChatSize, HasSvrPassword, SvrPassword, WorldName, ToYName, SvrUrl, AllPK, MaxPlayers, MaxAFK, MinVersion,
                                   PKLadder, NoBleep, NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, ArenaPK, AutoRestart, StrictRules, KeyCount,
                                   PlayerEmulation };
 
         //Valid Toggles for the Settings Widget.
-        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, DCIdles, PlayerEmulation, AllowSSV, LogComments,
+        enum class SToggles: int{ AllowDupeIP = 0, BanDupeIP, CensorIPInfo, ReqSerNum, DCBlueCode, AllowIdle, PlayerEmulation, AllowSSV, LogComments,
                                   FwdComments, EchoComments, InformAdminLogin, MinimizeToTray, SaveWindowPositions, LogFiles, WorldDir,
                                   OverrideMasterHost, OverrideMaster = 17 };
 
         //Valid Toggles for the Rules Widget.
-        enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxIdle, MinVersion, Ladder, NoBleep,
+        enum class RToggles: int{ StrictRules = 0, ServerPassword, AutoRestart, WorldName, UrlAddr, MaxPlayers, MaxAFK, MinVersion, Ladder, NoBleep,
                                   NoCheat, NoEavesdrop, NoMigrate, NoModding, NoPets, NoPK, AllPK, ArenaPK = 17 };
 
         //Valid bases for use in converting strings to integers.

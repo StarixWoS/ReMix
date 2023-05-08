@@ -256,7 +256,7 @@ class Server : public QTcpServer
         bool getUpnpPortAdded() const;
         void setUpnpPortAdded(bool value);
 
-        qint64 getMaxIdleTime();
+        qint64 getMaxAFKTime();
 
         qint64 getInitializeDate() const;
         void setInitializeDate(const qint64& value);
@@ -283,7 +283,7 @@ class Server : public QTcpServer
         void serverNameChangedSignal(const QString& newName);
         void serverGameChangedSignal(const Games& game);
         void serverIDChangedSignal(const QString& serverID);
-        void setMaxIdleTimeSignal(const qint64& maxAFK);
+        void refreshAFKTimersSignal(const qint64& maxAFK);
 
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void sendMasterMsgToPlayerSignal(QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
@@ -294,7 +294,7 @@ class Server : public QTcpServer
 
     public slots:
         void dataOutSizeSlot(const quint64& size);
-        void setMaxIdleTimeSlot();
+        void refreshAFKTimersSlot();
         void masterMixIPChangedSlot();
         void masterMixInfoSlot(const Games& game, const QString& ip, const quint16& port);
         void setBytesInSignal(const quint64& bytes);
@@ -308,6 +308,7 @@ class Server : public QTcpServer
         void setMaxPlayersSlot(const qint32& maxPlayers);
 
     private slots:
+        void masterMixInfoSyncSlot();
         void sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type);
         void increaseServerPingSlot();
         void upnpPortAddedSlot(const quint16& port, const QString& protocol);

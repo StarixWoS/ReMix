@@ -95,16 +95,14 @@ void CreateInstance::updateServerList(const bool& firstRun)
     QStringList servers{ Settings::prefs->childGroups() };
     QStringList validServers;
 
-    quint32 serverCount{ 0 };
     bool isRunning{ false };
     bool restart{ false };
 
-    for ( int i = 0; i < servers.count(); ++i )
+    for ( const QString& name : servers )
     {
-        const QString name{ servers.at( i ) };
         const bool skip =
         {
-            std::any_of( Settings::pKeys.begin(), Settings::pKeys.end(),
+            std::any_of( Settings::pKeys.cbegin(), Settings::pKeys.cend(),
             [name]( const QString& key )
             {
                 return Helper::cmpStrings( name, key );
@@ -129,16 +127,15 @@ void CreateInstance::updateServerList(const bool& firstRun)
             || ( !restart && !isRunning ) ) )
         {
             validServers.append( name );
-            ++serverCount;
         }
         restart = false;
     }
 
-    if ( serverCount != 0 )
+    if ( validServers.count() != 0 )
     {
         //Sort the server list before inserting them into the dropdown menu.
         std::sort( validServers.begin(), validServers.end(),
-        [=, this](const QString &str1, const QString &str2)
+        [&](const QString& str1, const QString& str2)
         {
             return ( collator.compare( str1, str2 ) < 0 );
         });

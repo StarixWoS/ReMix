@@ -33,9 +33,9 @@ SettingsWidget::SettingsWidget(QWidget* parent) :
     this->setCheckedState( SToggles::LogComments, Settings::getSetting( SKeys::Logger, SSubKeys::LogComments ).toBool() );
     this->setCheckedState( SToggles::AllowDupeIP, Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() );
     this->setCheckedState( SToggles::ReqSerNum, Settings::getSetting( SKeys::Setting, SSubKeys::ReqSerNum ).toBool() );
+    this->setCheckedState( SToggles::AllowIdle, Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() );
     this->setCheckedState( SToggles::BanDupeIP, Settings::getSetting( SKeys::Setting, SSubKeys::BanDupes ).toBool() );
     this->setCheckedState( SToggles::AllowSSV, Settings::getSetting( SKeys::Setting, SSubKeys::AllowSSV ).toBool() );
-    this->setCheckedState( SToggles::DCIdles, Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool() );
     this->setCheckedState( SToggles::LogFiles, Settings::getSetting( SKeys::Logger, SSubKeys::LogFiles ).toBool() );
 
     QString dir{ Settings::getSetting( SKeys::Setting, SSubKeys::WorldDir ).toString() };
@@ -190,7 +190,7 @@ void SettingsWidget::toggleSettings(const qint32& row, Qt::CheckState value)
         case SToggles::DCBlueCode: //3
             Settings::setSetting( state, SKeys::Setting, SSubKeys::DCBlueCodedSerNums );
         break;
-        case SToggles::DCIdles: //4
+        case SToggles::AllowIdle: //4
             Settings::setSetting( state, SKeys::Setting, SSubKeys::AllowIdle );
         break;
         case SToggles::PlayerEmulation: //5

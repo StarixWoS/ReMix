@@ -19,6 +19,13 @@ Version 3.1.0:
         * If this setting is disabled, the "Server Message" toggle within the "Chat View" UI is removed.
       * Admins that disconnect while in the "Vanished State" will now have that state saved to file.
         * Upon reconnecting, the "Vanish State" will be restored from file and the Admin will have a 5 minute grace period to authenticate with the server before becoming visible.
+      * Added a command for Remote Admins to de-authenticate with the server.
+        * "/logout"
+      * Simplified the collation of commands available to a User/Admin sent via the "/list" command.
+      * De-coupled the settings for disconnecting Idle and AFK Users.
+        * The Idle disconnect is not configurable and should only matter when a connection is inactive.
+        * The AFK Disconnect *is* configurable, and only matters *after* a User is detected going AFK via a packet identifier.
+          * In doing this, the setting is now properly named "maxAFK" (previously, "maxIdle") which the Syn-Games support.
 
 
 
@@ -29,6 +36,10 @@ Version 3.1.0:
       * Fixed an issue where server admins in an invisible state would cause ReMix to send an incorrect online User count in response to a ping.
       * Fixed an issue where ReMix would log and inform a User of an Un-Mute twice when manually un-muting the User from the User Information UI.
       * Fixed an issue where manually Muting a user from the User Information UI would not generage a log-event within the Punishment log.
+      * Fix: The LogView will once again automatically scroll to the bottom when the UI Toggle is checked.
+      * Fixed an issue where ReMix would continue sending Master Check-In's while doing a Master Mix Information Refresh.
+        * Servers now properly have their check-in timers stopped until the refresh is completed.
+        * This is to prevent checking in to a MasterIP that is no longer valid whilst obtaining the valid MasterIP.
 
 
 

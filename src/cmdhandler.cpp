@@ -341,7 +341,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         break;
         case GMCmds::List:
             {
-                server->sendMasterMessage( cmdTable->collateCmdList( admin->getAdminRank() ), admin, false );
+                server->sendMasterMessage( cmdTable->collateCmdStrings( admin ), admin, false );
             }
         break;
         case GMCmds::MotD:
@@ -420,7 +420,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 retn = true;
             }
         break;
-        case GMCmds::Login:
+        case GMCmds::LogIn:
             {
                 if ( !subCmd.isEmpty() )
                 {
@@ -432,6 +432,20 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 }
                 retn = false;
                 logMsg = false;
+            }
+        break;
+        case GMCmds::LogOut:
+            {
+                if ( this->validateAdmin( admin, cmdRank, cmd ) )
+                {
+                    admin->resetAdminAuth();
+                    if ( !admin->getIsVisible() )
+                        admin->setIsVisible( true );
+
+                    static const QString success{ "You are no longer authenticated with the server! You must log in to use Admin commands again." };
+                    server->sendMasterMessage( success, admin, false );
+                }
+                retn = true;
             }
         break;
         case GMCmds::Register:
@@ -468,7 +482,10 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         case GMCmds::Vanish:
             {
                 if ( this->validateAdmin( admin, cmdRank, cmd ) )
+                {
                     this->vanishHandler( admin, subCmd );
+                    logMsg = true;
+                }
             }
         break;
         case GMCmds::Version:
@@ -499,9 +516,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
             }
         break;
         case GMCmds::Guild:
-            {
-            }
-        break;
         case GMCmds::Invalid:
         default:
         break;
@@ -960,7 +974,8 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
         if ( !pwd.isEmpty()
           && User::cmpAdminPwd( sernum, pwd ) )
         {
-            response = response.arg( validStr ).append( welcomeStr );
+            response = response.arg( validStr )
+                               .append( welcomeStr );
 
             admin->setAdminPwdRequested( false );
             admin->setAdminPwdReceived( true );
@@ -990,7 +1005,8 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
         }
         else
         {
-            response = response.arg( invalidStr ).append( goodbyeStr );
+            response = response.arg( invalidStr )
+                               .append( goodbyeStr );
             disconnect = true;
         }
         response = response.arg( pwdTypes.at( *pwdType ) );
@@ -1175,25 +1191,45 @@ void CmdHandler::vanishHandler(QSharedPointer<Player> admin, const QString& subC
     {
         if ( cmdTable->isSubCommand( GMCmds::Vanish, subCmd ) )
         {
-            if ( Helper::cmpStrings( subCmd, "hide" )
-              && isVisible )
+            GMSubCmds idx{ GMSubCmds::Invalid };
+            if ( !subCmd.isEmpty() )
+                idx = cmdTable->getSubCmdIndex( GMCmds::Vanish, subCmd, false );
+
+            switch ( static_cast<GMSubCmds>( idx ) )
             {
-                state = invisibleStr;
-                admin->setIsVisible( false );
-            }
-            else if ( Helper::cmpStrings( subCmd, "show" )
-                   && !isVisible )
-            {
-                state = visibleStr;
-                admin->setIsVisible( true );
-            }
-            else if ( Helper::cmpStrings( subCmd, "status" ) )
-            {
-                message = "Admin [ %1 ]: You are currently %2 to other Players...";
+                case GMSubCmds::Zero: //Hide
+                    {
+                        if ( isVisible )
+                        {
+                            state = invisibleStr;
+                            admin->setIsVisible( false );
+                        }
+                    }
+                break;
+                case GMSubCmds::One: //Show
+                    {
+                        if ( isVisible )
+                        {
+                            state = visibleStr;
+                            admin->setIsVisible( true );
+                        }
+                    }
+                break;
+                case GMSubCmds::Two: //Status.
+                    {
+                        message = "Admin [ %1 ]: You are currently %2 to other Players...";
+                    }
+                break;
+                case GMSubCmds::Three:
+                case GMSubCmds::Four:
+                case GMSubCmds::Five:
+                case GMSubCmds::Six:
+                case GMSubCmds::Seven:
+                case GMSubCmds::Invalid:
+                break;
             }
         }
     }
-
     message = message.arg( admin->getSernum_s() )
                      .arg( state );
     server->sendMasterMessage( message, admin, false );

@@ -39,13 +39,15 @@ MasterMixThread::MasterMixThread()
     tcpSocket = new QTcpSocket( this );
     this->connectSlots();
 
-    updateInfoTimer.setInterval( *Globals::MASTER_MIX_UPDATE_INTERVAL ); //Default of 6 hours in Milliseconds..
+    updateInfoTimer.setInterval( *Globals::MASTER_MIX_UPDATE_INTERVAL );
     QObject::connect( &updateInfoTimer, &QTimer::timeout, this, [=, this]()
     {
-        QString msg{ "Automatically refreshing the Master Mix Information." };
-        emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
-
         masterMixPref->sync();
+
+        emit this->insertLogSignal( "MasterMixThread", "Automatically refreshing the Master Mix Information.", LKeys::MasterMixLog, true, true );
+        emit this->masterMixInfoSyncSignal();
+        emit this->insertLogSignal( "MasterMixThread", "Halting MasterMix check-in during refresh.", LKeys::MasterMixLog, true, true );
+
         this->updateMasterMixInfo( true );
     } );
 
@@ -109,12 +111,6 @@ void MasterMixThread::connectSlots()
 
         emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
         emit this->obtainedMasterMixInfoSignal(); //Inform Listening Objects of a completed download.
-    } );
-
-    QObject::connect( tcpSocket, &QTcpSocket::errorOccurred, tcpSocket,
-    [](QAbstractSocket::SocketError socketError)
-    {
-        qDebug() << socketError;
     } );
 }
 

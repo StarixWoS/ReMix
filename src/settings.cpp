@@ -39,7 +39,7 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     //Settings.
     { SSubKeys::ServerID,               "serverID"            },
     { SSubKeys::AutoBan,                "autoBanish"          },
-    { SSubKeys::AllowIdle,              "discIdle"            },
+    { SSubKeys::AllowIdle,              "allowIdle"           },
     { SSubKeys::ReqSerNum,              "reqSerNums"          },
     { SSubKeys::AllowDupe,              "dupeOK"              },
     { SSubKeys::AllowSSV,               "supportsSSV"         },
@@ -84,7 +84,7 @@ const QMap<SSubKeys, QString> Settings::sKeys =
     { SSubKeys::SvrUrl,                 "url"            },
     { SSubKeys::AllPK,                  "allPK"          },
     { SSubKeys::MaxPlayers,             "maxP"           },
-    { SSubKeys::MaxIdle,                "maxIdle"        },
+    { SSubKeys::MaxAFK,                 "maxAFK"         },
     { SSubKeys::MinVersion,             "minV"           },
     { SSubKeys::PKLadder,               "ladder"         },
     { SSubKeys::NoBleep,                "noBleep"        },
@@ -162,7 +162,7 @@ QVector<SSubKeys> Settings::serverRules //Rules Specific to a Server Instance.
     SSubKeys::NoBleep,
     SSubKeys::SvrUrl,
     SSubKeys::NoPets,
-    SSubKeys::MaxIdle,
+    SSubKeys::MaxAFK,
     SSubKeys::AllPK,
     SSubKeys::NoPK,
 };

@@ -41,6 +41,7 @@ class User : public QDialog
         static void setData(const QString& key, const QString& subKey, const QVariant& value);
 
         static QVariant getData(const QString& key, const QString& subKey);
+        static QVariant getData(const QString& groupName, const UKeys& subKey);
 
         static bool makeAdmin(const QString& sernum, const QString& pwd);
 

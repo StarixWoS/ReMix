@@ -38,7 +38,7 @@ RulesWidget* RulesWidget::getInstance(QSharedPointer<Server> server)
         if ( widget != nullptr )
         {
             ruleWidgets.insert( server, widget );
-            QObject::connect( widget, &RulesWidget::setMaxIdleTimeSignal, server.get(), &Server::setMaxIdleTimeSlot, Qt::UniqueConnection );
+            QObject::connect( widget, &RulesWidget::refreshAFKTimersSignal, server.get(), &Server::refreshAFKTimersSlot, Qt::UniqueConnection );
             QObject::connect( widget, &RulesWidget::gameInfoChangedSignal, server.get(), &Server::gameInfoChangedSlot, Qt::UniqueConnection );
             QObject::connect( widget, &RulesWidget::setMaxPlayersSignal, server.get(), &Server::setMaxPlayersSlot, Qt::UniqueConnection );
             QObject::connect( server.get(), &Server::serverNameChangedSignal, widget, &RulesWidget::nameChangedSlot, Qt::UniqueConnection );
@@ -85,14 +85,14 @@ void RulesWidget::setServerName(const QString& name)
     ui->rulesView->item( *RToggles::WorldName, 0 )->setText( rowText.arg( val.toString() ) );
     this->setGameInfo( val.toString() );
 
-    rowText = "Max Idle: [ %1 ] Minutes";
-    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name );
+    rowText = "Max AFK: [ %1 ] Minutes";
+    val = Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name );
     if ( !val.isValid() )
     {
-        val = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds ) / *TimeDivide::Minutes;
+        val = ( *Globals::MAX_AFK_TIME / *TimeDivide::Miliseconds ) / *TimeDivide::Minutes;
     }
 
-    ui->rulesView->item( *RToggles::MaxIdle, 0 )->setText( rowText.arg( val.toUInt() ) );
+    ui->rulesView->item( *RToggles::MaxAFK, 0 )->setText( rowText.arg( val.toUInt() ) );
 
     rowText = "Minimum Game Version: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
@@ -119,7 +119,7 @@ void RulesWidget::setServerName(const QString& name)
     this->setCheckedState( RToggles::StrictRules, Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, name ).toBool() );
     this->setCheckedState( RToggles::AutoRestart, Settings::getSetting( SKeys::Rules, SSubKeys::AutoRestart, name ).toBool() );
     this->setCheckedState( RToggles::NoEavesdrop, Settings::getSetting( SKeys::Rules, SSubKeys::NoEavesdrop, name ).toBool() );
-    this->setCheckedState( RToggles::MaxIdle, Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, name ).toUInt() != 0 );
+    this->setCheckedState( RToggles::MaxAFK, Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, name ).toUInt() != 0 );
     this->setCheckedState( RToggles::NoMigrate, Settings::getSetting( SKeys::Rules, SSubKeys::NoMigrate, name ).toBool() );
     this->setCheckedState( RToggles::NoModding, Settings::getSetting( SKeys::Rules, SSubKeys::NoModding, name ).toBool() );
     this->setCheckedState( RToggles::ArenaPK, Settings::getSetting( SKeys::Rules, SSubKeys::ArenaPK, name ).toBool() );
@@ -424,48 +424,48 @@ void RulesWidget::toggleRules(const qint32& row, const Qt::CheckState& value)
                 ui->rulesView->item( row, 0 )->setText( rowText );
             }
         break;
-        case RToggles::MaxIdle:
+        case RToggles::MaxAFK:
             {
-                quint32 maxIdle{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ).toUInt() };
+                quint32 maxAFK{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() };
                 bool ok{ false };
 
-                if (( Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ).toUInt() == 0 )
+                if (( Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ).toUInt() == 0 )
                    && state )
                 {
-                    if ( maxIdle == 0 )
+                    if ( maxAFK == 0 )
                     {
-                        auto defaultIdle = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds )
-                                                                     / *TimeDivide::Minutes;
-                        title = "Max-Idle:";
+                        auto defaultAFK = ( *Globals::MAX_AFK_TIME / *TimeDivide::Miliseconds )
+                                                                   / *TimeDivide::Minutes;
+                        title = "Max-AFK:";
                         prompt = "Value:";
-                        maxIdle = Helper::getIntResponse( this, title, prompt, defaultIdle,
-                                                          *Globals::MAX_IDLE_TIME, 1, &ok );
+                        maxAFK = Helper::getIntResponse( this, title, prompt, defaultAFK,
+                                                         *Globals::MAX_AFK_TIME, 1, &ok );
                     }
 
-                    if ( maxIdle == 0 || !ok )
+                    if ( maxAFK == 0 || !ok )
                         ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
 
-                    Settings::setSetting( maxIdle, SKeys::Rules, SSubKeys::MaxIdle, serverName );
+                    Settings::setSetting( maxAFK, SKeys::Rules, SSubKeys::MaxAFK, serverName );
                 }
-                else if ( maxIdle != 0 )
+                else if ( maxAFK != 0 )
                 {
                     ui->rulesView->item( row, 0 )->setCheckState( Qt::Unchecked );
-                    Settings::setSetting( 0, SKeys::Rules, SSubKeys::MaxIdle, serverName );
+                    Settings::setSetting( 0, SKeys::Rules, SSubKeys::MaxAFK, serverName );
                 }
 
-                rowText = "Max Idle: [ %1 ] Minutes";
-                QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, serverName ) };
+                rowText = "Max AFK: [ %1 ] Minutes";
+                QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, serverName ) };
                 if ( !val.isValid() )
                 {
-                    val = ( *Globals::MAX_IDLE_TIME / *TimeDivide::Miliseconds )
-                                                    / *TimeDivide::Minutes;
+                    val = ( *Globals::MAX_AFK_TIME / *TimeDivide::Miliseconds )
+                                                   / *TimeDivide::Minutes;
                 }
 
                 rowText = rowText.arg( val.toUInt() );
                 ui->rulesView->item( row, 0 )->setText( rowText );
 
-                //Max Idle Duration has changed, update all Players.
-                emit this->setMaxIdleTimeSignal();
+                //Max AFK Duration has changed, update all Players.
+                emit this->refreshAFKTimersSignal();
             }
         break;
         case RToggles::MinVersion:

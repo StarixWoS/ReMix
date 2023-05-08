@@ -5,6 +5,7 @@
 //ReMix Widget includes.
 #include "widgets/settingswidget.hpp"
 #include "widgets/userdelegate.hpp"
+#include "widgets/ruleswidget.hpp"
 
 //ReMix Threaded Includes.
 #include "thread/mastermixthread.hpp"
@@ -61,6 +62,7 @@ Server::Server(QWidget* parent)
 
     //Connect Signals from the MasterMixThread class to the slots within the Server class.
     QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSignal, this, &Server::masterMixInfoSlot, Qt::UniqueConnection );
+    QObject::connect( MasterMixThread::getInstance(), &MasterMixThread::masterMixInfoSyncSignal, this, &Server::masterMixInfoSyncSlot, Qt::UniqueConnection );
     QObject::connect( this, &Server::recvMasterInfoSignal, this, &Server::recvMasterInfoSlot );
 
     //Connect the MasterMixThread signals to the Server Slots.
@@ -287,11 +289,11 @@ QSharedPointer<Player> Server::createPlayer(const qintptr& socketDescriptor, QSh
         if ( plr != nullptr )
         {
             players.insert( slot, plr );
-            plr->setMaxIdleTimeSlot( this->getMaxIdleTime() );
+            plr->refreshAFKTimersSlot( this->getMaxAFKTime() );
 
             this->setPlayerCount( this->getPlayerCount() + 1 );
 
-            QObject::connect( this, &Server::setMaxIdleTimeSignal, plr.get(), &Player::setMaxIdleTimeSlot );
+            QObject::connect( this, &Server::refreshAFKTimersSignal, plr.get(), &Player::refreshAFKTimersSlot );
             QObject::connect( this, &Server::sendMasterMsgToPlayerSignal, plr.get(), &Player::sendMasterMsgToPlayerSlot );
             QObject::connect( this, &Server::connectionTimeUpdateSignal, plr.get(), &Player::connectionTimeUpdateSlot );
             QObject::connect( plr.get(), &Player::ipDCIncreaseSignal, this, &Server::ipDCIncreaseSlot );
@@ -424,11 +426,10 @@ void Server::deletePlayer(QSharedPointer<Player> plr, const bool& all, const boo
     if ( !all )
     {
         qint32 count{ this->getPlayerCount() };
-        if ( !plr->getIsVisible() ) //Re-add the invisible admin to the player count before removing them.
-            count++;
-
-        //Ensure the Player Count is not negative.
-        this->setPlayerCount( qMax( count - 1, static_cast<qint32>( 0 ) ) );
+        if ( plr->getIsVisible() )
+            this->setPlayerCount( qMax( count - 1, static_cast<qint32>( 0 ) ) );
+        else
+            this->setPlayerCount( qMax( count, static_cast<qint32>( 0 ) ) );
     }
 
     plr->clearThisPlayer();
@@ -684,6 +685,13 @@ void Server::setMasterIP(const QString& value, const quint16& port)
             masterIP = value;
             emit this->recvMasterInfoSignal();
             this->setMasterInfoRecv( true );
+        }
+        else
+        {
+            //Info did not change.
+            //The CheckinTimer was halted, restart it.
+            if ( !masterCheckIn.isActive() )
+                masterCheckIn.start( *Globals::MIN_MASTER_STARTUP_TIME );
         }
     }
 }
@@ -1157,16 +1165,17 @@ void Server::setUpnpTimedOut(bool newUpnpTimedOut)
     upnpTimedOut = newUpnpTimedOut;
 }
 
-qint64 Server::getMaxIdleTime()
+qint64 Server::getMaxAFKTime()
 {
-    QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxIdle, this->getServerName() ) };
-    qint64 maxIdle{ *Globals::MAX_IDLE_TIME };
-    if ( val.isValid() && val.toBool() )
+    QVariant val{ Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, this->getServerName() ) };
+    qint64 maxAFK{ *Globals::MAX_AFK_TIME };
+    if ( val.isValid()
+      && val.toBool() )
     {
-        maxIdle = val.toUInt() * *TimeMultiply::Seconds
-                               * *TimeMultiply::Milliseconds;
+        maxAFK = val.toLongLong() * *TimeMultiply::Seconds
+                                  * *TimeMultiply::Milliseconds;
     }
-    return maxIdle;
+    return maxAFK;
 }
 
 qint64 Server::getInitializeDate() const
@@ -1185,9 +1194,9 @@ void Server::dataOutSizeSlot(const quint64& size)
     this->setBytesOut( this->getBytesOut() + size );
 }
 
-void Server::setMaxIdleTimeSlot()
+void Server::refreshAFKTimersSlot()
 {
-    emit this->setMaxIdleTimeSignal( this->getMaxIdleTime() );
+    emit this->refreshAFKTimersSignal( this->getMaxAFKTime() );
 }
 
 void Server::masterMixIPChangedSlot()
@@ -1322,7 +1331,7 @@ void Server::ipDCIncreaseSlot(const DCTypes& type)
 void Server::setVisibleStateSlot(const bool& state)
 {
     qint32 count{ this->getPlayerCount() };
-    if ( count > 0 )
+    if ( count >= 0 )
     {
         if ( state )
             count++;
@@ -1348,6 +1357,13 @@ void Server::setMaxPlayersSlot(const qint32& maxPlayers)
     players.resize( maxPlayers );
 
     this->setMaxPlayerCount( maxPlayers );
+}
+
+void Server::masterMixInfoSyncSlot()
+{
+    //Prevent servers from checking in to the MasterMix while an info sync is in progress.
+    if ( masterCheckIn.isActive() )
+        masterCheckIn.stop();
 }
 
 void Server::sendUserListSlot(const QHostAddress& addr, const quint16& port, const UserListResponse& type)

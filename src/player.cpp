@@ -20,6 +20,7 @@
 #include <QApplication>
 #include <QTcpSocket>
 #include <QDateTime>
+#include <QtCore>
 
 Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     : server( svr )
@@ -38,7 +39,7 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     //Connect to the CampExemptions slot.
     QObject::connect( this, &Player::hexSerNumSetSignal, CampExemption::getInstance(), &CampExemption::hexSerNumSetSlot );
 
-    //All connections start as ascive and not AFK.
+    //All connections start as active and not AFK.
     this->setIsAFK( false );
 
     //Connect Timers to Slots.
@@ -50,7 +51,6 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     //Start Timers.
     vanishStateTimer.setInterval( *Globals::PLAYER_VISIBLE_LOAD_TIMEOUT );
     serNumKillTimer.start( *Globals::MAX_SERNUM_TTL );
-    afkTimer.start( *Globals::MAX_AFK_TIME );
     floodTimer.start();
     idleTime.start();
 
@@ -185,13 +185,20 @@ void Player::setSernum_i(const qint32& value)
         }
 
         this->setSernum_s( sernum_s );
+        if ( sernum_i == 0 )
+            sernumHex_s = "00000000"; //Special case.
+
         this->setSernumHex_s( sernumHex_s );
 
         quint64 muteDuration{ 0 };
+        bool mutedSerNum{ true };
         muteDuration = User::getIsPunished( PunishTypes::Mute, sernumHex_s, PunishTypes::SerNum );
 
         if ( muteDuration == 0 )
+        {
             muteDuration = User::getIsPunished( PunishTypes::Mute, this->getIPAddress(), PunishTypes::IP );
+            mutedSerNum = false;
+        }
 
         if ( muteDuration >= 1 )
         {
@@ -200,6 +207,18 @@ void Player::setSernum_i(const qint32& value)
                     muteMsg = muteMsg.arg( Helper::getTimeAsString( muteDuration ) );
 
             server->sendMasterMessage( muteMsg, this->getThisPlayer(), false );
+
+            QString logMessage{ "Automatic-Mute; Mute restored from file for User [ %1 ]. Muted on [ %2 ] until [ %3 ]; With the reason [ %4 ]." };
+            if ( mutedSerNum )
+                logMessage = logMessage.arg( this->getSernum_s() );
+            else
+                logMessage = logMessage.arg( this->getIPAddress() );
+
+            logMessage = logMessage.arg( Helper::getTimeAsString( User::getData( this->getSernumHex_s(), UKeys::Muted ).toInt() ) )
+                                   .arg( Helper::getTimeAsString( User::getData( this->getSernumHex_s(), UKeys::MuteDuration ).toInt() ) )
+                                   .arg( User::getData( this->getSernumHex_s(), UKeys::MuteReason ).toString() );
+
+            emit this->insertLogSignal( server->getServerName(), logMessage, LKeys::PunishmentLog, true, true );
         }
 
         if ( User::getIsInVisible( sernumHex_s ) )
@@ -651,16 +670,6 @@ void Player::setCampCreatedTime(const qint64& value)
     campCreatedTime = value;
 }
 
-qint64 Player::getMaxIdleTime() const
-{
-    return maxIdleTime;
-}
-
-void Player::setMaxIdleTime(const qint64& value)
-{
-    maxIdleTime = value;
-}
-
 bool Player::getIsMuted()
 {
     quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
@@ -743,7 +752,6 @@ void Player::updateIconState()
     }
     else
     {
-        afkTimer.start( *Globals::MAX_AFK_TIME );
         if ( incarnated )
         {
             const bool golden{ this->getIsGoldenSerNum() };
@@ -786,10 +794,18 @@ void Player::updateIconState()
     emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::SerNum, *role, Qt::DecorationRole, false );
 }
 
-void Player::setIsAFK(bool value)
+bool Player::getIsAFK()
+{
+    return isAFK;
+}
+
+void Player::setIsAFK(const bool& value)
 {
     isAFK = value;
-    this->updateIconState();
+    if ( isAFK )
+        afkTimer.start( server->getMaxAFKTime() );
+    else
+        afkTimer.stop();
 }
 
 bool Player::getIsPK()
@@ -797,7 +813,7 @@ bool Player::getIsPK()
     return isPK;
 }
 
-void Player::setIsPK(bool value)
+void Player::setIsPK(const bool& value)
 {
     if ( this->getIsIncarnated() )
     {
@@ -828,7 +844,7 @@ void Player::setIsPK(bool value)
     }
 }
 
-void Player::validateSerNum(QSharedPointer<Server> server, const qint32& id)
+void Player::validateSerNum(const qint32& id)
 {
     if ( server == nullptr )
         return;
@@ -1037,10 +1053,12 @@ void Player::sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const b
         server->updateBytesOut( this->getThisPlayer(), bOut );
 }
 
-void Player::setMaxIdleTimeSlot(const qint64& maxAFK)
+void Player::refreshAFKTimersSlot(const qint64& maxAFK)
 {
-    if ( maxAFK != this->getMaxIdleTime() )
-        this->setMaxIdleTime( maxAFK );
+    if ( maxAFK > 0 )
+        afkTimer.start( maxAFK );
+    else
+        afkTimer.stop();
 }
 
 void Player::connectionTimeUpdateSlot()
@@ -1057,11 +1075,25 @@ void Player::connectionTimeUpdateSlot()
     QString bytesIn{ "" };
 
     Helper::sanitizeToFriendlyUnits( this->getBytesOut(), bytesOut, bytesOutUnit );
+
     Helper::sanitizeToFriendlyUnits( this->getBytesIn(), bytesIn, bytesInUnit );
 
     baudIn = baudIn.arg( bytesIn )
                    .arg( bytesInUnit )
                    .arg( QString::number( this->getPacketsIn() ) );
+
+    qint64 bufferSize{ this->getOutBuff().size() };
+    if ( bufferSize > 0 )
+    {
+        QString bufferStr{ ", Buffer Size %1 %2" };
+        QString bytesInBufferUnit{ "" };
+        QString bytesInBuffer{ "" };
+
+        Helper::sanitizeToFriendlyUnits( bufferSize, bytesInBuffer, bytesInBufferUnit );
+        bufferStr = bufferStr.arg( bytesInBuffer )
+                             .arg( bytesInBufferUnit );
+        baudIn = baudIn.append( bufferStr );
+    }
 
     baudOut = baudOut.arg( bytesOut )
                      .arg( bytesOutUnit )
@@ -1106,16 +1138,9 @@ void Player::connectionTimeUpdateSlot()
     emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::IPPort, *color, Qt::ForegroundRole, true );
 
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::AllowIdle ).toBool()
-      && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously aisconnected user.
+      && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously disconnected user.
     {
-        bool defaultIdleTime{ false };
-        qint64 maxIdle{ this->getMaxIdleTime() };
-        if ( maxIdle == *Globals::MAX_IDLE_TIME )
-            defaultIdleTime = true;
-
-        if ((( idleTime.elapsed() >= *Globals::MAX_IDLE_TIME )
-            && defaultIdleTime )
-          || ( idleTime.elapsed() >= maxIdle ) )
+        if ( idleTime.elapsed() >= *Globals::MAX_IDLE_TIME )
         {
             QString reason{ "Auto-Disconnect; Idle timeout: [ %1 ], [ %2 ]" };
                     reason = reason.arg( this->getSernum_s() )
@@ -1270,5 +1295,19 @@ void Player::killTimerTimeOutSlot()
 
 void Player::afkTimerTimeOutSlot()
 {
-    this->setIsAFK( true );
+    //Player is not AFK, ignore.
+    if ( !this->getIsAFK() )
+        return;
+
+    if ( Settings::getSetting( SKeys::Rules, SSubKeys::MaxAFK, server->getServerName() ).toBool()
+      && !this->getIsDisconnected() ) //Do not attempt to disconnect a previously disconnected user.
+    {
+        QString reason{ "Auto-Disconnect; AFK timeout: [ %1 ], [ %2 ]" };
+                reason = reason.arg( this->getSernum_s() )
+                               .arg( this->getBioData() );
+
+        emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
+
+        this->setDisconnected( true, DCTypes::IPDC );
+    }
 }
