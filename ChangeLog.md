@@ -9,7 +9,14 @@ Version 3.1.1:
       * Users detected violating the "noMod" and "noCheat" rules while the setting "Strictly Enforce Rules" is enabled will no longer be disconnected.
         * These users will now be Quarantined and may only interact with other Quarantined Users.
       * Added a UI control within the PlrListWidget to facilitate a manual override of a User's Quarantined State.
-      * 
+      * Added Remote-Admin commands to facilitate quarantining and unquarantining Users.
+        * Usage: "/quarantine soul 4000 Good behavior" and "/unquarantine soul 4000 Good behavior"
+      * When Remote-Admins authenticate they will now recieve information on how many Users are Muted and Quarantined.
+      * Expanded the Remote-Admin command "Info" to faciliate viewing of Muted and Quarantined Users.
+        * The added sub-commands are "muted" and "quarantined". Usage: "`info muted" and "`info quarantined"
+          * This is added so that Remote-Admins can "see" which Users have a punishment applied and can remove them if desired.
+      * The Remote-Admin command "`info server" will now display the Peak User Count, Muted User Count, and Quarantined User Count.
+        * Full output: "Server Info: Up Time [ 00d:00h:00m:27s ], MasterMix Ping [ 106 ms, Avg: 101.5 ms, Trend: 84.13 ms ], Users [ Current 1 / Peak 1 ], Muted [ 0 ], Quarantined [ 0 ], Admins [ 1 ]."
 
 
 

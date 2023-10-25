@@ -410,6 +410,26 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 retn = true;
             }
         break;
+        case GMCmds::Quarantine:
+            {
+                if ( this->validateAdmin( admin, cmdRank, cmd )
+                  && !subCmd.isEmpty() )
+                {
+                    this->quarantineHandler( admin, arg1, reason );
+                }
+                retn = true;
+            }
+        break;
+        case GMCmds::UnQuarantine:
+            {
+                if ( this->validateAdmin( admin, cmdRank, cmd )
+                  && !subCmd.isEmpty() )
+                {
+                    this->quarantineHandler( admin, arg1, reason );
+                }
+                retn = true;
+            }
+        break;
         case GMCmds::Message:
             {
                 if ( this->validateAdmin( admin, cmdRank, cmd )
@@ -655,50 +675,77 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
     if ( !subCmd.isEmpty() )
         subIdx = cmdTable->getSubCmdIndex( cmdIdx, subCmd, false );
 
-    QString tmpMsg{ "" };
-    if ( subIdx == GMSubCmds::Zero )
+    QString tmpMsg{ "Server Info: Up Time [ %1 ], MasterMix Ping [ %2 ms, Avg: %3 ms, Trend: %4 ms ], Users [ Current %5 / Peak %6 ], "
+                    "Muted [ %7 ], Quarantined [ %8 ]" };
+
+    switch( subIdx )
     {
-        //Server UpTime, Connected Users, Connected Admins.
-        qint32 adminCount{ 0 };
-
-        //QThreadPool::activeThreadCount();
-        //QThreadPool::maxThreadCount();
-        //Peak Player COunt.
-
-        tmpMsg = "Server Info: Up Time [ %1 ], MasterMix Ping [ %2 ms, Avg: %3 ms, Trend: %4 ms ], Users [ %5 ]";
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
-        {
-            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-            if ( tmpPlr != nullptr )
+        case GMSubCmds::Zero: //Server
             {
-                //Only Track Admins that are logged in and are visible.
-                if ( tmpPlr->getAdminPwdReceived()
-                  && tmpPlr->getIsVisible() )
+                //Server UpTime, Connected Users, Connected Admins.
+                qint32 adminCount{ 0 };
+
+                //QThreadPool::activeThreadCount();
+                //QThreadPool::maxThreadCount();
+                //Peak Player COunt.
+
+                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
                 {
-                    ++adminCount;
+                    QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
+                    if ( tmpPlr != nullptr )
+                    {
+                        //Only Track Admins that are logged in and are visible.
+                        if ( tmpPlr->getAdminPwdReceived()
+                          && tmpPlr->getIsVisible() )
+                        {
+                            ++adminCount;
+                        }
+                    }
                 }
+
+                tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
+                               .arg( server->getMasterPing() )
+                               .arg( server->getMasterPingAvg() )
+                               .arg( server->getMasterPingTrend() )
+                               .arg( server->getPlayerCount() )
+                               .arg( server->getPeakPlayerCount() )
+                               .arg( server->getMutedPlayerCount() )
+                               .arg( server->getQuarantinedPlayerCount() );
+
+                if ( admin->getIsAdmin() )
+                {
+                    QString adminList{ ", Admins [ %1 ]." };
+                    tmpMsg = tmpMsg % adminList.arg( adminCount );
+                }
+                else
+                    tmpMsg = tmpMsg % ".";
+
+                server->sendMasterMessage( tmpMsg, admin, false );
             }
-        }
+        break;
+        case GMSubCmds::One: //Player Information
+        break;
+        case GMSubCmds::Two: //Muted
+            {
+                QString mutedList{ "Muted Users: " };
+                if ( server != nullptr )
+                    mutedList.append( server->getMutedPlayerList() );
 
-        tmpMsg = tmpMsg.arg( Helper::getTimeFormat( server->getUpTime() ) )
-                       .arg( server->getMasterPing() )
-                       .arg( server->getMasterPingAvg() )
-                       .arg( server->getMasterPingTrend() )
-                       .arg( server->getPlayerCount() );
+                server->sendMasterMessage( mutedList, admin, false );
+            }
+        break;
+        case GMSubCmds::Three: //Quarantined
+            {
+                QString quarantinedList{ "Quarantined Users: " };
+                if ( server != nullptr )
+                    quarantinedList.append( server->getQuarantinedPlayerList() );
 
-        if ( admin->getIsAdmin() )
-        {
-            QString adminList{ ", Admins [ %1 ]." };
-            tmpMsg = tmpMsg % adminList.arg( adminCount );
-        }
-        else
-            tmpMsg = tmpMsg % ".";
-
-        server->sendMasterMessage( tmpMsg, admin, false );
-    }
-    else if ( subIdx == GMSubCmds::One )
-    {
-        //Player Information.
+                server->sendMasterMessage( quarantinedList, admin, false );
+            }
+        break;
+        case GMSubCmds::Invalid:
+        default:
+        break;
     }
 }
 
@@ -899,6 +946,113 @@ void CmdHandler::unMuteHandler(QSharedPointer<Player> admin, const QString& subC
         User::removePunishment( sernum, PunishTypes::Mute, PunishTypes::SerNum );
 }
 
+void CmdHandler::quarantineHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& reason)
+{
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Quarantined ] you. Reason: [ %2 ]." };
+    QString append{ "You may only interact with other Quarantined Users." };
+    QString msg{ reason };
+
+    QSharedPointer<Player> tmpPlr{ nullptr };
+    bool quarantine{ false };
+
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    {
+        tmpPlr = server->getPlayer( i );
+        if ( tmpPlr != nullptr )
+        {
+            //Check target validity.
+            if ( this->isTarget( tmpPlr, arg1 ) )
+            {
+                quarantine = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Quarantine, false );
+                if ( quarantine )
+                    break;
+            }
+        }
+        quarantine = false;
+    }
+
+    if ( quarantine )
+    {
+        if ( msg.isEmpty() )
+            msg = "No Reason!";
+
+        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                             .arg( msg );
+
+        if ( !reasonMsg.isEmpty() )
+        {
+            server->sendMasterMessage( reasonMsg, tmpPlr, false );
+            server->sendMasterMessage( append, tmpPlr, false );
+        }
+
+        reasonMsg = "Remote-Quarantine by admin [ %1 ]; %2: [ %3 ], [ %4 ]";
+        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                             .arg( msg )
+                             .arg( tmpPlr->getSernum_s() )
+                             .arg( tmpPlr->getBioData() );
+
+        emit this->insertLogSignal( server->getServerName(), reasonMsg, LKeys::PunishmentLog, true, true );
+
+        if ( !tmpPlr->getIsQuarantined() )
+        {
+            tmpPlr->setQuarantined( true );
+            tmpPlr->setQuarantineOverride( false );
+        }
+    }
+}
+
+void CmdHandler::unQuarantineHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& reason)
+{
+    QString reasonMsg{ "Remote-Admin [ %1 ] has [ Un-Quarantined ] you. Reason: [ %2 ]." };
+    QString append{ "You may now interact with other Users." };
+    QString msg{ reason };
+
+    QSharedPointer<Player> tmpPlr{ nullptr };
+    bool unQuarantine{ false };
+
+    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    {
+        tmpPlr = server->getPlayer( i );
+        if ( tmpPlr != nullptr )
+        {
+            //Check target validity.
+            if ( this->isTarget( tmpPlr, arg1 ) )
+            {
+                unQuarantine = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Quarantine, false );
+                if ( unQuarantine )
+                    break;
+            }
+        }
+        unQuarantine = false;
+    }
+
+    if ( unQuarantine )
+    {
+        if ( msg.isEmpty() )
+            msg = "No Reason!";
+
+        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                             .arg( msg );
+
+        if ( !reasonMsg.isEmpty() )
+        {
+            server->sendMasterMessage( reasonMsg, tmpPlr, false );
+            server->sendMasterMessage( append, tmpPlr, false );
+        }
+
+        reasonMsg = "Remote-UnQuarantine by admin [ %1 ]; %2: [ %3 ], [ %4 ]";
+        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                             .arg( msg )
+                             .arg( tmpPlr->getSernum_s() )
+                             .arg( tmpPlr->getBioData() );
+
+        emit this->insertLogSignal( server->getServerName(), reasonMsg, LKeys::PunishmentLog, true, true );
+
+        if ( tmpPlr->getIsQuarantined() )
+            tmpPlr->setQuarantineOverride( true );
+    }
+}
+
 void CmdHandler::msgHandler(QSharedPointer<Player> admin, const QString& message, const QString& target, const bool& all)
 {
     QString tmpMsg{ "" };
@@ -938,7 +1092,9 @@ void CmdHandler::msgHandler(QSharedPointer<Player> admin, const QString& message
 
 void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCmd)
 {
+    QString punishedUsers{ "There are currently [ %1 ] Users Muted and [ %2 ] Users Quarantined. Please use the \"Info\" command for more information." };
     QString response{ "%1 %2 Password." };
+
     static const QString invalidStr{ "Incorrect" };
     static const QString validStr{ "Correct" };
     static const QString welcomeStr{ " Welcome!" };
@@ -947,6 +1103,8 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
     static const QStringList pwdTypes{ "[ Server ]", "[ Admin ]" };
 
     bool disconnect{ false };
+    bool validPwd{ false };
+
     PwdTypes pwdType{ PwdTypes::Invalid };
 
     const QString& pwd{ subCmd };
@@ -978,6 +1136,7 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
         if ( !pwd.isEmpty()
           && User::cmpAdminPwd( sernum, pwd ) )
         {
+            validPwd = true;
             response = response.arg( validStr )
                                .append( welcomeStr );
 
@@ -1017,7 +1176,17 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
     }
 
     if ( !response.isEmpty() )
+    {
         server->sendMasterMessage( response, admin, false );
+        if ( validPwd == true
+          && pwdType == PwdTypes::Admin )
+        {
+            punishedUsers = punishedUsers.arg( server->getMutedPlayerCount() )
+                                         .arg( server->getQuarantinedPlayerCount() );
+
+            server->sendMasterMessage( punishedUsers, admin, false );
+        }
+    }
 
     if ( disconnect )
     {

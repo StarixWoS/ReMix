@@ -50,6 +50,8 @@ class CmdHandler : public QObject
         void kickHandler(QSharedPointer<Player> admin, const QString& arg1, const GMCmds& argIndex, const QString& message, const bool& all);
         void muteHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
         void unMuteHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1);
+        void quarantineHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& reason);
+        void unQuarantineHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& reason);
 
         void msgHandler(QSharedPointer<Player> admin, const QString& message, const QString& target, const bool& all);
 

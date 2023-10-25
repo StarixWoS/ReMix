@@ -81,6 +81,7 @@ class Server : public QTcpServer
 
     QString gameWorld{ "" };
 
+    qint32 peakPlayerCount{ 0 };
     QVector<QSharedPointer<Player>> players;
     QMap<qint32, QSharedPointer<Player>> plrSlotMap;
 
@@ -173,6 +174,15 @@ class Server : public QTcpServer
 
         qint32 getPlayerCount() const;
         void setPlayerCount(const qint32& value);
+
+        qint32 getPeakPlayerCount() const;
+        void setPeakPlayerCount(const qint32& value);
+
+        qint32 getQuarantinedPlayerCount() const;
+        QString getQuarantinedPlayerList() const;
+
+        qint32 getMutedPlayerCount() const;
+        QString getMutedPlayerList() const;
 
         quint16 getPublicPort() const;
         void setPublicPort(const quint16& value);

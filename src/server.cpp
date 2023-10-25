@@ -818,7 +818,85 @@ void Server::setPlayerCount(const qint32& value)
     else
         playerCount = value;
 
+    this->setPeakPlayerCount( playerCount );
     this->sendMasterInfo();
+}
+
+qint32 Server::getPeakPlayerCount() const
+{
+    return peakPlayerCount;
+}
+
+void Server::setPeakPlayerCount(const qint32& value)
+{
+    if ( value > peakPlayerCount )
+        peakPlayerCount = value;
+}
+
+qint32 Server::getQuarantinedPlayerCount() const
+{
+    qint32 count{ 0 };
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && plr->getIsQuarantined() )
+        {
+            ++count;
+        }
+    }
+    return count;
+}
+
+QString Server::getQuarantinedPlayerList() const
+{
+    QString list{ "" };
+    QString filler{ "%1," };
+
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && plr->getIsQuarantined() )
+        {
+            list += filler.arg( plr->getSernum_s() );
+        }
+
+        if ( filler.length() > 800 )
+            break;
+    }
+    return list;
+}
+
+qint32 Server::getMutedPlayerCount() const
+{
+    qint32 count{ 0 };
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && plr->getIsMuted() )
+        {
+            ++count;
+        }
+    }
+    return count;
+}
+
+QString Server::getMutedPlayerList() const
+{
+    QString list{ "" };
+    QString filler{ "%1," };
+
+    for ( QSharedPointer<Player> plr : this->getPlayerVector() )
+    {
+        if ( plr != nullptr
+          && plr->getIsMuted() )
+        {
+            list += filler.arg( plr->getSernum_s() );
+        }
+
+        if ( filler.length() > 800 )
+            break;
+    }
+    return list;
 }
 
 quint16 Server::getPublicPort() const
