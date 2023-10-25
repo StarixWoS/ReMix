@@ -159,6 +159,7 @@ void PlrListWidget::initContextMenu()
     contextMenu->addAction( ui->actionDisconnectUser );
     contextMenu->addAction( ui->actionSendMessage );
     contextMenu->addAction( ui->actionMuteNetwork );
+    contextMenu->addAction( ui->actionQuarantineUser );
     contextMenu->addAction( ui->actionBANISHUser );
     contextMenu->addAction( ui->actionMakeAdmin );
 
@@ -315,12 +316,18 @@ void PlrListWidget::on_playerView_customContextMenuRequested(const QPoint& pos)
                 ui->actionMakeAdmin->setText( "Change Admin" );
             else
                 ui->actionMakeAdmin->setText( "Make Admin" );
+
+            if ( plr->getIsQuarantined() )
+                ui->actionQuarantineUser->setText( "Un-Quarantine User" );
+            else
+                ui->actionQuarantineUser->setText( "Quarantine User" );
         }
         contextMenu->popup( ui->playerView->viewport()->mapToGlobal( pos ) );
     }
     else
     {
         contextMenu->removeAction( ui->actionDisconnectUser );
+        contextMenu->removeAction( ui->actionQuarantineUser );
         contextMenu->removeAction( ui->actionSendMessage );
         contextMenu->removeAction( ui->actionMuteNetwork );
         contextMenu->removeAction( ui->actionBANISHUser );
@@ -494,6 +501,67 @@ void PlrListWidget::on_actionBANISHUser_triggered()
         server->sendMasterMessage( inform, menuTarget, false );
         if ( menuTarget->waitForBytesWritten() )
             menuTarget->setDisconnected( true, DCTypes::IPDC );
+    }
+    menuTarget = nullptr;
+}
+
+void PlrListWidget::on_actionQuarantineUser_triggered()
+{
+    if ( menuTarget == nullptr )
+        return;
+
+    QString sernum{ menuTarget->getSernumHex_s() };
+
+    QString inform{ "The Server Host has %1 you. Reason: %2" };
+    QString reason{ "Manual %1; %2" };
+    QString type{ "" };
+    bool quarantine{ true };
+
+    QString title{ "%1 User:" };
+    QString prompt{ "Are you certain you want to %1 [ %2 ]?" };
+    if ( menuTarget->getIsQuarantined() )
+    {
+        title = title.arg( "Un-Quarantine" );
+        prompt = prompt.arg( "Un-Quarantine" );
+        type = "Un-Quarantined";
+        reason = reason.arg( "Un-Quarantine" );
+
+        quarantine = false;
+    }
+    else
+    {
+        title = title.arg( "Quarantine" );
+        prompt = prompt.arg( "Quarantine" );
+        type = "Quarantined";
+        reason = reason.arg( "Quarantine" );
+    }
+
+    prompt = prompt.arg( Helper::serNumToIntStr( sernum, true ) );
+
+    if ( Helper::confirmAction( this, title, prompt ) )
+    {
+        reason = reason.arg( User::requestReason( this ) );
+        inform = inform.arg( type )
+                       .arg( reason );
+
+        server->sendMasterMessage( inform, menuTarget, false );
+        if ( quarantine )
+        {
+            QString append{ "You may only interact with other Quarantined Users." };
+            server->sendMasterMessage( append, menuTarget, false );
+
+            menuTarget->setQuarantined( true );
+            menuTarget->setQuarantineOverride( false );
+        }
+        else
+            menuTarget->setQuarantineOverride( true );
+
+        QString logMsg{ "%1: [ %2 ], [ %3 ]" };
+                logMsg = logMsg.arg( reason )
+                               .arg( Helper::serNumToIntStr( sernum, true ) )
+                               .arg( menuTarget->getBioData() );
+
+        emit this->insertLogSignal( server->getServerName(), logMsg, LKeys::PunishmentLog, true, true );
     }
     menuTarget = nullptr;
 }

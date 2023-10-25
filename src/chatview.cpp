@@ -625,10 +625,22 @@ void ChatView::insertMasterMessageSlot(const QString& message, QSharedPointer<Pl
       && fromChatView )
     {
         QString packet{ ":;oCFFFFFB2EDLFFFFFFB2E00000000" % msg };
-        if ( toAll == true
-          && redMessage == false )
+        if ( server->getGameId() == Games::WoS )
         {
-            packet = ( ":;oCFFFFFB2EDAEFFFFFB2E00000000" % msg );
+            if ( toAll == true
+              && redMessage == false )
+            {
+                packet = ( ":;oCFFFFFB2EDAEFFFFFB2E00000000" % msg );
+            }
+        }
+        else if ( server->getGameId() == Games::ToY )
+        {
+            packet = ( ":;<>CFFFFFB2ECAA0000000000000000" % msg );
+            if ( toAll == true
+              && redMessage == false )
+            {
+                packet = ( ":;<>CFFFFFB2ECAA0000000000000000" % msg );
+            }
         }
         emit this->sendChatSignal( PacketForge::getInstance()->encryptPacket( packet.toLatin1(), 0, server->getGameId() ), target, toAll );
     }

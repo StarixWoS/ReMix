@@ -20,6 +20,7 @@ class Player : public QTcpSocket
     QSharedPointer<Server> server;
     User* userUIObject{ nullptr };
 
+    bool isQuarantineOverride{ false };
     bool newAdminPwdRequested{ false };
     bool newAdminPwdReceived{ false };
     bool adminPwdRequested{ false };
@@ -27,6 +28,7 @@ class Player : public QTcpSocket
     bool svrPwdRequested{ false };
     bool svrPwdReceived{ false };
     bool isDisconnected{ false };
+    bool isQuarantined{ false };
     bool isPartyLocked{ false };
     bool isCampLocked{ false };
     bool isCampOptOut{ false };
@@ -196,6 +198,12 @@ class Player : public QTcpSocket
 
         bool getIsDisconnected() const;
         void setDisconnected(const bool& value, const DCTypes& dcType = DCTypes::IPDC);
+
+        bool getQuarantineOverride() const;
+        void setQuarantineOverride(const bool& value);
+
+        bool getIsQuarantined() const;
+        void setQuarantined(const bool& value);
 
         bool getIsCampLocked() const;
         void setIsCampLocked(bool value);

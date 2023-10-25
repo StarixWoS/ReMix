@@ -4,6 +4,25 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.1.1:
+    Change:
+      * Users detected violating the "noMod" and "noCheat" rules while the setting "Strictly Enforce Rules" is enabled will no longer be disconnected.
+        * These users will now be Quarantined and may only interact with other Quarantined Users.
+      * Added a UI control within the PlrListWidget to facilitate a manual override of a User's Quarantined State.
+      * 
+
+
+
+
+
+
+    Bugfixes:
+      * 
+
+
+
+
+
 Version 3.1.0:
     Change:
       * Properly inform Users when a Mute punishment is applied or removed.

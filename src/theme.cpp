@@ -41,6 +41,7 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::AdminInvalid,     "#8b0606" }, //Admin Invalid.
         { Colors::IPValid,          "#006403" }, //IP Valid.
         { Colors::IPInvalid,        "#8b0505" }, //IP Invalid.
+        { Colors::IPQuarantined,    "#8b0506" }, //IP Quarnatined.
         { Colors::IPVanished,       "#ff8c00" }, //IP Vanished.
         { Colors::PartyJoin,        "#8b0404" }, //Party Join.
         { Colors::PKChallenge,      "#8b0303" }, //PK Challenge.
@@ -69,6 +70,7 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::AdminInvalid,     "#ff0606" }, //Admin Invalid.
         { Colors::IPValid,          "#32cd34" }, //IP Valid.
         { Colors::IPInvalid,        "#ff0505" }, //IP Invalid.
+        { Colors::IPQuarantined,    "#ff0506" }, //IP Quarnatined.
         { Colors::IPVanished,       "#ffa500" }, //IP Vanished.
         { Colors::PartyJoin,        "#ff0404" }, //Party Join.
         { Colors::PKChallenge,      "#ff0303" }, //PK Challenge.

@@ -62,7 +62,7 @@ ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     ui->openPlayerView->setText( "Hide Player List" );
 
     QObject::connect( SettingsWidget::getInstance( Settings::getInstance() ), &SettingsWidget::emulatePlayerToggledSignal,
-                      ChatView::getInstance( server ), ChatView::emulatePlayerToggledSlot );
+                      ChatView::getInstance( server ), &ChatView::emulatePlayerToggledSlot );
     ui->chatViewFill->setLayout( ChatView::getInstance( server )->layout() );
     ui->chatViewFill->layout()->addWidget( ChatView::getInstance( server ) );
     ui->openChatView->setText( "Hide Chat View" );

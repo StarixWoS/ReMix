@@ -7,13 +7,14 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.1.0 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.1.1 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
 string(REPLACE "." "," RC_VERSION "${ReMix_VERSION}")
 add_compile_definitions(RC_VERSION_STRING=\"${ReMix_VERSION}\" RC_VERSION=${RC_VERSION})
 add_compile_definitions(REMIX_VERSION=\"${ReMix_VERSION}\")
+add_compile_definitions(REMIX_DEVMODE=0)
 
 find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent REQUIRED)
 

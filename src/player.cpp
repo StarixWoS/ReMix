@@ -43,7 +43,7 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     this->setIsAFK( false );
 
     //Connect Timers to Slots.
-    QObject::connect( &vanishStateTimer, QTimer::timeout, this, &Player::vanishStateTimerTimeOutSlot );
+    QObject::connect( &vanishStateTimer, &QTimer::timeout, this, &Player::vanishStateTimerTimeOutSlot );
     QObject::connect( &serNumKillTimer, &QTimer::timeout, this, &Player::serNumKillTimerTimeOutSlot );
     QObject::connect( &afkTimer, &QTimer::timeout, this, &Player::afkTimerTimeOutSlot );
     QObject::connect( &killTimer, &QTimer::timeout, this, &Player::killTimerTimeOutSlot );
@@ -590,6 +590,30 @@ void Player::setDisconnected(const bool& value, const DCTypes& dcType)
     }
 }
 
+bool Player::getQuarantineOverride() const
+{
+    return isQuarantineOverride;
+}
+
+void Player::setQuarantineOverride(const bool& value)
+{
+    isQuarantineOverride = value;
+}
+
+bool Player::getIsQuarantined() const
+{
+    //Override manually applied by the Server Owner.
+    if ( this->getQuarantineOverride() )
+        return false;
+
+    return isQuarantined;
+}
+
+void Player::setQuarantined(const bool& value)
+{
+    isQuarantined = value;
+}
+
 bool Player::getIsCampLocked() const
 {
     return isCampLocked;
@@ -698,14 +722,28 @@ qint32 Player::getPlrCheatCount() const
 
 void Player::setPlrCheatCount(const qint32& value)
 {
+    static const QString quarantine{ "You have been quarantined due to to the Rule \"noCheat\" being *Strictly Enforced*. "
+                                     "You may only interact with other Quarantined Users." };
+    static const QString unQuarantine{ "You have been un-quarantined." };
+    const bool quarantineed{ this->getIsQuarantined() };
     if ( this->getIsIncarnated() )
     {
         if ( value > 0
           && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
         {
-            static const QString msg{ "You have been disconnected due to to the Rule \"noCheat\" being *Strictly Enforced*." };
-            server->sendMasterMessage( msg, this->getThisPlayer(), false );
-            this->setDisconnected( true, DCTypes::PktDC );
+            if ( !quarantineed ) //Only quarantine once.
+            {
+                server->sendMasterMessage( quarantine, this->getThisPlayer(), false );
+                if ( !this->getIsQuarantined() )
+                    this->setQuarantined( true );
+            }
+        }
+        else
+        {
+            if ( quarantineed ) //Inform unquarantine.
+                server->sendMasterMessage( unQuarantine, this->getThisPlayer(), false );
+
+            this->setQuarantined( false ); //Ensure unquarantined state.
         }
         plrCheatCount = value;
     }
@@ -718,14 +756,29 @@ qint32 Player::getPlrModCount() const
 
 void Player::setPlrModCount(const qint32& value)
 {
+    static const QString quarantine{ "You have been quarantined due to to the Rule \"noMod\" being *Strictly Enforced*. "
+                                     "You may only interact with other Quarantined Users." };
+    static const QString unQuarantine{ "You have been un-quarantined." };
+    const bool quarantineed{ this->getIsQuarantined() };
+
     if ( this->getIsIncarnated() )
     {
         if ( ( value & 2 )
           && Settings::getSetting( SKeys::Rules, SSubKeys::StrictRules, server->getServerName() ).toBool() )
         {
-            const QString msg{ "You have been disconnected due to the Rule \"noMod\" being *Strictly Enforced*." };
-            server->sendMasterMessage( msg, this->getThisPlayer(), false );
-            this->setDisconnected( true, DCTypes::PktDC );
+            if ( !quarantineed ) //Only quarantine once.
+            {
+                server->sendMasterMessage( quarantine, this->getThisPlayer(), false );
+                if ( !this->getIsQuarantined() )
+                    this->setQuarantined( true );
+            }
+        }
+        else
+        {
+            if ( quarantineed ) //Inform unquarantine.
+                server->sendMasterMessage( unQuarantine, this->getThisPlayer(), false );
+
+            this->setQuarantined( false ); //Ensure unquarantined state.
         }
         plrModCount = value;
     }
@@ -985,16 +1038,22 @@ void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& ta
                                     const qint32& trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
-    if ( plr == this )
+    if ( plr == this
+      || plr == nullptr )
         return;
 
     if ( !this->getIsAdmin() )
     {
-        if ( plr != nullptr
-          && !plr->getIsVisible() )
-        {
+        if ( !plr->getIsVisible() )
             return;
-        }
+    }
+
+    //Quarantined players can only communicate with the quarantined.
+    if ( !this->getIsQuarantined()
+      && plr->getIsQuarantined() )
+    {
+        if ( !plr->getQuarantineOverride() )
+            return;
     }
 
     bool isAuth{ false };
@@ -1122,11 +1181,13 @@ void Player::connectionTimeUpdateSlot()
     emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::SerNum, *color, Qt::ForegroundRole, true );
     this->updateIconState();
 
-    //Color the User's IP address Red if the User's is muted. Otherwise, color as Green.
+    //Color the User's IP address Red if the User's is muted or quarantined. Otherwise, color as Green.
     if ( !this->getIsMuted() )
     {
         if ( !this->getIsVisible() )
             color = Colors::IPVanished;
+        else if ( this->getIsQuarantined() )
+            color = Colors::IPQuarantined;
         else
             color = Colors::IPValid;
     }
@@ -1234,19 +1295,26 @@ void Player::readyReadSlot()
     if ( data.contains( "\r" )
       || data.contains( "\n" ) )
     {
-        int bytes{ static_cast<int>( data.indexOf( "\r\n" ) ) };
-        if ( bytes <= 0 )
-            bytes = static_cast<int>( data.indexOf( "\n" ) );
-        if ( bytes <= 0 )
-            bytes = static_cast<int>( data.indexOf( "\r" ) );
+        qint32 bytes{ 0 };
+        auto findNewLine =
+        [=](const QByteArray& cData)
+        {
+            qint32 tBytes{ static_cast<qint32>( cData.indexOf( "\r\n" ) ) };
+            if ( tBytes <= 0 )
+                tBytes = static_cast<qint32>( cData.indexOf( "\n" ) );
+            if ( tBytes <= 0 )
+                tBytes = static_cast<qint32>( cData.indexOf( "\r" ) );
 
+            return tBytes;
+        };
+
+        bytes = findNewLine( data );
         if ( bytes > 0 )
         {
             QByteArray packet{ data.left( bytes + 1 ) };
                        packet = packet.left( packet.length() - 1 );
 
             data = data.mid( bytes + 1 ).data();
-
             this->setOutBuff( data );
 
             this->setPacketsIn( this->getPacketsIn(), 1 );

@@ -38,6 +38,7 @@ const QStringList ColorWidget::rowList
     "Admin Invalid",
     "IP Valid",
     "IP Invalid",
+    "IP Quarantined",
     "IP Vanished",
     "Party Join",
     "PK Challenge",

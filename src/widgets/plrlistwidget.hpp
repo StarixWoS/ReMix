@@ -81,6 +81,8 @@ class PlrListWidget : public QWidget
         void themeChangedSlot();
         void forwardMessageSlot(const QString& message);
 
+        void on_actionQuarantineUser_triggered();
+
     signals:
         void insertLogSignal(const QString& source, const QString& message, const LKeys& type, const bool& logToFile, const bool& newLine) const;
         void insertMasterMessageSignal(const QString& message, QSharedPointer<Player> target, const bool& toAll, const bool& fromChatView);

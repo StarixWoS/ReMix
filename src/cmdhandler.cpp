@@ -661,6 +661,10 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
         //Server UpTime, Connected Users, Connected Admins.
         qint32 adminCount{ 0 };
 
+        //QThreadPool::activeThreadCount();
+        //QThreadPool::maxThreadCount();
+        //Peak Player COunt.
+
         tmpMsg = "Server Info: Up Time [ %1 ], MasterMix Ping [ %2 ms, Avg: %3 ms, Trend: %4 ms ], Users [ %5 ]";
         for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
         {

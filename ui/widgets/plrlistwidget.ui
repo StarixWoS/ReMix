@@ -113,6 +113,11 @@
     <string>BANISH User</string>
    </property>
   </action>
+  <action name="actionQuarantineUser">
+   <property name="text">
+    <string>Quarantine User</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

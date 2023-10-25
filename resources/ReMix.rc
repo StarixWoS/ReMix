@@ -31,12 +31,12 @@ BEGIN
         BLOCK "040904E4"
         BEGIN
             VALUE "CompanyName",      "AHitB"
-            VALUE "FileDescription",  "A replacement for the synthetic-reality Mix Game Server!"
+            VALUE "FileDescription",  "A replacement for the Synthetic-Reality Mix Game Server!"
             VALUE "FileVersion",      STRINGIFY1(VER_FILEVERSION_STR)
-            VALUE "InternalName",     "ReMix"
-            VALUE "LegalCopyright",   "Copyright ©NA The ReMix Project"
-            VALUE "OriginalFilename", "remix.exe"
-            VALUE "ProductName",      "remix"
+            VALUE "InternalName",     "ReMixDev"
+            VALUE "LegalCopyright",   "Copyright (NA) The ReMix Project"
+            VALUE "OriginalFilename", "ReMix_" STRINGIFY(VER_FILEVERSION_STR) ".exe"
+            VALUE "ProductName",      "ReMix"
             VALUE "ProductVersion",   STRINGIFY(VER_FILEVERSION_STR)
         END
     END

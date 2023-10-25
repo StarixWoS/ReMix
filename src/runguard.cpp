@@ -8,6 +8,7 @@
 RunGuard::RunGuard(int& argc, char** argv)
     : QApplication( argc, argv )
 {
+#ifndef REMIX_DEVMODE
     // Create shared memory segment
     if ( sharedMemory.create( sizeof( quint32 ) ) == false )
     {
@@ -23,6 +24,7 @@ RunGuard::RunGuard(int& argc, char** argv)
         sharedMemory.unlock();
     }
 
+#endif //REMIX_DEVMODE
     if ( !isRunning )
     {
         this->setApplicationName( QStringLiteral("ReMix") );
