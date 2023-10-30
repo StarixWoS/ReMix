@@ -26,12 +26,13 @@
 //Initialize Settings keys/subKeys lists
 const QMap<SKeys, QString> Settings::pKeys =
 {
-    { SKeys::Setting,   "Settings"  },
-    { SKeys::Messages,  "Messages"  },
-    { SKeys::Positions, "Positions" },
-    { SKeys::Rules,     "Rules"     },
-    { SKeys::Logger,    "Logger"    },
-    { SKeys::Colors,    "Colors"    },
+    { SKeys::Setting,         "Settings"        },
+    { SKeys::Messages,        "Messages"        },
+    { SKeys::Positions,       "Positions"       },
+    { SKeys::Rules,           "Rules"           },
+    { SKeys::Logger,          "Logger"          },
+    { SKeys::Colors,          "Colors"          },
+    { SKeys::CommandRanks,    "CommandRanks"    },
 };
 
 const QMap<SSubKeys, QString> Settings::sKeys =

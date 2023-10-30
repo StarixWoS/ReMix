@@ -7,7 +7,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.1.1 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.1.2 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -28,6 +28,7 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/packethandlers/toypackethandler.cpp
         src/packethandlers/w97packethandler.cpp
         src/views/usersortproxymodel.cpp
+        src/widgets/cmdtabledelegate.cpp
         src/views/plrsortproxymodel.cpp
         src/widgets/settingswidget.cpp
         src/widgets/remixtabwidget.cpp
@@ -42,6 +43,7 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/widgets/motdwidget.cpp
         src/thread/writethread.cpp
         src/thread/udpthread.cpp
+        src/cmdtableoverride.cpp
         src/createinstance.cpp
         src/appeventfilter.cpp
         src/packethandler.cpp
@@ -70,6 +72,7 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/packethandlers/toypackethandler.hpp
         src/packethandlers/w97packethandler.hpp
         src/views/usersortproxymodel.hpp
+        src/widgets/cmdtabledelegate.hpp
         src/views/plrsortproxymodel.hpp
         src/widgets/settingswidget.hpp
         src/widgets/remixtabwidget.hpp
@@ -84,6 +87,7 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/widgets/motdwidget.hpp
         src/thread/writethread.hpp
         src/thread/udpthread.hpp
+        src/cmdtableoverride.hpp
         src/createinstance.hpp
         src/appeventfilter.hpp
         src/packethandler.hpp
@@ -116,6 +120,7 @@ set(UI ui/widgets/settingswidget.ui
     ui/widgets/ruleswidget.ui
     ui/widgets/colorwidget.ui
     ui/widgets/motdwidget.ui
+    ui/cmdtableoverride.ui
     ui/createinstance.ui
     ui/selectworld.ui
     ui/settings.ui

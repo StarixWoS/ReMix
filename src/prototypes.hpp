@@ -254,6 +254,9 @@
         //Valid Password types.
         enum class PwdTypes: int{ Server = 0, Admin = 1, Invalid = -1 };
 
+        //Valid columns within the CmdTableOverride Dialog.
+        enum class CmdOverrideCols: int{ Command = 0, Rank, Description, Usage, ColCount = 4 };
+
         //Valid Remote Administrator Ranks.
         enum class GMRanks: int{ User = 0, GMaster, CoAdmin, Admin, Owner,
                                  Creator = 5, Invalid = -1 };
@@ -265,9 +268,26 @@
                                 Register, ShutDown, ReStart,
                                 CHRules, CHSettings, Vanish, Version,
                                 Camp, Guild, Invalid = -1 };
+
+        //Valid Remote Administrator subcommands.
+        enum class GMSubCmds: int{ MotDChange, MotDRemove,
+                                   InfoServer, InfoQuarantined, InfoMuted, InfoSoul,
+                                   BanIP, BanSoul, BanAll,
+                                   UnBanIP, UnBanSoul, UnBanAll,
+                                   KickIP, KickSoul, KickAll,
+                                   MuteIP, MuteSoul, MuteAll,
+                                   UnMuteIP, UnMuteSoul, UnMuteAll,
+                                   QuarantineIP, QuarantineSoul,
+                                   UnQuarantineIP, UnQuarantineSoul,
+                                   MessageIP, MessageSoul, MessageAll,
+                                   ShutDownStop, ReStartStop,
+                                   VanishHide, VanishShow, VanishStatus,
+                                   CampLock, CampUnLock, CampAllowAll, CampAllowCurrent, CampAllowSoul, CampRemoveSoul, CampSoul,
+                                   Invalid = -1 };
+
         //Valid Remote Administrator sub-commands.
-        enum class GMSubCmds: int{ Zero = 0, One, Two, Three, Four, Five,
-                                   Six, Seven = 7, Invalid = -1 };
+        enum class GMSubCmdIndexes: int{ Zero = 0, One, Two, Three, Four, Five,
+                                         Six, Seven = 7, Invalid = -1 };
 
         //Valid Command Structure Format.
         enum class CmdTblFmt: int{ Cmd = 0, SubCommands, SubCommandCount,
@@ -348,7 +368,7 @@
                                Pings, Calls, InVisible = 16 };
 
         //Valid Key values for use within the Rules and Settings Classes.
-        enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors = 5 };
+        enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors, CommandRanks = 6 };
 
         //Valid Sub-Key values for use within the Settings Class.
         enum class SSubKeys: int{ ServerID = 0, AutoBan, AllowIdle, ReqSerNum, AllowDupe, AllowSSV, BanDupes, CensorIPInfo, MOTD, LogComments, FwdComments,

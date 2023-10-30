@@ -57,6 +57,7 @@ class ReMixWidget : public QWidget
         void on_networkStatus_customContextMenuRequested(const QPoint&);
 
         void on_logButton_clicked();
+        void on_adminCommandsButton_clicked();
         void initializeServerSlot();
 
         void plrConnectedSlot(qintptr socketDescriptor);

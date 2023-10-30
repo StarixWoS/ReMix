@@ -4,6 +4,32 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.1.2:
+    Change:
+      * Added a new Dialog "Admin Command Overrides" that will allow Server Hosts to override the ranks of Remote Admin Commands and SubCommands.
+        * Once a Command's rank has been changed, ReMix will default to using the "CommandRanks" list stored within the "preferences.ini".
+      * Expanded functionality to the "help" command that will allow more detailed syntax information fot Commands and SubCommands.
+        * e.g. the command "/help message all" will now have a description specifically for the SubCommand "all".
+          * "Command Description: Messages *ALL* Users."
+          * "Command Usage: /msg all *Message"
+      * The command "list" now has it's output filtered based on the command ranks available to the Remote-Admin.
+      * Remote-Admins will now be informed when they attempt to use a SubCommand that they lack the rank to access.
+        * e.g. the command "/motd remove" when the rank is insufficient will give the error:
+          * "Error: You do not have access to the command [ remove ]. Please refrain from attempting to use commands that you lack access to!"
+      
+
+
+
+
+
+
+    Bugfixes:
+      * 
+
+
+
+
+
 Version 3.1.1:
     Change:
       * Users detected violating the "noMod" and "noCheat" rules while the setting "Strictly Enforce Rules" is enabled will no longer be disconnected.

@@ -261,12 +261,14 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
 
     stream >> cmd >> subCmd >> arg1 >> arg2 >> arg3;
 
+    GMSubCmdIndexes subCmdIdx{ GMSubCmdIndexes::Invalid };
     GMCmds argIndex{ cmdTable->getCmdIndex( cmd ) };
 
     //The User entered a nonexistant command. Return gracefully.
     if ( argIndex == GMCmds::Invalid )
         return false;
 
+    GMRanks subCmdRank{ GMRanks::Invalid };
     GMRanks cmdRank{ cmdTable->getCmdRank( argIndex ) };
     if ( cmdRank == GMRanks::Invalid )
         return false;
@@ -275,8 +277,18 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         return false;
 
     QString message{ "" };
-    if ( cmdTable->isSubCommand( argIndex, subCmd ) )
+    if ( !subCmd.isEmpty()
+      && cmdTable->isSubCommand( argIndex, subCmd ) )
     {
+        subCmdIdx = cmdTable->getSubCmdIndex( argIndex, subCmd );
+        if ( subCmdIdx != GMSubCmdIndexes::Invalid )
+        {
+            qDebug() << cmd << subCmd << *argIndex << *subCmdIdx;
+            subCmdRank = cmdTable->getSubCmdRank( argIndex, subCmdIdx );
+            if ( !this->canUseAdminCommands( admin, subCmdRank, subCmd ) )
+                return false;
+        }
+
         if ( Helper::cmpStrings( subCmd, "all" ) )
         {
             //Correctly handle "all" command reason/message.
@@ -313,27 +325,48 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
     {
         case GMCmds::Help:
             {
+                //GMRanks subRank{ GMRanks::Invalid };
+
+                index = GMCmds::Invalid;
+                QString tSubCmd{ arg1 };
+
                 //Prevent Users from seeing details on commands they lack access to.
                 message = "The command [ %1 ] does not exist, or you lack the access required to view it's usage.";
-                if ( !subCmd.isEmpty() )
+
+                index = cmdTable->getCmdIndex( subCmd );
+                if ( subCmd.isEmpty() )
+                    index = cmdTable->getCmdIndex( cmd );
+
+                cmdRank = cmdTable->getCmdRank( index );
+
+                if ( !tSubCmd.isEmpty() )
                 {
-                    message = message.arg( subCmd );
-
-                    index = cmdTable->getCmdIndex( subCmd );
-                    cmdRank = cmdTable->getCmdRank( index );
-
                     if ( admin->getAdminRank() >= cmdRank )
                         index = cmdTable->getCmdIndex( subCmd );
-                    else
-                        index = GMCmds::Invalid;
 
+                    if ( !arg1.isEmpty()
+                      && cmdTable->isSubCommand( index, arg1 ) )
+                    {
+                        subCmdIdx = cmdTable->getSubCmdIndex( index, tSubCmd, false );
+                        //subRank = cmdTable->getSubCmdRank( index, subIdx );
+                    }
                 }
+
+                if ( tSubCmd.isEmpty() )
+                {
+                    if ( subCmd.isEmpty() )
+                        message = message.arg( cmd );
+                    else
+                        message = message.arg( subCmd );
+                }
+                else
+                    message = message.arg( subCmd % " " % tSubCmd );
 
                 //Send command description and usage.
                 if ( index != GMCmds::Invalid )
                 {
-                    server->sendMasterMessage( cmdTable->getCommandInfo( index, false ), admin, false );
-                    server->sendMasterMessage( cmdTable->getCommandInfo( index, true ), admin, false );
+                    server->sendMasterMessage( cmdTable->getCommandInfo( index, subCmdIdx, false ), admin, false );
+                    server->sendMasterMessage( cmdTable->getCommandInfo( index, subCmdIdx, true ), admin, false );
                 }
                 else //Inform the User that they lack access to the command.
                     server->sendMasterMessage( message, admin, false );
@@ -600,10 +633,7 @@ void CmdHandler::cannotIssueAction(QSharedPointer<Player> admin, QSharedPointer<
     if ( admin == nullptr || target == nullptr )
         return;
 
-    QString cmdNames;
-    for ( const auto& item : cmdTable->getCmdName( argIndex ) )
-        cmdNames.append( item + ", " );
-
+    QString cmdNames{ cmdTable->getCmdNames( argIndex ) };
     QString message{ "Admin [ %1 ]: Unable to issue the command [ %2 ] on the User [ %3 ]. The User may be offline or another Remote Administrator." };
             message = message.arg( admin->getSernum_s() )
                              .arg( cmdNames )
@@ -666,12 +696,12 @@ void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd
         }
     }
     else    //Invalid argument listing. Send the command syntax.
-        server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, true ), admin, false );
+        server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, GMSubCmdIndexes::Invalid, true ), admin, false );
 }
 
 void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString&)
 {
-    GMSubCmds subIdx{ GMSubCmds::Invalid };
+    GMSubCmdIndexes subIdx{ GMSubCmdIndexes::Invalid };
     if ( !subCmd.isEmpty() )
         subIdx = cmdTable->getSubCmdIndex( cmdIdx, subCmd, false );
 
@@ -680,7 +710,7 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
 
     switch( subIdx )
     {
-        case GMSubCmds::Zero: //Server
+        case GMSubCmdIndexes::Zero: //Server
             {
                 //Server UpTime, Connected Users, Connected Admins.
                 qint32 adminCount{ 0 };
@@ -723,9 +753,9 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 server->sendMasterMessage( tmpMsg, admin, false );
             }
         break;
-        case GMSubCmds::One: //Player Information
+        case GMSubCmdIndexes::One: //Player Information
         break;
-        case GMSubCmds::Two: //Muted
+        case GMSubCmdIndexes::Two: //Muted
             {
                 QString mutedList{ "Muted Users: " };
                 if ( server != nullptr )
@@ -734,7 +764,7 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 server->sendMasterMessage( mutedList, admin, false );
             }
         break;
-        case GMSubCmds::Three: //Quarantined
+        case GMSubCmdIndexes::Three: //Quarantined
             {
                 QString quarantinedList{ "Quarantined Users: " };
                 if ( server != nullptr )
@@ -743,7 +773,7 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 server->sendMasterMessage( quarantinedList, admin, false );
             }
         break;
-        case GMSubCmds::Invalid:
+        case GMSubCmdIndexes::Invalid:
         default:
         break;
     }
@@ -1364,13 +1394,13 @@ void CmdHandler::vanishHandler(QSharedPointer<Player> admin, const QString& subC
     {
         if ( cmdTable->isSubCommand( GMCmds::Vanish, subCmd ) )
         {
-            GMSubCmds idx{ GMSubCmds::Invalid };
+            GMSubCmdIndexes idx{ GMSubCmdIndexes::Invalid };
             if ( !subCmd.isEmpty() )
                 idx = cmdTable->getSubCmdIndex( GMCmds::Vanish, subCmd, false );
 
-            switch ( static_cast<GMSubCmds>( idx ) )
+            switch ( static_cast<GMSubCmdIndexes>( idx ) )
             {
-                case GMSubCmds::Zero: //Hide
+                case GMSubCmdIndexes::Zero: //Hide
                     {
                         if ( isVisible )
                         {
@@ -1379,7 +1409,7 @@ void CmdHandler::vanishHandler(QSharedPointer<Player> admin, const QString& subC
                         }
                     }
                 break;
-                case GMSubCmds::One: //Show
+                case GMSubCmdIndexes::One: //Show
                     {
                         if ( isVisible )
                         {
@@ -1388,17 +1418,17 @@ void CmdHandler::vanishHandler(QSharedPointer<Player> admin, const QString& subC
                         }
                     }
                 break;
-                case GMSubCmds::Two: //Status.
+                case GMSubCmdIndexes::Two: //Status.
                     {
                         message = "Admin [ %1 ]: You are currently %2 to other Players...";
                     }
                 break;
-                case GMSubCmds::Three:
-                case GMSubCmds::Four:
-                case GMSubCmds::Five:
-                case GMSubCmds::Six:
-                case GMSubCmds::Seven:
-                case GMSubCmds::Invalid:
+                case GMSubCmdIndexes::Three:
+                case GMSubCmdIndexes::Four:
+                case GMSubCmdIndexes::Five:
+                case GMSubCmdIndexes::Six:
+                case GMSubCmdIndexes::Seven:
+                case GMSubCmdIndexes::Invalid:
                 break;
             }
         }
@@ -1430,7 +1460,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
     QSharedPointer<Player> tmpPlr{ nullptr };
     bool override{ false };
 
-    GMSubCmds idx{ GMSubCmds::Invalid };
+    GMSubCmdIndexes idx{ GMSubCmdIndexes::Invalid };
     if ( !subCmd.isEmpty() )
         idx = cmdTable->getSubCmdIndex( index, subCmd, false );
 
@@ -1445,8 +1475,8 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                 //Check target validity.
                 if ( this->isTarget( tmpPlr, serNum, false ) )
                 {
-                    if ( static_cast<GMSubCmds>( idx ) != GMSubCmds::Four  //Allow Soul exempted from Admin Checking
-                      || static_cast<GMSubCmds>( idx ) != GMSubCmds::Five )//Remove Soul exempted from admin checking.
+                    if ( static_cast<GMSubCmdIndexes>( idx ) != GMSubCmdIndexes::Four  //Allow Soul exempted from Admin Checking
+                      || static_cast<GMSubCmdIndexes>( idx ) != GMSubCmdIndexes::Five )//Remove Soul exempted from admin checking.
                     {
                         if ( this->canUseAdminCommands( admin, GMRanks::Admin, "soul" ) )
                         {
@@ -1464,9 +1494,9 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         }
     }
 
-    if ( idx != GMSubCmds::Invalid )
+    if ( idx != GMSubCmdIndexes::Invalid )
     {
-        if ( idx >= GMSubCmds::Zero )
+        if ( idx >= GMSubCmdIndexes::Zero )
             msg = lockMsg;
 
         if ( soulSubCmd
@@ -1475,9 +1505,9 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
             return;
         }
 
-        switch ( static_cast<GMSubCmds>( idx ) )
+        switch ( static_cast<GMSubCmdIndexes>( idx ) )
         {
-            case GMSubCmds::Zero: //Lock
+            case GMSubCmdIndexes::Zero: //Lock
                 {
                     msg = msg.arg( lock );
                     if ( override )
@@ -1489,7 +1519,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                         admin->setIsCampLocked( true );
                 }
             break;
-            case GMSubCmds::One: //Unlock
+            case GMSubCmdIndexes::One: //Unlock
                 {
                     msg = msg.arg( unlock );
                     if ( override )
@@ -1501,7 +1531,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                         admin->setIsCampLocked( false );
                 }
             break;
-            case GMSubCmds::Two: //OnlyCurrent.
+            case GMSubCmdIndexes::Two: //OnlyCurrent.
                 {
                     msg = allowCurrent;
                     if ( override )
@@ -1513,7 +1543,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                         admin->setIsCampOptOut( true );
                 }
             break;
-            case GMSubCmds::Three: //AllowAll
+            case GMSubCmdIndexes::Three: //AllowAll
                 {
                     msg = allowNew;
                     if ( override )
@@ -1531,13 +1561,13 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                     }
                 }
             break;
-            case GMSubCmds::Four: //Allow. Only online Players may be exempted for storage.
-            case GMSubCmds::Five:
+            case GMSubCmdIndexes::Four: //Allow. Only online Players may be exempted for storage.
+            case GMSubCmdIndexes::Five:
                 {
                     if ( !this->isTargetingSelf( admin, tmpPlr ) )
                     {
                         bool add{ true };
-                        if ( static_cast<GMSubCmds>( idx ) == GMSubCmds::Five )
+                        if ( static_cast<GMSubCmdIndexes>( idx ) == GMSubCmdIndexes::Five )
                             add = false;
 
                         if ( soulSubCmd
@@ -1561,9 +1591,9 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                     }
                 }
             break;
-            case GMSubCmds::Six:
-            case GMSubCmds::Seven:
-            case GMSubCmds::Invalid:
+            case GMSubCmdIndexes::Six:
+            case GMSubCmdIndexes::Seven:
+            case GMSubCmdIndexes::Invalid:
                 {
                     //Unused commands.
                 }

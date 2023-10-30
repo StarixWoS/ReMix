@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>221</height>
+    <width>547</width>
+    <height>246</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -127,34 +127,8 @@
          <property name="spacing">
           <number>5</number>
          </property>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="isPublicServer">
-           <property name="text">
-            <string>Public</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QCheckBox" name="useUPNP">
-           <property name="text">
-            <string>UPNP</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QPushButton" name="openSettings">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>20</height>
-            </size>
-           </property>
+         <item row="5" column="0" colspan="2">
+          <widget class="QPushButton" name="openChatView">
            <property name="maximumSize">
             <size>
              <width>130</width>
@@ -162,26 +136,7 @@
             </size>
            </property>
            <property name="text">
-            <string>Settings</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="2">
-          <widget class="QPushButton" name="openPlayerView">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>130</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Player View</string>
+            <string>Chat View</string>
            </property>
           </widget>
          </item>
@@ -210,8 +165,21 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0" colspan="2">
-          <widget class="QPushButton" name="openChatView">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="isPublicServer">
+           <property name="text">
+            <string>Public</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QPushButton" name="openPlayerView">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>130</width>
@@ -219,7 +187,14 @@
             </size>
            </property>
            <property name="text">
-            <string>Chat View</string>
+            <string>Player View</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QCheckBox" name="useUPNP">
+           <property name="text">
+            <string>UPNP</string>
            </property>
           </widget>
          </item>
@@ -233,6 +208,44 @@
            </property>
            <property name="text">
             <string>Log View</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QPushButton" name="openSettings">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Settings</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0" colspan="2">
+          <widget class="QPushButton" name="adminCommandsButton">
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Admin Commands</string>
            </property>
           </widget>
          </item>

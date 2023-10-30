@@ -32,6 +32,7 @@
 #include <QNetworkInterface>
 #include <QMenu>
 
+#include "cmdtableoverride.hpp"
 ReMixWidget::ReMixWidget(QSharedPointer<Server> svrInfo, QWidget* parent) :
     QWidget(parent),
     server( svrInfo ),
@@ -457,12 +458,25 @@ void ReMixWidget::on_logButton_clicked()
 {
     //Show the Logger Dialog.
     Logger* logUi{ Logger::getInstance() };
-    if (logUi != nullptr )
+    if ( logUi != nullptr )
     {
         if ( logUi->isVisible() )
             logUi->hide();
         else
             logUi->show();
+    }
+}
+
+void ReMixWidget::on_adminCommandsButton_clicked()
+{
+    //Show the Admin Command Overide Dialog.
+    CmdTableOverride* adminCmdOverride{ CmdTableOverride::getInstance() };
+    if ( adminCmdOverride != nullptr )
+    {
+        if ( adminCmdOverride->isVisible() )
+            adminCmdOverride->hide();
+        else
+            adminCmdOverride->show();
     }
 }
 

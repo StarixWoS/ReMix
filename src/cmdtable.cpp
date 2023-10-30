@@ -2,23 +2,27 @@
 #include "cmdtable.hpp"
 
 //Required ReMix Includes.
+#include "cmdtableoverride.hpp"
 #include "helper.hpp"
 #include "player.hpp"
 
-//Required Qt includes.
+//Required Qt includes
+#include <QVector>
 #include <QtCore>
 
 CmdTable* CmdTable::instance{ nullptr };
-const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
+const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
 {
     {   //Command Implemented.
         { "help" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
         "Command Description: Shows command information and syntax.",
-        "Command Usage: /help *Command"
-        "e.g. (/help help) will show the command description and format!",
+        "Command Usage: /help *Command *SubCommand",
         GMRanks::User,
         true,
         GMCmds::Help,
@@ -26,7 +30,10 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "list" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
         "Command Description: Prints all commands the User has access to.",
         "Command Usage: /list", //List does not have a Syntax.
@@ -37,11 +44,25 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "motd" },
         1,
-        { "change", "remove", },
+        {
+            {
+                "change",
+                "Command Description: Allows a Remote Administrator to change the Server's Message of the Day.",
+                "Command Usage: /motd change *Message",
+                GMRanks::CoAdmin,
+                GMSubCmds::MotDChange,
+            },
+            {
+                "remove",
+                "Command Description: Allows a Remote Administrator to remove the Server's Message of the Day.",
+                "Command Usage: /motd remove",
+                GMRanks::CoAdmin,
+                GMSubCmds::MotDRemove,
+            }
+        },
         2,
-        "Command Description: Sets the Server's Message of the Day.",
-        "Command Usage: /motd [ change | remove ] *Message. "
-        "e.g. (/motd change No cheating!) or (/motd remove remove) to disable the MotD.",
+        "Command Description: Allows a Remote Administrator to change the Server's Message of the Day.",
+        "Command Usage: /motd *Message",
         GMRanks::CoAdmin,
         true,
         GMCmds::MotD,
@@ -49,10 +70,39 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Server UpTime, Connected Users, Connected Admins.
         { "info" },
         1,
-        { "server", "soul", "muted", "quarantined" },
+        {
+            {
+                "server",
+                "Command Description: Provides the Server's Ping and User Information.",
+                "Command Usage: /info server",
+                GMRanks::GMaster,
+                GMSubCmds::InfoServer,
+            },
+            {
+                "soul",
+                "Command Description: Provides Information on a specific User.",
+                "Command Usage: /info soul 4000",
+                GMRanks::Admin,
+                GMSubCmds::InfoSoul,
+            },
+            {
+                "muted",
+                "Command Description: Provides a list of Muted Users.",
+                "Command Usage: /info muted",
+                GMRanks::GMaster,
+                GMSubCmds::InfoMuted,
+            },
+            {
+                "quarantined",
+                "Command Description: Provides a list of Quarantined Users.",
+                "Command Usage: /info quarantined",
+                GMRanks::GMaster,
+                GMSubCmds::InfoQuarantined,
+            }
+        },
         4,
-        "Command Description: Shows the Server or User Information.",
-        "Command Usage: /info [ server | soul | muted | quarantined ] e.g. \"/info soul 4000\".",
+        "Command Description: Provides Server Information for Remote Admins to use.",
+        "Command Usage: /info *SubCommand",
         GMRanks::GMaster,
         true,
         GMCmds::Info,
@@ -60,11 +110,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "ban" },
         1,
-        { "soul", "ip", "all"  },
+        {
+            {
+                "ip",
+                "Command Description: Banish a User via IP Address.",
+                "Command Usage: /ban ip 127.0.0.1 *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::BanIP,
+            },
+            {
+                "soul",
+                "Command Description: Banish a User via SoulID.",
+                "Command Usage: /ban soul 4000 *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::BanSoul,
+            },
+            {
+                "all",
+                "Command Description: Banish *ALL* connected Users.",
+                "Command Usage: /ban all *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::Owner,
+                GMSubCmds::BanAll,
+            }
+        },
         3,
-        "Command Description: Bans the selected user and prevents their future connection to the server.",
-        "Command Usage: /ban [ Soul | IP | All (Permission Required) ] <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
-        "(Duration is default to 30 Days if not provided). e.g. (/ban soul 4000 Bad Soul!) or (/ban soul 4000 30m Bad Soul!)",
+        "Command Description: Banish a User from the Server.",
+        "Command Usage: /ban *SubCommand *<Duration( Optional) > *<Reason(Optional)>",
         GMRanks::CoAdmin,
         true,
         GMCmds::Ban,
@@ -72,11 +143,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "unban" },
         1,
-        { "soul", "ip", "all" },
+        {
+            {
+                "ip",
+                "Command Description: UnBanish a User via IP Address.",
+                "Command Usage: /unban ip 127.0.0.1 *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::UnBanIP,
+            },
+            {
+                "soul",
+                "Command Description: UnBanish a User via SoulID.",
+                "Command Usage: /unban soul 4000 *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::BanSoul,
+            },
+            {
+                "all",
+                "Command Description: UnBanish *ALL* Users.",
+                "Command Usage: /unban all",
+                GMRanks::Owner,
+                GMSubCmds::UnBanAll,
+            }
+        },
         3,
         "Command Description: Removes a ban from the selected user and reallows them to connect.",
-        "Command Usage: /unban [ Soul | IP | All (Permission Required) ]*Reason (Optional). "
-        "e.g. (/unban soul 4000 Good behavior) or (/unban ip 10.0.0.1 Good behavior.)",
+        "Command Usage: /unban *SubCommand *<Reason(Optional)>",
         GMRanks::CoAdmin,
         true,
         GMCmds::UnBan,
@@ -84,11 +176,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "kick" },
         1,
-        { "soul", "ip", "all" },
+        {
+            {
+                "ip",
+                "Command Description: Disconnects a User via IP Address.",
+                "Command Usage: /kick ip 127.0.0.1 *<Reason(Optional)>",
+                GMRanks::GMaster,
+                GMSubCmds::MuteIP,
+            },
+            {
+                "soul",
+                "Command Description: Disconnects a User via SoulID.",
+                "Command Usage: /kick soul 4000 *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::MuteSoul,
+            },
+            {
+                "all",
+                "Command Description: Disconnects *ALL* Users.",
+                "Command Usage: /kick all *<Reason(Optional)>",
+                GMRanks::Owner,
+                GMSubCmds::MuteAll,
+            }
+        },
         3,
         "Command Description: Disconnects the selected user from the server.",
-        "Command Usage: /kick [ Soul | IP | All (Permission Required) ]*Reason (Optional). "
-        "e.g. (/kick soul 4000 Booted!) or (/kick ip 10.0.0.1 Booted!.)",
+        "Command Usage: /kick *SubCommand *<Reason(Optional)>",
         GMRanks::GMaster,
         true,
         GMCmds::Kick,
@@ -96,11 +209,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "mute" },
         1,
-        { "soul", "ip", "all" },
+        {
+            {
+                "ip",
+                "Command Description: Adds a network mute to the selected User via IP Address.",
+                "Command Usage: /mute ip 127.0.0.1 *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::MuteIP,
+            },
+            {
+                "soul",
+                "Command Description: Adds a network mute to the selected User via SoulID.",
+                "Command Usage: /mute soul 4000 *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::MuteSoul,
+            },
+            {
+                "all",
+                "Command Description: Adds a network mute to *ALL* Users.",
+                "Command Usage: /mute all *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
+                GMRanks::Owner,
+                GMSubCmds::MuteAll,
+            }
+        },
         3,
         "Command Description: Adds a network mute to the selected User.",
-        "Command Usage: /mute [ Soul | IP | All (Permission Required) ] <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)>. "
-        "(Duration is default 10 Minutes if not provided). e.g. (/mute soul 4000 Bad Soul!) or (/mute soul 4000 30m Bad Soul!)",
+        "Command Usage: /mute *SubCommand *<Duration(Optional)> *<Reason(Optional)>",
         GMRanks::GMaster,
         true,
         GMCmds::Mute,
@@ -108,11 +242,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "unmute" },
         1,
-        { "soul", "ip", "all" },
+        {
+            {
+                "ip",
+                "Command Description: Removes a network mute imposed on the selected User via IP Address.",
+                "Command Usage: /unmute ip 127.0.0.1 *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::UnMuteIP,
+            },
+            {
+                "soul",
+                "Command Description: Removes a network mute imposed on the selected User via SoulID.",
+                "Command Usage: /unmute soul 4000 *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::UnMuteSoul,
+            },
+            {
+                "all",
+                "Command Description: Removes a network mute imposed on *ALL* Users.",
+                "Command Usage: /unmute all *<Reason(Optional)>",
+                GMRanks::Owner,
+                GMSubCmds::UnMuteAll,
+            }
+        },
         3,
         "Command Description: Removes a network mute imposed on the selected User.",
-        "Command Usage: /unmute [ Soul | IP | All ] (Permission Required) *Reason (Optional). "
-        "e.g. (/unmute soul 4000 Good behavior) or (/unmute ip 10.0.0.1 Good behavior.)",
+        "Command Usage: /unmute *SubCommand *<Reason(Optional)>",
         GMRanks::GMaster,
         true,
         GMCmds::UnMute,
@@ -120,35 +275,84 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "quarantine" },
         1,
-        { "soul", "ip" },
+        {
+            {
+                "ip",
+                "Command Description: Adds a network quarantine imposed on the selected User via IP Address.",
+                "Command Usage: /quarantine ip 127.0.0.1 *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::QuarantineIP,
+            },
+            {
+                "soul",
+                "Command Description: Adds a network quarantine imposed on the selected User via SoulID.",
+                "Command Usage: /quarantine soul 4000 *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::QuarantineSoul,
+            }
+        },
         2,
-        "Command Description: Adds a network quarantine to the selected User. Quarantined Users can only interact with other Quarantined Users.",
-        "Command Usage: /quarantine [ Soul | IP ] *Reason (Optional). "
-        "e.g. (/quarantine soul 4000 Good behavior) or (/quarantine ip 10.0.0.1 Good behavior.)",
-        GMRanks::GMaster,
+        "Command Description: Adds a network quarantine to the selected User. Note: Quarantined Users can only interact with other Quarantined Users.",
+        "Command Usage: /quarantine *SubCommand *<Reason(Optional)>",
+        GMRanks::CoAdmin,
         true,
         GMCmds::Quarantine,
     },
     {   //Command Implemented.
         { "unquarantine" },
         1,
-        { "soul", "ip" },
+        {
+            {
+                "ip",
+                "Command Description: Removes a network quarantine imposed on the selected User via IP Address.",
+                "Command Usage: /unquarantine ip 127.0.0.1 *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::UnQuarantineIP,
+            },
+            {
+                "soul",
+                "Command Description: Removes a network quarantine imposed on the selected User via SoulID.",
+                "Command Usage: /unquarantine soul 4000 *<Reason(Optional)>",
+                GMRanks::CoAdmin,
+                GMSubCmds::UnQuarantineSoul,
+            }
+        },
         2,
-        "Command Description: Removes a network quarantine to the selected User. Quarantined Users can only interact with other Quarantined Users.",
-        "Command Usage: /unquarantine [ Soul | IP ] *Reason (Optional). "
-        "e.g. (/unquarantine soul 4000 Good behavior) or (/unquarantine ip 10.0.0.1 Good behavior.)",
-        GMRanks::GMaster,
+        "Command Description: Removes a network quarantine to the selected User.",
+        "Command Usage: /unquarantine *SubCommand *<Reason(Optional)>",
+        GMRanks::CoAdmin,
         true,
         GMCmds::UnQuarantine,
     },
     {   //Command Implemented.
         { "msg", "message" },
         2,
-        { "soul", "ip", "all" },
+        {
+            {
+                "ip",
+                "Command Description: Messages the selected User via IP Address.",
+                "Command Usage: /msg ip 127.0.0.1 *Message",
+                GMRanks::Admin,
+                GMSubCmds::MessageIP,
+            },
+            {
+                "soul",
+                "Command Description: Messages the selected User via SoulID.",
+                "Command Usage: /msg soul 4000 *Message",
+                GMRanks::CoAdmin,
+                GMSubCmds::MessageSoul,
+            },
+            {
+                "all",
+                "Command Description: Messages *ALL* Users.",
+                "Command Usage: /msg all *Message",
+                GMRanks::Owner,
+                GMSubCmds::MessageAll,
+            }
+        },
         3,
         "Command Description: Sends a message to the selected User.",
-        "Command Usage: /msg [ Soul | IP | All ] (Permission Required) *Message. "
-        "e.g. (/msg soul 4000 Hello.) or (/msg ip 10.0.0.1 Hello.)",
+        "Command Usage: /msg *SubCommand *Message",
         GMRanks::GMaster,
         true,
         GMCmds::Message,
@@ -156,9 +360,12 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "login" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
-        "Command Description: Input command from the User to authenticate with the server.",
+        "Command Description: Allows a User to authenticate with the server.",
         "Command Usage: /login *Password",
         GMRanks::User,
         true,
@@ -167,9 +374,12 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "logout" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
-        "Command Description: De-authenticates the User that issues the command. The User will not be able to use Admin Commands.",
+        "Command Description: Allows a User to de-authenticate.",
         "Command Usage: /logout",
         GMRanks::GMaster,
         true,
@@ -178,9 +388,12 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "register" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
-        "Command Description: Input command from the User to register with the server as a Remote Administrator.",
+        "Command Description: Allows User to register with the server as a Remote Administrator.",
         "Command Usage: /register *Password",
         GMRanks::User,
         true,
@@ -189,11 +402,18 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "shutdown" },
         1,
-        { "stop" },
+        {
+            {
+                "stop",
+                "Command Description: Allows a Remote Admin to halt a Server Shutdown.",
+                "Command Usage: /shutdown stop *<Reason(Optional)>",
+                GMRanks::Owner,
+                GMSubCmds::ShutDownStop,
+            }
+        },
         1,
         "Command Description: Initiates server shutdown in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
-        "Command Usage: /shutdown [ <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)> ]. e.g. (/shutdown), (/shutdown Seconds 30) "
-        "will cause the server to shutdown in 30 seconds, (/shutdown stop) will cease an inprogress shutdown.",
+        "Command Usage: /shutdown *SubCommand *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
         GMRanks::Owner,
         true,
         GMCmds::ShutDown,
@@ -201,11 +421,18 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "restart" },
         1,
-        { "stop" },
+        {
+            {
+                "stop",
+                "Command Description: Allows a Remote Admin to halt a Server Restart.",
+                "Command Usage: /restart stop *<Reason(Optional)>",
+                GMRanks::Admin,
+                GMSubCmds::ReStartStop,
+            }
+        },
         1,
         "Command Description: Initiates server restart in <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).",
-        "Command Usage: /restart [ <n>s(Seconds) | m(Minutes) | h(Hours) | d(Days) *<Reason(Optional)> ]. e.g. (/restart), (/restart 30s) "
-        "will cause the server to shutdown in 30 seconds, (/restart stop) will cease an inprogress restart.",
+        "Command Usage: /restart *SubCommand *<Duration( <#>s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *<Reason(Optional)>",
         GMRanks::Admin,
         true,
         GMCmds::ReStart,
@@ -213,7 +440,10 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Unimplemented. Would require a restart or for currently connected Users to reconnect.
         { "chrules" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
         "Command Description: Modifies the Server's rule set.",
         "",
@@ -224,7 +454,10 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Unimplemented.
         { "chsettings" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
         "Command Description: Modifies the Server's settings.",
         "",
@@ -235,10 +468,32 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "vanish" },
         1,
-        { "hide", "show", "status" },
+        {
+            {
+                "hide",
+                "Command Description: The Remote Admin will become invisible to other Users.",
+                "Command Usage: /vanish hide",
+                GMRanks::GMaster,
+                GMSubCmds::VanishHide,
+            },
+            {
+                "show",
+                "Command Description: The Remote Admin will become visible to other Users.",
+                "Command Usage: /vanish show",
+                GMRanks::GMaster,
+                GMSubCmds::VanishShow,
+            },
+            {
+                "status",
+                "Command Description: Will inform the Remote Admin of their vanish status.",
+                "Command Usage: /vanish status",
+                GMRanks::GMaster,
+                GMSubCmds::VanishStatus,
+            }
+        },
         3,
-        "Command Description: Makes the Admin invisible to others. Poof!",
-        "Command Usage: /vanish [ hide | show | status ]. When no sub-command is entered the command acts as an on|off toggle.",
+        "Command Description: Allows a Remote Admin to become invisible to others.",
+        "Command Usage: /vanish *<SubCommand(Optional)>",
         GMRanks::GMaster,
         true,
         GMCmds::Vanish,
@@ -246,7 +501,10 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {   //Command Implemented.
         { "version" },
         1,
-        { },
+        {
+            {
+            }
+        },
         0,
         "Command Description: Shows the Servers Version Information.",
         "Command Usage: /version",
@@ -257,13 +515,60 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {
         { "camp" },
         1,
-        { "lock", "unlock", "allowcurrent", "allowall", "allow", "remove" },
-        6,
-        "Command Description: Using \"lock\" prevents other Players from entering a scene hosted by you and \"unlock\" reverses that limitation. "
-        "If enabling \"allowcurrent\" then only Players online when the Scene was created can enter and the command \"allowall\" reverses that limitation. "
-        "Using the command syntax \"/camp allow soul 4000\" or \"/camp remove soul 4000\" you may exempt specific Players from any limitations.",
-        "Command Usage: /camp [ lock | unlock | allowcurrent | allowall | allow ]. Remote Administrators may append \"soul *PlayerSerNum\" to override a "
-        "Player's status. e.g. \"/camp lock soul 4000\".",
+        {
+            {
+                "lock",
+                "Command Description: The User's Scene will be locked to all not *Allowed*.",
+                "Command Usage: /camp lock",
+                GMRanks::User,
+                GMSubCmds::CampLock,
+            },
+            {
+                "unlock",
+                "Command Description: The User's Scene will be unlocked.",
+                "Command Usage: /camp unlock",
+                GMRanks::User,
+                GMSubCmds::CampUnLock,
+            },
+            {
+                "allowcurrent",
+                "Command Description: The User's Scene will be unlocked only for Users currently connected.",
+                "Command Usage: /camp allowcurrent",
+                GMRanks::User,
+                GMSubCmds::CampAllowCurrent,
+            },
+            {
+                "allowall",
+                "Command Description: The User's Scene will be unlocked for all current and future Users.",
+                "Command Usage: /camp allowall",
+                GMRanks::User,
+                GMSubCmds::CampAllowAll,
+            },
+            {
+                "allow",
+                "Command Description: The User may allow another User to bypass any restrictions.",
+                "Command Usage: /camp allow soul 4000",
+                GMRanks::User,
+                GMSubCmds::CampAllowSoul,
+            },
+            {
+                "remove",
+                "Command Description: The User may revoke another User's bypass permissions.",
+                "Command Usage: /camp remove soul 4000",
+                GMRanks::User,
+                GMSubCmds::CampRemoveSoul,
+            },
+            {
+                "soul",
+                "Command Description: Remote Admins may override a User's limitations.",
+                "Command Usage: /camp *SubCommand soul 4000",
+                GMRanks::Admin,
+                GMSubCmds::CampSoul,
+            }
+        },
+        7,
+        "Command Description: Allows a User to prevent others from entering a hosted Scene.",
+        "Command Usage: /camp *SubCommand",
         GMRanks::User,
         true,
         GMCmds::Camp,
@@ -271,8 +576,17 @@ const QVector<CmdTable::CmdStruct> CmdTable::cmdTable =
     {
         { "guild" },
         1,
-        { "create", "join", "kick", "leave" },
-        3,
+        {
+            {
+            },
+            {
+            },
+            {
+            },
+            {
+            }
+        },
+        4,
         "Command Description: ",
         "Command Usage: /guild [ *message | create | join | kick | leave ]. e.g. (/guild *chat), (/guild create *Name) ",
         GMRanks::User,
@@ -296,14 +610,15 @@ bool CmdTable::cmdIsActive(const GMCmds& index)
 
 bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool& time)
 {
-    qint32 idx{ *index };
-    const CmdTable::CmdStruct& cmdAt{ cmdTable.at( idx ) };
+    if ( index == GMCmds::Invalid )
+        return false;
 
+    const CmdTable::CmdStructure& cmdAt{ cmdTable.at( *index ) };
     if ( !time )
     {
         for ( const auto& item : cmdAt.subCmd )
         {
-            if ( Helper::cmpStrings( item, cmd ) )
+            if ( Helper::cmpStrings( item.subCommand, cmd ) )
                 return true;
         }
     }
@@ -312,19 +627,32 @@ bool CmdTable::isSubCommand(const GMCmds& index, const QString& cmd, const bool&
 
 bool CmdTable::getCmdHasSubCmd(const GMCmds& index)
 {
+    if ( index == GMCmds::Invalid )
+        return false;
+
     return cmdTable.at( *index ).subCmdCount >= 1;
 }
 
-QStringList CmdTable::getCmdName(const GMCmds& index)
+QString CmdTable::getCmdNames(const GMCmds& index)
 {
-    return cmdTable.at( *index ).cmdActivators;
+    QString retList;
+    for ( qint32 i = 0; i < cmdTable.at( *index ).cmdActivatorCount; ++i )
+    {
+        retList.append( cmdTable.at( *index ).cmdActivators.at( i ) );
+        if ( cmdTable.at( *index ).cmdActivatorCount >= 2 )
+        {
+            if ( i != cmdTable.at( *index ).cmdActivatorCount )
+                retList.append( ", " );
+        }
+    }
+    return retList;
 }
 
 GMCmds CmdTable::getCmdIndex(const QString& cmd)
 {
     GMCmds index{ GMCmds::Invalid };
     qint32 idx{ -1 };
-    for ( const CmdTable::CmdStruct& el : cmdTable )
+    for ( const CmdTable::CmdStructure& el : cmdTable )
     {
         ++idx;
         //Check the current Object if it contains our command information,
@@ -341,22 +669,24 @@ GMCmds CmdTable::getCmdIndex(const QString& cmd)
     return index;
 }
 
-GMSubCmds CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
+GMSubCmdIndexes CmdTable::getSubCmdIndex(const GMCmds& cmdIndex, const QString& subCmd, const bool& time)
 {
-    qint32 index{ *GMSubCmds::Invalid };
-    qint32 cmdIdx{ *cmdIndex };
-    const CmdTable::CmdStruct& cmdAt{ cmdTable.at( cmdIdx ) };
+    qint32 index{ *GMSubCmdIndexes::Invalid };
+    if ( cmdIndex == GMCmds::Invalid )
+        return GMSubCmdIndexes::Invalid;
+
+    const CmdTable::CmdStructure& cmdAt{ cmdTable.at( *cmdIndex ) };
     if ( !time )
     {
         qint32 sCmdIdx{ -1 };
-        for ( const QString& el : cmdAt.subCmd )
+        for ( const auto& el : cmdAt.subCmd )
         {
             ++sCmdIdx;
-            if ( Helper::cmpStrings( el, subCmd ) )
+            if ( Helper::cmpStrings( el.subCommand, subCmd ) )
                 index = sCmdIdx;
         }
     }
-    return static_cast<GMSubCmds>( index );
+    return static_cast<GMSubCmdIndexes>( index );
 }
 
 GMRanks CmdTable::getCmdRank(const GMCmds& index)
@@ -365,35 +695,67 @@ GMRanks CmdTable::getCmdRank(const GMCmds& index)
         return GMRanks::Invalid;
 
     if ( this->cmdIsActive( index ) )
-        return cmdTable.at( *index ).cmdRank;
+    {
+        if ( CmdTableOverride::getUsingOverrides() )
+            return CmdTableOverride::getOverride( index, GMSubCmds::Invalid );
+        else
+            return cmdTable.at( *index ).cmdRank;
+    }
 
     //The command is inactive. Return Rank Invalid.
     return GMRanks::Invalid;
 }
 
-QString CmdTable::getCmdString(const CmdTable::CmdStruct& cmdStruct, const GMRanks rank, const bool isAuth)
+GMRanks CmdTable::getSubCmdRank(const GMCmds& index, const GMSubCmdIndexes& subIndex)
+{
+    if ( index == GMCmds::Invalid )
+        return GMRanks::Invalid;
+
+    if ( !this->cmdIsActive( index ) )
+        return GMRanks::Invalid;
+
+    if ( CmdTableOverride::getUsingOverrides() )
+        return CmdTableOverride::getOverride( index, cmdTable.at( *index ).subCmd.at( *subIndex ).index );
+    else
+        return cmdTable.at( *index ).subCmd.at( *subIndex ).subRank;
+
+    return GMRanks::Invalid;
+}
+
+QString CmdTable::getCmdString(const CmdTable::CmdStructure& cmdStruct, const GMRanks rank, const bool isAuth)
 {
     QString result{ "" };
-    if ( isAuth
+    if ( !isAuth
       && cmdStruct.cmdRank > GMRanks::User ) //Unauthenticated should only get a basic list.
     {
         return result;
     }
 
-    if ( cmdStruct.cmdRank <= rank
+    if ( this->getCmdRank( cmdStruct.index ) <= rank
       && cmdStruct.cmdIsActive )
     {
+        GMSubCmdIndexes subCmdIndex{ GMSubCmdIndexes::Invalid };
+        GMRanks tSubCmdRank{ GMRanks::Invalid };
         for ( const auto& item : cmdStruct.cmdActivators )
         {
             result.append( item );
-            if ( cmdStruct.subCmdCount > 0 )
+            if ( cmdStruct.subCmdCount >= 1 )
             {
                 result.append( "[ " );
-                for ( const QString& sEl : cmdStruct.subCmd )
+                for ( const auto& sEl : cmdStruct.subCmd )
                 {
-                    result.append( sEl % ", " );
+                    if ( CmdTableOverride::getUsingOverrides() )
+                    {
+                        subCmdIndex = this->getSubCmdIndex( cmdStruct.index, sEl.subCommand );
+                        tSubCmdRank = this->getSubCmdRank( cmdStruct.index, subCmdIndex );
+                    }
+                    else
+                        tSubCmdRank = sEl.subRank;
+
+                    if ( tSubCmdRank <= rank )
+                        result.append( sEl.subCommand % ", " );
                 }
-                result.append( " ]" );
+                result.append( "]" );
             }
             result.append( ", " );
         }
@@ -407,21 +769,29 @@ QString CmdTable::collateCmdStrings(const QSharedPointer<Player> admin)
     GMRanks rank{ admin->getAdminRank() };
     bool isAuth{ admin->getAdminPwdReceived() };
 
-    for ( const CmdTable::CmdStruct& el : cmdTable )
+    for ( const CmdTable::CmdStructure& el : cmdTable )
     {
         list.append( getCmdString( el, rank, isAuth ) );
     }
     return list;
 }
 
-QString CmdTable::getCommandInfo(const GMCmds& index, const bool& syntax)
+QString CmdTable::getCommandInfo(const GMCmds& index, const GMSubCmdIndexes& subIndex, const bool& syntax)
 {
     qint32 idx{ *index };
     if ( idx < 0 )
         idx = *GMCmds::Help;
 
-    if ( syntax )
-        return cmdTable.at( idx ).cmdSyntax;
+    if ( subIndex == GMSubCmdIndexes::Invalid )
+    {
+        if ( syntax )
+            return cmdTable.at( idx ).cmdSyntax;
 
-    return cmdTable.at( idx ).cmdInfo;
+        return cmdTable.at( idx ).cmdInfo;
+    }
+
+    if ( syntax )
+        return cmdTable.at( idx ).subCmd.at( *subIndex ).subSyntax;
+
+    return cmdTable.at( idx ).subCmd.at( *subIndex ).subInfo;
 }

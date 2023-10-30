@@ -7,6 +7,7 @@
 #include "widgets/remixtabwidget.hpp"
 
 //ReMix includes.
+#include "cmdtableoverride.hpp"
 #include "campexemption.hpp"
 #include "settings.hpp"
 #include "logger.hpp"
@@ -43,6 +44,8 @@ ReMix::ReMix(QWidget* parent) :
     qRegisterMetaType<QSharedPointer<Server>>("QSharedPointer<Server>");
 
     ui->setupUi(this);
+
+    CmdTableOverride::setInstance( new CmdTableOverride( this ) );
 
     Logger::setInstance( new Logger( this ) );
     if ( Settings::getSetting( SKeys::Setting, SSubKeys::SaveWindowPositions ).toBool() )
@@ -86,6 +89,9 @@ ReMix::~ReMix()
 
     Settings::getInstance()->close();
     Settings::getInstance()->deleteLater();
+
+    CmdTableOverride::getInstance()->close();
+    CmdTableOverride::getInstance()->deleteLater();
 
     Logger::getInstance()->close();
     Logger::getInstance()->deleteLater();
