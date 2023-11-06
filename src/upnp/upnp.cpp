@@ -3,8 +3,8 @@
 #include "upnp/upnp.hpp"
 
 //ReMix includes.
-#include "upnp/upnpdiscover.hpp"
 #include "upnp/upnpwanservice.hpp"
+#include "upnp/upnpdiscover.hpp"
 #include "upnp/upnpdevice.hpp"
 #include "upnp/upnpreply.hpp"
 #include "settings.hpp"
@@ -94,6 +94,7 @@ void UPNP::makeTunnel()
 
             if ( upnpWanService != nullptr )
             {
+                qDebug() << upnpWanService->getType();
                 if ( !this->getIsTunneled() )
                 {
                     this->getExternalIP();

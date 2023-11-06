@@ -4,10 +4,8 @@
 
 //ReMix includes.
 #include "upnp/upnpwanservice.hpp"
-#include "upnp/upnpwandevice.hpp"
 #include "upnp/upnpdiscover.hpp"
 #include "upnp/upnpservice.hpp"
-#include "upnp/upnpigd.hpp"
 
 //Qt Includes.
 #include <QXmlStreamReader>
