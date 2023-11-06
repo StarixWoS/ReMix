@@ -1,14 +1,17 @@
+
+//Class includes.
 #include "cmdtableoverride.hpp"
 #include "ui_cmdtableoverride.h"
 
-//ReMix Widget includes.
+//Required ReMix Widget includes.
 #include "widgets/cmdtabledelegate.hpp"
+
+//ReMix includes.
 #include "settings.hpp"
 #include "helper.hpp"
 #include "remix.hpp"
 
 //Qt Includes.
-#include <QTreeWidgetItemIterator>
 #include <QSettings>
 #include <QtCore>
 
@@ -76,8 +79,9 @@ const QMap<GMSubCmds, QString> CmdTableOverride::subCommands =
     { GMSubCmds::CampUnLock,       "camp/unlock"        },
     { GMSubCmds::CampAllowAll,     "camp/allowall"      },
     { GMSubCmds::CampAllowCurrent, "camp/allowcurrent"  },
-    { GMSubCmds::CampAllowSoul,    "camp/allowsoul"     },
-    { GMSubCmds::CampRemoveSoul,   "camp/removesoul"    },
+    { GMSubCmds::CampAllow,        "camp/allow"         },
+    { GMSubCmds::CampRemove,       "camp/remove"        },
+    { GMSubCmds::CampStatus,       "camp/status"        },
     { GMSubCmds::CampSoul,         "camp/soul"          },
 };
 
@@ -193,7 +197,6 @@ GMRanks CmdTableOverride::getOverride(const GMCmds& cmd, const GMSubCmds& subCmd
     if ( path.isEmpty() )
         return GMRanks::Invalid;
 
-    qDebug() << path;
     return static_cast<GMRanks>( getOverrideFromPath( path ).toInt() );
 }
 

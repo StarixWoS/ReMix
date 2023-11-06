@@ -283,10 +283,12 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
         subCmdIdx = cmdTable->getSubCmdIndex( argIndex, subCmd );
         if ( subCmdIdx != GMSubCmdIndexes::Invalid )
         {
-            qDebug() << cmd << subCmd << *argIndex << *subCmdIdx;
             subCmdRank = cmdTable->getSubCmdRank( argIndex, subCmdIdx );
             if ( !this->canUseAdminCommands( admin, subCmdRank, subCmd ) )
-                return false;
+            {
+                if ( argIndex != GMCmds::Camp ) //Camp sub commands should be checked within the handler.
+                    return false;
+            }
         }
 
         if ( Helper::cmpStrings( subCmd, "all" ) )
@@ -458,7 +460,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 if ( this->validateAdmin( admin, cmdRank, cmd )
                   && !subCmd.isEmpty() )
                 {
-                    this->quarantineHandler( admin, arg1, reason );
+                    this->unQuarantineHandler( admin, arg1, reason );
                 }
                 retn = true;
             }
@@ -1476,16 +1478,17 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                 if ( this->isTarget( tmpPlr, serNum, false ) )
                 {
                     if ( static_cast<GMSubCmdIndexes>( idx ) != GMSubCmdIndexes::Four  //Allow Soul exempted from Admin Checking
-                      || static_cast<GMSubCmdIndexes>( idx ) != GMSubCmdIndexes::Five )//Remove Soul exempted from admin checking.
+                      && static_cast<GMSubCmdIndexes>( idx ) != GMSubCmdIndexes::Five )//Remove Soul exempted from admin checking.
                     {
-                        if ( this->canUseAdminCommands( admin, GMRanks::Admin, "soul" ) )
+                        GMRanks rank{ cmdTable->getSubCmdRank( index, cmdTable->getSubCmdIndex( index, "soul", false ) ) };
+                        if ( this->canUseAdminCommands( admin, rank, "soul" ) )
                         {
                             override = this->canIssueAction( admin, tmpPlr, serNum, GMCmds::Camp, false );
                             if ( override )
                                 break;
                         }
                         else
-                            break;
+                            return;
                     }
                     else
                         break;
@@ -1494,11 +1497,8 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         }
     }
 
-    if ( idx != GMSubCmdIndexes::Invalid )
+    if ( idx != GMSubCmdIndexes::Invalid ) //Status SubCommand
     {
-        if ( idx >= GMSubCmdIndexes::Zero )
-            msg = lockMsg;
-
         if ( soulSubCmd
           && tmpPlr == nullptr )
         {
@@ -1509,7 +1509,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
         {
             case GMSubCmdIndexes::Zero: //Lock
                 {
-                    msg = msg.arg( lock );
+                    msg = lockMsg.arg( lock );
                     if ( override )
                         msg = msg.append( overrideLockAppend.arg( admin->getSernum_s() ) );
 
@@ -1521,7 +1521,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
             break;
             case GMSubCmdIndexes::One: //Unlock
                 {
-                    msg = msg.arg( unlock );
+                    msg = lockMsg.arg( unlock );
                     if ( override )
                         msg = msg.append( overrideLockAppend.arg( admin->getSernum_s() ) );
 
@@ -1567,11 +1567,11 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                     if ( !this->isTargetingSelf( admin, tmpPlr ) )
                     {
                         bool add{ true };
-                        if ( static_cast<GMSubCmdIndexes>( idx ) == GMSubCmdIndexes::Five )
+                        if ( idx == GMSubCmdIndexes::Five )
                             add = false;
 
                         if ( soulSubCmd
-                             && tmpPlr != nullptr )
+                          && tmpPlr != nullptr )
                         {
                             override = false;
 

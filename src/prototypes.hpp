@@ -23,8 +23,10 @@
     class QTableWidgetItem;
     class QStringListModel;
     class QXmlStreamReader;
+    class QXmlStreamWriter;
     class QNetworkRequest;
     class QSystemTrayIcon;
+    class QTreeWidgetItem;
     class QNetworkReply;
     class QStandardItem;
     class QElapsedTimer;  //Requires Include within Class Headers.
@@ -32,6 +34,7 @@
     class QApplication;
     class QHostAddress;
     class QInputDialog;
+    class QTreeWidget;
     class QTextStream;
     class QFileDialog;
     class QToolButton;
@@ -72,7 +75,7 @@
     class QChar;
     class QMenu;
     class QDir;
-    class QUrl;
+    class QUrl;  //Requires Include within Class Headers.
 
 #endif // QT_PROTOTYPES_HPP
 
@@ -82,8 +85,10 @@
     //Table-View Classes.
     class UserSortProxyModel;
     class PlrSortProxyModel;
+    class CmdTableDelegate;
     class ListEventFilter;
     class TblEventFilter;
+    class UserDelegate;
 
     //Widget GUI Classes.
     class SettingsWidget;
@@ -105,7 +110,20 @@
     class ToYPacketHandler;
     class W97PacketHandler;
 
+    //UPnP Classes
+    class UPnPDiscoverPrivate;
+    class UPnPServicePrivate;
+    class UPnPDevicePrivate;
+    class UPnPWanService;
+    class UPnPDiscover;
+    class UPnPService;
+    class UPnPDevice;
+    class UPnPReply;
+    class UPnPSoap;
+    class UPNP;
+
     //GUI and Data Storage Classes.
+    class CmdTableOverride;
     class CreateInstance;
     class AppEventFilter;
     class PacketHandler;
@@ -125,7 +143,6 @@
     class Theme;
     class ReMix;
     class User;
-    class UPNP;
 
     #ifndef REMIX_GLOBALS
         #define REMIX_GLOBALS
@@ -282,7 +299,7 @@
                                    MessageIP, MessageSoul, MessageAll,
                                    ShutDownStop, ReStartStop,
                                    VanishHide, VanishShow, VanishStatus,
-                                   CampLock, CampUnLock, CampAllowAll, CampAllowCurrent, CampAllowSoul, CampRemoveSoul, CampSoul,
+                                   CampLock, CampUnLock, CampAllowAll, CampAllowCurrent, CampAllow, CampRemove, CampStatus, CampSoul,
                                    Invalid = -1 };
 
         //Valid Remote Administrator sub-commands.

@@ -16,7 +16,10 @@ Version 3.1.2:
       * Remote-Admins will now be informed when they attempt to use a SubCommand that they lack the rank to access.
         * e.g. the command "/motd remove" when the rank is insufficient will give the error:
           * "Error: You do not have access to the command [ remove ]. Please refrain from attempting to use commands that you lack access to!"
-      
+      * The default ranks for Remote Admin Commands and Sub Commands are now synchronized between the classes "CmdTable" and "CmdTableOverride".
+      * The UPnP Class has been completely re-written.
+        * The rewritten UPnP class now properly scans all UPnP devices and services, and seeks out any valid "InternetGateway" services.
+        * While the log output will be less verbose, the feature will hopefully succeed in creating a port forward for more Users.
 
 
 
@@ -24,7 +27,7 @@ Version 3.1.2:
 
 
     Bugfixes:
-      * 
+      * Fixed an issue with the "camp" command when using "camp allow soul ####" would be treated as a Remote Admin command.
 
 
 

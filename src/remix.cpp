@@ -9,12 +9,12 @@
 //ReMix includes.
 #include "cmdtableoverride.hpp"
 #include "campexemption.hpp"
+#include "upnp/upnp.hpp"
 #include "settings.hpp"
 #include "logger.hpp"
 #include "helper.hpp"
 #include "server.hpp"
 #include "theme.hpp"
-#include "upnp.hpp"
 #include "user.hpp"
 
 //Qt Includes.

@@ -181,9 +181,6 @@ ReMixWidget::~ReMixWidget()
 
     server->sendMasterInfo( true );
 
-    if ( ui->useUPNP->isChecked() )
-        server->setupUPNP( false );
-
     WoSPacketHandler::deleteInstance( server );
     ToYPacketHandler::deleteInstance( server );
     PlrListWidget::deleteInstance( server );
@@ -193,6 +190,11 @@ ReMixWidget::~ReMixWidget()
     MOTDWidget::deleteInstance( server );
     ChatView::deleteInstance( server );
 
+    if ( ui->useUPNP->isChecked() )
+    {
+        server->setupUPNP( false );
+        server->deleteLater();
+    }
     server = nullptr;
 
     delete ui;

@@ -16,10 +16,10 @@ add_compile_definitions(RC_VERSION_STRING=\"${ReMix_VERSION}\" RC_VERSION=${RC_V
 add_compile_definitions(REMIX_VERSION=\"${ReMix_VERSION}\")
 add_compile_definitions(REMIX_DEVMODE=0)
 
-find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent Xml REQUIRED)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ui/ ui/widgets/)
-set(SRC_LIST src/ src/widgets/ src/thread src/views src/packethandlers )
+set(SRC_LIST src/ src/widgets/ src/thread src/views src/packethandlers src/upnp )
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -66,7 +66,6 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/theme.cpp
         src/remix.cpp
         src/user.cpp
-        src/upnp.cpp
         src/main.cpp)
 set(HEADERS src/packethandlers/wospackethandler.hpp
         src/packethandlers/toypackethandler.hpp
@@ -110,8 +109,24 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/logger.hpp
         src/theme.hpp
         src/remix.hpp
-        src/user.hpp
-        src/upnp.hpp)
+        src/user.hpp)
+
+set(UPNP_SOURCES src/upnp/upnpwanservice.cpp
+                 src/upnp/upnpdiscover.cpp
+                 src/upnp/upnpservice.cpp
+                 src/upnp/upnpdevice.cpp
+                 src/upnp/upnpsoap.cpp
+                 src/upnp/upnpreply.cpp
+                 src/upnp/upnp.cpp)
+
+set(UPNP_HEADERS src/upnp/upnpwanservice.hpp
+                 src/upnp/upnpdiscover.hpp
+                 src/upnp/upnpservice.hpp
+                 src/upnp/upnpdevice.hpp
+                 src/upnp/upnpsoap.hpp
+                 src/upnp/upnpreply.hpp
+                 src/upnp/upnp.hpp)
+
 
 set(UI ui/widgets/settingswidget.ui
     ui/widgets/chatviewwidget.ui
@@ -132,7 +147,7 @@ set(UI ui/widgets/settingswidget.ui
 set(RC resources/icons.qrc
     resources/ReMix.rc )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI} ${RC})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UPNP_SOURCES} ${UPNP_HEADERS} ${UI} ${RC} )
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES
@@ -144,5 +159,6 @@ target_link_libraries(${PROJECT_NAME} Qt::Network)
 target_link_libraries(${PROJECT_NAME} Qt::Core)
 target_link_libraries(${PROJECT_NAME} Qt::Gui)
 target_link_libraries(${PROJECT_NAME} Qt::Concurrent)
+target_link_libraries(${PROJECT_NAME} Qt::Xml)
 
 target_include_directories(${PROJECT_NAME} PUBLIC src)

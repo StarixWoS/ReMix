@@ -14,12 +14,12 @@
 //ReMix includes.
 #include "packethandler.hpp"
 #include "packetforge.hpp"
+#include "upnp/upnp.hpp"
 #include "settings.hpp"
 #include "player.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
 #include "user.hpp"
-#include "upnp.hpp"
 
 //Qt Includes.
 #include <QRegularExpression>
@@ -1530,7 +1530,7 @@ void Server::upTimerTimeOutSlot()
 void Server::upnpPortRefreshTimeOutSlot()
 {
     this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), this->getUseUPNP() );
-   }
+}
 
 void Server::masterTimeOutSlot()
 {

@@ -89,10 +89,10 @@
           <string>0</string>
          </property>
          <property name="text">
-          <string>Gives information on Command Usage.</string>
+          <string>Shows command and sub-command information and syntax.</string>
          </property>
          <property name="text">
-          <string>`help *Command</string>
+          <string>`help *&lt;Command&gt; *&lt;SubCommand&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -126,7 +126,7 @@
           <string>Allows a Remote Admin to change the Server's Message of the Day.</string>
          </property>
          <property name="text">
-          <string>`motd *Message</string>
+          <string>`motd *&lt;Message&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -142,7 +142,7 @@
            <string>Allows a Remote Admin to change the Server's Message of the Day.</string>
           </property>
           <property name="text">
-           <string>`motd change *Message</string>
+           <string>`motd change *&lt;Message&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -171,13 +171,13 @@
           <string>info</string>
          </property>
          <property name="text">
-          <string>0</string>
+          <string>1</string>
          </property>
          <property name="text">
           <string>Provides Server Information for Remote Admins to use.</string>
          </property>
          <property name="text">
-          <string>`info *SubCommand</string>
+          <string>`info *&lt;SubCommand&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -204,7 +204,7 @@
            <string>soul</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
            <string>Provides information on a specific User.</string>
@@ -256,13 +256,13 @@
           <string>ban</string>
          </property>
          <property name="text">
-          <string>1</string>
+          <string>2</string>
          </property>
          <property name="text">
           <string>Banish a User from the Server.</string>
          </property>
          <property name="text">
-          <string>`ban *SubCommand *Reason</string>
+          <string>`ban *&lt;SubCommand&gt; *&lt;Duration( Optional) &gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -272,13 +272,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
            <string>Banish a User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`ban IP 127.0.0.1 *Reason</string>
+           <string>`ban IP 127.0.0.1 *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -289,13 +289,13 @@
            <string>soul</string>
           </property>
           <property name="text">
-           <string>1</string>
+           <string>2</string>
           </property>
           <property name="text">
            <string>Banish a User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`ban soul 4000 *Reason</string>
+           <string>`ban soul 4000 *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -306,13 +306,13 @@
            <string>all</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>Banish ALL connected Users.</string>
+           <string>Banish *ALL* Users.</string>
           </property>
           <property name="text">
-           <string>`ban all *Reason</string>
+           <string>`ban all *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -324,13 +324,13 @@
           <string>unban</string>
          </property>
          <property name="text">
-          <string>1</string>
+          <string>2</string>
          </property>
          <property name="text">
-          <string>UnBanish a User.</string>
+          <string>Removes a ban from the selected user and allows them to connect.</string>
          </property>
          <property name="text">
-          <string>`unban *SubCommand *Reason</string>
+          <string>`unban *&lt;SubCommand&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -340,13 +340,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>UnBanish a User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`unban IP 127.0.0.1 *Reason</string>
+           <string>`unban IP 127.0.0.1 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -357,13 +357,13 @@
            <string>soul</string>
           </property>
           <property name="text">
-           <string>1</string>
+           <string>2</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>UnBanish a User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`unban soul 4000 *Reason</string>
+           <string>`unban soul 4000 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -374,13 +374,13 @@
            <string>all</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>ALL connected Users.</string>
+           <string>UnBanish *ALL* Users.</string>
           </property>
           <property name="text">
-           <string>`unban all *Reason</string>
+           <string>`unban all *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -395,10 +395,10 @@
           <string>1</string>
          </property>
          <property name="text">
-          <string>Kick a User from the Server.</string>
+          <string>Disconnects the selected user from the server.</string>
          </property>
          <property name="text">
-          <string>`kick *SubCommand *Reason</string>
+          <string>`kick *&lt;SubCommand&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -408,13 +408,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Disconnects a User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`kick IP 127.0.0.1 *Reason</string>
+           <string>`kick IP 127.0.0.1 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -428,10 +428,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Disconnects a User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`kick soul 4000 *Reason</string>
+           <string>`kick soul 4000 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -442,10 +442,10 @@
            <string>all</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>ALL connected Users.</string>
+           <string>Disconnects *ALL* Users.</string>
           </property>
           <property name="text">
            <string>`kick all *Reason</string>
@@ -463,10 +463,10 @@
           <string>1</string>
          </property>
          <property name="text">
-          <string>Mutes a User.</string>
+          <string>Adds a network mute to the selected User.</string>
          </property>
          <property name="text">
-          <string>`mute *SubCommand *Duration *Reason</string>
+          <string>`mute *&lt;SubCommand&gt; *&lt;Duration(Optional)&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -476,13 +476,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Adds a network mute to the selected User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`mute IP 127.0.0.1 *Reason</string>
+           <string>`mute IP 127.0.0.1 *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -496,10 +496,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Adds a network mute to the selected User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`mute soul 4000 *Reason</string>
+           <string>`mute soul 4000 *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -510,13 +510,13 @@
            <string>all</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>ALL connected Users.</string>
+           <string>Adds a network mute to *ALL* Users.</string>
           </property>
           <property name="text">
-           <string>`mute all *Reason</string>
+           <string>`mute all *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -531,10 +531,10 @@
           <string>1</string>
          </property>
          <property name="text">
-          <string>UnMutes a User.</string>
+          <string>Removes a network mute imposed on the selected User.</string>
          </property>
          <property name="text">
-          <string>`unmute *SubCommand *Reason</string>
+          <string>`unmute *&lt;SubCommand&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -544,13 +544,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Removes a network mute imposed on the selected User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`unmute IP 127.0.0.1 *Reason</string>
+           <string>`unmute IP 127.0.0.1 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -564,10 +564,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Removes a network mute imposed on the selected User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`unmute soul 4000 *Reason</string>
+           <string>`unmute soul 4000 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -578,10 +578,10 @@
            <string>all</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>ALL connected Users.</string>
+           <string>Removes a network mute imposed on *ALL* Users.</string>
           </property>
           <property name="text">
            <string>`unmute all *Reason</string>
@@ -599,10 +599,10 @@
           <string>1</string>
          </property>
          <property name="text">
-          <string>Quarantines a User.</string>
+          <string>Adds a network quarantine to the selected User. Note: Quarantined Users can only interact with other Quarantined Users.</string>
          </property>
          <property name="text">
-          <string>`quarantine *SubCommand *Reason</string>
+          <string>`quarantine *&lt;SubCommand&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -612,13 +612,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Adds a network quarantine imposed on the selected User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`quarantine IP 127.0.0.1 *Reason</string>
+           <string>`quarantine IP 127.0.0.1 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -632,10 +632,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Adds a network quarantine imposed on the selected User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`quarantine soul 4000 *Reason</string>
+           <string>`quarantine soul 4000 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -650,10 +650,10 @@
           <string>1</string>
          </property>
          <property name="text">
-          <string>UnQuarantines a User.</string>
+          <string>Removes a network quarantine from the selected User.</string>
          </property>
          <property name="text">
-          <string>`unquarantine *SubCommand *Reason</string>
+          <string>`unquarantine *&lt;SubCommand&gt; *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -663,13 +663,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Removes a network quarantine imposed on the selected User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`unquarantine IP 127.0.0.1 *Reason</string>
+           <string>`unquarantine IP 127.0.0.1 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -683,10 +683,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Removes a network quarantine imposed on the selected User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`unquarantine soul 4000 *Reason</string>
+           <string>`unquarantine soul 4000 *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -704,7 +704,7 @@
           <string>Sends a Server Message.</string>
          </property>
          <property name="text">
-          <string>`message *SubCommand *Message</string>
+          <string>`message *&lt;SubCommand&gt; *&lt;Message&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -714,13 +714,13 @@
            <string>ip</string>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>3</string>
           </property>
           <property name="text">
-           <string>User via IP Address.</string>
+           <string>Messages the selected User via IP Address.</string>
           </property>
           <property name="text">
-           <string>`message IP 127.0.0.1 *Message</string>
+           <string>`message IP 127.0.0.1 *&lt;Message&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -734,10 +734,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>User via SoulID.</string>
+           <string>Messages the selected User via SoulID.</string>
           </property>
           <property name="text">
-           <string>`message soul 4000 *Message</string>
+           <string>`message soul 4000 *&lt;Message&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -751,10 +751,10 @@
            <string>1</string>
           </property>
           <property name="text">
-           <string>ALL connected Users.</string>
+           <string>Messages *ALL* Users.</string>
           </property>
           <property name="text">
-           <string>`message all *Message</string>
+           <string>`message all *&lt;Message&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -772,7 +772,7 @@
           <string>Allows a User to Authenticate with the server.</string>
          </property>
          <property name="text">
-          <string>`login *Password</string>
+          <string>`login *&lt;Password&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -806,7 +806,7 @@
           <string>Allows a User to register a password with the Server if prompted.</string>
          </property>
          <property name="text">
-          <string>`register *Password</string>
+          <string>`register *&lt;Password&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -817,13 +817,13 @@
           <string>shutdown</string>
          </property>
          <property name="text">
-          <string>3</string>
+          <string>4</string>
          </property>
          <property name="text">
-          <string>Allows a Remote Admin to shutdown a Server Instance.</string>
+          <string>Initiates server shutdown in &lt;n&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).</string>
          </property>
          <property name="text">
-          <string>`shutdown *SubCommand *Duration *Message</string>
+          <string>`shutdown *&lt;SubCommand&gt; *&lt;Duration( &lt;#&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) ) *&lt;Reason(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -833,13 +833,13 @@
            <string>stop</string>
           </property>
           <property name="text">
-           <string>3</string>
+           <string>4</string>
           </property>
           <property name="text">
-           <string>Allows a Remote Admin to halt a shutdown.</string>
+           <string>Allows a Remote Admin to halt a Server Shutdown.</string>
           </property>
           <property name="text">
-           <string>`shutdown stop</string>
+           <string>`shutdown stop *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -854,7 +854,7 @@
           <string>3</string>
          </property>
          <property name="text">
-          <string>Allows a Remote Admin to restart a Server Instance.</string>
+          <string>Initiates server restart in &lt;n&gt;s(Seconds) | m(Minutes) | h(Hours) | d(Days) (30 Seconds if duration is not provided).</string>
          </property>
          <property name="text">
           <string>`restart *SubCommand *Duration *Message</string>
@@ -870,10 +870,10 @@
            <string>3</string>
           </property>
           <property name="text">
-           <string>Allows a Remote Admin to halt a restart.</string>
+           <string>Allows a Remote Admin to halt a Server Restart.</string>
           </property>
           <property name="text">
-           <string>`restart stop</string>
+           <string>`restart stop *&lt;Reason(Optional)&gt;</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -891,7 +891,7 @@
           <string>Allows a Remote Admin to become invisible to others.</string>
          </property>
          <property name="text">
-          <string>`vanish *SubCommand</string>
+          <string>`vanish *&lt;SubCommand(Optional)&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -976,7 +976,7 @@
           <string>Allows a User to prevent others from entering a hosted Scene.</string>
          </property>
          <property name="text">
-          <string>`camp *SubCommand</string>
+          <string>`camp *&lt;SubCommand&gt;</string>
          </property>
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -1088,13 +1088,13 @@
            <string>soul</string>
           </property>
           <property name="text">
-           <string>1</string>
+           <string>4</string>
           </property>
           <property name="text">
            <string>Remote Admins can override another User's limitations.</string>
           </property>
           <property name="text">
-           <string>`camp lock soul 4000</string>
+           <string>`camp *SubCommand soul 4000</string>
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
