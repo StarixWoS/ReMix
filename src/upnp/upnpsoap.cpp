@@ -56,15 +56,15 @@ QNetworkRequest UPnPSoap::request(const QUrl& url) const
 {
     QNetworkRequest req( url );
     static const QByteArray ua{ QCoreApplication::applicationName().toLatin1()
-                              % "/"
-                              % QCoreApplication::applicationVersion().toLatin1()
-                              % ", ReMix/"
-                              % REMIX_VERSION };
+                              + "/"
+                              + QCoreApplication::applicationVersion().toLatin1()
+                              + ", ReMix/"
+                              + REMIX_VERSION };
 
     req.setHeader( QNetworkRequest::ContentTypeHeader, QByteArrayLiteral( "text/xml" ) );
     req.setHeader( QNetworkRequest::UserAgentHeader, ua );
     req.setRawHeader( QByteArrayLiteral( "SOAPAction" ),
-                      soapActionNamespace.toLatin1() % "#" % soapAction.toLatin1() );
+                      soapActionNamespace.toLatin1() + "#" + soapAction.toLatin1() );
 
     return req;
 }
