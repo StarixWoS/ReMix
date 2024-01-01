@@ -7,7 +7,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.1.2 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.1.3 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -37,6 +37,7 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/views/listeventfilter.cpp
         src/views/tbleventfilter.cpp
         src/widgets/userdelegate.cpp
+        src/thread/upnpudpthread.cpp
         src/widgets/remixwidget.cpp
         src/widgets/ruleswidget.cpp
         src/widgets/colorwidget.cpp
@@ -80,6 +81,7 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/views/listeventfilter.hpp
         src/views/tbleventfilter.hpp
         src/widgets/userdelegate.hpp
+        src/thread/upnpudpthread.hpp
         src/widgets/remixwidget.hpp
         src/widgets/ruleswidget.hpp
         src/widgets/colorwidget.hpp
@@ -138,6 +140,7 @@ set(UI ui/widgets/settingswidget.ui
     ui/cmdtableoverride.ui
     ui/createinstance.ui
     ui/selectworld.ui
+    #ui/upnpdevice.ui
     ui/settings.ui
     ui/sendmsg.ui
     ui/logger.ui

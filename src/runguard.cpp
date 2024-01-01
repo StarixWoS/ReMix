@@ -27,7 +27,7 @@ RunGuard::RunGuard(int& argc, char** argv)
 #endif //REMIX_DEVMODE
     if ( !isRunning )
     {
-        this->setApplicationName( QStringLiteral("ReMix") );
+        this->setApplicationName( "ReMix" );
         this->setApplicationVersion( REMIX_VERSION );
         this->setQuitOnLastWindowClosed( false );
         this->installEventFilter( new AppEventFilter() );

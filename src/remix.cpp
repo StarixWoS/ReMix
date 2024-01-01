@@ -82,10 +82,11 @@ ReMix::~ReMix()
 
     CampExemption::getInstance()->deleteLater();
     Theme::getInstance()->deleteLater();
-    UPNP::getInstance()->deleteLater();
 
     ReMixTabWidget::getInstance()->close();
     ReMixTabWidget::getInstance()->deleteLater();
+
+    //UPNP::getInstance()->deleteLater();
 
     Settings::getInstance()->close();
     Settings::getInstance()->deleteLater();

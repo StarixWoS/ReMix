@@ -103,6 +103,8 @@ Server::Server(QWidget* parent)
 
 Server::~Server()
 {
+    //emit this->upnpPortForwardSignal( this->getPrivateIP(), this->getPrivatePort(), false );
+
     thread->disconnect();
     thread->exit();
     thread->wait();    //Properly await thread exit.

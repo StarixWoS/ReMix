@@ -19,6 +19,7 @@ class MasterMixThread : public QThread
     QTimer updateInfoTimer;
 
     static const QMap<Games, QString> gameNames;
+    static QMap<QSharedPointer<Server>, Games> connectedServers;
     static QMap<Games, QMetaObject::Connection> connectedGames;
     static QSettings* masterMixPref;
     static QTcpSocket* tcpSocket;
@@ -39,9 +40,9 @@ class MasterMixThread : public QThread
         void obtainMasterData(const Games& game);
 
     public slots:
-        void getMasterMixInfoSlot(const Games& game);
+        void getMasterMixInfoSlot(QSharedPointer<Server> server);
         void masterMixInfoChangedSlot();
-        void removeConnectedGameSlot(const Games& game);
+        void removeConnectedGameSlot(QSharedPointer<Server> server);
 
     public:
         static UdpThread* getNewUdpThread(QObject* parent = nullptr);

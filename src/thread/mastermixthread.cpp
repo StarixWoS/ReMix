@@ -7,6 +7,7 @@
 #include "settings.hpp"
 #include "logger.hpp"
 #include "helper.hpp"
+#include "server.hpp"
 
 //Qt Includes.
 #include <QNetworkInterface>
@@ -29,6 +30,7 @@ const QMap<Games, QString> MasterMixThread::gameNames =
     { Games::W97, "W97" },
 };
 
+QMap<QSharedPointer<Server>, Games> MasterMixThread::connectedServers;
 QMap<Games, QMetaObject::Connection> MasterMixThread::connectedGames;
 QTcpSocket* MasterMixThread::tcpSocket{ nullptr };
 bool MasterMixThread::download;
@@ -185,31 +187,40 @@ void MasterMixThread::obtainMasterData(const Games& game)
         this->parseMasterInfo( game );
 }
 
-void MasterMixThread::getMasterMixInfoSlot(const Games& game)
+void MasterMixThread::getMasterMixInfoSlot(QSharedPointer<Server> server)
 {
-    if ( !connectedGames.contains( game ) )
+    if ( server == nullptr )
+        return;
+
+    const Games gameId{ server->getGameId() };
+    if ( !connectedServers.contains( server ) ) //Unique Server Connections.
     {
-        auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
-        [=, this]()
+        connectedServers.insert( server, gameId );
+        if ( !connectedGames.contains( gameId ) )     //Unique Game Connections.
         {
-            this->obtainMasterData( game );
-        } );
+            auto connection = QObject::connect( this, &MasterMixThread::obtainedMasterMixInfoSignal, this,
+            [=, this]()
+            {
+                this->obtainMasterData( gameId );
+            } );
 
-        if ( connection )
-        {
-            //Emit the Log message only if the connection is *New*.
-            QString msg{ "Connecting to the [ %1 ] Master Mix." };
-                    msg = msg.arg( gameNames.value( game ) );
+            if ( connection )
+            {
+                connectedGames.insert( gameId, connection );
 
-            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
-            connectedGames.insert( game, connection );
+                //Emit the Log message only if the connection is *New*.
+                QString msg{ "Connecting to the [ %1 ] Master Mix." };
+                        msg = msg.arg( gameNames.value( gameId ) );
+
+                emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+            }
         }
     }
 
     if ( !download )
         this->updateMasterMixInfo( false );
     else
-        this->obtainMasterData( game );
+        this->obtainMasterData( gameId );
 }
 
 void MasterMixThread::masterMixInfoChangedSlot()
@@ -217,18 +228,28 @@ void MasterMixThread::masterMixInfoChangedSlot()
     this->updateMasterMixInfo( true );
 }
 
-void MasterMixThread::removeConnectedGameSlot(const Games& game)
+void MasterMixThread::removeConnectedGameSlot(QSharedPointer<Server> server)
 {
-    if ( connectedGames.contains( game ) )
-    {
-        auto connection = connectedGames.take( game );
-        if ( QObject::disconnect( connection ) )
-        {
-            QString msg{ "Disconnecting from the [ %1 ] Master Mix." };
-                    msg = msg.arg( gameNames.value( game ) );
+    if ( server == nullptr )
+        return;
 
-            emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+    const Games gameId{ server->getGameId() };
+    if ( connectedGames.contains( gameId )
+      && connectedServers.contains( server ) )
+    {
+        QList<Games> gamesList{ connectedServers.values() };
+        if ( gamesList.count() == 1  )
+        {
+            auto connection = connectedGames.take( gameId );
+            if ( QObject::disconnect( connection ) )
+            {
+                QString msg{ "Disconnecting from the [ %1 ] Master Mix." };
+                msg = msg.arg( gameNames.value( gameId ) );
+
+                emit this->insertLogSignal( "MasterMixThread", msg, LKeys::MasterMixLog, true, true );
+            }
         }
+        connectedServers.remove( server );
     }
 }
 

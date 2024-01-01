@@ -1038,22 +1038,24 @@ void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& ta
                                     const qint32& trgScene, const QByteArray& packet)
 {
     //Source Player is this Player Object. Return without further processing.
-    if ( plr == this
-      || plr == nullptr )
+    if ( plr == this )
         return;
 
-    if ( !this->getIsAdmin() )
+    if ( plr != nullptr )
     {
-        if ( !plr->getIsVisible() )
-            return;
-    }
+        if ( !this->getIsAdmin() )
+        {
+            if ( !plr->getIsVisible() )
+                return;
+        }
 
-    //Quarantined players can only communicate with the quarantined.
-    if ( !this->getIsQuarantined()
-      && plr->getIsQuarantined() )
-    {
-        if ( !plr->getQuarantineOverride() )
-            return;
+        //Quarantined players can only communicate with the quarantined.
+        if ( !this->getIsQuarantined()
+          && plr->getIsQuarantined() )
+        {
+            if ( !plr->getQuarantineOverride() )
+                return;
+        }
     }
 
     bool isAuth{ false };

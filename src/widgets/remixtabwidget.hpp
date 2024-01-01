@@ -82,7 +82,7 @@ class ReMixTabWidget : public QTabWidget
     signals:
         void crossServerCommentSignal(QSharedPointer<Server> server, const QString& comment);
         void themeChangedSignal(const Themes& theme);
-        void removeConnectedGameSignal(const Games& game);
+        void removeConnectedGameSignal(QSharedPointer<Server> server);
 };
 
 #endif // REMIXTABWIDGET_HPP

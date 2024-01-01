@@ -276,7 +276,7 @@ QSharedPointer<Server> CreateInstance::initializeServer(const QString& name, con
         else
             server->setIsPublic( isPublic, Helper::getPrivateIP().toString() );
 
-        emit this->getMasterMixInfoSignal( gameID );
+        emit this->getMasterMixInfoSignal( server );
     }
     else
     {

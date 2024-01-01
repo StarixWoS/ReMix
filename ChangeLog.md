@@ -4,6 +4,23 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.1.3:
+    Change:
+      * 
+
+
+
+
+
+    Bugfixes:
+      * Fixed an issue that made "Owner Character Emulation" nonfunctional.
+      * Fixed an issue with the MasterMixThread related to closing a Server Instance where more than one Server was connected to the same GameID.
+        * e.g. ServerA and ServerB connected to "WoS". Closing ServerA would prevent ServerB from recieving updated MasterInformation for "WoS" as the MasterMixThread would have disconnected from "WoS".
+
+
+
+
+
 Version 3.1.2:
     Change:
       * Added a new Dialog "Admin Command Overrides" that will allow Server Hosts to override the ranks of Remote Admin Commands and SubCommands.

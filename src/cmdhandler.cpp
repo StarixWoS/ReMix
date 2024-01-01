@@ -1592,6 +1592,9 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                 }
             break;
             case GMSubCmdIndexes::Six:
+                {
+
+                }
             case GMSubCmdIndexes::Seven:
             case GMSubCmdIndexes::Invalid:
                 {

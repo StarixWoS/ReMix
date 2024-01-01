@@ -127,7 +127,7 @@ UPnPReply* UPnPWanService::getSpecificPortMappingEntry(quint16 externalPort, QAb
          url.setPath( getControlUrl().path() );
          url.setQuery( getControlUrl().query() );
 
-    QNetworkReply* reply{ device->getNetManager()->post(envelope.request(url), envelope.render()) };
+    QNetworkReply* reply{ device->getNetManager()->post( envelope.request( url ), envelope.render() ) };
     if ( reply != nullptr )
     {
         QObject::connect( reply, &QNetworkReply::finished, this, [=]
@@ -137,13 +137,13 @@ UPnPReply* UPnPWanService::getSpecificPortMappingEntry(quint16 externalPort, QAb
             const QByteArray data{ reply->readAll() };
             if ( reply->error() )
             {
-                auto error = UPnPSoap::responseError(data);
-                ret->finishWithError(error.second, error.first);
+                auto error{ UPnPSoap::responseError( data ) };
+                ret->finishWithError( error.second, error.first );
             }
             else
             {
                 QDomDocument doc;
-                             doc.setContent(data, true);
+                             doc.setContent( data, true );
 
                 const QDomElement res = doc.documentElement()
                                            .firstChildElement( QStringLiteral( "Body" ) )
@@ -172,7 +172,7 @@ UPnPReply* UPnPWanService::getSpecificPortMappingEntry(quint16 externalPort, QAb
 
 UPnPReply* UPnPWanService::getGenericPortMapping()
 {
-    auto* ret{  new UPnPReply( this ) };
+    UPnPReply* ret{ new UPnPReply( this ) };
     this->getGenericPortMapping(ret);
     return ret;
 }
@@ -201,8 +201,8 @@ UPnPReply* UPnPWanService::getStatusInfo()
             const QByteArray data{ reply->readAll() };
             if ( reply->error() )
             {
-                auto error = UPnPSoap::responseError(data);
-                ret->finishWithError(error.second, error.first);
+                auto error = UPnPSoap::responseError( data );
+                ret->finishWithError( error.second, error.first );
             }
             else
             {
@@ -250,7 +250,7 @@ UPnPReply* UPnPWanService::getExternalIp()
             if ( !reply->error() )
             {
                 QDomDocument doc;
-                             doc.setContent(data, true);
+                             doc.setContent( data, true );
                 const QDomElement res = doc.documentElement()
                                            .firstChildElement( QStringLiteral( "Body" ) )
                                            .firstChildElement( QStringLiteral( "GetExternalIPAddressResponse" ) )
