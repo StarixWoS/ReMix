@@ -520,8 +520,18 @@ void ReMixWidget::plrConnectedSlot(qintptr socketDescriptor)
     QObject::connect( plr.get(), &Player::errorOccurred, this,
     [=, this](QAbstractSocket::SocketError socketError)
     {
-        if ( QAbstractSocket::SocketTimeoutError == socketError )
-            this->plrDisconnectedSlot( plr, true );
+        switch ( socketError )
+        {
+            case QAbstractSocket::SocketTimeoutError:
+            case QAbstractSocket::NetworkError:
+            case QAbstractSocket::RemoteHostClosedError:
+                {
+                    this->plrDisconnectedSlot( plr, true );
+                }
+            break;
+            default:
+                qDebug() << socketError;
+        }
     } );
 
     QObject::connect( plr.get(), &Player::parsePacketSignal, PacketHandler::getInstance( server ), &PacketHandler::parsePacketSlot, Qt::UniqueConnection );

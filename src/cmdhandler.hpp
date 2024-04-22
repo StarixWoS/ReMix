@@ -29,7 +29,7 @@ class CmdHandler : public QObject
         void parseMix5Command(QSharedPointer<Player> plr, const QString& packet);
 
         static bool canParseCommand(QSharedPointer<Player> admin, const QString& command);
-        bool parseCommandImpl(QSharedPointer<Player> admin, QString& packet);
+        void parseCommandImpl(QSharedPointer<Player> admin, QString& packet);
 
         bool canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all);
         bool isTargetingSelf(QSharedPointer<Player> admin, QSharedPointer<Player> target);

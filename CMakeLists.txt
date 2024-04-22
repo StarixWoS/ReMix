@@ -7,7 +7,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(BUILD_VERSION 3.1.3 CACHE STRING "ReMix version number")
+set(BUILD_VERSION 3.1.4 CACHE STRING "ReMix version number")
 project(ReMix VERSION ${BUILD_VERSION})
 
 set(ReMix_VERSION_2 "v${ReMix_VERSION}")
@@ -48,7 +48,6 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
         src/appeventfilter.cpp
         src/packethandler.cpp
         src/campexemption.cpp
-        src/guildstorage.cpp
         src/packetforge.cpp
         src/selectworld.cpp
         src/cmdhandler.cpp
@@ -91,7 +90,6 @@ set(HEADERS src/packethandlers/wospackethandler.hpp
         src/appeventfilter.hpp
         src/packethandler.hpp
         src/campexemption.hpp
-        src/guildstorage.hpp
         src/packetforge.hpp
         src/selectworld.hpp
         src/cmdhandler.hpp
@@ -138,6 +136,7 @@ set(UI ui/widgets/settingswidget.ui
     ui/cmdtableoverride.ui
     ui/createinstance.ui
     ui/selectworld.ui
+    #ui/upnpdevice.ui
     ui/settings.ui
     ui/sendmsg.ui
     ui/logger.ui

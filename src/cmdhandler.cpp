@@ -237,15 +237,14 @@ bool CmdHandler::canParseCommand(QSharedPointer<Player> admin, const QString& co
     return true;
 }
 
-bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
+void CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
 {
     packet = packet.mid( 1 );
 
     if ( admin == nullptr )
-        return false;
+        return;
 
     bool logMsg{ true };
-    bool retn{ false };
     bool all{ false };
 
     QTextStream stream( &packet );
@@ -266,15 +265,15 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
 
     //The User entered a nonexistant command. Return gracefully.
     if ( argIndex == GMCmds::Invalid )
-        return false;
+        return;
 
     GMRanks subCmdRank{ GMRanks::Invalid };
     GMRanks cmdRank{ cmdTable->getCmdRank( argIndex ) };
     if ( cmdRank == GMRanks::Invalid )
-        return false;
+        return;
 
     if ( !this->canUseAdminCommands( admin, cmdRank, cmd ) )
-        return false;
+        return;
 
     QString message{ "" };
     if ( !subCmd.isEmpty()
@@ -287,7 +286,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
             if ( !this->canUseAdminCommands( admin, subCmdRank, subCmd ) )
             {
                 if ( argIndex != GMCmds::Camp ) //Camp sub commands should be checked within the handler.
-                    return false;
+                    return;
             }
         }
 
@@ -301,7 +300,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 all = true;
             }
             else    //Invalid Rank.
-                return false;
+                return;
         }
         else if ( Helper::cmpStrings( subCmd, "SOUL" ) )
         {
@@ -389,8 +388,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
             {
                 if ( this->validateAdmin( admin, cmdRank, cmd ) )
                     this->infoHandler( admin, index, subCmd, arg1 );
-
-                retn = true;
             }
         break;
         case GMCmds::Ban:
@@ -401,7 +398,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->banHandler( admin, arg1, duration, reason, all );
                 }
-                retn = true;
             }
         break;
         case GMCmds::UnBan:
@@ -411,7 +407,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->unBanHandler( subCmd, arg1 );
                 }
-                retn = true;
             }
         break;
         case GMCmds::Kick:
@@ -421,7 +416,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->kickHandler( admin, arg1, argIndex, message, all );
                 }
-                retn = true;
             }
         break;
         case GMCmds::Mute:
@@ -432,7 +426,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->muteHandler( admin, arg1, duration, reason, all );
                 }
-                retn = true;
             }
         break;
         case GMCmds::UnMute:
@@ -442,7 +435,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->unMuteHandler( admin, subCmd, arg1 );
                 }
-                retn = true;
             }
         break;
         case GMCmds::Quarantine:
@@ -452,7 +444,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->quarantineHandler( admin, arg1, reason );
                 }
-                retn = true;
             }
         break;
         case GMCmds::UnQuarantine:
@@ -462,7 +453,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->unQuarantineHandler( admin, arg1, reason );
                 }
-                retn = true;
             }
         break;
         case GMCmds::Message:
@@ -472,7 +462,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->msgHandler( admin, message, arg1, all );
                 }
-                retn = true;
             }
         break;
         case GMCmds::LogIn:
@@ -485,7 +474,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                         this->loginHandler( admin, subCmd );
                     }
                 }
-                retn = false;
                 logMsg = false;
             }
         break;
@@ -500,7 +488,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                     static const QString success{ "You are no longer authenticated with the server! You must log in to use Admin commands again." };
                     server->sendMasterMessage( success, admin, false );
                 }
-                retn = true;
             }
         break;
         case GMCmds::Register:
@@ -510,7 +497,6 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 {
                     this->registerHandler( admin, subCmd );
                 }
-                retn = false;
                 logMsg = false;
             }
         break;
@@ -528,10 +514,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                     stop = true;
 
                 if ( this->validateAdmin( admin, cmdRank, cmd ) )
-                {
                     this->shutDownHandler( admin, duration, reason, stop, restart );
-                    retn = true;
-                }
             }
         break;
         case GMCmds::Vanish:
@@ -587,7 +570,7 @@ bool CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
     if ( logMsg )
         emit this->insertLogSignal( server->getServerName(), msg, LKeys::AdminLog, true, true );
 
-    return retn;
+    return;
 }
 
 bool CmdHandler::canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all)

@@ -4,6 +4,23 @@ TODO:
     * This would break settings compatibility for the added benefit of being able to manually edit the preferences while ReMix is closed.
   * Add a Settings Tab to customize the ChatView settings.
 
+Version 3.1.4:
+    Change:
+      * 
+
+
+
+
+
+    Bugfixes:
+      * Fixed an issue where the CreateInstance dialog would not appear when starting ReMix when compiled with Qt6.7.
+      * Fixed an issue with the Light/Dark theme when compiled with Qt6.7.
+      * Fixed an issue where ReMix would keep a User "online" when the Network Socket had failed or otherwise disconnected.
+
+
+
+
+
 Version 3.1.3:
     Change:
       * 

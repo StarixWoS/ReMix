@@ -68,9 +68,11 @@ void RulesWidget::setServerName(const QString& name)
     QVariant val;
     QString rowText{ "" };
 
+    Games gameType{ Games::Invalid };
+    if ( server != nullptr )
+        gameType = server->getGameId();
 
-    if ( server != nullptr
-      && server->getGameId() == Games::ToY )
+    if ( gameType == Games::ToY )
     {
         val = Settings::getSetting( SKeys::Rules, SSubKeys::ToYName, name );
         rowText = "ToY Name: [ %1 ]";

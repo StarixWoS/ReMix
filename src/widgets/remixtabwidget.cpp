@@ -50,16 +50,15 @@ ReMixTabWidget::ReMixTabWidget(QWidget* parent)
     QObject::connect( createDialog, &CreateInstance::quitSignal, ReMix::getInstance(), &ReMix::quitSlot, Qt::QueuedConnection );
     createDialog->updateServerList( true );
 
-    //Initalize the First Server. --Only if no stored servers are marked as "AutoRestart"
-    if ( !createDialog->getLoadingOldServers() )
-        this->createServer();
-
     createInstanceTimer.start( *Globals::UI_UPDATE_TIME );
     QObject::connect( &createInstanceTimer, &QTimer::timeout, &createInstanceTimer,
     [=]()
     {
         if ( serverMap.isEmpty() && !createDialog->isVisible() )
-            createDialog->show();
+        {
+            if ( !createDialog->getLoadingOldServers() )
+                createDialog->show();
+        }
     } );
 
     QObject::connect( this, &ReMixTabWidget::themeChangedSignal, this, &ReMixTabWidget::themeChangedSlot );

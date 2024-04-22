@@ -14,6 +14,8 @@
 
 int main(int argc, char* [])
 {
+    qputenv( "QT_QPA_PLATFORM", "windows:darkmode=0" );
+
     RunGuard a( argc, nullptr );
     if ( a.getIsRunning() )
         return 0;
