@@ -193,23 +193,25 @@ void Server::sendUserList(const QHostAddress& addr, const quint16& port, const U
     //Sends the User's IP address within field(%2) 2; we are sending the User's
     //position within the players[] array instead to prevent IP leakage.
 
-    for ( int i = 0; i < this->getMaxPlayerCount() && response.length() < 800; ++i )
+    for ( QSharedPointer<Player> tmpPlayer : this->getPlayerVector() )
     {
-        QSharedPointer<Player> plr{ this->getPlayer( i ) };
-        if ( plr != nullptr
-          && plr->getSernum_i() != 0 )
+        if ( response.length() > 800 )
+            break;
+
+        if ( tmpPlayer != nullptr
+          && tmpPlayer->getSernum_i() != 0 )
         {
             //Don't show Invisible Administrators on the User List.
-            if ( plr->getIsVisible() )
+            if ( tmpPlayer->getIsVisible() )
             {
                 if ( type == UserListResponse::Q_Response ) //Standard 'Q' Response.
                 {
-                    response += filler_Q.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX, IntFills::QuadWord ) );
+                    response += filler_Q.arg( Helper::intToStr( tmpPlayer->getSernum_i(), IntBase::HEX, IntFills::QuadWord ) );
                 }
                 else if ( type == UserListResponse::R_Response ) //Non-Standard 'R' Response
                 {
-                    response += filler_R.arg( Helper::intToStr( plr->getSernum_i(), IntBase::HEX ) )
-                                        .arg( Helper::intToStr( this->getPlayerSlot( plr ), IntBase::HEX, IntFills::QuadWord ) );
+                    response += filler_R.arg( Helper::intToStr( tmpPlayer->getSernum_i(), IntBase::HEX ) )
+                                        .arg( Helper::intToStr( this->getPlayerSlot( tmpPlayer ), IntBase::HEX, IntFills::QuadWord ) );
                 }
             }
         }
@@ -595,6 +597,19 @@ void Server::masterSerNumKeepAliveSlot()
     emit this->sendMasterMsgToPlayerSignal( nullptr, true, PacketForge::getInstance()->encryptPacket( pkt.toLatin1(), 0, this->getGameId() ) );
 
     this->startMasterSerNumKeepAliveTimer();
+}
+
+void Server::sendPingToPlayer(QSharedPointer<Player> plr)
+{
+    static const QString pingPacket{ ":;o1%1D" };
+    if ( plr != nullptr
+      && plr->getIsIncarnated() )
+    {
+        const QString pkt{ pingPacket.arg( plr->getSernumHex_s() ) };
+        emit this->sendMasterMsgToPlayerSignal( plr, false, PacketForge::getInstance()->encryptPacket( pkt.toLatin1(), 0, this->getGameId() ) );
+
+        plr->setPlrPingTime( QDateTime::currentMSecsSinceEpoch() );
+    }
 }
 
 qint64 Server::getUpTime() const
@@ -1342,12 +1357,12 @@ void Server::recvPlayerGameInfoSlot(const QString& info, const QString& ip)
 {
     //Check if the IP Address is a properly connected User. Or at least is in the User list...
     bool connected{ false };
-    for ( int i = 0; i < this->getMaxPlayerCount(); ++i )
+
+    for ( QSharedPointer<Player> tmpPlayer : this->getPlayerVector() )
     {
-        const QSharedPointer<Player> tmpPlr = this->getPlayer( i );
-        if ( tmpPlr != nullptr )
+        if ( tmpPlayer != nullptr )
         {
-            if ( Helper::cmpStrings( tmpPlr->getIPAddress(), ip ) )
+            if ( Helper::cmpStrings( tmpPlayer->getIPAddress(), ip ) )
             {
                 connected = true;
                 break;

@@ -290,3 +290,9 @@ MasterMixThread* MasterMixThread::getInstance()
 
     return instance;
 }
+
+QString MasterMixThread::getMinServerVersion(const Games& game)
+{
+    masterMixPref->sync();
+    return masterMixPref->value( gameNames.value( game, "WoS" ) % "/minVersion" ).toString();
+}

@@ -74,7 +74,7 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
     if ( !pkt.isEmpty() )
     {
         QString trgSerNum{ pkt.left( 21 ).mid( 13 ) };
-        qint32 trgSerNumInt{ Helper::strToInt( trgSerNum, IntBase::HEX) };
+        qint32 trgSerNumInt{ Helper::strToInt( trgSerNum, IntBase::HEX ) };
         QSharedPointer<Player> targetPlayer{ server->getPlayer( trgSerNum ) };
 
         Colors targetNameColor{ Colors::PlayerName };
@@ -91,6 +91,49 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
 
         switch ( pkt.at( 3 ).toLatin1() )
         {
+            case *WoSPacketTypes::WorldGetOut: //We're going to be using this as a Player PING!
+                {
+                    plr->setPlrPingResponseTime( QDateTime::currentMSecsSinceEpoch() );
+                }
+            break;
+            case *WoSPacketTypes::SceneTossedItem:  //Details for these two packets don't matter. Only their existence.
+            case *WoSPacketTypes::SceneAttackAction:
+                {
+                    retn = false;
+                    if ( plr->getSceneCursorState() )
+                    {
+                        plr->setSceneCursorState( false );
+                        retn = true;
+                    }
+                    else
+                    {
+                        const QString infCursor{ "Infinite Cursor Exploit Detected, Ignoring Action. User [ %1 : %2 ]." };
+                        server->sendMasterMessage( infCursor.arg( plr->getSernum_s(), plr->getPlrName() ), plr, true );
+                    }
+                }
+            break;
+            case *WoSPacketTypes::ScenePromptAction:
+                {
+                    if ( pkt.at( 13 ).toLatin1() == 'A' )
+                    {
+                        QSharedPointer<Player> tmpPlr{ nullptr };
+                        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
+                        {
+                            if ( tmpPlayer != nullptr )
+                            {
+                                tmpPlr = tmpPlayer;
+                                if ( plr->getSernum_i() == tmpPlr->getSceneHost() )
+                                {
+                                    tmpPlr->setSceneCursorState( true );
+                                    //qDebug() << "Scene" << plr << "giving cursor to" << tmpPlr;
+                                }
+                            }
+                            tmpPlr = nullptr;
+                        }
+                    }
+                    retn = true;
+                }
+            break;
             case *WoSPacketTypes::Incarnation:
                 {
                     QStringList varList{ pkt.mid( 47 ).split( "," ) };
@@ -183,24 +226,23 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
 
                     if ( type >= 1 && type != 4 )
                     {
-                        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                         {
-                            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-                            if ( tmpPlr != nullptr
-                              && plr != tmpPlr )
+                            if ( tmpPlayer != nullptr
+                              && plr != tmpPlayer )
                             {
-                                if ( tmpPlr->getIsVisible()
-                                  && !tmpPlr->getIsMuted() ) //Do not force Invisible, or Muted Users to send camp packets.
+                                if ( tmpPlayer->getIsVisible()
+                                  && !tmpPlayer->getIsMuted() ) //Do not force Invisible, or Muted Users to send camp packets.
                                 {
-                                    if ( plr->getSceneHost() != tmpPlr->getSernum_i()
+                                    if ( plr->getSernum_i() != tmpPlayer->getSceneHost()
                                       || plr->getSceneHost() <= 0 )
                                     {
-                                        if ( !tmpPlr->getCampPacket().isEmpty()
-                                          && tmpPlr->getTargetType() == PktTarget::ALL )
+                                        if ( !tmpPlayer->getCampPacket().isEmpty()
+                                          && tmpPlayer->getTargetType() == PktTarget::ALL )
                                         {
-                                            tmpPlr->setTargetSerNum( plr->getSernum_i() );
-                                            tmpPlr->setTargetType( PktTarget::PLAYER );
-                                            tmpPlr->forceSendCampPacket();
+                                            tmpPlayer->setTargetSerNum( plr->getSernum_i() );
+                                            tmpPlayer->setTargetType( PktTarget::PLAYER );
+                                            tmpPlayer->forceSendCampPacket();
                                         }
                                     }
                                 }
@@ -214,6 +256,11 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                         this->forgePacket( server, plr, WoSPacketTypes::GuildInfo );
                         this->forgePacket( server, plr, WoSPacketTypes::CharacterInfo );
                     }
+
+                    if ( plr->getIsIncarnated() )
+                        server->sendPingToPlayer( plr );
+
+                    retn = true;
                 }
             break;
             case *WoSPacketTypes::ServerLeave: //Player Leaves Server. //Arcadia uses packet 'B'.
@@ -327,11 +374,18 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                     {
                         plr->setCampPacket( "" );
                         plr->setCampCreatedTime( 0 );
+                        //plr->removeSceneHosted( nullptr, true );
                     }
                 }
             break;
             case *WoSPacketTypes::PlayerStatus: //Parse Player Level and AFK status.
                 {
+                    /* //Example of a Level 999 hacker. 0x3E7 = 999
+                     * 087210.406: :;os00000FA0D0000000003E703E803020967096707A207A200C0AB9CFFFFFFFFFF140100000000000000000000
+                     *                 14000000000000000C35000000314838F442570A356102
+                     * 087210.437: :;os00000FA0D0000000003E703E803020967096707A207A200C0AB9CFFFFFFFFFF140100000000000000000000
+                     *                 14000000000000000C35000000314838F442570A356102
+                    */
                     const qint32 status{ Helper::strToInt( pkt.mid( 89 ).left( 2 ) ) };
 
                     plr->setPlrCheatCount( Helper::strToInt( pkt.mid( 87 ).left( 2 ) ) );
@@ -461,12 +515,22 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
             break;
             case *WoSPacketTypes::CampJoin:
                 {
+                    /*
+                     * //Examples of a level 999 hacker. 0x3E7 = 999
+                     * 086667.921: :;oJ00000FA0D458C4C5A03E7000000002C912C911096109600C0AD8A060D0206030A005A000000000000000000000000000021D9
+                     * 086898.265: :;oJ00000FA0D458C4C5A03E703E803020967096707A207A200C0AB9CFFFFFFFFFF140014000000F800B500BE00BF00C003E55B9B
+                     *
+                     * //Normal User.
+                     * 086667.921: :;oJ00000FA0D458C4C5A006403E8030C0DDD0DDD0505050500C97F05FFFFFFFFFF05BA5F00BA00F800B500BE00BF00C003E52142
+                    */
+                    plr->setPlrLevel( Helper::strToInt( pkt.mid( 21 ).left( 4 ) ) );
+
                     QSharedPointer<Player> tmpPlr{ nullptr };
-                    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                     {
-                        tmpPlr = server->getPlayer( i );
-                        if ( tmpPlr != nullptr )
+                        if ( tmpPlayer != nullptr )
                         {
+                            tmpPlr = tmpPlayer;
                             if ( Helper::cmpStrings( tmpPlr->getSernumHex_s(), trgSerNum ) )
                                 break;
                         }
@@ -500,9 +564,29 @@ bool WoSPacketHandler::handlePacket(QSharedPointer<Server> server, ChatView* cha
                             message = message.arg( tmpPlr->getPlrName() );
                             server->sendMasterMessage( message, plr, false );
                         }
+                        //else //Player added to the scene.
+                        //    tmpPlr->addSceneHosted( plr );
                     }
                 }
             break;
+//            case *WoSPacketTypes::CampLeave:
+//                {
+//                    QSharedPointer<Player> tmpPlr{ nullptr };
+//                    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
+//                    {
+//                        if ( tmpPlayer != nullptr )
+//                        {
+//                            tmpPlr = tmpPlayer;
+//                            if ( Helper::cmpStrings( tmpPlr->getSernumHex_s(), trgSerNum ) )
+//                                break;
+//                        }
+//                        tmpPlr = nullptr;
+//                    }
+
+//                    if ( tmpPlr != nullptr )
+//                        tmpPlr->removeSceneHosted( plr );
+//                }
+//            break;
             case *WoSPacketTypes::InfoRequest:
                 {
                     if ( trgSerNumInt == static_cast<qint32>( ReMixSerNum::SerNum )
@@ -531,6 +615,11 @@ void WoSPacketHandler::forgePacket(QSharedPointer<Server> server, QSharedPointer
     static QString serverSernum{ Helper::serNumToHexStr( Helper::intToStr( *ReMixSerNum::SerNum, IntBase::HEX, IntFills::DblWord ) ) };
     switch ( type )
     {
+        case WoSPacketTypes::WorldHello: //We're going to be using this as a Player PING!
+            {
+
+            }
+        break;
         case WoSPacketTypes::Incarnation:
             {
                 packet = ":;o3" % serverSernum % "DEB00000A97"

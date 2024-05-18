@@ -52,6 +52,12 @@ class Player : public QTcpSocket
 
     qint32 targetSerNum{ 0 };
     qint32 targetHost{ 0 };
+
+    //QMap<QSharedPointer<Player>, QString> sceneHostedPlayers;
+    //QSharedPointer<Player> sceneHost;
+
+    bool sceneCursorState{ false };
+    qint32 sceneCursorUseCount{ 0 };
     qint32 sceneHost{ 0 };
 
     bool hasSerNum{ false };
@@ -60,6 +66,16 @@ class Player : public QTcpSocket
 
     qint32 plrCheatCount{ 0 };
     qint32 plrModCount{ 0 };
+
+    QTimer pingUpdateTimer;
+    qint64 plrPingResponseTime{ 0 };
+    qint64 plrPingTime{ 0 };
+
+    qint64 plrPingCount{ 0 };
+    qint64 plrPing{ 0 };
+
+    double plrPingTrend{ 80 };
+    double plrPingAvg{ 0 };
 
     qint64 plrConnectedTime{ 0 };
     qint64 campCreatedTime{ 0 };
@@ -122,8 +138,17 @@ class Player : public QTcpSocket
         qint32 getTargetScene() const;
         void setTargetScene(qint32 value);
 
+        bool getSceneCursorState() const;
+        void setSceneCursorState(const bool& newSceneCursorState);
+
+        qint32 getSceneCursorUseCount() const;
+        void setSceneCursorUseCount(qint32 newSceneCursorUseCount);
+
         qint32 getSceneHost() const;
         void setSceneHost(qint32 value);
+
+        //void addSceneHosted(QSharedPointer<Player> value);
+        //void removeSceneHosted(QSharedPointer<Player> value, const bool& all = false);
 
         qint32 getTargetSerNum() const;
         void setTargetSerNum(qint32 value);
@@ -226,6 +251,26 @@ class Player : public QTcpSocket
         void validateSerNum(const qint32& id);
         bool getIsGoldenSerNum();
 
+        qint64 getPlrPingResponseTime() const;
+        void setPlrPingResponseTime(const qint64& newPlrPingResponseTime);
+
+        qint64 getPlrPingTime() const;
+        void setPlrPingTime(const qint64& newPlrPingTime);
+
+        qint64 getPlrPingCount() const;
+        void setPlrPingCount(const qint64& newPlrPingCount);
+
+        QString getPlrPingString();
+
+        qint64 getPlrPing();
+        void setPlrPing();
+
+        double getPlrPingTrend() const;
+        void setPlrPingTrend(const double& newPlrPingTrend);
+
+        double getPlrPingAvg() const;
+        void setPlrPingAvg(const double& value);
+
         qint64 getPlrConnectedTime() const;
         void setPlrConnectedTime(const qint64& value);
 
@@ -256,14 +301,19 @@ class Player : public QTcpSocket
         bool getIsGhosting() const;
         void setIsGhosting(bool newIsGhosting);
 
+        QString getBaudString(const PlrCols& baudSwitch);
+
     public slots:
         void vanishStateTimerTimeOutSlot();
+        void pingUpdateTimerTimeOutSlot();
+
         void sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
                                     const qint32& trgScene, const QByteArray& packet);
         void sendMasterMsgToPlayerSlot(const QSharedPointer<Player> plr, const bool& all, const QByteArray& packet);
         void refreshAFKTimersSlot(const qint64& maxAFK);
         void connectionTimeUpdateSlot();
         void setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank);
+        //void packetFromSceneHost();
 
     private slots:
         void mutedSerNumDurationSlot(const QString& sernum, const quint64& duration, const QString& reason);
@@ -280,6 +330,7 @@ class Player : public QTcpSocket
         void updatePlrViewSignal(QSharedPointer<Player> plr, const qint32& column, const QVariant& data, const qint32& role, const bool& isColor = false);
         void ipDCIncreaseSignal(const DCTypes& type);
         void setVisibleStateSignal(const bool& state);
+        //void packetToSceneHostedPlayers();
 };
 
 #endif // PLAYER_HPP

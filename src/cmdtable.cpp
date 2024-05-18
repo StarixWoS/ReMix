@@ -28,8 +28,8 @@ const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
         GMCmds::Help,
     },
     {   //Command Implemented.
-        { "list" },
-        1,
+        { "list", "commands", "cmd" },
+        3,
         {
             {
             }
@@ -79,8 +79,15 @@ const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
                 GMSubCmds::InfoServer,
             },
             {
+                "ip",
+                "Command Description: Provides Information on a specific User via IP Address.",
+                "Command Usage: /info ip 127.0.0.1",
+                GMRanks::Admin,
+                GMSubCmds::InfoSoul,
+            },
+            {
                 "soul",
-                "Command Description: Provides Information on a specific User.",
+                "Command Description: Provides Information on a specific User via SoulID..",
                 "Command Usage: /info soul 4000",
                 GMRanks::Admin,
                 GMSubCmds::InfoSoul,
@@ -100,7 +107,7 @@ const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
                 GMSubCmds::InfoQuarantined,
             }
         },
-        4,
+        5,
         "Command Description: Provides Server Information for Remote Admins to use.",
         "Command Usage: /info *<SubCommand>",
         GMRanks::GMaster,
@@ -512,6 +519,32 @@ const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
         true,
         GMCmds::Version,
     },
+    {   //Command Implemented.
+        { "ping" },
+        1,
+        {
+            {
+                "ip",
+                "Command Description: Shows the Ping Information the selected User via IP Address.",
+                "Command Usage: /ping ip 127.0.0.1",
+                GMRanks::Admin,
+                GMSubCmds::PingIP,
+            },
+            {
+                "soul",
+                "Command Description: Shows the Ping Information the selected User via SoulID.",
+                "Command Usage: /ping soul 4000",
+                GMRanks::GMaster,
+                GMSubCmds::PingSoul,
+            },
+        },
+        2,
+        "Command Description: Shows your Ping Information.",
+        "Command Usage: /ping",
+        GMRanks::User,
+        true,
+        GMCmds::Ping,
+    },
     {
         { "camp" },
         1,
@@ -573,7 +606,7 @@ const QVector<CmdTable::CmdStructure> CmdTable::cmdTable =
                 GMSubCmds::CampSoul,
             },
         },
-        7,
+        8,
         "Command Description: Allows a User to prevent others from entering a hosted Scene.",
         "Command Usage: /camp *<SubCommand>",
         GMRanks::User,
@@ -743,28 +776,44 @@ QString CmdTable::getCmdString(const CmdTable::CmdStructure& cmdStruct, const GM
     {
         GMSubCmdIndexes subCmdIndex{ GMSubCmdIndexes::Invalid };
         GMRanks tSubCmdRank{ GMRanks::Invalid };
+
+        qint32 activatorCount{ cmdStruct.cmdActivatorCount };
+        qint32 subCmdCount{ cmdStruct.subCmdCount };
+
+        result.append( "< " );
         for ( const auto& item : cmdStruct.cmdActivators )
         {
             result.append( item );
-            if ( cmdStruct.subCmdCount >= 1 )
-            {
-                result.append( "[ " );
-                for ( const auto& sEl : cmdStruct.subCmd )
-                {
-                    if ( CmdTableOverride::getUsingOverrides() )
-                    {
-                        subCmdIndex = this->getSubCmdIndex( cmdStruct.index, sEl.subCommand );
-                        tSubCmdRank = this->getSubCmdRank( cmdStruct.index, subCmdIndex );
-                    }
-                    else
-                        tSubCmdRank = sEl.subRank;
+            if ( --activatorCount > 0 )
+                result.append( " | " );
+        }
 
-                    if ( tSubCmdRank <= rank )
-                        result.append( sEl.subCommand % ", " );
-                }
-                result.append( "]" );
-            }
+        result.append( " >" );
+        if ( cmdStruct.subCmdCount == 0 )
             result.append( ", " );
+
+        activatorCount = cmdStruct.cmdActivatorCount;
+        if ( cmdStruct.subCmdCount >= 1 )
+        {
+            result.append( "[ " );
+            for ( const auto& sEl : cmdStruct.subCmd )
+            {
+                if ( CmdTableOverride::getUsingOverrides() )
+                {
+                    subCmdIndex = this->getSubCmdIndex( cmdStruct.index, sEl.subCommand );
+                    tSubCmdRank = this->getSubCmdRank( cmdStruct.index, subCmdIndex );
+                }
+                else
+                    tSubCmdRank = sEl.subRank;
+
+                if ( tSubCmdRank <= rank )
+                {
+                    result.append( sEl.subCommand );
+                    if ( --subCmdCount > 0 )
+                        result.append( ", " );
+                }
+            }
+            result.append( " ], " );
         }
     }
     return result;

@@ -29,6 +29,16 @@ const QMap<TimePeriods, QString> CmdHandler::tPeriods =
     { TimePeriods::Default, "seconds" },
 };
 
+const QMap<GMRanks, QString> CmdHandler::ranks =
+{
+    { GMRanks::User,    "User"        },
+    { GMRanks::GMaster, "Game Master" },
+    { GMRanks::CoAdmin, "Co-Admin"    },
+    { GMRanks::Admin,   "Admin"       },
+    { GMRanks::Owner,   "Owner"       },
+    { GMRanks::Creator, "Creator"     },
+};
+
 CmdHandler::CmdHandler(QSharedPointer<Server> svr, QObject* parent)
     : QObject(parent),
       server( svr )
@@ -177,16 +187,16 @@ void CmdHandler::parseMix5Command(QSharedPointer<Player> plr, const QString& pac
                 message = message.arg( user )
                                  .arg( plr->getSernum_s() )
                                  .arg( msg );
-                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+
+                for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                 {
-                    QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-                    if ( tmpPlr != nullptr
-                      && tmpPlr != plr )
+                    if ( tmpPlayer != nullptr
+                      && tmpPlayer != plr )
                     {
-                        if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
-                          && tmpPlr->getAdminPwdReceived() )
+                        if ( tmpPlayer->getAdminRank() >= GMRanks::GMaster
+                          && tmpPlayer->getAdminPwdReceived() )
                         {
-                            server->sendMasterMessage( message, tmpPlr, false );
+                            server->sendMasterMessage( message, tmpPlayer, false );
                         }
                     }
                 }
@@ -222,7 +232,7 @@ bool CmdHandler::canParseCommand(QSharedPointer<Player> admin, const QString& co
 
     //Ignore Commands with multiple delimiters.
     if ( command.at( 1 ) == '`'
-      || command.at( 1 ) == '/')
+      || command.at( 1 ) == '/' )
     {
         return false;
     }
@@ -538,6 +548,12 @@ void CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
                 logMsg = false;
             }
         break;
+        case GMCmds::Ping:
+            {
+                if ( this->validateAdmin( admin, cmdRank, cmd ) )
+                    this->pingHandler( admin, index, subCmd, arg1 );
+            }
+        break;
         case GMCmds::Camp:
             {
                 logMsg = false; //Do not log User level commands to file.
@@ -573,18 +589,21 @@ void CmdHandler::parseCommandImpl(QSharedPointer<Player> admin, QString& packet)
     return;
 }
 
-bool CmdHandler::canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all)
+bool CmdHandler::canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all,
+                                const bool& overrideLimit)
 {
     if ( admin == nullptr || target == nullptr )
         return false;
 
     //Remote commands cannot affect the issuer.
-    if ( this->isTargetingSelf( admin, target ) )
+    if ( !overrideLimit
+      && this->isTargetingSelf( admin, target ) )
     {
         this->cannotIssueAction( admin, target, argIndex, all );
         return false;
     }
-    else if ( target->getIsAdmin() )
+    else if ( !overrideLimit
+           && target->getIsAdmin() )
     {   //Remote commands cannot affect other remote administrators.
         //If the Admin has a higher rank then the command will succeed.
         if ( admin->getAdminRank() <= target->getAdminRank() )
@@ -596,7 +615,6 @@ bool CmdHandler::canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Pla
     }
 
     //The target matches the Remote-Administrators conditions.
-    QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( this->isTarget( target, arg1, all ) )
         return true;
 
@@ -629,6 +647,9 @@ void CmdHandler::cannotIssueAction(QSharedPointer<Player> admin, QSharedPointer<
 
 bool CmdHandler::isTarget(QSharedPointer<Player> target, const QString& arg1, const bool isAll)
 {
+    if ( target == nullptr )
+        return false;
+
     QString sernum{ Helper::serNumToHexStr( arg1 ) };
     if ( ( target->getIPAddress() == arg1 )
       || ( target->getSernumHex_s() == sernum )
@@ -684,7 +705,7 @@ void CmdHandler::motdHandler(QSharedPointer<Player> admin, const QString& subCmd
         server->sendMasterMessage( cmdTable->getCommandInfo( GMCmds::MotD, GMSubCmdIndexes::Invalid, true ), admin, false );
 }
 
-void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString&)
+void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1)
 {
     GMSubCmdIndexes subIdx{ GMSubCmdIndexes::Invalid };
     if ( !subCmd.isEmpty() )
@@ -692,6 +713,9 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
 
     QString tmpMsg{ "Server Info: Up Time [ %1 ], MasterMix Ping [ %2 ms, Avg: %3 ms, Trend: %4 ms ], Users [ Current %5 / Peak %6 ], "
                     "Muted [ %7 ], Quarantined [ %8 ]" };
+
+    if ( subIdx == GMSubCmdIndexes::Invalid )
+        subIdx = GMSubCmdIndexes::Zero; //Default to Server Information if invalid subcommand is provided.
 
     switch( subIdx )
     {
@@ -704,14 +728,13 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 //QThreadPool::maxThreadCount();
                 //Peak Player COunt.
 
-                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                 {
-                    QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-                    if ( tmpPlr != nullptr )
+                    if ( tmpPlayer != nullptr )
                     {
                         //Only Track Admins that are logged in and are visible.
-                        if ( tmpPlr->getAdminPwdReceived()
-                          && tmpPlr->getIsVisible() )
+                        if ( tmpPlayer->getAdminPwdReceived()
+                          && tmpPlayer->getIsVisible() )
                         {
                             ++adminCount;
                         }
@@ -738,9 +761,39 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 server->sendMasterMessage( tmpMsg, admin, false );
             }
         break;
-        case GMSubCmdIndexes::One: //Player Information
+        case GMSubCmdIndexes::One: //Player Information - SoulID.
+        case GMSubCmdIndexes::Two: //Player Information - IP Address.
+            {
+                QSharedPointer<Player> target{ this->findTarget( admin, arg1, cmdIdx, false, true ) };
+                if ( target != nullptr )
+                {
+                    QString plrInfo{ "Name [ %1 ], "
+                                     "SerNum [ %2 ], "
+                                     "IP Address [ %3 ], "
+                                     "Ping [ %4 ], "
+                                     "Online Duration [ %5 ], "
+                                     "Rank [ %7 ], "
+                                     "Muted [ %8 ], "
+                                     "Quarantined [ %9 ], "
+                                     "Packets In [ %10 ], "
+                                     "Packets Out [ %11 ]." };
+
+                    plrInfo = plrInfo.arg( target->getPlrName() )
+                                     .arg( target->getSernum_s() )
+                                     .arg( target->getIPAddress() )
+                                     .arg( target->getPlrPingString() )
+                                     .arg( Helper::getTimeFormat( target->getConnTime() ) )
+                                     .arg( ranks.value( target->getAdminRank(), "User" ) )
+                                     .arg( target->getIsMuted() )
+                                     .arg( target->getIsQuarantined() )
+                                     .arg( target->getBaudString( PlrCols::BytesIn ) )
+                                     .arg( target->getBaudString( PlrCols::BytesOut ) );
+
+                    server->sendMasterMessage( plrInfo, admin, false );
+                }
+            }
         break;
-        case GMSubCmdIndexes::Two: //Muted
+        case GMSubCmdIndexes::Three: //Muted
             {
                 QString mutedList{ "Muted Users: " };
                 if ( server != nullptr )
@@ -749,7 +802,7 @@ void CmdHandler::infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx,
                 server->sendMasterMessage( mutedList, admin, false );
             }
         break;
-        case GMSubCmdIndexes::Three: //Quarantined
+        case GMSubCmdIndexes::Four: //Quarantined
             {
                 QString quarantinedList{ "Quarantined Users: " };
                 if ( server != nullptr )
@@ -770,57 +823,48 @@ void CmdHandler::banHandler(QSharedPointer<Player> admin, const QString& arg1, c
     QString msg{ reason };
     QPair<qint64, TimePeriods> pair;
 
-    QSharedPointer<Player> tmpPlr{ nullptr };
-    bool ban{ false };
+    QString dateString{ "" };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
+    qint64 banDuration{ *PunishDurations::SEVEN_DAYS };
 
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
     {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr )
+        if ( tmpPlayer != nullptr )
         {
             //Check target validity.
-            if ( this->isTarget( tmpPlr, arg1, all ) )
+            if ( this->isTarget( tmpPlayer, arg1, all ) )
             {
-                ban = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Ban, all );
-                if ( ban )
-                    break;
+                if ( this->canIssueAction( admin, tmpPlayer, arg1, GMCmds::Ban, all ) )
+                {
+                    if ( !duration.isEmpty() )
+                    {
+                        pair = this->getTimePeriodFromString( duration );
+
+                        banDuration = pair.first;
+                        if ( banDuration == 0 )
+                            banDuration = *PunishDurations::SEVEN_DAYS;
+                    }
+
+                    date += banDuration;
+                    dateString = Helper::getTimeAsString( date );
+
+                    if ( msg.isEmpty() )
+                        msg = "No Reason!";
+
+                    reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                                         .arg( dateString )
+                                         .arg( msg );
+
+                    if ( !reasonMsg.isEmpty() )
+                        server->sendMasterMessage( reasonMsg, tmpPlayer, false );
+
+                    msg = msg.prepend( "Remote-Banish; " );
+                    User::addBan( admin, tmpPlayer, msg, true, static_cast<PunishDurations>( banDuration ) );
+
+                    tmpPlayer->setDisconnected( true, DCTypes::IPDC );
+                }
             }
         }
-        ban = false;
-    }
-
-    if ( ban )
-    {
-        QString dateString{ "" };
-        quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint64 banDuration{ *PunishDurations::SEVEN_DAYS };
-
-        if ( !duration.isEmpty() )
-        {
-            pair = this->getTimePeriodFromString( duration );
-
-            banDuration = pair.first;
-            if ( banDuration == 0 )
-                banDuration = *PunishDurations::SEVEN_DAYS;
-        }
-
-        date += banDuration;
-        dateString = Helper::getTimeAsString( date );
-
-        if ( msg.isEmpty() )
-            msg = "No Reason!";
-
-        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
-                             .arg( dateString )
-                             .arg( msg );
-
-        if ( !reasonMsg.isEmpty() )
-            server->sendMasterMessage( reasonMsg, tmpPlr, false );
-
-        msg = msg.prepend( "Remote-Banish; " );
-        User::addBan( admin, tmpPlr, msg, true, static_cast<PunishDurations>( banDuration ) );
-
-        tmpPlr->setDisconnected( true, DCTypes::IPDC );
     }
 }
 
@@ -844,27 +888,26 @@ void CmdHandler::kickHandler(QSharedPointer<Player> admin, const QString& arg1, 
     reason = reason.arg( admin->getSernum_s() )
                    .arg( message );
 
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
     {
-        QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-        if ( tmpPlr != nullptr )
+        if ( tmpPlayer != nullptr )
         {
             //Check target validity.
-            if ( this->isTarget( tmpPlr, arg1, all ) )
+            if ( this->isTarget( tmpPlayer, arg1, all ) )
             {
-                if ( this->canIssueAction( admin, tmpPlr, arg1, argIndex, all ) )
+                if ( this->canIssueAction( admin, tmpPlayer, arg1, argIndex, all ) )
                 {
-                    server->sendMasterMessage( reason, tmpPlr, false );
+                    server->sendMasterMessage( reason, tmpPlayer, false );
 
                     reason = "Remote-Kick by admin [ %1 ]; %2: [ %3 ], [ %4 ]";
                     reason = reason.arg( admin->getSernum_s() )
                                    .arg( msg )
-                                   .arg( tmpPlr->getSernum_s() )
-                                   .arg( tmpPlr->getBioData() );
+                                   .arg( tmpPlayer->getSernum_s() )
+                                   .arg( tmpPlayer->getBioData() );
 
                     emit this->insertLogSignal( server->getServerName(), reason, LKeys::PunishmentLog, true, true );
 
-                    tmpPlr->setDisconnected( true, DCTypes::IPDC );
+                    tmpPlayer->setDisconnected( true, DCTypes::IPDC );
                 }
             }
         }
@@ -877,56 +920,47 @@ void CmdHandler::muteHandler(QSharedPointer<Player> admin, const QString& arg1, 
     QString msg{ reason };
     QPair<qint64, TimePeriods> pair;
 
-    QSharedPointer<Player> tmpPlr{ nullptr };
-    bool mute{ false };
+    QString dateString{ "" };
+    quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
+    qint64 muteDuration{ *PunishDurations::TEN_MINUTES };
 
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
     {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr )
+        if ( tmpPlayer != nullptr )
         {
             //Check target validity.
-            if ( this->isTarget( tmpPlr, arg1, all ) )
+            if ( this->isTarget( tmpPlayer, arg1, all ) )
             {
-                mute = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Mute, all );
-                if ( mute )
-                    break;
+                if ( this->canIssueAction( admin, tmpPlayer, arg1, GMCmds::Mute, all ) )
+                {
+                    if ( !duration.isEmpty() )
+                    {
+                        pair = this->getTimePeriodFromString( duration );
+
+                        muteDuration = pair.first;
+                        if ( muteDuration == 0 )
+                            muteDuration = *PunishDurations::TEN_MINUTES;
+                    }
+
+                    date += muteDuration;
+                    dateString = Helper::getTimeAsString( date );
+
+                    if ( msg.isEmpty() )
+                        msg = "No Reason!";
+
+                    reasonMsg = reasonMsg.arg( admin->getSernum_s() )
+                                         .arg( dateString )
+                                         .arg( msg );
+
+                    if ( !reasonMsg.isEmpty() )
+                        server->sendMasterMessage( reasonMsg, tmpPlayer, false );
+
+                    msg = msg.prepend( "Remote-Mute by admin [ %1 ]; " )
+                             .arg( admin->getSernum_s() );
+                    User::addMute( admin, tmpPlayer, msg, true, false, static_cast<PunishDurations>( muteDuration ) );
+                }
             }
         }
-        mute = false;
-    }
-
-    if ( mute )
-    {
-        QString dateString{ "" };
-        quint64 date{ static_cast<quint64>( QDateTime::currentDateTimeUtc().toSecsSinceEpoch() ) };
-        qint64 muteDuration{ *PunishDurations::TEN_MINUTES };
-
-        if ( !duration.isEmpty() )
-        {
-            pair = this->getTimePeriodFromString( duration );
-
-            muteDuration = pair.first;
-            if ( muteDuration == 0 )
-                muteDuration = *PunishDurations::TEN_MINUTES;
-        }
-
-        date += muteDuration;
-        dateString = Helper::getTimeAsString( date );
-
-        if ( msg.isEmpty() )
-            msg = "No Reason!";
-
-        reasonMsg = reasonMsg.arg( admin->getSernum_s() )
-                             .arg( dateString )
-                             .arg( msg );
-
-        if ( !reasonMsg.isEmpty() )
-            server->sendMasterMessage( reasonMsg, tmpPlr, false );
-
-        msg = msg.prepend( "Remote-Mute by admin [ %1 ]; " )
-                 .arg( admin->getSernum_s() );
-        User::addMute( admin, tmpPlr, msg, true, false, static_cast<PunishDurations>( muteDuration ) );
     }
 }
 
@@ -939,19 +973,16 @@ void CmdHandler::unMuteHandler(QSharedPointer<Player> admin, const QString& subC
     const bool isSernum{ Helper::cmpStrings( subCmd, "soul" ) };
     const bool isIP{ Helper::cmpStrings( subCmd, "ip" ) };
 
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
     {
-        QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-
-        if ( tmpPlr != nullptr )
+        if ( tmpPlayer != nullptr )
         {
-            if ( this->isTarget( tmpPlr, arg1, false ) )
+            if ( this->isTarget( tmpPlayer, arg1, false ) )
             {
-                tmpPlr->setMuteDuration( 0 );
-                server->sendMasterMessage( reasonMsg, tmpPlr, false );
+                tmpPlayer->setMuteDuration( 0 );
+                server->sendMasterMessage( reasonMsg, tmpPlayer, false );
             }
         }
-        tmpPlr = nullptr;
     }
 
     //Default to the provided values. User might not be online.
@@ -967,26 +998,8 @@ void CmdHandler::quarantineHandler(QSharedPointer<Player> admin, const QString& 
     QString append{ "You may only interact with other Quarantined Users." };
     QString msg{ reason };
 
-    QSharedPointer<Player> tmpPlr{ nullptr };
-    bool quarantine{ false };
-
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
-    {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr )
-        {
-            //Check target validity.
-            if ( this->isTarget( tmpPlr, arg1 ) )
-            {
-                quarantine = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Quarantine, false );
-                if ( quarantine )
-                    break;
-            }
-        }
-        quarantine = false;
-    }
-
-    if ( quarantine )
+    QSharedPointer<Player> tmpPlr{ this->findTarget( admin, arg1, GMCmds::Quarantine, false, false ) };
+    if ( tmpPlr != nullptr )
     {
         if ( msg.isEmpty() )
             msg = "No Reason!";
@@ -1022,26 +1035,8 @@ void CmdHandler::unQuarantineHandler(QSharedPointer<Player> admin, const QString
     QString append{ "You may now interact with other Users." };
     QString msg{ reason };
 
-    QSharedPointer<Player> tmpPlr{ nullptr };
-    bool unQuarantine{ false };
-
-    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
-    {
-        tmpPlr = server->getPlayer( i );
-        if ( tmpPlr != nullptr )
-        {
-            //Check target validity.
-            if ( this->isTarget( tmpPlr, arg1 ) )
-            {
-                unQuarantine = this->canIssueAction( admin, tmpPlr, arg1, GMCmds::Quarantine, false );
-                if ( unQuarantine )
-                    break;
-            }
-        }
-        unQuarantine = false;
-    }
-
-    if ( unQuarantine )
+    QSharedPointer<Player> tmpPlr{ this->findTarget( admin, arg1, GMCmds::UnQuarantine, false, false ) };
+    if ( tmpPlr != nullptr )
     {
         if ( msg.isEmpty() )
             msg = "No Reason!";
@@ -1084,13 +1079,12 @@ void CmdHandler::msgHandler(QSharedPointer<Player> admin, const QString& message
     {
         if ( !all )
         {
-            for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+            for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
             {
-                tmpPlr = server->getPlayer( i );
+                tmpPlr = tmpPlayer;
                 if ( tmpPlr != nullptr )
                 {
-                    if ( tmpPlr->getIPAddress() == target
-                      || tmpPlr->getSernum_s() == target )
+                    if ( this->isTarget( tmpPlr, target ) )
                     {
                         server->sendMasterMessage( tmpMsg, tmpPlr, false );
                         break;
@@ -1164,17 +1158,16 @@ void CmdHandler::loginHandler(QSharedPointer<Player> admin, const QString& subCm
             //Inform Other Admins of this login event if enabled.
             if ( Settings::getSetting( SKeys::Setting, SSubKeys::InformAdminLogin ).toBool() )
             {
-                for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                 {
-                    QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-                    if ( tmpPlr != nullptr )
+                    if ( tmpPlayer != nullptr )
                     {
-                        if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
-                          && tmpPlr->getAdminPwdReceived() )
+                        if ( tmpPlayer->getAdminRank() >= GMRanks::GMaster
+                          && tmpPlayer->getAdminPwdReceived() )
                         {
                             //Do not Inform our own Admin.. --Redundant..
-                            if ( tmpPlr != admin )
-                                server->sendMasterMessage( loginStr, tmpPlr, false );
+                            if ( tmpPlayer != admin )
+                                server->sendMasterMessage( loginStr, tmpPlayer, false );
                         }
                     }
                 }
@@ -1263,16 +1256,15 @@ void CmdHandler::registerHandler(QSharedPointer<Player> admin, const QString& su
         QString registerStr{ "User [ %1 ] Registered as a Remote Administrator with the server." };
                 registerStr = registerStr.arg( admin->getSernum_s() );
 
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
         {
-            QSharedPointer<Player> tmpPlr{ server->getPlayer( i ) };
-            if ( tmpPlr != nullptr )
+            if ( tmpPlayer != nullptr )
             {
-                if ( tmpPlr->getAdminRank() >= GMRanks::GMaster
-                  && tmpPlr->getAdminPwdReceived() )
+                if ( tmpPlayer->getAdminRank() >= GMRanks::GMaster
+                  && tmpPlayer->getAdminPwdReceived() )
                 {
                     //Do not Inform our own Admin.. --Redundant..
-                    if ( tmpPlr != admin )
+                    if ( tmpPlayer != admin )
                         server->sendMasterMessage( registerStr, admin, false );
                 }
             }
@@ -1423,6 +1415,46 @@ void CmdHandler::vanishHandler(QSharedPointer<Player> admin, const QString& subC
     server->sendMasterMessage( message, admin, false );
 }
 
+void CmdHandler::pingHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1)
+{
+    if ( admin == nullptr )
+        return;
+
+    GMSubCmdIndexes subIdx{ GMSubCmdIndexes::Invalid };
+    if ( !subCmd.isEmpty() )
+        subIdx = cmdTable->getSubCmdIndex( cmdIdx, subCmd, false );
+
+    QSharedPointer<Player> target{ nullptr };
+    QString pingString{ "" };
+    switch( subIdx )
+    {
+        case GMSubCmdIndexes::Zero: //ip
+            {
+                target = this->findTarget( admin, arg1, cmdIdx, false, true );
+                if ( target != nullptr )
+                    pingString = this->getPingString( target, true );
+            }
+        break;
+        case GMSubCmdIndexes::One: //soul
+            {
+                target = this->findTarget( admin, arg1, cmdIdx, false, true );
+                if ( target != nullptr )
+                    pingString = this->getPingString( target, false );
+            }
+        break;
+        case GMSubCmdIndexes::Invalid: //Default to Player's Ping.
+        default:
+            {
+                if ( admin != nullptr )
+                    pingString = this->getPingString( admin, false );
+            }
+        break;
+    }
+
+    if ( !pingString.isEmpty() )
+        server->sendMasterMessage( pingString, admin, false );
+}
+
 void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd)
 {
     QString msg{ "" };
@@ -1452,10 +1484,11 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
     if ( soulSubCmd
       && !serNum.isEmpty() )
     {
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr )
+            tmpPlr = tmpPlayer;
+            if ( tmpPlr != nullptr
+              && admin != tmpPlr )
             {
                 //Check target validity.
                 if ( this->isTarget( tmpPlr, serNum, false ) )
@@ -1477,6 +1510,7 @@ void CmdHandler::campHandler(QSharedPointer<Player> admin, const QString& serNum
                         break;
                 }
             }
+            tmpPlr = nullptr;
         }
     }
 
@@ -1682,4 +1716,53 @@ QPair<qint64, TimePeriods> CmdHandler::getTimePeriodFromString(const QString& st
         duration = pStr.toLongLong() * static_cast<qint64>( time );
     }
     return QPair<qint64, TimePeriods>( duration, time );
+}
+
+QString CmdHandler::getPingString(QSharedPointer<Player> target, const bool& targetIP)
+{
+    QString pingInfo{ "Ping for Player [ %1 ][ %2 ]; [ %3 ]." };
+    if ( target != nullptr )
+    {
+        if ( targetIP )
+            pingInfo = pingInfo.arg( target->getIPAddress() );
+        else
+            pingInfo = pingInfo.arg( target->getSernum_s() );
+
+        pingInfo = pingInfo.arg( target->getPlrName() )
+                           .arg( target->getPlrPingString() );
+
+        return pingInfo;
+    }
+    return QString( "" );
+}
+
+QSharedPointer<Player> CmdHandler::findTarget(QSharedPointer<Player> admin, const QString& arg1, const GMCmds& command,
+                                              const bool& all, const bool& override)
+{
+    bool target{ false };
+    QSharedPointer<Player> tmpPlr{ nullptr };
+    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
+    {
+        if ( tmpPlayer != nullptr )
+        {
+            tmpPlr = tmpPlayer;
+            if ( this->isTarget( tmpPlayer, arg1, all ) )
+            {
+                target = this->canIssueAction( admin, tmpPlayer, arg1, command, all, override );
+                if ( target )
+                    break;
+            }
+            tmpPlr = nullptr;
+        }
+        target = false;
+    }
+
+    if ( target
+         && tmpPlr != nullptr )
+    {
+        return tmpPlr;
+    }
+
+    tmpPlr = nullptr;
+    return tmpPlr;
 }

@@ -6,7 +6,19 @@ TODO:
 
 Version 3.1.4:
     Change:
-      * 
+      * Added a new remote command "ping" which all Users will have access to by default. Remote Admins will have access to the sub commands "soul" and "ip" which can return the pings of other Users.
+        * This command will give the User's current, average, and trending ping to the ReMix server that they are connected to.
+        * Expected output: "Ping for Player [ SOUL 4000 ][ Starix ]; [ 112 ms, Avg: 235.5 ms, Trend: 108.31 ms ]."
+      * Added a two subcommands to "info". "`info ip 127.0.0.1" and "`info soul 4000". These commands are by default limited to the Remote Admin ranks "Game Master" or above.
+        * Expected output: "Name [ Starix ], SerNum [ SOUL 4000 ], IP Address [ 127.0.0.1 ], Ping [ 1 ms, Avg: 66.5556 ms, Trend: 66.105 ms ], Online Duration [ 00d:00h:04m:23s ], Rank [ Owner ], Muted [ 0 ], Quarantined [ 0 ], Packets In [ 2.2 KiB, 46 Pkts ], Packets Out [ 2.2 KiB, 37 Pkts ]."
+      * Changed how the command list is formatted when using the remote command "list".
+        * The remote command "`list" now has the aliases of "`commands" and "`cmd".
+        * The formatting change primarily prevents alised commands from being presented as their own unique command.
+          * Expected output for an normal User: "Available Command list: < help >, < list | commands | cmd >, < login >, < register >, < version >, < ping >[ ip, soul ], < camp >[ lock, unlock, allowcurrent, allowall, allow, remove, status, soul ],".
+      * Added the ability to detect the WoS hack "Infinite Cursor".
+        * Currently, there is no Punishment, but it is announced to the whole server that the hack was detected.
+      * For the game "WoS" User levels are now strictly monitored, and Users may not remain connected if their level is less than "1" or greater than "100".
+        * This is to prevent a hacker from entering a Scene with a character level "999" and crashing the Scene Host's game client.
 
 
 
@@ -16,6 +28,8 @@ Version 3.1.4:
       * Fixed an issue where the CreateInstance dialog would not appear when starting ReMix when compiled with Qt6.7.
       * Fixed an issue with the Light/Dark theme when compiled with Qt6.7.
       * Fixed an issue where ReMix would keep a User "online" when the Network Socket had failed or otherwise disconnected.
+      * Fixed an issue with the Remote Admin commands "ban" and "mute".
+        * Previously the commands when used with the subcommand "all" would not actually affect "all" currently connected Users.
 
 
 

@@ -64,6 +64,7 @@ class ReMixWidget : public QWidget
         void plrDisconnectedSlot(QSharedPointer<Player> plr, const bool& timedOut = false);
         void updatePlayerTable(QSharedPointer<Player> plr);
 
+
     public slots:
         void censorUIIPInfoSlot(const bool& state);
 

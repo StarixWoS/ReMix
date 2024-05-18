@@ -201,13 +201,30 @@
          </item>
          <item>
           <property name="text">
+           <string>ip</string>
+          </property>
+          <property name="text">
+           <string>3</string>
+          </property>
+          <property name="text">
+           <string>Provides information on a specific User via IP Address..</string>
+          </property>
+          <property name="text">
+           <string>`info ip 127.0.0.1</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>soul</string>
           </property>
           <property name="text">
            <string>3</string>
           </property>
           <property name="text">
-           <string>Provides information on a specific User.</string>
+           <string>Provides information on a specific User via SoulID.</string>
           </property>
           <property name="text">
            <string>`info soul 4000</string>
@@ -964,6 +981,57 @@
          <property name="flags">
           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
          </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>ping</string>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="text">
+          <string>Allows the User to see their Ping to the Server.</string>
+         </property>
+         <property name="text">
+          <string>`ping</string>
+         </property>
+         <property name="flags">
+          <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+         </property>
+         <item>
+          <property name="text">
+           <string>ip</string>
+          </property>
+          <property name="text">
+           <string>3</string>
+          </property>
+          <property name="text">
+           <string>Shows the Ping Information the selected User via IP Address.</string>
+          </property>
+          <property name="text">
+           <string>`ping ip 127.0.0.1</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>soul</string>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+          <property name="text">
+           <string>Shows the Ping Information the selected User via SoulID.</string>
+          </property>
+          <property name="text">
+           <string>`ping soul 4000</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+          </property>
+         </item>
         </item>
         <item>
          <property name="text">

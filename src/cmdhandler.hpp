@@ -17,6 +17,7 @@ class CmdHandler : public QObject
 
     static QHash<QSharedPointer<Server>, CmdHandler*> cmdInstanceMap;
     static const QMap<TimePeriods, QString> tPeriods;
+    static const QMap<GMRanks, QString> ranks;
 
     public:
         explicit CmdHandler(QSharedPointer<Server> svr, QObject* parent = nullptr);
@@ -31,7 +32,8 @@ class CmdHandler : public QObject
         static bool canParseCommand(QSharedPointer<Player> admin, const QString& command);
         void parseCommandImpl(QSharedPointer<Player> admin, QString& packet);
 
-        bool canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all);
+        bool canIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const QString& arg1, const GMCmds& argIndex, const bool& all,
+                            const bool& overrideLimit = false);
         bool isTargetingSelf(QSharedPointer<Player> admin, QSharedPointer<Player> target);
 
         void cannotIssueAction(QSharedPointer<Player> admin, QSharedPointer<Player> target, const GMCmds& argIndex, const bool& isAll = false);
@@ -42,7 +44,7 @@ class CmdHandler : public QObject
         bool validateAdmin(QSharedPointer<Player> admin, GMRanks& rank, const QString& cmdStr);
 
         void motdHandler(QSharedPointer<Player> admin, const QString& subCmd, const QString& arg1, const QString& msg);
-        void infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& sernum);
+        void infoHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1);
 
         void banHandler(QSharedPointer<Player> admin, const QString& arg1, const QString& duration, const QString& reason, const bool& all);
         void unBanHandler(const QString& subCmd, const QString& arg1);
@@ -62,10 +64,18 @@ class CmdHandler : public QObject
 
         void vanishHandler(QSharedPointer<Player> admin, const QString& subCmd);
 
+        void pingHandler(QSharedPointer<Player> admin, const GMCmds& cmdIdx, const QString& subCmd, const QString& arg1);
+
         void campHandler(QSharedPointer<Player> admin, const QString& serNum, const QString& subCmd, const GMCmds& index, const bool& soulSubCmd);
 
         void parseTimeArgs(const QString& str, QString& timeArg, QString& reason);
         QPair<qint64, TimePeriods> getTimePeriodFromString(const QString& str);
+
+
+        QString getPingString(QSharedPointer<Player> target, const bool& targetIP);
+
+        QSharedPointer<Player> findTarget(QSharedPointer<Player> admin, const QString& arg1, const GMCmds& command,
+                                          const bool& all, const bool& override);
 
     signals:
         void newUserCommentSignal(QSharedPointer<Player> plr, const QString& message);

@@ -94,7 +94,6 @@ void UPNP::makeTunnel()
 
             if ( upnpWanService != nullptr )
             {
-                qDebug() << upnpWanService->getType();
                 if ( !this->getIsTunneled() )
                 {
                     this->getExternalIP();

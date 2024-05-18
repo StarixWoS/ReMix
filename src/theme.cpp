@@ -47,6 +47,9 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::PKChallenge,      "#8b0303" }, //PK Challenge.
         { Colors::SoulIncarnated,   "#8b0202" }, //Soul Incarnated.
         { Colors::SoulLeftWorld,    "#8b0101" }, //Soul Left World.
+        { Colors::PlayerPingGood,   "#006404" }, //Ping Good.
+        { Colors::PlayerPingMedium, "#daa409" }, //Ping Medium.
+        { Colors::PlayerPingBad,    "#8b0103" }, //Ping Bad.
     },
     {   //Dark.
         { Colors::GossipTxt,        "#daa520" }, //Gossip Chat.
@@ -76,6 +79,9 @@ QVector<QMap<Colors, QString>> Theme::defaultColors =
         { Colors::PKChallenge,      "#ff0303" }, //PK Challenge.
         { Colors::SoulIncarnated,   "#ff0202" }, //Soul Incarnated.
         { Colors::SoulLeftWorld,    "#ff0101" }, //Soul Left World.
+        { Colors::PlayerPingGood,   "#32ce32" }, //Ping Good.
+        { Colors::PlayerPingMedium, "#ffa501" }, //Ping Medium.
+        { Colors::PlayerPingBad,    "#ff0102" }, //Ping Bad.
     }
 };
 

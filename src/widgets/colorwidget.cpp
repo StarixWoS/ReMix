@@ -44,6 +44,9 @@ const QStringList ColorWidget::rowList
     "PK Challenge",
     "Soul Incarnated",
     "Soul Left World",
+    "Ping Good",
+    "Ping Medium",
+    "Ping Bad",
 };
 
 ColorWidget::ColorWidget() :

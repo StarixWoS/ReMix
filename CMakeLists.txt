@@ -14,7 +14,7 @@ set(ReMix_VERSION_2 "v${ReMix_VERSION}")
 string(REPLACE "." "," RC_VERSION "${ReMix_VERSION}")
 add_compile_definitions(RC_VERSION_STRING=\"${ReMix_VERSION}\" RC_VERSION=${RC_VERSION})
 add_compile_definitions(REMIX_VERSION=\"${ReMix_VERSION}\")
-add_compile_definitions(REMIX_DEVMODE=0)
+add_compile_definitions(REMIX_DEVMODE=1)
 
 find_package(Qt6 COMPONENTS Core Widgets Gui Network Network Concurrent Xml REQUIRED)
 
@@ -27,6 +27,7 @@ set(CMAKE_AUTOUIC ON)
 set(SOURCES src/packethandlers/wospackethandler.cpp
         src/packethandlers/toypackethandler.cpp
         src/packethandlers/w97packethandler.cpp
+        #src/packethandlers/wospacketforge.cpp
         src/views/usersortproxymodel.cpp
         src/widgets/cmdtabledelegate.cpp
         src/views/plrsortproxymodel.cpp
@@ -69,6 +70,7 @@ set(SOURCES src/packethandlers/wospackethandler.cpp
 set(HEADERS src/packethandlers/wospackethandler.hpp
         src/packethandlers/toypackethandler.hpp
         src/packethandlers/w97packethandler.hpp
+        #src/packethandlers/wospacketforge.hpp
         src/views/usersortproxymodel.hpp
         src/widgets/cmdtabledelegate.hpp
         src/views/plrsortproxymodel.hpp
@@ -146,7 +148,7 @@ set(UI ui/widgets/settingswidget.ui
 set(RC resources/icons.qrc
     resources/ReMix.rc )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UPNP_SOURCES} ${UPNP_HEADERS} ${UI} ${RC} )
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UPNP_SOURCES} ${UPNP_HEADERS} ${UI} ${RC})
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES

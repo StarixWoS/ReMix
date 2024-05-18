@@ -4,6 +4,7 @@
 #include "ui_ruleswidget.h"
 
 //ReMix includes.
+#include "thread/mastermixthread.hpp"
 #include "selectworld.hpp"
 #include "settings.hpp"
 #include "server.hpp"
@@ -98,6 +99,12 @@ void RulesWidget::setServerName(const QString& name)
 
     rowText = "Minimum Game Version: [ %1 ]";
     val = Settings::getSetting( SKeys::Rules, SSubKeys::MinVersion, name );
+    if ( val.toString().isEmpty() )
+    {
+        val = MasterMixThread::getMinServerVersion( gameType ); //Default the minimum version from the MasterMixInfo.
+        Settings::setSetting( val, SKeys::Rules, SSubKeys::MinVersion, name );
+    }
+
     ui->rulesView->item( *RToggles::MinVersion, 0 )->setText( rowText.arg( val.toString() ) );
 
     rowText = "Server Home: [ %1 ]";

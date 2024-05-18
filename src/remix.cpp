@@ -8,6 +8,7 @@
 
 //ReMix includes.
 #include "cmdtableoverride.hpp"
+#include "createinstance.hpp"
 #include "campexemption.hpp"
 #include "upnp/upnp.hpp"
 #include "settings.hpp"
@@ -57,6 +58,21 @@ ReMix::ReMix(QWidget* parent) :
 
     serverUI = ReMixTabWidget::getInstance( this );
     ui->frame->layout()->addWidget( serverUI );
+//    if ( serverUI != nullptr )
+//    {
+//        auto* create{ CreateInstance::getInstance( serverUI ) };
+//        if ( create != nullptr )
+//        {
+//            //Initalize the First Server. --Only if no stored servers are marked as "AutoRestart"
+//            if ( !create->getLoadingOldServers() )
+//            {
+//                if ( create->isVisible() )
+//                    create->hide();
+//                else
+//                    create->show();
+//            }
+//        }
+//    }
 
     //Update the window title to reflect the current version.
     QString title{ "ReMix[ %1 ]:" };

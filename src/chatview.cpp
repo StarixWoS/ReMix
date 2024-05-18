@@ -219,9 +219,9 @@ bool ChatView::parseChatEffect(const QString& packet)
 
         if ( packet.at( 3 ) == 'C' )
         {
-            for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+            for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
             {
-                plr = server->getPlayer( i );
+                plr = tmpPlayer;
                 if ( plr != nullptr )
                 {
                     if ( Helper::cmpStrings( plr->getSernum_s(), srcSerNum ) )
@@ -355,9 +355,9 @@ bool ChatView::parseChatEffect(const QString& packet)
     else
     {
         const qint32 plrSlot{ Helper::strToInt( packet.left( 6 ).mid( 4 ) ) };
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
         {
-            plr = server->getPlayer( i );
+            plr = tmpPlayer;
             if ( plr != nullptr )
             {
                 if ( server->getPlayerSlot( plr ) == plrSlot )

@@ -266,6 +266,22 @@
             //The gave period for an Admin's Visible state to remain valid before they must log in.
             //5 minues in milliseconds.
             PLAYER_VISIBLE_LOAD_TIMEOUT = 300000,
+
+            //The maximum level a WoS Client may be.
+            MAX_PLAYER_LEVEL = 100,
+
+            //The minimum level a WoS Client may be.
+            MIN_PLAYER_LEVEL = 1,
+
+            //The minimum count of Attack packets to detect before assuming Infinite Cursor is active on a WoS Client.
+            MIN_INFCURSOR_COUNT = 3,
+
+            //Time before the server sends a ping to a Player.
+            //30 Seconds in milliseconds.
+            PING_UPDATE_TIME = 30000,
+
+            //The Maximum response time for a Player Ping for the UI to show. 999 milliseconds.
+            MAX_PLAYER_PING_TIME = 999,
         };
 
         //Valid Password types.
@@ -283,12 +299,12 @@
                                 UnBan, Kick, Mute, UnMute, Quarantine, UnQuarantine,
                                 Message, LogIn, LogOut,
                                 Register, ShutDown, ReStart,
-                                CHRules, CHSettings, Vanish, Version,
+                                CHRules, CHSettings, Vanish, Version, Ping,
                                 Camp, Guild, Invalid = -1 };
 
         //Valid Remote Administrator subcommands.
         enum class GMSubCmds: int{ MotDChange, MotDRemove,
-                                   InfoServer, InfoQuarantined, InfoMuted, InfoSoul,
+                                   InfoServer, InfoQuarantined, InfoMuted, InfoIP, InfoSoul,
                                    BanIP, BanSoul, BanAll,
                                    UnBanIP, UnBanSoul, UnBanAll,
                                    KickIP, KickSoul, KickAll,
@@ -299,6 +315,7 @@
                                    MessageIP, MessageSoul, MessageAll,
                                    ShutDownStop, ReStartStop,
                                    VanishHide, VanishShow, VanishStatus,
+                                   PingIP, PingSoul,
                                    CampLock, CampUnLock, CampAllowAll, CampAllowCurrent, CampAllow, CampRemove, CampStatus, CampSoul,
                                    Invalid = -1 };
 
@@ -334,12 +351,12 @@
         //Valid Theme Colors
         enum class Colors: int{ GossipTxt = 0, ShoutTxt, EmoteTxt, DeathTxt, SpellTxt, DiceAndLevel, PlayerTxt, AdminTxt, AdminMessage, OwnerTxt, CommentTxt,
                                 GoldenSoul, WhiteSoul, PlayerName, AdminName, OwnerName, TimeStamp, AdminValid, AdminInvalid, IPValid,
-                                IPInvalid, IPQuarantined, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld = 26,
-                                ColorCount = 26, Default = -1 };
+                                IPInvalid, IPQuarantined, IPVanished, PartyJoin, PKChallenge, SoulIncarnated, SoulLeftWorld,
+                                PlayerPingGood, PlayerPingMedium, PlayerPingBad = 29, ColorCount = 29, Default = -1 };
 
         //Valid columns within the PlrListWidget.
-        enum class PlrCols: int{ IPPort = 0, SerNum, Age, Alias, Time,
-                                 BytesIn, BytesOut, BioData = 7, ColCount = 9 };
+        enum class PlrCols: int{ IPPort = 0, PlrPing, SerNum, Name, Age, Alias, Time,
+                                 BytesIn, BytesOut, BioData = 10, ColCount = 10 };
 
         //Valid columns within the User Dialog.
         enum class UserCols: int{ SerNum = 0, /*Pings,*/ Calls, LastSeen, IPAddr,
@@ -379,10 +396,10 @@
         enum class PktTarget: int{ ALL = 0, PLAYER, SCENE = 2 };
 
         //Valid Key values for use within the User Class.
-        enum class UKeys: int{ Seen = 0, Bio, IP, DV, WV, Rank, Hash, Salt,
+        enum class UKeys: int{ Seen = 0, Bio, CurrentIP, LastIP, DV, WV, Rank, Hash, Salt,
                                Muted, MuteDuration, MuteReason,
                                Banned, BanDuration, BanReason,
-                               Pings, Calls, InVisible = 16 };
+                               Pings, Calls, InVisible = 17 };
 
         //Valid Key values for use within the Rules and Settings Classes.
         enum class SKeys: int{ Setting = 0, Messages, Positions, Rules, Logger, Colors, CommandRanks = 6 };
@@ -444,8 +461,10 @@
 
         //Valid WoS Packets that ReMix will read information from, modify, or emulate.
         enum class WoSPacketTypes: char{ Incarnation = '3', ServerLeave = '5', Chat = 'C', PKAttack = 'k', PartyState = 'p', PlayerCamp = 'F',
-                                         PlayerUnCamp = 'f', PlayerStatus = 's', SkinTransfer = 'x', PetCall = 'K', CharacterInfo = 'H', CampJoin = 'J',
-                                         BioRequest = 'b', BioResponse = 'B', GuildInfo = 'U', InfoRequest = '4', HeartBeat = '0' };
+                                         PlayerUnCamp = 'f', PlayerStatus = 's', SkinTransfer = 'x', PetCall = 'K', CharacterInfo = 'H',
+                                         BioRequest = 'b', BioResponse = 'B', GuildInfo = 'U', InfoRequest = '4', HeartBeat = '0',
+                                         SceneTossedItem = 'I', SceneAttackAction = 'S', ScenePromptAction = 'A',
+                                         CampJoin = 'J', CampLeave = 'L', WorldHello = '1', WorldGetOut = '2', };
 
         //Valid forms of a Skin Transfer Packet.
         enum class IncarnationType: int{ Incarnation = 1, GhostIncarnation = 2, DisIncarnation = 4 };

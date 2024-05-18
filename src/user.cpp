@@ -29,7 +29,8 @@ const QMap<UKeys, QString> User::uKeys =
 {
     { UKeys::Seen,          "seen"        },
     { UKeys::Bio,           "bio"         },
-    { UKeys::IP,            "ip"          },
+    { UKeys::CurrentIP,     "ip"          },
+    { UKeys::LastIP,        "lastIP"      },
     { UKeys::DV,            "dv"          },
     { UKeys::WV,            "wv"          },
     { UKeys::Rank,          "rank"        },
@@ -342,7 +343,7 @@ quint64 User::getIsPunished(const PunishTypes& punishType, const QString& value,
             break;
             case PunishTypes::IP:
             {
-                var = getData( sernum, User::uKeys.value( UKeys::IP ) ).toString();
+                var = getData( sernum, User::uKeys.value( UKeys::CurrentIP ) ).toString();
                 if ( Helper::cmpStrings( var, value ) )
                 {
                     isValue = true;
@@ -684,7 +685,7 @@ void User::logBIOSlot(const QString& serNum, const QHostAddress& ip, const QStri
 
     setData( sernum, User::uKeys.value( UKeys::Bio ), bio.mid( 1 ) );
     //setData( sernum, keys[ UserKeys::kPINGS ], pings );
-    setData( sernum, User::uKeys.value( UKeys::IP ), ip_s );
+    setData( sernum, User::uKeys.value( UKeys::CurrentIP ), ip_s );
     setData( sernum, User::uKeys.value( UKeys::Seen ), date );
 
     QModelIndex index{ user->findModelIndex( sernum, UserCols::SerNum ) };
@@ -779,7 +780,7 @@ void User::loadUserInfo()
             const QString sernum{ sernums.at( i ) };
             const QString muteReason{ getData( sernum, User::uKeys.value( UKeys::MuteReason ) ).toString() };
             const QString banReason{ getData( sernum, User::uKeys.value( UKeys::BanReason ) ).toString() };
-            const QString ip{ getData( sernum, User::uKeys.value( UKeys::IP ) ).toString() };
+            const QString ip{ getData( sernum, User::uKeys.value( UKeys::CurrentIP ) ).toString() };
 
             const quint64 muteDuration_i{ getData( sernum, User::uKeys.value( UKeys::MuteDuration ) ).toUInt() };
             const quint64 banDuration_i{ getData( sernum, User::uKeys.value( UKeys::BanDuration ) ).toUInt() };

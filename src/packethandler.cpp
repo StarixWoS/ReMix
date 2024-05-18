@@ -178,12 +178,14 @@ void PacketHandler::parsePacketSlot(const QByteArray& packet, QSharedPointer<Pla
                 {
                     emit this->sendPacketToPlayerSignal( plr, *plr->getTargetType(), plr->getTargetSerNum(),
                                                          plr->getTargetScene(), pkt );
-                    //Reset the User's target information.
-                    plr->setTargetType( PktTarget::ALL );
-                    plr->setTargetSerNum( 0 );
-                    plr->setTargetScene( 0 );
                 }
             }
+
+            //Reset the User's target information.
+            //Even if this packet wasn't parsed.
+            plr->setTargetType( PktTarget::ALL );
+            plr->setTargetSerNum( 0 );
+            plr->setTargetScene( 0 );
         }
     }
     return;
@@ -224,8 +226,6 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
     if ( plr->getIsDisconnected() )
         return true;
 
-    QSharedPointer<Player> tmpPlr{ nullptr };
-
     bool badInfo{ false };
 
     QString logMsg{ "Auto-Disconnect; %1: [ %2 ], [ %3 ]" };
@@ -252,13 +252,12 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
     //Disconnect and ban duplicate IP's if required.
     if ( !Settings::getSetting( SKeys::Setting, SSubKeys::AllowDupe ).toBool() )
     {
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr
-              && tmpPlr != plr )
+            if ( tmpPlayer != nullptr
+              && tmpPlayer != plr )
             {
-                if ( tmpPlr->getIPAddress() == plr->getIPAddress()
+                if ( tmpPlayer->getIPAddress() == plr->getIPAddress()
                   && !plr->getIsDisconnected() )
                 {
                     auto disconnect =
@@ -307,14 +306,13 @@ bool PacketHandler::checkBannedInfo(QSharedPointer<Player> plr) const
     //Disconnect only the newly connected Player.
     if ( plr != nullptr )
     {
-        for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+        for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
         {
-            tmpPlr = server->getPlayer( i );
-            if ( tmpPlr != nullptr
-              && tmpPlr != plr )
+            if ( tmpPlayer != nullptr
+              && tmpPlayer != plr )
             {
-                if ( ( tmpPlr->getHasSerNum() && plr->getHasSerNum() )
-                  && ( tmpPlr->getSernum_i() == plr->getSernum_i() ) )
+                if ( ( tmpPlayer->getHasSerNum() && plr->getHasSerNum() )
+                  && ( tmpPlayer->getSernum_i() == plr->getSernum_i() ) )
                 {
                     if ( !plr->getIsDisconnected() )
                     {
@@ -450,11 +448,13 @@ void PacketHandler::readMIX0(const QString& packet, QSharedPointer<Player> plr)
 void PacketHandler::readMIX1(const QString& packet, QSharedPointer<Player> plr)
 {
     const QString sernum{ packet.mid( 2 ).left( 8 ) };
+    //plr->setSceneHost( server->getPlayer( sernum ) );
     plr->setSceneHost( Helper::serNumToInt( sernum, true ) );
 }
 
 void PacketHandler::readMIX2(const QString&, QSharedPointer<Player> plr)
 {
+    //plr->setSceneHost( nullptr );
     plr->setSceneHost( 0 );
     plr->setTargetType( PktTarget::ALL );
 }
@@ -569,13 +569,12 @@ void PacketHandler::handleSSVReadWrite(const QString& packet, QSharedPointer<Pla
 
                 if ( mode == SSVMode::Write )
                 {
-                    for ( int i = 0; i < server->getMaxPlayerCount(); ++i )
+                    for ( QSharedPointer<Player> tmpPlayer : server->getPlayerVector() )
                     {
-                        QSharedPointer<Player> tmpPlr = server->getPlayer( i );
-                        if ( tmpPlr != nullptr
-                          && plr != tmpPlr )
+                        if ( tmpPlayer != nullptr
+                          && plr != tmpPlayer )
                         {
-                            server->updateBytesOut( tmpPlr, tmpPlr->write( val.toLatin1(), val.length() ) );
+                            server->updateBytesOut( tmpPlayer, tmpPlayer->write( val.toLatin1(), val.length() ) );
                         }
                     }
                 }

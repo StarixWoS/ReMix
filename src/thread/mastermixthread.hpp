@@ -53,6 +53,7 @@ class MasterMixThread : public QThread
 
         static MasterMixThread* getInstance();
         static void setInstance(MasterMixThread* value);
+        static QString getMinServerVersion(const Games& game);
         void updateMasterMixInfo(const bool& forceDownload = false);
 
         QString getDefaultHost() const;

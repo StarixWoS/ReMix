@@ -44,13 +44,15 @@ PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
     contextMenu = new QMenu( this );
 
     //Setup the PlayerInfo TableView.
-    plrModel = new QStandardItemModel( 0, 8, nullptr );
+    plrModel = new QStandardItemModel( 0, 9, nullptr );
     plrModel->setHeaderData( *PlrCols::IPPort, Qt::Horizontal, "Player IP:Port" );
+    plrModel->setHeaderData( *PlrCols::PlrPing, Qt::Horizontal, "Ping" );
     plrModel->setHeaderData( *PlrCols::SerNum, Qt::Horizontal, "SerNum" );
     plrModel->setHeaderData( *PlrCols::BytesOut, Qt::Horizontal, "OUT" );
     plrModel->setHeaderData( *PlrCols::BioData, Qt::Horizontal, "BIO" );
     plrModel->setHeaderData( *PlrCols::Alias, Qt::Horizontal, "Alias" );
     plrModel->setHeaderData( *PlrCols::BytesIn, Qt::Horizontal, "IN" );
+    plrModel->setHeaderData( *PlrCols::Name, Qt::Horizontal, "Name" );
     plrModel->setHeaderData( *PlrCols::Time, Qt::Horizontal, "Time" );
     plrModel->setHeaderData( *PlrCols::Age, Qt::Horizontal, "Age" );
 
@@ -70,8 +72,10 @@ PlrListWidget::PlrListWidget(QSharedPointer<Server> svr) :
 
     QObject::connect( SettingsWidget::getInstance(), &SettingsWidget::censorUIIPInfoSignal, this, &PlrListWidget::censorUIIPInfoSlot );
 
+    ui->playerView->setColumnWidth( *PlrCols::PlrPing, 20 );
     ui->playerView->setColumnWidth( *PlrCols::SerNum, 100 );
     ui->playerView->setColumnWidth( *PlrCols::Alias, 70 );
+    ui->playerView->setColumnWidth( *PlrCols::Name, 70 );
     ui->playerView->setColumnWidth( *PlrCols::Time, 50 );
     ui->playerView->setColumnWidth( *PlrCols::Age, 80 );
     ui->playerView->horizontalHeader()->setStretchLastSection( true );
@@ -248,6 +252,8 @@ void PlrListWidget::updatePlrView(QStandardItem* object, const qint32& column, c
             }
             else
                 sModel->setData( sModel->index( object->row(), column ), Theme::getColorBrush( static_cast<Colors>( data.toInt() ) ), role );
+
+            sModel->setData( sModel->index( object->row(), column ), Qt::AlignCenter, Qt::TextAlignmentRole );
         }
     }
     ui->playerView->resizeColumnToContents( column );
@@ -274,10 +280,11 @@ void PlrListWidget::plrViewInsertRowSlot(QSharedPointer<Player> plr, const QStri
         const QString sernum{ Helper::getStrStr( data, "sernum", "=", "," ) };
         User::updateCallCount( Helper::serNumToHexStr( sernum ) );
 
-        this->updatePlrView( item, 1, sernum, Qt::DisplayRole, false );
-        this->updatePlrView( item, 2, Helper::getStrStr( data, "HHMM", "=", "," ), Qt::DisplayRole, false );
-        this->updatePlrView( item, 3, Helper::getStrStr( data, "alias", "=", "," ), Qt::DisplayRole, false );
-        this->updatePlrView( item, 7, data, Qt::DisplayRole, false );
+        this->updatePlrView( item, *PlrCols::PlrPing, "0MS", Qt::DisplayRole, false );
+        this->updatePlrView( item, *PlrCols::SerNum, sernum, Qt::DisplayRole, false );
+        this->updatePlrView( item, *PlrCols::Age, Helper::getStrStr( data, "HHMM", "=", "," ), Qt::DisplayRole, false );
+        this->updatePlrView( item, *PlrCols::Alias, Helper::getStrStr( data, "alias", "=", "," ), Qt::DisplayRole, false );
+        this->updatePlrView( item, *PlrCols::BioData, data, Qt::DisplayRole, false );
     }
 }
 

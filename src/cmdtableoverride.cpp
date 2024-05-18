@@ -37,6 +37,7 @@ const QMap<GMCmds, QString> CmdTableOverride::commands =
     { GMCmds::ReStart,      "restart"      },
     { GMCmds::Vanish,       "vanish"       },
     { GMCmds::Version,      "version"      },
+    { GMCmds::Ping,         "ping"         },
     { GMCmds::Camp,         "camp"         },
 };
 const QMap<GMSubCmds, QString> CmdTableOverride::subCommands =
@@ -47,6 +48,7 @@ const QMap<GMSubCmds, QString> CmdTableOverride::subCommands =
     { GMSubCmds::InfoServer,       "info/server"        },
     { GMSubCmds::InfoQuarantined,  "into/quarantined"   },
     { GMSubCmds::InfoMuted,        "into/muted"         },
+    { GMSubCmds::InfoIP,           "info/ip"            },
     { GMSubCmds::InfoSoul,         "info/soul"          },
     { GMSubCmds::BanIP,            "ban/ip"             },
     { GMSubCmds::BanSoul,          "ban/soul"           },
@@ -75,6 +77,8 @@ const QMap<GMSubCmds, QString> CmdTableOverride::subCommands =
     { GMSubCmds::VanishHide,       "vanish/hide"        },
     { GMSubCmds::VanishShow,       "vanish/show"        },
     { GMSubCmds::VanishStatus,     "vanish/status"      },
+    { GMSubCmds::PingIP,           "ping/ip"            },
+    { GMSubCmds::PingSoul,         "ping/soul"          },
     { GMSubCmds::CampLock,         "camp/lock"          },
     { GMSubCmds::CampUnLock,       "camp/unlock"        },
     { GMSubCmds::CampAllowAll,     "camp/allowall"      },

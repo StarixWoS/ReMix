@@ -136,6 +136,7 @@ class Server : public QTcpServer
 
         void startMasterSerNumKeepAliveTimer();
         void masterSerNumKeepAliveSlot();
+        void sendPingToPlayer(QSharedPointer<Player> plr);
 
         qint64 getUpTime() const;
         QTimer* getUpTimer();
@@ -277,7 +278,7 @@ class Server : public QTcpServer
         qint32 getMaxPlayerCount() const;
         void setMaxPlayerCount(const qint32& value);
 
-    private:
+    public:
         const inline QVector<QSharedPointer<Player>>& getPlayerVector() const{ return players; }
 
     signals:

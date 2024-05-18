@@ -21,6 +21,8 @@
 #include <QTcpSocket>
 #include <QDateTime>
 #include <QtCore>
+#include <QMap>
+#include <QDebug>
 
 Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     : server( svr )
@@ -43,6 +45,7 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
     this->setIsAFK( false );
 
     //Connect Timers to Slots.
+    QObject::connect( &pingUpdateTimer, &QTimer::timeout, this, &Player::pingUpdateTimerTimeOutSlot );
     QObject::connect( &vanishStateTimer, &QTimer::timeout, this, &Player::vanishStateTimerTimeOutSlot );
     QObject::connect( &serNumKillTimer, &QTimer::timeout, this, &Player::serNumKillTimerTimeOutSlot );
     QObject::connect( &afkTimer, &QTimer::timeout, this, &Player::afkTimerTimeOutSlot );
@@ -50,6 +53,7 @@ Player::Player(qintptr socketDescriptor, QSharedPointer<Server> svr)
 
     //Start Timers.
     vanishStateTimer.setInterval( *Globals::PLAYER_VISIBLE_LOAD_TIMEOUT );
+    pingUpdateTimer.setInterval( *Globals::PING_UPDATE_TIME );
     serNumKillTimer.start( *Globals::MAX_SERNUM_TTL );
     floodTimer.start();
     idleTime.start();
@@ -254,7 +258,6 @@ QString Player::getSernumHex_s() const
 void Player::setSernumHex_s(const QString& value)
 {
     sernumHex_s = value;
-
     this->setAdminRank( static_cast<GMRanks>( User::getAdminRank( sernumHex_s ) ) );
 
     emit this->hexSerNumSetSignal( this->getThisPlayer() );
@@ -270,6 +273,26 @@ void Player::setTargetScene(qint32 value)
     targetHost = value;
 }
 
+bool Player::getSceneCursorState() const
+{
+    return sceneCursorState;
+}
+
+void Player::setSceneCursorState(const bool& newSceneCursorState)
+{
+    sceneCursorState = newSceneCursorState;
+}
+
+qint32 Player::getSceneCursorUseCount() const
+{
+    return sceneCursorUseCount;
+}
+
+void Player::setSceneCursorUseCount(qint32 newSceneCursorUseCount)
+{
+    sceneCursorUseCount = newSceneCursorUseCount;
+}
+
 qint32 Player::getSceneHost() const
 {
     return sceneHost;
@@ -279,6 +302,34 @@ void Player::setSceneHost(qint32 value)
 {
     sceneHost = value;
 }
+
+//void Player::addSceneHosted(QSharedPointer<Player> value)
+//{
+//    if ( value != nullptr )
+//    {
+//        //qDebug() << "Adding to scene" << this << value;
+//        sceneHostedPlayers.insert( value, value->getSernumHex_s() );
+//        QObject::connect( this, &Player::packetToSceneHostedPlayers, value.data(), &Player::packetFromSceneHost );
+//    }
+//}
+
+//void Player::removeSceneHosted(QSharedPointer<Player> value, const bool& all)
+//{
+//    if ( all )
+//    {
+//        //qDebug() << "Removing all from scene" << this << this->disconnect( this, &Player::packetToSceneHostedPlayers, nullptr, nullptr );
+//        this->disconnect( this, &Player::packetToSceneHostedPlayers, nullptr, nullptr );
+//        sceneHostedPlayers.clear();
+//        return;
+//    }
+
+//    if ( value != nullptr )
+//    {
+//        //qDebug() << "Removing from scene" << this << value;
+//        this->disconnect( this, nullptr, value.data(), nullptr );
+//        sceneHostedPlayers.remove( value );
+//    }
+//}
 
 qint32 Player::getTargetSerNum() const
 {
@@ -310,6 +361,7 @@ QString Player::getPlrName() const
 void Player::setPlrName(const QString& value)
 {
     plrName = value;
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::Name, plrName, Qt::DisplayRole );
 }
 
 QByteArray& Player::getCampPacket()
@@ -646,6 +698,11 @@ void Player::setIsIncarnated(bool newIsIncarnated)
 {
     isIncarnated = newIsIncarnated;
     this->updateIconState();
+
+    if ( isIncarnated )
+        this->pingUpdateTimer.start();
+    else
+        this->pingUpdateTimer.stop();
 }
 
 bool Player::getIsGhosting() const
@@ -657,6 +714,44 @@ void Player::setIsGhosting(bool newIsGhosting)
 {
     isGhosting = newIsGhosting;
     this->updateIconState();
+}
+
+QString Player::getBaudString(const PlrCols& type)
+{
+    QString baud{ "%1 %2, %3 Pkts" };
+    QString bytesUnit{ "" };
+    QString bytes{ "" };
+
+    if ( type == PlrCols::BytesOut )
+        Helper::sanitizeToFriendlyUnits( this->getBytesOut(), bytes, bytesUnit );
+    else
+        Helper::sanitizeToFriendlyUnits( this->getBytesIn(), bytes, bytesUnit );
+
+    baud = baud.arg( bytes )
+               .arg( bytesUnit );
+
+    if ( type == PlrCols::BytesOut )
+        baud = baud.arg( QString::number( this->getPacketsOut() ) );
+    else
+        baud = baud.arg( QString::number( this->getPacketsIn() ) );
+
+    if ( type == PlrCols::BytesOut )
+    {
+        qint64 bufferSize{ this->getOutBuff().size() };
+        if ( bufferSize > 0 )
+        {
+            QString bufferStr{ ", Buffer Size %1 %2" };
+            QString bytesUnit{ "" };
+            QString bytesBuffer{ "" };
+
+            Helper::sanitizeToFriendlyUnits( bufferSize, bytesBuffer, bytesUnit );
+            bufferStr = bufferStr.arg( bytesBuffer )
+                                 .arg( bytesUnit );
+
+            baud = baud.append( bufferStr );
+        }
+    }
+    return baud;
 }
 
 quint64 Player::getMuteDuration()
@@ -672,6 +767,90 @@ void Player::setMuteDuration(const quint64& value)
     muteDuration = value;
     if ( value == 0 )
         User::removePunishment( this->getSernumHex_s(), PunishTypes::Mute, PunishTypes::SerNum );
+}
+
+qint64 Player::getPlrPingResponseTime() const
+{
+    return plrPingResponseTime;
+}
+
+void Player::setPlrPingResponseTime(const qint64& newPlrPingResponseTime)
+{
+    plrPingResponseTime = newPlrPingResponseTime;
+
+    this->setPlrPingCount( this->getPlrPingCount() + 1 );
+    this->setPlrPing();
+}
+
+qint64 Player::getPlrPingTime() const
+{
+    return plrPingTime;
+}
+
+void Player::setPlrPingTime(const qint64& newPlrPingTime)
+{
+    plrPingTime = newPlrPingTime;
+}
+
+qint64 Player::getPlrPingCount() const
+{
+    return plrPingCount;
+}
+
+void Player::setPlrPingCount(const qint64& newPlrPingCount)
+{
+    plrPingCount = newPlrPingCount;
+}
+
+QString Player::getPlrPingString()
+{
+    QString pingInfo{ "%1 ms, Avg: %2 ms, Trend: %3 ms" };
+
+    pingInfo = pingInfo.arg( this->getPlrPing() )
+                       .arg( this->getPlrPingAvg() )
+                       .arg( this->getPlrPingTrend() );
+    return pingInfo;
+}
+
+qint64 Player::getPlrPing()
+{
+    return plrPing;
+}
+
+void Player::setPlrPing()
+{
+    if ( this->getPlrPingResponseTime() > this->getPlrPingTime() )
+    {
+        plrPing = ( this->getPlrPingResponseTime() - this->getPlrPingTime() );
+        if ( plrPing > *Globals::MAX_PLAYER_PING_TIME )
+            plrPing = *Globals::MAX_PLAYER_PING_TIME;
+
+        this->setPlrPingTrend( static_cast<double>( plrPing ) );
+        this->setPlrPingAvg( static_cast<double>( plrPing ) );
+    }
+}
+
+double Player::getPlrPingTrend() const
+{
+    return plrPingTrend;
+}
+
+void Player::setPlrPingTrend(const double& newPlrPingTrend)
+{
+    plrPingTrend = plrPingTrend * 0.9 + newPlrPingTrend * 0.1;
+}
+
+double Player::getPlrPingAvg() const
+{
+    if ( plrPingAvg > 0 )
+        return plrPingAvg / this->getPlrPingCount();
+
+    return plrPingAvg;
+}
+
+void Player::setPlrPingAvg(const double& value)
+{
+    plrPingAvg += value;
 }
 
 qint64 Player::getPlrConnectedTime() const
@@ -713,6 +892,20 @@ qint32 Player::getPlrLevel() const
 void Player::setPlrLevel(const qint32& value)
 {
     plrLevel = value;
+
+    const auto sendDisconnectMessage = [this](const QString& message)
+    {
+        server->sendMasterMessage( message, this->getThisPlayer(), false );
+        this->setDisconnected( true, DCTypes::PktDC );
+    };
+
+    if ( this->getIsIncarnated() )
+    {
+        if ( plrLevel > *Globals::MAX_PLAYER_LEVEL )
+            sendDisconnectMessage( "You have been disconnected due to your level exceeding the maximum level [ 100 ] that WoS supports." );
+        else if ( plrLevel < *Globals::MIN_PLAYER_LEVEL )
+            sendDisconnectMessage( "You have been disconnected due to your level being below the minimum level [ 1 ] that WoS supports." );
+    }
 }
 
 qint32 Player::getPlrCheatCount() const
@@ -1034,6 +1227,12 @@ void Player::vanishStateTimerTimeOutSlot()
     }
 }
 
+void Player::pingUpdateTimerTimeOutSlot()
+{
+    if ( this->getIsIncarnated() )
+        server->sendPingToPlayer( this->getThisPlayer() );
+}
+
 void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& targetType, const qint32& trgSerNum,
                                     const qint32& trgScene, const QByteArray& packet)
 {
@@ -1088,6 +1287,17 @@ void Player::sendPacketToPlayerSlot(QSharedPointer<Player> plr, const qint32& ta
                     send = true;
                 }
             }
+//            case PktTarget::SCENE:
+//            {
+//                auto host{ this->getSceneHost() };
+//                if ( host != nullptr )
+//                {
+//                    if ( trgScene == host->getSernum_i() )
+//                        send = true;
+//                }
+//                else if ( trgScene == this->getSernum_i() )
+//                    send = true;
+//            }
             break;
         }
     }
@@ -1126,46 +1336,26 @@ void Player::connectionTimeUpdateSlot()
 {
     ++connTime;
 
-    QString baudIn{ "%1 %2, %3 Pkts" };
-    QString baudOut{ "%1 %2, %3 Pkts" };
+    QString plrPing{ "%1 ms" };
 
-    QString bytesOutUnit{ "" };
-    QString bytesOut{ "" };
+    auto ping{ this->getPlrPingAvg() };
+    plrPing = plrPing.arg( ping );
 
-    QString bytesInUnit{ "" };
-    QString bytesIn{ "" };
+    Colors color{ Colors::PlayerPingGood };
+    if ( ping > 100 && ping < 200 )
+        color = Colors::PlayerPingMedium;
+    else if ( ping > 200 )
+        color = Colors::PlayerPingBad;
 
-    Helper::sanitizeToFriendlyUnits( this->getBytesOut(), bytesOut, bytesOutUnit );
-
-    Helper::sanitizeToFriendlyUnits( this->getBytesIn(), bytesIn, bytesInUnit );
-
-    baudIn = baudIn.arg( bytesIn )
-                   .arg( bytesInUnit )
-                   .arg( QString::number( this->getPacketsIn() ) );
-
-    qint64 bufferSize{ this->getOutBuff().size() };
-    if ( bufferSize > 0 )
-    {
-        QString bufferStr{ ", Buffer Size %1 %2" };
-        QString bytesInBufferUnit{ "" };
-        QString bytesInBuffer{ "" };
-
-        Helper::sanitizeToFriendlyUnits( bufferSize, bytesInBuffer, bytesInBufferUnit );
-        bufferStr = bufferStr.arg( bytesInBuffer )
-                             .arg( bytesInBufferUnit );
-        baudIn = baudIn.append( bufferStr );
-    }
-
-    baudOut = baudOut.arg( bytesOut )
-                     .arg( bytesOutUnit )
-                     .arg( QString::number( this->getPacketsOut() ) );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::PlrPing, plrPing, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::PlrPing, *color, Qt::ForegroundRole, true );
 
     emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::Time, Helper::getTimeFormat( this->getConnTime() ), Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesIn, baudIn, Qt::DisplayRole );
-    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesOut, baudOut, Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesIn, this->getBaudString( PlrCols::BytesIn ), Qt::DisplayRole );
+    emit this->updatePlrViewSignal( this->getThisPlayer(), *PlrCols::BytesOut, this->getBaudString( PlrCols::BytesOut ), Qt::DisplayRole );
 
     //Color the User's IP address Green if the Admin is authed Otherwise, color as Red.
-    Colors color{ Colors::Default };
+    color = Colors::Default;
     if ( this->getIsAdmin() )
     {
         if ( this->getAdminPwdReceived() )
@@ -1271,6 +1461,10 @@ void Player::setAdminRankSlot(const QString& hexSerNum, const GMRanks& rank)
         this->setAdminRank( rank );
     }
 }
+
+//void Player::packetFromSceneHost()
+//{
+//}
 
 //Private Slots.
 void Player::mutedSerNumDurationSlot(const QString& sernum, const quint64& duration, const QString& reason)
